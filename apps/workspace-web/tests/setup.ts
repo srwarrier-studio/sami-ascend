@@ -17,3 +17,5 @@ globalThis.ResizeObserver = class {
   unobserve() {}
   disconnect() {}
 }
+
+window.scrollTo = () => {}
