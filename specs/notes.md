@@ -12,7 +12,8 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - **butterfly:** mock SAP OData V4 service in FastAPI, so the apps can be built before the ABAP side exists. Same endpoints and response shapes as the planned RAP services.
 - **First slice:** Sales. An order entered in workspace must show in synapse within 5 minutes.
 - **SAP consultants** have not used RAP. They need a detailed hand-holding guide with response formats. It is written from the contract in `docs/sap/`, not from memory.
-- **Management wants local-first AI.** The AI dashboard is a POC with a small local model (Gemma 270M class). A model that small is unreliable at generating UI, so the plan is to let it pick from existing widgets and fill in their parameters using structured output. The owner has been reading about OpenUI; check what it is before relying on it.
+- **Management wants local-first AI.** The AI dashboard is a POC with a small local model (Gemma 270M class). A model that small is unreliable at generating UI, so the plan is to let it pick from existing widgets and fill in their parameters using structured output. 
+- **OpenUI** (https://www.openui.com/, by Thesys): open-source generative UI framework, React supported, works with Ollama and local models, uses its own line-based "OpenUI Lang" format. Only the home page was read; its claims (such as 58% fewer tokens than JSON) are unverified. A tiny model may follow schema-constrained JSON more reliably than a custom format, and the Gateway product is commercial. Not adopted. In the AI POC, run the same ~20 prompts with the same small model both ways (OpenUI Lang vs JSON with a schema) and keep whichever gives valid dashboards more often. Check the license and dependencies first (security checklist, supplier review).
 
 ## auth-api
 - Entra gives `preferred_username` (the UPN), which may differ from the email in the user table. If Entra logins fail to match, check this first.
