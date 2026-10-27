@@ -6,6 +6,7 @@ requires-python = ">=3.14"
 members = [
     "auth-api",
     "sami-ascend",
+    "structured-logging",
     "synapse-api",
     "token-verification",
     "workspace-api",
@@ -114,6 +115,7 @@ dependencies = [
     { name = "msal" },
     { name = "pwdlib", extra = ["argon2"] },
     { name = "pyjwt" },
+    { name = "structured-logging" },
     { name = "token-verification" },
 ]
 
@@ -123,6 +125,7 @@ requires-dist = [
     { name = "msal", specifier = ">=1.39.0" },
     { name = "pwdlib", extras = ["argon2"], specifier = ">=0.3.1" },
     { name = "pyjwt", specifier = ">=2.15.1" },
+    { name = "structured-logging", editable = "packages/structured-logging" },
     { name = "token-verification", editable = "packages/token-verification" },
 ]
 
@@ -1331,6 +1334,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/ad/eb/4e197bf26b023abaf
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f3/93/181df62699d9b5aca1d87e5cfda131dac87e3cdaebf668662f7206ca3470/starlette-1.9.0-py3-none-any.whl", hash = "sha256:fd3f159936e882d06c1108f84688f7cda2cf85fc6a592a50edbd175e882c2ddc", size = 80335, upload-time = "2026-10-18T15:50:31.526Z" },
 ]
+
+[[package]]
+name = "structured-logging"
+version = "0.1.0"
+source = { editable = "packages/structured-logging" }
+dependencies = [
+    { name = "starlette" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "starlette", specifier = ">=0.40.0" }]
 
 [[package]]
 name = "synapse-api"
