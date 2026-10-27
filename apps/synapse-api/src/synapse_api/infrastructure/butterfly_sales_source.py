@@ -11,6 +11,7 @@ from synapse_api.domain.gateways.sales_source import SalesSource
 from synapse_api.infrastructure.butterfly_sales_mapper import (
     customer_from_json,
     daily_from_json,
+    order_from_json,
     material_from_json,
 )
 from synapse_api.infrastructure.settings import Settings
@@ -34,7 +35,9 @@ class ButterflySalesSource(SalesSource):
         return self.summary("SalesSummaryByMaterial", start, end, material_from_json)
 
     def high_value_orders(self, minimum: Decimal, top: int) -> list[HighValueOrder]:
-        raise NotImplementedError
+        filter_ = f"TotalNetAmount%20ge%20{minimum}%20and%20OverallStatus%20ne%20'X'"
+        path = f"SalesOrder?$filter={filter_}&$orderby=CreationDateTime%20desc&$top={top}"
+        return [order_from_json(row) for row in self.get_rows(path)]
 
     def summary(self, entity: str, start: date, end: date, to_row: Callable[[dict], object]) -> list:
         filter_ = f"OrderDate%20ge%20{start.isoformat()}%20and%20OrderDate%20le%20{end.isoformat()}"
