@@ -26,3 +26,4 @@
 ## Dependencies added so far
 `fastapi[standard]`, `msal`, `pwdlib[argon2]`, `pyjwt` (auth-api).
 `httpx` (workspace-api, to call butterfly/SAP over OData; already used by tests).
+`@mantine/core`, `@mantine/hooks`, `@tanstack/charts`, `zod` (`@sami/ui`; zod gives one definition for prop validation and the JSON schema a model sees). Dev: `vitest`, `jsdom`, `@testing-library/*`, `vite`, `@vitejs/plugin-react`.
