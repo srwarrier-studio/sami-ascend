@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from butterfly.domain.entities.sales_order import SalesOrder
+from butterfly.domain.entities.sales_order import SalesOrder, SalesOrderItem
 
 ROOT = "/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/0001/"
 
@@ -25,6 +25,21 @@ def order_to_json(order: SalesOrder, fields: list[str] | None = None) -> dict:
         "CreatedByUser": order.created_by_user,
         "CreationDateTime": timestamp(order.creation_date_time),
         "LastChangeDateTime": timestamp(order.last_change_date_time),
+    }
+    if fields is None:
+        return row
+    return {name: row[name] for name in fields}
+
+
+def item_to_json(item: SalesOrderItem, fields: list[str] | None = None) -> dict:
+    row = {
+        "SalesOrder": item.sales_order,
+        "SalesOrderItem": item.sales_order_item,
+        "Material": item.material,
+        "MaterialDescription": item.material_description,
+        "Quantity": str(item.quantity),
+        "QuantityUnit": item.quantity_unit,
+        "NetAmount": str(item.net_amount),
     }
     if fields is None:
         return row

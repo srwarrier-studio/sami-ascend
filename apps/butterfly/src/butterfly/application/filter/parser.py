@@ -2,7 +2,7 @@ import re
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
-from butterfly.application.filter.fields import SALES_ORDER_FIELDS, FieldType
+from butterfly.application.filter.fields import FieldType
 from butterfly.application.filter.nodes import (
     COMPARISONS,
     STRING_FUNCTIONS,
@@ -74,8 +74,9 @@ def reject_lambda(text: str):
 
 
 class Parser:
-    def __init__(self, text: str):
+    def __init__(self, text: str, fields: dict):
         reject_lambda(text)
+        self.fields = fields
         self.tokens = tokenize(text)
         self.position = 0
 
@@ -144,9 +145,9 @@ class Parser:
             raise UnsupportedQueryOption(
                 "Lambda operators and paths are not supported in $filter.", TARGET
             )
-        if kind != "ident" or name not in SALES_ORDER_FIELDS:
+        if kind != "ident" or name not in self.fields:
             raise InvalidQuery(f"Unknown field {name} in $filter.", TARGET)
-        return SALES_ORDER_FIELDS[name]
+        return self.fields[name]
 
     def parse_function(self):
         function = self.take()[0]
@@ -172,5 +173,5 @@ class Parser:
         return Comparison(attribute, name, literal_value(text, kind))
 
 
-def parse_filter(text: str):
-    return Parser(text).parse()
+def parse_filter(text: str, fields: dict):
+    return Parser(text, fields).parse()

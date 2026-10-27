@@ -1,27 +1,26 @@
-from butterfly.application.filter.fields import SALES_ORDER_FIELDS
 from butterfly.domain.errors import InvalidQuery
 
 DEFAULT_TOP = 100
 MAX_TOP = 1000
 
 
-def parse_select(text: str | None) -> list[str]:
+def parse_select(text: str | None, fields: dict) -> list[str]:
     if text is None:
-        return list(SALES_ORDER_FIELDS)
+        return list(fields)
     names = [name.strip() for name in text.split(",")]
     for name in names:
-        if name not in SALES_ORDER_FIELDS:
+        if name not in fields:
             raise InvalidQuery(f"Unknown field {name or '(empty)'} in $select.", "$select")
-    return [name for name in SALES_ORDER_FIELDS if name in names]
+    return [name for name in fields if name in names]
 
 
-def parse_orderby(text: str | None) -> list[tuple[str, bool]]:
+def parse_orderby(text: str | None, fields: dict) -> list[tuple[str, bool]]:
     if text is None:
         return []
     keys = []
     for part in text.split(","):
         words = part.split()
-        if len(words) not in (1, 2) or words[0] not in SALES_ORDER_FIELDS:
+        if len(words) not in (1, 2) or words[0] not in fields:
             raise InvalidQuery(f"Cannot sort by '{part.strip()}' in $orderby.", "$orderby")
         direction = words[1] if len(words) == 2 else "asc"
         if direction not in ("asc", "desc"):
@@ -55,3 +54,12 @@ def parse_count(text: str | None) -> bool:
     if text == "true":
         return True
     raise InvalidQuery("$count must be true or false.", "$count")
+
+
+def parse_expand(text: str | None) -> bool:
+    if text is None:
+        return False
+    for name in text.split(","):
+        if name.strip() != "_Item":
+            raise InvalidQuery(f"Cannot expand {name.strip() or '(empty)'} in $expand.", "$expand")
+    return True

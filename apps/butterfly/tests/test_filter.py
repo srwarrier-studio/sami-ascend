@@ -3,7 +3,7 @@ from datetime import date
 
 import pytest
 
-from butterfly.application.dto.list_sales_orders_dto import ListSalesOrdersQuery
+from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.usecase.list_sales_orders import ListSalesOrders
 from butterfly.domain.errors import InvalidQuery
 from butterfly.infrastructure.memory.in_memory_sales_order_repo import InMemorySalesOrderRepo
@@ -11,8 +11,8 @@ from conftest import ORDERS, TODAY
 
 
 def run(filter_text, orders=ORDERS):
-    query = ListSalesOrdersQuery(filter=filter_text)
-    return ListSalesOrders(InMemorySalesOrderRepo(orders)).execute(query).orders
+    query = ListQuery(filter=filter_text)
+    return ListSalesOrders(InMemorySalesOrderRepo(orders)).execute(query).rows
 
 
 def numbers(filter_text, orders=ORDERS):

@@ -3,7 +3,7 @@ from datetime import date
 
 import pytest
 
-from butterfly.application.dto.list_sales_orders_dto import ListSalesOrdersQuery
+from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.usecase.list_sales_orders import ListSalesOrders
 from butterfly.infrastructure.api.odata import ROOT
 from butterfly.infrastructure.memory.in_memory_sales_order_repo import InMemorySalesOrderRepo
@@ -13,9 +13,9 @@ URL = ROOT + "SalesOrder"
 
 
 def keys(orderby, orders=ORDERS):
-    query = ListSalesOrdersQuery(orderby=orderby)
+    query = ListQuery(orderby=orderby)
     result = ListSalesOrders(InMemorySalesOrderRepo(orders)).execute(query)
-    return [order.sales_order for order in result.orders]
+    return [order.sales_order for order in result.rows]
 
 
 class TestOrderBy:

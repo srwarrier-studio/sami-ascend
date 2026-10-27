@@ -22,3 +22,13 @@ SALES_ORDER_FIELDS = {
     "CreationDateTime": ("creation_date_time", FieldType.DATETIME),
     "LastChangeDateTime": ("last_change_date_time", FieldType.DATETIME),
 }
+
+SALES_ORDER_ITEM_FIELDS = {
+    "SalesOrder": ("sales_order", FieldType.STRING),
+    "SalesOrderItem": ("sales_order_item", FieldType.STRING),
+    "Material": ("material", FieldType.STRING),
+    "MaterialDescription": ("material_description", FieldType.STRING),
+    "Quantity": ("quantity", FieldType.DECIMAL),
+    "QuantityUnit": ("quantity_unit", FieldType.STRING),
+    "NetAmount": ("net_amount", FieldType.DECIMAL),
+}

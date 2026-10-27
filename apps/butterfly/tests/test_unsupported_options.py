@@ -7,7 +7,7 @@ URL = ROOT + "SalesOrder"
 
 
 class TestUnsupportedQueryOption:
-    @pytest.mark.parametrize("name", ["$apply", "$search", "$format", "$expand", "$levels"])
+    @pytest.mark.parametrize("name", ["$apply", "$search", "$format", "$levels"])
     def test_is_400_with_the_option_as_target(self, name):
         response = make_client().get(URL, params={name: "x"})
 

@@ -1,10 +1,9 @@
 from dataclasses import dataclass, field
-
-from butterfly.domain.entities.sales_order import SalesOrder
+from typing import Any
 
 
 @dataclass(frozen=True)
-class ListSalesOrdersQuery:
+class ListQuery:
     filter: str | None = None
     select: str | None = None
     orderby: str | None = None
@@ -14,7 +13,8 @@ class ListSalesOrdersQuery:
 
 
 @dataclass(frozen=True)
-class ListSalesOrdersResult:
-    orders: list[SalesOrder]
+class ListResult:
+    rows: list[Any]
     total: int | None
     select: list[str] = field(default_factory=list)
+    expand: bool = False
