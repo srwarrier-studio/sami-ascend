@@ -88,3 +88,10 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - Only the `sales` role may use the routes; `admin` alone gets 403. A stand-in gets the `sales` role through auth-api 02.
 - `InvalidQuery` (domain error) becomes 422 `INVALID_QUERY`; `SalesOrderRejected` becomes 422 `VALIDATION_FAILED` with `details`; `SapUnavailable` becomes 503 `SAP_UNAVAILABLE` with no SAP detail.
 - Route tests share `make_client` and `VALID_BODY` from `tests/test_routes_access.py`.
+
+## workspace-web (`apps/workspace-web`)
+- All UI comes from `@sami/ui`; no `@mantine/*` imports in the app. Auth calls live only in `src/api/auth.ts`; tests pass a fake `AuthClient` to `App`.
+- `App` loads `/me` first, then creates the router with the loaded session. Route guards (`beforeLoad`) read the session from router context; `router.invalidate()` re-runs them when it changes (login, logout). Creating the router earlier remounts the first page.
+- Menu and the `/sales-orders` guard share `allowedEntries` in `src/menu.ts`. Roles are matched with "any", so `admin` alone sees nothing.
+- Tests use `createMemoryHistory`; `tests/setup.ts` copies the `@sami/ui` stubs plus `scrollTo`.
+- Run: `pnpm --filter workspace-web test`.
