@@ -14,7 +14,7 @@ Everything runs against butterfly (mock SAP) until the real RAP services exist.
 - 05 sales-end-to-end: prove an order entered in workspace shows in synapse within 5 minutes. todo
 
 ## butterfly (mock SAP, FastAPI, OData V4)
-- 01 scaffold-sales-read: serve `SalesOrder` with `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$count` from seed data. todo
+- 01 scaffold-sales-read: serve `SalesOrder` with `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$count` from seed data. done (tag `butterfly-phase-01-done`, 2026-10-27)
 - 02 sales-write: create and change a sales order, with validation errors in the OData V4 error format. todo
 - 03 sales-summaries: read-only summary entities for dashboard totals (by day, customer, material). todo
 - 04 failure-modes: configurable delays, errors and timeouts so the apps handle SAP being slow or down. todo
