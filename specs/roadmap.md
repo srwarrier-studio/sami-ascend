@@ -7,7 +7,7 @@ First slice is Sales. Workspace enters sales orders, synapse shows them, within 
 Everything runs against butterfly (mock SAP) until the real RAP services exist.
 
 ## shared
-- 01 sales-odata-contract: agree the OData V4 Sales service (entities, fields, query options, error format) in `docs/sap/`. todo
+- 01 sales-odata-contract: agree the OData V4 Sales service (entities, fields, query options, error format) in `docs/sap/`. done (tag `shared-phase-01-done`, 2026-10-27)
 - 02 token-verification: one package every API uses to check the login cookie. todo
 - 03 structured-logging: JSON logs with a request id across services. todo
 - 04 sap-identity-decision: decide who posts in SAP for workspace writes (real user or technical user) and record it. todo
