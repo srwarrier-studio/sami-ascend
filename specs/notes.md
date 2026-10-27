@@ -29,6 +29,6 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - Summaries are per day, one row per currency; MTD and YTD are summed by synapse-api. `$apply` is not used.
 - Single-entity reads carry `@odata.etag`; `PATCH` needs `If-Match` and changes only `RequestedDeliveryDate`.
 - Validation errors are one `VALIDATION_FAILED` with a `details` entry per field. Apps branch on `code`, never on `message`.
-- Section 9 holds the open questions for the SAP consultants. Service name and path are placeholders until confirmed.
+- Questions for the SAP consultants live in `docs/sap/consultant-questions.md`, not in phases. Service name and path are placeholders until confirmed.
 - Check the examples with `uv run --with pytest pytest docs/sap`.
 
