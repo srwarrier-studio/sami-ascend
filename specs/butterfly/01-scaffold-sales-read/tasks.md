@@ -4,4 +4,4 @@
 - [x] 2. `$filter` parser and evaluator. Done when every operator, function, precedence and bad-filter case passes.
 - [x] 3. `$select`, `$orderby`, `$top`, `$skip`, `$count` and the unsupported-option 400s. Done when the query option cases pass.
 - [x] 4. `$expand=_Item` and `SalesOrder('key')/_Item`. Done when the expand cases pass.
-- [ ] 5. Contract check: tests compare responses with the field tables in `docs/sap/sales-contract.md`, plus a run command in the app README. Done when the contract example cases pass.
+- [x] 5. Contract check: tests compare responses with the field tables in `docs/sap/sales-contract.md`, plus a run command in the app README. Done when the contract example cases pass.
