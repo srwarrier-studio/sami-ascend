@@ -1624,8 +1624,12 @@ name = "workspace-api"
 version = "0.1.0"
 source = { editable = "apps/workspace-api" }
 dependencies = [
+    { name = "httpx" },
     { name = "structured-logging" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "structured-logging", editable = "packages/structured-logging" }]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "structured-logging", editable = "packages/structured-logging" },
+]
