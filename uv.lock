@@ -115,6 +115,7 @@ dependencies = [
     { name = "msal" },
     { name = "pwdlib", extra = ["argon2"] },
     { name = "pyjwt" },
+    { name = "structured-logging" },
     { name = "token-verification" },
 ]
 
@@ -124,6 +125,7 @@ requires-dist = [
     { name = "msal", specifier = ">=1.39.0" },
     { name = "pwdlib", extras = ["argon2"], specifier = ">=0.3.1" },
     { name = "pyjwt", specifier = ">=2.15.1" },
+    { name = "structured-logging", editable = "packages/structured-logging" },
     { name = "token-verification", editable = "packages/token-verification" },
 ]
 

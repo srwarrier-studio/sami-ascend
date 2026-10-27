@@ -1,6 +1,7 @@
 from typing import Annotated
 
 import uvicorn
+from structured_logging import RequestIdMiddleware, setup_logging
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
@@ -19,6 +20,8 @@ from auth_api.infrastructure.api.schema import Me
 from auth_api.infrastructure.interface.msal_auth_provider import MSALAuthProvider
 from auth_api.infrastructure.sqlite.sqlite_unit_of_work import SqliteAuthUnitOfWork
 
+setup_logging("auth-api")
+
 auth_provider = MSALAuthProvider()
 uow = SqliteAuthUnitOfWork(settings.DATABASE_PATH)
 password_hasher = Argon2PasswordHasher()
@@ -32,6 +35,7 @@ app.add_middleware(
     allow_credentials=True,
 )
 app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_SECRET)
+app.add_middleware(RequestIdMiddleware)
 
 router_head = APIRouter()
 
@@ -111,4 +115,4 @@ def logout(response: Response):
 app.include_router(router_head, prefix="/v1/auth", tags=["Auth"])
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8001, log_config=None)
