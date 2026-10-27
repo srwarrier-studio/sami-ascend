@@ -272,6 +272,110 @@ GET {root}SalesSummaryByDay?$filter=OrderDate ge 2026-10-26 and OrderDate le 202
 A collection response never carries `@odata.nextLink`. Callers page with `$top` and `$skip`
 and stop when a page returns fewer rows than `$top`.
 
+## 6. Writes
+
+Writes are `POST` to create and `PATCH` to change header fields. There is no delete. Send
+`Content-Type: application/json`.
+
+### Create (deep insert)
+
+```
+POST {root}SalesOrder
+```
+
+```json
+{
+  "SalesOrderType": "OR",
+  "SoldToParty": "0000100001",
+  "RequestedDeliveryDate": "2026-11-05",
+  "TransactionCurrency": "INR",
+  "_Item": [
+    { "Material": "RM-1001", "Quantity": "50.000", "QuantityUnit": "KG" },
+    { "Material": "RM-1002", "Quantity": "25.000", "QuantityUnit": "KG" }
+  ]
+}
+```
+
+Input rules:
+
+| Field | Rule |
+|-------|------|
+| `SalesOrderType`, `SoldToParty`, `TransactionCurrency` | Required |
+| `RequestedDeliveryDate` | Optional; must not be before today |
+| `_Item` | Required, at least one item |
+| `Material`, `Quantity`, `QuantityUnit` | Required on each item; `Quantity` greater than 0 |
+
+SAP fills in everything else: `SalesOrder`, `SalesOrderItem` (`000010`, `000020`, ...),
+`CustomerName`, `MaterialDescription`, `OrderDate` (today), `NetAmount`, `TotalNetAmount`,
+`OverallStatus` (`A`), `CreatedByUser`, and both timestamps. Prices come from SAP pricing.
+
+Response: `201 Created` with the full order and its items, as in the `$expand=_Item` example
+in section 5, plus a `Location` header with the new order URL.
+
+### Change header fields
+
+```
+PATCH {root}SalesOrder('0000012345')
+If-Match: W/"20261027091530"
+```
+
+```json
+{ "RequestedDeliveryDate": "2026-11-12" }
+```
+
+Only `RequestedDeliveryDate` can be changed. A cancelled or completed order (`X`, `C`) cannot
+be changed. `If-Match` is required and takes the `@odata.etag` from the last read.
+
+Response: `200 OK` with the full updated order (no items) and a new `@odata.etag`.
+
+### 400 Validation error
+
+Returned for a failed input rule. `details` has one entry per failed field, so the web form
+can show every message at once. `target` is the field path.
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message": "The sales order has errors.",
+    "details": [
+      {
+        "code": "CUSTOMER_UNKNOWN",
+        "message": "Customer 0000999999 does not exist.",
+        "target": "SoldToParty"
+      },
+      {
+        "code": "QUANTITY_NOT_POSITIVE",
+        "message": "Quantity must be greater than 0.",
+        "target": "_Item/1/Quantity"
+      }
+    ]
+  }
+}
+```
+
+In `_Item/1/Quantity`, `1` is the zero-based position in the request.
+
+Detail codes: `FIELD_REQUIRED`, `CUSTOMER_UNKNOWN`, `MATERIAL_UNKNOWN`,
+`UNIT_INVALID`, `CURRENCY_INVALID`, `QUANTITY_NOT_POSITIVE`, `DELIVERY_DATE_IN_PAST`,
+`ORDER_NOT_CHANGEABLE`, `NO_ITEMS`.
+
+### 412 ETag mismatch
+
+The order changed since it was read. The caller re-reads and retries.
+
+```json
+{
+  "error": {
+    "code": "ETAG_MISMATCH",
+    "message": "The sales order was changed by someone else. Reload and try again.",
+    "target": "SalesOrder"
+  }
+}
+```
+
+A `PATCH` without `If-Match` returns `428` with code `ETAG_REQUIRED`, same shape.
+
 ## 7. Error format
 
 Every non-2xx response has this body and `Content-Type: application/json`:
@@ -345,3 +449,20 @@ Every non-2xx response has this body and `Content-Type: application/json`:
 
 For `500`, `target` holds the request id. The `400` validation and `412` ETag mismatch
 examples are in section 6, next to the writes they belong to.
+
+## 8. Identity
+
+Every request carries one SAP login. Whether it is the end user or a technical user is not
+decided here; see roadmap `shared/04`. `CreatedByUser` records whichever SAP user posted.
+Who in the app actually asked is recorded in the app's `audit_log`, not in SAP.
+
+## 9. Open questions for SAP consultants
+
+1. Service name, root path and namespace: confirm or replace section 1.
+2. Is `OverallStatus` the right source, and are `A`, `B`, `C`, `X` the right codes?
+3. Can `TotalNetAmount` and `NetAmount` be returned in the order currency, with pricing done on create?
+4. Is `ETag` available on the order through RAP (`LastChangeDateTime` as the etag field)?
+5. Can summary CDS views be exposed as read-only entities with the keys in section 2?
+6. Is `$top` above 1000 rejected, and `$count` supported on all entities?
+7. Do the validation detail codes in section 6 map to RAP messages with a stable `code`?
+8. Which orders may a read-only management login see (sales organisation, plant)?
