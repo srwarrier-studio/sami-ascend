@@ -36,12 +36,13 @@ workspace-web 03 and shared 04-05 can follow.
 ## synapse-api (dashboard backend)
 - 01 sales-source: an interface to read sales data, with an implementation that calls butterfly. todo
 - 02 sales-kpis: use cases for today, month-to-date, year-to-date, top customers and materials; cached and refreshed every 5 minutes. todo
-- 03 dashboard-routes: role-checked routes that return dashboard data to the web app. todo
+- 03 dashboard-routes: role-checked routes that return the data each catalog widget needs (month-on-month sales, day sales, recent high-value sales, top customers and materials). todo
+- 04 board-storage: each user's own boards (name, widgets with name, props and grid position), saved in SQLite behind a repo, with list, create, rename, delete and save-layout routes. todo
 
 ## synapse-web (management dashboards)
 - 01 shell-and-login: app shell, login page, and the "not allowed" page, using `/me`. todo
-- 02 widget-kit: KPI card, trend chart and ranked list as data-driven widgets in one registry. todo
-- 03 sales-dashboard: one single-screen sales dashboard, auto-refresh every 5 minutes, no dropdown filters. todo
+- 02 widget-catalog: the predefined sales widgets (MoM sales, day sales, recent high-value sales table, top customers and materials) built on the `@sami/ui` registry from shared/06. todo
+- 03 board: a free board per user with drag, resize and a widget picker, saved through the board API, widgets auto-refresh every 5 minutes, no dropdown filters. todo
 - 04 ai-ready-review: check widgets against the AI dashboard needs before the POC. todo
 
 ## workspace-api (workflow backend)

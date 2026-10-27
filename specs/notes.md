@@ -8,6 +8,7 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 
 ## What we are building
 - **synapse:** dashboards for management. Read-only, modern, single click, near real time (5 minutes). Management rejected the Fiori dashboards as old looking, with too many dropdowns, drilldowns and filters.
+- **synapse board (decided 2026-10-27):** users get a free board and add predefined widgets (MoM sales, day sales, recent high-value sales table and so on) by drag and drop. Each user has own boards only, no sharing. Widgets stay free of filters; the choice of widget is the customization. Drag and layout live in synapse-web, widgets and their size hints come from `@sami/ui`.
 - **workspace:** daily-use workflow app for department users ("executives" means staff such as stores executives). Replaces SAP Logon. Users' top complaint is the old SAP Logon interface; they want more features and an easy, modern UI.
 - **butterfly:** mock SAP OData V4 service in FastAPI, so the apps can be built before the ABAP side exists. Same endpoints and response shapes as the planned RAP services.
 - **First slice:** Sales. An order entered in workspace must show in synapse within 5 minutes.
