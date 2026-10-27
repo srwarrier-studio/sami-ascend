@@ -50,7 +50,7 @@ workspace-web 03 and shared 04-05 can follow.
 - 02 sales-order-routes: role-checked routes for creating and listing orders. done (tag `workspace-api-phase-02-done`, 2026-10-27)
 
 ## workspace-web (department users)
-- 01 shell-and-login: app shell, login page, menu by role. todo
+- 01 shell-and-login: app shell, login page, menu by role. done (tag `workspace-web-phase-01-done`, 2026-10-27)
 - 02 sales-order-entry: form to enter a sales order with clear validation messages. todo
 - 03 sales-order-list: list and open the user's recent orders. todo
 
