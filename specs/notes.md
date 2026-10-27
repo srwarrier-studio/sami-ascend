@@ -22,3 +22,13 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - `Settings` reads the `.env` at the repo root, whatever the working directory.
 - Logout only clears the cookie; tokens are not revoked server-side yet (see security checklist).
 - `MockAuthUnitOfWork` has no audit repo; use `SqliteAuthUnitOfWork` with a temp file in tests that need audit.
+
+## Sales contract (`docs/sap/sales-contract.md`)
+- Source of truth for butterfly, the gateways and the consultant guide. Change it first, then the code.
+- Decimals are JSON strings; dates are `Edm.Date`; timestamps are UTC with `Z`; `OverallStatus` is `A`, `B`, `C`, `X`.
+- Summaries are per day, one row per currency; MTD and YTD are summed by synapse-api. `$apply` is not used.
+- Single-entity reads carry `@odata.etag`; `PATCH` needs `If-Match` and changes only `RequestedDeliveryDate`.
+- Validation errors are one `VALIDATION_FAILED` with a `details` entry per field. Apps branch on `code`, never on `message`.
+- Section 9 holds the open questions for the SAP consultants. Service name and path are placeholders until confirmed.
+- Check the examples with `uv run --with pytest pytest docs/sap`.
+
