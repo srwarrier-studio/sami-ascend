@@ -71,3 +71,56 @@ describe('signed in', () => {
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
   })
 })
+
+const withRoles = (roles: string[]): User => ({ ...sales, roles })
+
+describe('menu by role', () => {
+  it.each([[['sales']], [['stores', 'sales']]])('shows Sales orders for %j', async (roles) => {
+    open('/', fakeClient(withRoles(roles)))
+    expect(await screen.findByRole('link', { name: 'Sales orders' })).toBeInTheDocument()
+  })
+
+  it.each([[['admin']], [['stores']]])('hides Sales orders for %j', async (roles) => {
+    open('/', fakeClient(withRoles(roles)))
+    await screen.findByRole('heading', { name: 'Welcome' })
+    expect(screen.queryByRole('link', { name: 'Sales orders' })).not.toBeInTheDocument()
+  })
+})
+
+describe('sales orders guard', () => {
+  it('shows coming soon to sales', async () => {
+    open('/sales-orders', fakeClient(sales))
+    expect(await screen.findByRole('heading', { name: 'Coming soon' })).toBeInTheDocument()
+  })
+
+  it('sends a user without sales to not allowed', async () => {
+    open('/sales-orders', fakeClient(withRoles(['stores'])))
+    expect(await screen.findByRole('heading', { name: 'Not allowed' })).toBeInTheDocument()
+  })
+
+  it('sends a signed-out user to login', async () => {
+    open('/sales-orders', fakeClient(null))
+    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
+  })
+})
+
+describe('shell', () => {
+  it('shows the sap username', async () => {
+    open('/', fakeClient(sales))
+    expect(await screen.findByText('ANNA')).toBeInTheDocument()
+  })
+
+  it('keeps the shell on page not found', async () => {
+    open('/nowhere', fakeClient(sales))
+    await screen.findByRole('heading', { name: 'Page not found' })
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+  })
+
+  it('signs out and lands on login', async () => {
+    const client = fakeClient(sales)
+    open('/', client)
+    await userEvent.click(await screen.findByRole('button', { name: 'Sign out' }))
+    expect(client.logout).toHaveBeenCalled()
+    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
+  })
+})

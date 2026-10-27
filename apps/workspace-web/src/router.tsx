@@ -4,6 +4,7 @@ import {
   createRouter,
   redirect,
   Outlet,
+  useRouteContext,
 } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
 import type { Session } from './session/useSession'
@@ -11,6 +12,9 @@ import { LoginPage } from './pages/LoginPage'
 import { HomePage } from './pages/HomePage'
 import { NotAllowedPage } from './pages/NotAllowedPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { ComingSoonPage } from './pages/ComingSoonPage'
+import { Shell } from './Shell'
+import { allowedEntries } from './menu'
 
 export type RouterContext = {
   session: Session
@@ -18,8 +22,18 @@ export type RouterContext = {
   logout: () => Promise<void>
 }
 
+function RootLayout() {
+  const { session, logout } = useRouteContext({ from: '__root__' })
+  if (session.status !== 'signedIn') return <Outlet />
+  return (
+    <Shell user={session.user} onLogout={logout}>
+      <Outlet />
+    </Shell>
+  )
+}
+
 const rootRoute = createRootRouteWithContext<RouterContext>()({
-  component: Outlet,
+  component: RootLayout,
   notFoundComponent: NotFoundPage,
 })
 
@@ -52,7 +66,19 @@ const notAllowedRoute = createRoute({
   component: NotAllowedPage,
 })
 
-const routeTree = rootRoute.addChildren([loginRoute, homeRoute, notAllowedRoute])
+const salesOrdersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/sales-orders',
+  beforeLoad: ({ context }) => {
+    requireSignedIn({ context })
+    if (context.session.status !== 'signedIn') return
+    const allowed = allowedEntries(context.session.user.roles).some((e) => e.path === '/sales-orders')
+    if (!allowed) throw redirect({ to: '/not-allowed' })
+  },
+  component: ComingSoonPage,
+})
+
+const routeTree = rootRoute.addChildren([loginRoute, homeRoute, notAllowedRoute, salesOrdersRoute])
 
 export const createAppRouter = (context: RouterContext, history?: RouterHistory) =>
   createRouter({ routeTree, context, history })
