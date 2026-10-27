@@ -104,3 +104,12 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - SAP error `target` maps to fields: `SoldToParty` and the other header names, `_Item/<n>/Quantity` (zero-based row). Anything unmatched, such as `NO_ITEMS`, shows in the alert above the form. Branch on `code`, never on `message`.
 - Customer, material and unit are free text until lookup endpoints exist; SAP is the validator.
 - `tests/theme-only.test.ts` bans `@mantine/*` imports and inline styles in `src/`.
+
+## synapse-api (`apps/synapse-api`)
+- Source: `SalesSource` has the three summary reads and `high_value_orders(minimum, top)`. `ButterflySalesSource` takes `Settings` and an optional `httpx` transport (tests pass `MockTransport`). Adding up days, ranking and caching are phase 02.
+- Query strings are built by hand with `%20`, as in workspace-api. `X-Request-ID` is sent only when `get_request_id()` has a value.
+- Any status other than `200` and a body without `value` are `SapUnavailable`. `401`/`403` from SAP are not mapped yet; decide with shared/04.
+- A null `CustomerName` or `MaterialDescription` becomes `""`, so entities keep plain `str`.
+- High-value orders are limited by `$top` only; there is no paging past it.
+- `setup_logging("synapse-api")` runs when `synapse_api.entrypoint` is imported; phase 03 must import the app from there.
+- Run: `uv run --package synapse-api --with pytest pytest apps/synapse-api -v`.
