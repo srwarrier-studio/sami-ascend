@@ -1340,11 +1340,15 @@ name = "token-verification"
 version = "0.1.0"
 source = { editable = "packages/token-verification" }
 dependencies = [
+    { name = "fastapi" },
     { name = "pyjwt" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pyjwt", specifier = ">=2.15.1" }]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.161.1" },
+    { name = "pyjwt", specifier = ">=2.15.1" },
+]
 
 [[package]]
 name = "truststore"
