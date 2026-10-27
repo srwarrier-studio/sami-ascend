@@ -5,6 +5,7 @@ requires-python = ">=3.14"
 [manifest]
 members = [
     "auth-api",
+    "butterfly",
     "sami-ascend",
     "structured-logging",
     "synapse-api",
@@ -127,6 +128,21 @@ requires-dist = [
     { name = "pyjwt", specifier = ">=2.15.1" },
     { name = "structured-logging", editable = "packages/structured-logging" },
     { name = "token-verification", editable = "packages/token-verification" },
+]
+
+[[package]]
+name = "butterfly"
+version = "0.1.0"
+source = { editable = "apps/butterfly" }
+dependencies = [
+    { name = "fastapi", extra = ["standard"] },
+    { name = "structured-logging" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.161.1" },
+    { name = "structured-logging", editable = "packages/structured-logging" },
 ]
 
 [[package]]
