@@ -17,6 +17,7 @@ Answered with the answer and the date, and update the document that depended on 
 8. Which orders may a read-only management login see (sales organisation, plant)?
 9. Which `SalesOrderType` values are valid on create, and which message code does SAP return for an invalid one? The contract has no detail code for it yet.
 10. May a caller send fields that SAP fills in (for example `OverallStatus`)? We reject them with `FIELD_NOT_ALLOWED`; confirm RAP can do the same.
+11. Do the summary CDS views exclude cancelled orders (`X`)? We assume yes. Can they be read by key, or only with `$filter`?
 
 ## Answered
 

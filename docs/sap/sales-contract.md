@@ -91,6 +91,9 @@ Summaries are per day. Month-to-date and year-to-date are sums over a `$filter` 
 `OrderDate`, done by synapse-api. Each summary has one row per currency per key; synapse-api
 does not add amounts across currencies.
 
+Cancelled orders (`OverallStatus` `X`) are not counted in any summary. A summary is read with
+`GET {root}<Entity>` and `$filter`; reading one row by key is not supported.
+
 ## 3. Types
 
 | Type | Wire format | Rule |
