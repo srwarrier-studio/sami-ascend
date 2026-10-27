@@ -5,7 +5,7 @@ from auth_api.application.usecase.create_first_admin import CreateFirstAdmin
 from auth_api.application.usecase.create_user import CreateUser
 from auth_api.domain.errors import AdminAlreadyExists, UserAlreadyExists, WeakPassword
 from auth_api.domain.value_objects.email_id import EmailID
-from auth_api.domain.value_objects.role import Role
+from token_verification import Role
 from auth_api.infrastructure.interface.argon2_password_hasher import Argon2PasswordHasher
 from auth_api.infrastructure.sqlite.sqlite_unit_of_work import SqliteAuthUnitOfWork
 

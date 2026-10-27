@@ -12,6 +12,7 @@ dependencies = [
     "msal>=1.39.0",
     "pwdlib[argon2]>=0.3.1",
     "pyjwt>=2.15.1",
+    "token-verification",
 ]
 
 [project.scripts]
@@ -20,3 +21,6 @@ auth-api = "auth_api.entrypoint.cli:main"
 [build-system]
 requires = ["uv_build>=0.9.26,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.uv.sources]
+token-verification = { workspace = true }

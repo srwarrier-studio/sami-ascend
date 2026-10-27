@@ -1,5 +1,5 @@
 from auth_api.domain.value_objects.email_id import EmailID
-from auth_api.domain.value_objects.role import Role
+from token_verification import Role
 from auth_api.domain.value_objects.user_id import UserID
 from dataclasses import dataclass
 

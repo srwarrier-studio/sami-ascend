@@ -1,9 +1,6 @@
 class InvalidCredentials(Exception): ...
 
 
-class InvalidToken(Exception): ...
-
-
 class WeakPassword(Exception): ...
 
 

@@ -2,7 +2,7 @@ from auth_api.application.dto.create_user_dto import CreateFirstAdminDTO, Create
 from auth_api.application.usecase.create_user import CreateUser
 from auth_api.domain.errors import AdminAlreadyExists
 from auth_api.domain.interface.auth_unit_of_work import AuthUnitOfWork
-from auth_api.domain.value_objects.role import Role
+from token_verification import Role
 
 
 class CreateFirstAdmin:
