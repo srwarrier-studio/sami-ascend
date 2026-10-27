@@ -7,19 +7,23 @@ import {
   useRouteContext,
 } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
+import type { SalesOrderClient } from './api/salesOrders'
 import type { Session } from './session/useSession'
 import { LoginPage } from './pages/LoginPage'
 import { HomePage } from './pages/HomePage'
 import { NotAllowedPage } from './pages/NotAllowedPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { NewOrderPage } from './pages/NewOrderPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
 import { Shell } from './Shell'
 import { allowedEntries } from './menu'
+import type { MenuPath } from './menu'
 
 export type RouterContext = {
   session: Session
   login: (username: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
+  salesOrders: SalesOrderClient
 }
 
 function RootLayout() {
@@ -66,19 +70,34 @@ const notAllowedRoute = createRoute({
   component: NotAllowedPage,
 })
 
+const requireMenuAccess = (path: MenuPath) => ({ context }: { context: RouterContext }) => {
+  requireSignedIn({ context })
+  if (context.session.status !== 'signedIn') return
+  const allowed = allowedEntries(context.session.user.roles).some((entry) => entry.path === path)
+  if (!allowed) throw redirect({ to: '/not-allowed' })
+}
+
 const salesOrdersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/sales-orders',
-  beforeLoad: ({ context }) => {
-    requireSignedIn({ context })
-    if (context.session.status !== 'signedIn') return
-    const allowed = allowedEntries(context.session.user.roles).some((e) => e.path === '/sales-orders')
-    if (!allowed) throw redirect({ to: '/not-allowed' })
-  },
+  beforeLoad: requireMenuAccess('/sales-orders'),
   component: ComingSoonPage,
 })
 
-const routeTree = rootRoute.addChildren([loginRoute, homeRoute, notAllowedRoute, salesOrdersRoute])
+const newOrderRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/sales-orders/new',
+  beforeLoad: requireMenuAccess('/sales-orders/new'),
+  component: NewOrderPage,
+})
+
+const routeTree = rootRoute.addChildren([
+  loginRoute,
+  homeRoute,
+  notAllowedRoute,
+  salesOrdersRoute,
+  newOrderRoute,
+])
 
 export const createAppRouter = (context: RouterContext, history?: RouterHistory) =>
   createRouter({ routeTree, context, history })
