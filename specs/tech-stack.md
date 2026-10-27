@@ -22,3 +22,4 @@
 
 ## Dependencies added so far
 `fastapi[standard]`, `msal`, `pwdlib[argon2]`, `pyjwt` (auth-api).
+`httpx` (workspace-api, to call butterfly/SAP over OData; already used by tests).

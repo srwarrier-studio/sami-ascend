@@ -44,7 +44,7 @@ workspace-web 03 and shared 04-05 can follow.
 - 04 ai-ready-review: check widgets against the AI dashboard needs before the POC. todo
 
 ## workspace-api (workflow backend)
-- 01 sales-order-gateway: an interface to create and list sales orders, with an implementation that calls butterfly. todo
+- 01 sales-order-gateway: an interface to create and list sales orders, with an implementation that calls butterfly. done (tag `workspace-api-phase-01-done`, 2026-10-27)
 - 02 sales-order-routes: role-checked routes for creating and listing orders. todo
 
 ## workspace-web (department users)

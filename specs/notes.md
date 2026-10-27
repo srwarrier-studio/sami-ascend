@@ -65,3 +65,12 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - Questions for the SAP consultants live in `docs/sap/consultant-questions.md`, not in phases. Service name and path are placeholders until confirmed.
 - Check the examples with `uv run --with pytest pytest docs/sap`.
 
+
+## workspace-api (`apps/workspace-api`)
+- Gateway: `SalesOrderGateway` has `create` and `list_recent(top, skip)` only. `ButterflySalesOrderGateway` takes `Settings` and an optional `httpx` transport (tests pass `MockTransport`). List is newest first by `SalesOrder` descending, with `$count` and `$expand=_Item`.
+- The list query string is built by hand with `%20`: `httpx` params would send `+` for spaces, which real SAP may not accept.
+- `X-Request-ID` is sent only when `get_request_id()` has a value (it is `None` outside a request).
+- Any unexpected status (not 201/200/400) and an unreadable `400` body are `SapUnavailable`. `401`/`403` from SAP are not mapped yet; decide with shared/04.
+- `ListSalesOrders` raises `ValueError` for `top` outside 1..100 or negative `skip`; routes (phase 02) turn it into 422.
+- `setup_logging("workspace-api")` runs when `workspace_api.entrypoint` is imported; phase 02 must import the app from there.
+- Run: `uv run --package workspace-api --with pytest pytest apps/workspace-api -v`.
