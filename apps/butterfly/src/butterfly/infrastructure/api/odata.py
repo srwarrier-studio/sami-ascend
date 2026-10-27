@@ -46,12 +46,12 @@ def item_to_json(item: SalesOrderItem, fields: list[str] | None = None) -> dict:
     return {name: row[name] for name in fields}
 
 
-def etag(order: SalesOrder) -> str:
-    return 'W/"' + order.last_change_date_time.astimezone(timezone.utc).strftime("%Y%m%d%H%M%S") + '"'
-
-
-def error_body(code: str, message: str, target: str | None = None) -> dict:
+def error_body(
+    code: str, message: str, target: str | None = None, details: list[dict] | None = None
+) -> dict:
     error = {"code": code, "message": message}
     if target is not None:
         error["target"] = target
+    if details is not None:
+        error["details"] = details
     return {"error": error}

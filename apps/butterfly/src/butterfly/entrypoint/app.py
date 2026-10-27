@@ -1,26 +1,39 @@
+import json
 import logging
-from datetime import date
+from datetime import date, datetime
+from typing import Callable
 
 import uvicorn
 from fastapi import APIRouter, FastAPI, Query, Request
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from structured_logging import RequestIdMiddleware, get_request_id, setup_logging
 
 from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.filter.fields import SALES_ORDER_FIELDS, SALES_ORDER_ITEM_FIELDS
 from butterfly.application.query_options import parse_expand
+from butterfly.application.usecase.change_sales_order import ChangeSalesOrder
+from butterfly.application.usecase.create_sales_order import CreateSalesOrder, utc_now
 from butterfly.application.usecase.get_sales_order import GetSalesOrder
 from butterfly.application.usecase.list_sales_order_items import ListSalesOrderItems
 from butterfly.application.usecase.list_sales_orders import ListSalesOrders
-from butterfly.domain.errors import InvalidQuery, SalesOrderNotFound, UnsupportedQueryOption
+from butterfly.domain.errors import (
+    ETagMismatch,
+    ETagRequired,
+    InvalidQuery,
+    SalesOrderNotFound,
+    UnsupportedQueryOption,
+    ValidationFailed,
+)
+from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.api.odata import (
     ROOT,
     error_body,
-    etag,
     item_to_json,
     order_to_json,
 )
+from butterfly.infrastructure.memory.in_memory_master_data_repo import InMemoryMasterDataRepo
 from butterfly.infrastructure.memory.in_memory_sales_order_repo import InMemorySalesOrderRepo
 from butterfly.infrastructure.memory.seed import build_seed
 
@@ -51,7 +64,18 @@ def order_row(order, select: list[str] | None, expand: bool) -> dict:
     return row
 
 
-def create_app(repo: SalesOrderRepo) -> FastAPI:
+HTTP_ERRORS = {
+    404: ("RESOURCE_NOT_FOUND", "The requested resource does not exist."),
+    405: ("METHOD_NOT_ALLOWED", "This method is not supported for this resource."),
+}
+
+
+def create_app(
+    repo: SalesOrderRepo,
+    master_data: MasterDataRepo | None = None,
+    now: Callable[[], datetime] = utc_now,
+) -> FastAPI:
+    master_data = master_data or InMemoryMasterDataRepo()
     app = FastAPI()
     router = APIRouter(prefix=ROOT.rstrip("/"))
 
@@ -84,8 +108,46 @@ def create_app(repo: SalesOrderRepo) -> FastAPI:
         order = GetSalesOrder(repo).execute(key)
         context = context_for("SalesOrder", list(SALES_ORDER_FIELDS), SALES_ORDER_FIELDS, expanded)
         return JSONResponse(
-            {"@odata.context": context + "/$entity", "@odata.etag": etag(order)}
+            {"@odata.context": context + "/$entity", "@odata.etag": order.etag}
             | order_row(order, None, expanded)
+        )
+
+    @router.post("/SalesOrder")
+    async def create_order(request: Request):
+        try:
+            payload = json.loads(await request.body())
+        except ValueError:
+            payload = None
+        if not isinstance(payload, dict):
+            return JSONResponse(
+                error_body("INVALID_REQUEST_BODY", "The request body must be a JSON object.", "body"),
+                status_code=400,
+            )
+        order = CreateSalesOrder(repo, master_data, now).execute(payload)
+        location = f"{str(request.base_url).rstrip('/')}{ROOT}SalesOrder('{order.sales_order}')"
+        context = context_for("SalesOrder", list(SALES_ORDER_FIELDS), SALES_ORDER_FIELDS, True)
+        return JSONResponse(
+            {"@odata.context": context + "/$entity", "@odata.etag": order.etag}
+            | order_row(order, None, True),
+            status_code=201,
+            headers={"Location": location},
+        )
+
+    @router.patch("/SalesOrder('{key}')")
+    async def change_order(key: str, request: Request):
+        try:
+            payload = json.loads(await request.body())
+        except ValueError:
+            payload = None
+        if not isinstance(payload, dict):
+            return JSONResponse(
+                error_body("INVALID_REQUEST_BODY", "The request body must be a JSON object.", "body"),
+                status_code=400,
+            )
+        order = ChangeSalesOrder(repo, now).execute(key, request.headers.get("if-match"), payload)
+        return JSONResponse(
+            {"@odata.context": "$metadata#SalesOrder/$entity", "@odata.etag": order.etag}
+            | order_to_json(order)
         )
 
     @router.get("/SalesOrder('{key}')/_Item")
@@ -124,6 +186,47 @@ def create_app(repo: SalesOrderRepo) -> FastAPI:
     def invalid_query(request: Request, error: InvalidQuery):
         return JSONResponse(
             error_body("INVALID_QUERY", error.message, error.target), status_code=400
+        )
+
+    @app.exception_handler(ValidationFailed)
+    def validation_failed(request: Request, error: ValidationFailed):
+        details = [
+            {"code": d.code, "message": d.message, "target": d.target} for d in error.details
+        ]
+        return JSONResponse(
+            error_body("VALIDATION_FAILED", "The sales order has errors.", details=details),
+            status_code=400,
+        )
+
+    @app.exception_handler(ETagRequired)
+    def etag_required(request: Request, error: ETagRequired):
+        return JSONResponse(
+            error_body(
+                "ETAG_REQUIRED",
+                "An If-Match header with the etag from the last read is required.",
+                "SalesOrder",
+            ),
+            status_code=428,
+        )
+
+    @app.exception_handler(ETagMismatch)
+    def etag_mismatch(request: Request, error: ETagMismatch):
+        return JSONResponse(
+            error_body(
+                "ETAG_MISMATCH",
+                "The sales order was changed by someone else. Reload and try again.",
+                "SalesOrder",
+            ),
+            status_code=412,
+        )
+
+    @app.exception_handler(StarletteHTTPException)
+    def http_error(request: Request, error: StarletteHTTPException):
+        code, message = HTTP_ERRORS.get(error.status_code, ("HTTP_ERROR", str(error.detail)))
+        return JSONResponse(
+            error_body(code, message),
+            status_code=error.status_code,
+            headers=getattr(error, "headers", None),
         )
 
     @app.exception_handler(UnsupportedQueryOption)

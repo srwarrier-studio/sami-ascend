@@ -320,6 +320,10 @@ SAP fills in everything else: `SalesOrder`, `SalesOrderItem` (`000010`, `000020`
 `CustomerName`, `MaterialDescription`, `OrderDate` (today), `NetAmount`, `TotalNetAmount`,
 `OverallStatus` (`A`), `CreatedByUser`, and both timestamps. Prices come from SAP pricing.
 
+Sending a field SAP fills in, or a name that is not a field, is rejected with
+`FIELD_NOT_ALLOWED`. Nothing is created when any problem is found, and all problems are
+returned together.
+
 Response: `201 Created` with the full order and its items, as in the `$expand=_Item` example
 in section 5, plus a `Location` header with the new order URL.
 
@@ -337,7 +341,14 @@ If-Match: W/"20261027091530"
 Only `RequestedDeliveryDate` can be changed. A cancelled or completed order (`X`, `C`) cannot
 be changed. `If-Match` is required and takes the `@odata.etag` from the last read.
 
+Any other field in the body is `FIELD_NOT_ALLOWED`; a missing or null date is `FIELD_REQUIRED`;
+a date before today is `DELIVERY_DATE_IN_PAST`; a cancelled or completed order is
+`ORDER_NOT_CHANGEABLE` with `target` `SalesOrder`. These are returned as `400` in the same shape
+as the create validation error. An unknown order is `404`.
+
 Response: `200 OK` with the full updated order (no items) and a new `@odata.etag`.
+`LastChangeDateTime` moves forward on every change, by at least one second, so the etag
+always changes and a stale `If-Match` is always caught.
 
 ### 400 Validation error
 
@@ -367,9 +378,43 @@ can show every message at once. `target` is the field path.
 
 In `_Item/1/Quantity`, `1` is the zero-based position in the request.
 
-Detail codes: `FIELD_REQUIRED`, `CUSTOMER_UNKNOWN`, `MATERIAL_UNKNOWN`,
-`UNIT_INVALID`, `CURRENCY_INVALID`, `QUANTITY_NOT_POSITIVE`, `DELIVERY_DATE_IN_PAST`,
-`ORDER_NOT_CHANGEABLE`, `NO_ITEMS`.
+Detail codes: `FIELD_REQUIRED`, `FIELD_INVALID`, `FIELD_NOT_ALLOWED`, `CUSTOMER_UNKNOWN`,
+`MATERIAL_UNKNOWN`, `UNIT_INVALID`, `CURRENCY_INVALID`, `QUANTITY_NOT_POSITIVE`,
+`DELIVERY_DATE_IN_PAST`, `ORDER_NOT_CHANGEABLE`, `NO_ITEMS`.
+
+| Code | Meaning | `target` |
+|------|---------|----------|
+| `FIELD_REQUIRED` | A required field is missing, null or empty | the field |
+| `FIELD_INVALID` | The value has the wrong format (date not `YYYY-MM-DD`, quantity not a decimal string, a number where text is required) | the field |
+| `FIELD_NOT_ALLOWED` | A field SAP fills in, or an unknown name | the field |
+| `UNIT_INVALID` | The unit is not the material's unit | `_Item/n/QuantityUnit` |
+| `NO_ITEMS` | `_Item` is missing or empty | `_Item` |
+
+Format and field problems use the same shape, one entry each. Entries are ordered: fields that
+are not allowed first, then the header fields in the order of the field table, then the items
+in request order.
+
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message": "The sales order has errors.",
+    "details": [
+      {
+        "code": "FIELD_NOT_ALLOWED",
+        "message": "OverallStatus is set by SAP and cannot be sent.",
+        "target": "OverallStatus"
+      },
+      {
+        "code": "FIELD_INVALID",
+        "message": "RequestedDeliveryDate must be a date like 2026-11-05.",
+        "target": "RequestedDeliveryDate"
+      }
+    ]
+  }
+}
+```
 
 ### 412 ETag mismatch
 
@@ -434,6 +479,44 @@ does not match the field type, or a bad value for `$top`, `$skip`, `$count` or `
     "code": "INVALID_QUERY",
     "message": "Unknown field Colour in $filter.",
     "target": "$filter"
+  }
+}
+```
+
+### 400 Bad request (invalid body)
+
+The body is not valid JSON, or is JSON but not an object.
+
+```json
+{
+  "error": {
+    "code": "INVALID_REQUEST_BODY",
+    "message": "The request body must be a JSON object.",
+    "target": "body"
+  }
+}
+```
+
+### 404 Unknown resource, 405 Method not allowed
+
+A path that is not in this service is `404 RESOURCE_NOT_FOUND`. A method the resource does not
+support, such as `DELETE` (there is no delete) or `PUT`, is `405 METHOD_NOT_ALLOWED`. Neither
+has a `target`.
+
+```json
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "The requested resource does not exist."
+  }
+}
+```
+
+```json
+{
+  "error": {
+    "code": "METHOD_NOT_ALLOWED",
+    "message": "This method is not supported for this resource."
   }
 }
 ```

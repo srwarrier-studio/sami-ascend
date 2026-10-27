@@ -6,6 +6,10 @@ Status: `todo` or `done` (tag, date). Open phases are the branches named `<app>/
 First slice is Sales. Workspace enters sales orders, synapse shows them, within 5 minutes.
 Everything runs against butterfly (mock SAP) until the real RAP services exist.
 
+Build order for the first slice: butterfly 01-02 (done), workspace-api 01-02, workspace-web 01-02
+(create an order from the browser), then butterfly 03, synapse-api 01-03, synapse-web 01-03.
+workspace-web 03 and shared 04-05 can follow.
+
 ## shared
 - 01 sales-odata-contract: agree the OData V4 Sales service (entities, fields, query options, error format) in `docs/sap/`. done (tag `shared-phase-01-done`, 2026-10-27)
 - 02 token-verification: one package every API uses to check the login cookie. done (tag `shared-phase-02-done`, 2026-10-27)
@@ -15,7 +19,7 @@ Everything runs against butterfly (mock SAP) until the real RAP services exist.
 
 ## butterfly (mock SAP, FastAPI, OData V4)
 - 01 scaffold-sales-read: serve `SalesOrder` with `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$count` from seed data. done (tag `butterfly-phase-01-done`, 2026-10-27)
-- 02 sales-write: create and change a sales order, with validation errors in the OData V4 error format. todo
+- 02 sales-write: create and change a sales order, with validation errors in the OData V4 error format. done (tag `butterfly-phase-02-done`, 2026-10-27)
 - 03 sales-summaries: read-only summary entities for dashboard totals (by day, customer, material). todo
 - 04 failure-modes: configurable delays, errors and timeouts so the apps handle SAP being slow or down. todo
 

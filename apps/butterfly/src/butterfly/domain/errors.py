@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+
+
 class SalesOrderNotFound(Exception):
     def __init__(self, sales_order: str):
         super().__init__(sales_order)
@@ -12,3 +15,22 @@ class InvalidQuery(Exception):
 
 
 class UnsupportedQueryOption(InvalidQuery): ...
+
+
+@dataclass(frozen=True)
+class ValidationDetail:
+    code: str
+    message: str
+    target: str
+
+
+class ValidationFailed(Exception):
+    def __init__(self, details: list[ValidationDetail]):
+        super().__init__(f"{len(details)} validation problems")
+        self.details = details
+
+
+class ETagRequired(Exception): ...
+
+
+class ETagMismatch(Exception): ...

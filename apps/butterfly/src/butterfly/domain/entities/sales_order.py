@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 
 
@@ -29,3 +29,8 @@ class SalesOrder:
     creation_date_time: datetime
     last_change_date_time: datetime
     items: list[SalesOrderItem] = field(default_factory=list)
+
+    @property
+    def etag(self) -> str:
+        stamp = self.last_change_date_time.astimezone(timezone.utc).strftime("%Y%m%d%H%M%S")
+        return f'W/"{stamp}"'
