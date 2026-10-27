@@ -10,13 +10,23 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from structured_logging import RequestIdMiddleware, get_request_id, setup_logging
 
 from butterfly.application.dto.list_query_dto import ListQuery
-from butterfly.application.filter.fields import SALES_ORDER_FIELDS, SALES_ORDER_ITEM_FIELDS
+from butterfly.application.filter.fields import (
+    SALES_ORDER_FIELDS,
+    SALES_ORDER_ITEM_FIELDS,
+    SALES_SUMMARY_BY_CUSTOMER_FIELDS,
+    SALES_SUMMARY_BY_DAY_FIELDS,
+    SALES_SUMMARY_BY_MATERIAL_FIELDS,
+)
 from butterfly.application.query_options import parse_expand
 from butterfly.application.usecase.change_sales_order import ChangeSalesOrder
 from butterfly.application.usecase.create_sales_order import CreateSalesOrder, utc_now
 from butterfly.application.usecase.get_sales_order import GetSalesOrder
 from butterfly.application.usecase.list_sales_order_items import ListSalesOrderItems
 from butterfly.application.usecase.list_sales_orders import ListSalesOrders
+from butterfly.application.usecase.list_sales_summary import ListSalesSummary
+from butterfly.application.usecase.summarize_by_customer import SummarizeByCustomer
+from butterfly.application.usecase.summarize_by_day import SummarizeByDay
+from butterfly.application.usecase.summarize_by_material import SummarizeByMaterial
 from butterfly.domain.errors import (
     ETagMismatch,
     ETagRequired,
@@ -32,6 +42,7 @@ from butterfly.infrastructure.api.odata import (
     error_body,
     item_to_json,
     order_to_json,
+    summary_to_json,
 )
 from butterfly.infrastructure.memory.in_memory_master_data_repo import InMemoryMasterDataRepo
 from butterfly.infrastructure.memory.in_memory_sales_order_repo import InMemorySalesOrderRepo
@@ -170,6 +181,30 @@ def create_app(
             body["@odata.count"] = result.total
         body["value"] = [item_to_json(item, result.select) for item in result.rows]
         return body
+
+    def add_summary_route(entity: str, summarize, fields: dict):
+        @router.get("/" + entity)
+        def list_summary(
+            request: Request,
+            filter_text: str | None = Query(None, alias="$filter"),
+            select: str | None = Query(None, alias="$select"),
+            orderby: str | None = Query(None, alias="$orderby"),
+            top: str | None = Query(None, alias="$top"),
+            skip: str | None = Query(None, alias="$skip"),
+            count: str | None = Query(None, alias="$count"),
+        ):
+            reject_unsupported(request, LIST_OPTIONS)
+            query = ListQuery(filter_text, select, orderby, top, skip, count)
+            result = ListSalesSummary(summarize(repo).execute, fields).execute(query)
+            body = {"@odata.context": context_for(entity, result.select, fields, False)}
+            if result.total is not None:
+                body["@odata.count"] = result.total
+            body["value"] = [summary_to_json(row, fields, result.select) for row in result.rows]
+            return body
+
+    add_summary_route("SalesSummaryByDay", SummarizeByDay, SALES_SUMMARY_BY_DAY_FIELDS)
+    add_summary_route("SalesSummaryByCustomer", SummarizeByCustomer, SALES_SUMMARY_BY_CUSTOMER_FIELDS)
+    add_summary_route("SalesSummaryByMaterial", SummarizeByMaterial, SALES_SUMMARY_BY_MATERIAL_FIELDS)
 
     @app.exception_handler(SalesOrderNotFound)
     def not_found(request: Request, error: SalesOrderNotFound):
