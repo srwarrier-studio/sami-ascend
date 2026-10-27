@@ -2,7 +2,9 @@
 name = "structured-logging"
 version = "0.1.0"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "starlette>=0.40.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.9.26,<0.10.0"]

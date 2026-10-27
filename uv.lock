@@ -1337,6 +1337,12 @@ wheels = [
 name = "structured-logging"
 version = "0.1.0"
 source = { editable = "packages/structured-logging" }
+dependencies = [
+    { name = "starlette" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "starlette", specifier = ">=0.40.0" }]
 
 [[package]]
 name = "synapse-api"
