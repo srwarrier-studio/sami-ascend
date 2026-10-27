@@ -1,10 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+import { UiProvider, workspacePalette } from '@sami/ui'
 import App from './App.tsx'
+import { authClient } from './api/auth'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <UiProvider palette={workspacePalette}>
+      <App client={authClient} />
+    </UiProvider>
   </StrictMode>,
 )
