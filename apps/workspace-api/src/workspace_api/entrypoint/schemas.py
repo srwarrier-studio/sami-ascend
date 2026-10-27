@@ -7,6 +7,7 @@ from workspace_api.domain.entities.sales_order import (
     NewSalesOrder,
     NewSalesOrderItem,
     SalesOrder,
+    SalesOrderPage,
 )
 
 
@@ -60,3 +61,12 @@ class SalesOrderResponse(BaseModel):
     @classmethod
     def from_domain(cls, order: SalesOrder) -> "SalesOrderResponse":
         return cls.model_validate(order, from_attributes=True)
+
+
+class SalesOrderPageResponse(BaseModel):
+    orders: list[SalesOrderResponse]
+    total: int
+
+    @classmethod
+    def from_domain(cls, page: SalesOrderPage) -> "SalesOrderPageResponse":
+        return cls.model_validate(page, from_attributes=True)

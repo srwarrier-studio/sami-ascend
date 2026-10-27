@@ -8,9 +8,10 @@ from token_verification import Role, TokenVerifier
 from token_verification.fastapi_deps import AuthDependencies
 
 from workspace_api.application.usecase.create_sales_order import CreateSalesOrder
-from workspace_api.domain.errors import SalesOrderRejected, SapUnavailable
+from workspace_api.application.usecase.list_sales_orders import ListSalesOrders
+from workspace_api.domain.errors import InvalidQuery, SalesOrderRejected, SapUnavailable
 from workspace_api.domain.gateways.sales_order_gateway import SalesOrderGateway
-from workspace_api.entrypoint.schemas import NewSalesOrderBody, SalesOrderResponse
+from workspace_api.entrypoint.schemas import NewSalesOrderBody, SalesOrderPageResponse, SalesOrderResponse
 from workspace_api.infrastructure.settings import Settings
 
 
@@ -24,12 +25,21 @@ def create_app(gateway: SalesOrderGateway, settings: Settings) -> FastAPI:
         order = CreateSalesOrder(gateway).execute(body.to_domain())
         return SalesOrderResponse.from_domain(order)
 
+    @router.get("/sales-orders")
+    def list_sales_orders(top: int = 20, skip: int = 0) -> SalesOrderPageResponse:
+        page = ListSalesOrders(gateway).execute(top, skip)
+        return SalesOrderPageResponse.from_domain(page)
+
     app = FastAPI()
 
     @app.exception_handler(SalesOrderRejected)
     def rejected(request: Request, error: SalesOrderRejected) -> JSONResponse:
         details = [{"code": d.code, "target": d.target, "message": d.message} for d in error.details]
         return JSONResponse({"code": "VALIDATION_FAILED", "details": details}, status_code=422)
+
+    @app.exception_handler(InvalidQuery)
+    def invalid_query(request: Request, error: InvalidQuery) -> JSONResponse:
+        return JSONResponse({"code": "INVALID_QUERY", "message": str(error)}, status_code=422)
 
     @app.exception_handler(SapUnavailable)
     def unavailable(request: Request, error: SapUnavailable) -> JSONResponse:
