@@ -9,3 +9,6 @@ class InvalidQuery(Exception):
         super().__init__(message)
         self.message = message
         self.target = target
+
+
+class UnsupportedQueryOption(InvalidQuery): ...

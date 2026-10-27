@@ -8,7 +8,9 @@ from structured_logging import RequestIdMiddleware, get_request_id, setup_loggin
 
 from butterfly.application.usecase.get_sales_order import GetSalesOrder
 from butterfly.application.usecase.list_sales_orders import ListSalesOrders
-from butterfly.domain.errors import InvalidQuery, SalesOrderNotFound
+from butterfly.application.dto.list_sales_orders_dto import ListSalesOrdersQuery
+from butterfly.application.filter.fields import SALES_ORDER_FIELDS
+from butterfly.domain.errors import InvalidQuery, SalesOrderNotFound, UnsupportedQueryOption
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.api.odata import ROOT, error_body, etag, order_to_json
 from butterfly.infrastructure.memory.in_memory_sales_order_repo import InMemorySalesOrderRepo
@@ -16,18 +18,37 @@ from butterfly.infrastructure.memory.seed import build_seed
 
 logger = logging.getLogger("butterfly")
 
+SUPPORTED_OPTIONS = {"$filter", "$select", "$orderby", "$top", "$skip", "$count"}
+
 
 def create_app(repo: SalesOrderRepo) -> FastAPI:
     app = FastAPI()
     router = APIRouter(prefix=ROOT.rstrip("/"))
 
     @router.get("/SalesOrder")
-    def list_orders(filter_text: str | None = Query(None, alias="$filter")):
-        orders = ListSalesOrders(repo).execute(filter_text)
-        return {
-            "@odata.context": "$metadata#SalesOrder",
-            "value": [order_to_json(order) for order in orders],
-        }
+    def list_orders(
+        request: Request,
+        filter_text: str | None = Query(None, alias="$filter"),
+        select: str | None = Query(None, alias="$select"),
+        orderby: str | None = Query(None, alias="$orderby"),
+        top: str | None = Query(None, alias="$top"),
+        skip: str | None = Query(None, alias="$skip"),
+        count: str | None = Query(None, alias="$count"),
+    ):
+        for name in request.query_params:
+            if name.startswith("$") and name not in SUPPORTED_OPTIONS:
+                raise UnsupportedQueryOption(f"Query option {name} is not supported.", name)
+        query = ListSalesOrdersQuery(filter_text, select, orderby, top, skip, count)
+        result = ListSalesOrders(repo).execute(query)
+        projected = result.select != list(SALES_ORDER_FIELDS)
+        context = "$metadata#SalesOrder"
+        if projected:
+            context += "(" + ",".join(result.select) + ")"
+        body = {"@odata.context": context}
+        if result.total is not None:
+            body["@odata.count"] = result.total
+        body["value"] = [order_to_json(order, result.select) for order in result.orders]
+        return body
 
     @router.get("/SalesOrder('{key}')")
     def get_order(key: str):
@@ -52,6 +73,13 @@ def create_app(repo: SalesOrderRepo) -> FastAPI:
     def invalid_query(request: Request, error: InvalidQuery):
         return JSONResponse(
             error_body("INVALID_QUERY", error.message, error.target), status_code=400
+        )
+
+    @app.exception_handler(UnsupportedQueryOption)
+    def unsupported_query_option(request: Request, error: UnsupportedQueryOption):
+        return JSONResponse(
+            error_body("UNSUPPORTED_QUERY_OPTION", error.message, error.target),
+            status_code=400,
         )
 
     @app.middleware("http")

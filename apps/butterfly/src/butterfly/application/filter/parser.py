@@ -12,7 +12,7 @@ from butterfly.application.filter.nodes import (
     Or,
     StringFunction,
 )
-from butterfly.domain.errors import InvalidQuery
+from butterfly.domain.errors import InvalidQuery, UnsupportedQueryOption
 
 TARGET = "$filter"
 
@@ -23,7 +23,7 @@ TOKEN = re.compile(
     |(?P<number>-?\d+(?:\.\d+)?)
     |(?P<string>'(?:[^']|'')*')
     |(?P<ident>[A-Za-z_]\w*)
-    |(?P<symbol>[(),])
+    |(?P<symbol>[(),/])
     )""",
     re.VERBOSE,
 )
@@ -62,8 +62,20 @@ def literal_value(text: str, kind: str):
         raise InvalidQuery(f"Invalid value {text} in $filter.", TARGET)
 
 
+LAMBDA = re.compile(r"/\s*(?:any|all)\s*\(")
+STRING_LITERAL = re.compile(r"'(?:[^']|'')*'")
+
+
+def reject_lambda(text: str):
+    if LAMBDA.search(STRING_LITERAL.sub("", text)):
+        raise UnsupportedQueryOption(
+            "Lambda operators and paths are not supported in $filter.", TARGET
+        )
+
+
 class Parser:
     def __init__(self, text: str):
+        reject_lambda(text)
         self.tokens = tokenize(text)
         self.position = 0
 
@@ -128,6 +140,10 @@ class Parser:
 
     def parse_field(self) -> tuple[str, FieldType]:
         name, kind = self.take()
+        if self.peek() == ("/", "symbol"):
+            raise UnsupportedQueryOption(
+                "Lambda operators and paths are not supported in $filter.", TARGET
+            )
         if kind != "ident" or name not in SALES_ORDER_FIELDS:
             raise InvalidQuery(f"Unknown field {name} in $filter.", TARGET)
         return SALES_ORDER_FIELDS[name]

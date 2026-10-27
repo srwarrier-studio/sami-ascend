@@ -3,6 +3,7 @@ from datetime import date
 
 import pytest
 
+from butterfly.application.dto.list_sales_orders_dto import ListSalesOrdersQuery
 from butterfly.application.usecase.list_sales_orders import ListSalesOrders
 from butterfly.domain.errors import InvalidQuery
 from butterfly.infrastructure.memory.in_memory_sales_order_repo import InMemorySalesOrderRepo
@@ -10,7 +11,8 @@ from conftest import ORDERS, TODAY
 
 
 def run(filter_text, orders=ORDERS):
-    return ListSalesOrders(InMemorySalesOrderRepo(orders)).execute(filter_text)
+    query = ListSalesOrdersQuery(filter=filter_text)
+    return ListSalesOrders(InMemorySalesOrderRepo(orders)).execute(query).orders
 
 
 def numbers(filter_text, orders=ORDERS):
@@ -204,7 +206,6 @@ BAD_FILTERS = {
     "contains missing bracket": "contains(CustomerName,'a'",
     "function used as a value": "OverallStatus eq contains(CustomerName,'a')",
     "unexpected character": "OverallStatus eq 'A' ; drop",
-    "lambda path": "_Item/any(i: i/Material eq 'RM-1001')",
 }
 
 

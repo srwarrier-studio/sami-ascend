@@ -132,6 +132,11 @@ quotes. A literal must match the field type. `contains()` and `startswith()` wor
 fields and are case-sensitive. A field with no value (null) matches no comparison or function.
 Operators and function names are lower case.
 
+`$select` returns the chosen fields in the order of the field tables in section 2, whatever
+order the request lists them. `$orderby` puts empty values first when ascending and last when
+descending; rows with equal values keep their original order. `$top`, `$skip` and `$count`
+accept only `0` or a positive whole number, and `true` or `false`.
+
 Not supported: `$apply`, `$search`, `$expand` on summaries, lambda operators (`any`, `all`).
 Unsupported options return `400` in the error format (section 7).
 
@@ -420,7 +425,8 @@ Every non-2xx response has this body and `Content-Type: application/json`:
 
 ### 400 Bad request (invalid query)
 
-A malformed `$filter`, an unknown field, or a literal that does not match the field type.
+A malformed `$filter`, an unknown field in `$filter`, `$select` or `$orderby`, a literal that
+does not match the field type, or a bad value for `$top`, `$skip` or `$count`. `target` is the option.
 
 ```json
 {

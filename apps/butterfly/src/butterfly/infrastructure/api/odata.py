@@ -9,8 +9,8 @@ def timestamp(value: datetime) -> str:
     return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def order_to_json(order: SalesOrder) -> dict:
-    return {
+def order_to_json(order: SalesOrder, fields: list[str] | None = None) -> dict:
+    row = {
         "SalesOrder": order.sales_order,
         "SalesOrderType": order.sales_order_type,
         "SoldToParty": order.sold_to_party,
@@ -26,6 +26,9 @@ def order_to_json(order: SalesOrder) -> dict:
         "CreationDateTime": timestamp(order.creation_date_time),
         "LastChangeDateTime": timestamp(order.last_change_date_time),
     }
+    if fields is None:
+        return row
+    return {name: row[name] for name in fields}
 
 
 def etag(order: SalesOrder) -> str:
