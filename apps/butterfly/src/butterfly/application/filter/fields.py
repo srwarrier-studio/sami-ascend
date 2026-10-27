@@ -32,3 +32,29 @@ SALES_ORDER_ITEM_FIELDS = {
     "QuantityUnit": ("quantity_unit", FieldType.STRING),
     "NetAmount": ("net_amount", FieldType.DECIMAL),
 }
+
+SALES_SUMMARY_BY_DAY_FIELDS = {
+    "OrderDate": ("order_date", FieldType.DATE),
+    "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
+    "OrderCount": ("order_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+}
+
+SALES_SUMMARY_BY_CUSTOMER_FIELDS = {
+    "SoldToParty": ("sold_to_party", FieldType.STRING),
+    "CustomerName": ("customer_name", FieldType.STRING),
+    "OrderDate": ("order_date", FieldType.DATE),
+    "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
+    "OrderCount": ("order_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+}
+
+SALES_SUMMARY_BY_MATERIAL_FIELDS = {
+    "Material": ("material", FieldType.STRING),
+    "MaterialDescription": ("material_description", FieldType.STRING),
+    "OrderDate": ("order_date", FieldType.DATE),
+    "TotalQuantity": ("total_quantity", FieldType.DECIMAL),
+    "QuantityUnit": ("quantity_unit", FieldType.STRING),
+    "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+}

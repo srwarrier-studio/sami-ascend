@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from decimal import Decimal
 
 from butterfly.domain.entities.sales_order import SalesOrder, SalesOrderItem
 
@@ -44,6 +45,18 @@ def item_to_json(item: SalesOrderItem, fields: list[str] | None = None) -> dict:
     if fields is None:
         return row
     return {name: row[name] for name in fields}
+
+
+def summary_to_json(row, fields: dict, select: list[str] | None = None) -> dict:
+    values = {}
+    for name, (attribute, _) in fields.items():
+        value = getattr(row, attribute)
+        if isinstance(value, Decimal):
+            value = str(value)
+        elif isinstance(value, date):
+            value = value.isoformat()
+        values[name] = value
+    return values if select is None else {name: values[name] for name in select}
 
 
 def error_body(
