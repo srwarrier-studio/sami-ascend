@@ -7,6 +7,7 @@ members = [
     "auth-api",
     "sami-ascend",
     "synapse-api",
+    "token-verification",
     "workspace-api",
 ]
 
@@ -1333,6 +1334,17 @@ wheels = [
 name = "synapse-api"
 version = "0.1.0"
 source = { editable = "apps/synapse-api" }
+
+[[package]]
+name = "token-verification"
+version = "0.1.0"
+source = { editable = "packages/token-verification" }
+dependencies = [
+    { name = "pyjwt" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pyjwt", specifier = ">=2.15.1" }]
 
 [[package]]
 name = "truststore"
