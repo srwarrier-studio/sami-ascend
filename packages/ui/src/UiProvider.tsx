@@ -2,19 +2,7 @@ import '@mantine/core/styles.css'
 import { MantineProvider, createTheme } from '@mantine/core'
 import type { ReactNode } from 'react'
 import type { Palette } from './palettes'
-
-const sharedTheme = createTheme({
-  defaultRadius: 'md',
-  fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-  headings: { fontWeight: '600' },
-  components: {
-    Button: { defaultProps: { size: 'md' } },
-    TextInput: { defaultProps: { size: 'md' } },
-    PasswordInput: { defaultProps: { size: 'md' } },
-    Card: { defaultProps: { withBorder: true, padding: 'lg' } },
-    Alert: { defaultProps: { variant: 'light' } },
-  },
-})
+import { sharedTheme } from './theme'
 
 type UiProviderProps = {
   palette: Palette
@@ -24,6 +12,7 @@ type UiProviderProps = {
 export function UiProvider({ palette, children }: UiProviderProps) {
   const theme = createTheme({
     ...sharedTheme,
+    colors: palette.colors,
     primaryColor: palette.primaryColor,
     primaryShade: palette.primaryShade as 6,
   })

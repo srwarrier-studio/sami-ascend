@@ -12,6 +12,7 @@ import { UiProvider, workspacePalette, Button, LineChart } from '@sami/ui'
 </UiProvider>
 ```
 - `UiProvider` takes only a `palette`. `workspacePalette` (indigo) and `synapsePalette` (teal) are the only per-app difference; font, radius, spacing and component defaults are shared.
+- Where to change the look: font, sizes, spacing, radius and component defaults are in `src/theme.ts`; colors are in `src/palettes.ts`. Nothing else in the repo names a font, size or color. To change the font, edit the two `@fontsource` imports and `fontFamily` in `src/theme.ts`.
 - All styling comes from the theme. No inline `style`, hex colors, `rgb()` or `px` values in `src/` or `playground/`; `tests/theme-only.test.ts` fails if one appears. Chart colors are mapped from Mantine variables in `src/charts.css`.
 - `valueFormat`: `number`, `currency` (INR, en-IN) or `percent` (value is a fraction).
 

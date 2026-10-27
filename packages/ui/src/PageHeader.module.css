@@ -1,0 +1,23 @@
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--mantine-color-body);
+  border-bottom: thin solid var(--mantine-color-default-border);
+}
+
+.crumbs {
+  display: flex;
+  gap: 0.5rem;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.title {
+  margin: 0.125rem 0 0;
+  font-size: var(--mantine-h3-font-size);
+  font-weight: 600;
+  line-height: 1.2;
+}
