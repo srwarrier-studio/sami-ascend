@@ -19,6 +19,11 @@ Answered with the answer and the date, and update the document that depended on 
 10. May a caller send fields that SAP fills in (for example `OverallStatus`)? We reject them with `FIELD_NOT_ALLOWED`; confirm RAP can do the same.
 11. Do the summary CDS views exclude cancelled orders (`X`)? We assume yes. Can they be read by key, or only with `$filter`?
 
+### Sales parity (`sap-parity-sales.md`)
+12. Can RAP expose customers and materials as read-only entities with search by name, for value help on the order form?
+13. Is one sales organisation, distribution channel and division per user enough, or must the user choose them on each order? Which values default from the customer?
+14. Can RAP offer ship-to party, customer reference and date, pricing on read, cancel (reject) and item change on an open order?
+
 ## Answered
 
 None yet.
