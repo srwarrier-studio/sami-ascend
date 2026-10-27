@@ -28,3 +28,9 @@ class ValidationFailed(Exception):
     def __init__(self, details: list[ValidationDetail]):
         super().__init__(f"{len(details)} validation problems")
         self.details = details
+
+
+class ETagRequired(Exception): ...
+
+
+class ETagMismatch(Exception): ...

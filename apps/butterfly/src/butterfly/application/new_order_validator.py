@@ -4,6 +4,7 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from butterfly.application.delivery_date import check_delivery_date
 from butterfly.domain.entities.master_data import Customer, Material
 from butterfly.domain.errors import ValidationDetail
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
@@ -17,7 +18,6 @@ MAX_LENGTH = {
     "Material": 40,
     "QuantityUnit": 3,
 }
-DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 QUANTITY_FORMAT = re.compile(r"-?\d{1,10}(?:\.\d{1,3})?")
 
 
@@ -94,23 +94,9 @@ class NewOrderValidator:
         value = body.get("RequestedDeliveryDate")
         if value is None:
             return None
-        try:
-            if not isinstance(value, str) or not DATE_FORMAT.fullmatch(value):
-                raise ValueError
-            parsed = date.fromisoformat(value)
-        except ValueError:
-            self.problem(
-                "FIELD_INVALID",
-                "RequestedDeliveryDate must be a date like 2026-11-05.",
-                "RequestedDeliveryDate",
-            )
-            return None
-        if parsed < self.today:
-            self.problem(
-                "DELIVERY_DATE_IN_PAST",
-                "RequestedDeliveryDate must not be before today.",
-                "RequestedDeliveryDate",
-            )
+        parsed, detail = check_delivery_date(value, self.today)
+        if detail is not None:
+            self.details.append(detail)
         return parsed
 
     def currency(self, body: dict) -> str | None:

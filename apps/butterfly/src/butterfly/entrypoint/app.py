@@ -12,11 +12,14 @@ from structured_logging import RequestIdMiddleware, get_request_id, setup_loggin
 from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.filter.fields import SALES_ORDER_FIELDS, SALES_ORDER_ITEM_FIELDS
 from butterfly.application.query_options import parse_expand
+from butterfly.application.usecase.change_sales_order import ChangeSalesOrder
 from butterfly.application.usecase.create_sales_order import CreateSalesOrder, utc_now
 from butterfly.application.usecase.get_sales_order import GetSalesOrder
 from butterfly.application.usecase.list_sales_order_items import ListSalesOrderItems
 from butterfly.application.usecase.list_sales_orders import ListSalesOrders
 from butterfly.domain.errors import (
+    ETagMismatch,
+    ETagRequired,
     InvalidQuery,
     SalesOrderNotFound,
     UnsupportedQueryOption,
@@ -27,7 +30,6 @@ from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.api.odata import (
     ROOT,
     error_body,
-    etag,
     item_to_json,
     order_to_json,
 )
@@ -103,7 +105,7 @@ def create_app(
         order = GetSalesOrder(repo).execute(key)
         context = context_for("SalesOrder", list(SALES_ORDER_FIELDS), SALES_ORDER_FIELDS, expanded)
         return JSONResponse(
-            {"@odata.context": context + "/$entity", "@odata.etag": etag(order)}
+            {"@odata.context": context + "/$entity", "@odata.etag": order.etag}
             | order_row(order, None, expanded)
         )
 
@@ -122,10 +124,27 @@ def create_app(
         location = f"{str(request.base_url).rstrip('/')}{ROOT}SalesOrder('{order.sales_order}')"
         context = context_for("SalesOrder", list(SALES_ORDER_FIELDS), SALES_ORDER_FIELDS, True)
         return JSONResponse(
-            {"@odata.context": context + "/$entity", "@odata.etag": etag(order)}
+            {"@odata.context": context + "/$entity", "@odata.etag": order.etag}
             | order_row(order, None, True),
             status_code=201,
             headers={"Location": location},
+        )
+
+    @router.patch("/SalesOrder('{key}')")
+    async def change_order(key: str, request: Request):
+        try:
+            payload = json.loads(await request.body())
+        except ValueError:
+            payload = None
+        if not isinstance(payload, dict):
+            return JSONResponse(
+                error_body("INVALID_REQUEST_BODY", "The request body must be a JSON object.", "body"),
+                status_code=400,
+            )
+        order = ChangeSalesOrder(repo, now).execute(key, request.headers.get("if-match"), payload)
+        return JSONResponse(
+            {"@odata.context": "$metadata#SalesOrder/$entity", "@odata.etag": order.etag}
+            | order_to_json(order)
         )
 
     @router.get("/SalesOrder('{key}')/_Item")
@@ -174,6 +193,28 @@ def create_app(
         return JSONResponse(
             error_body("VALIDATION_FAILED", "The sales order has errors.", details=details),
             status_code=400,
+        )
+
+    @app.exception_handler(ETagRequired)
+    def etag_required(request: Request, error: ETagRequired):
+        return JSONResponse(
+            error_body(
+                "ETAG_REQUIRED",
+                "An If-Match header with the etag from the last read is required.",
+                "SalesOrder",
+            ),
+            status_code=428,
+        )
+
+    @app.exception_handler(ETagMismatch)
+    def etag_mismatch(request: Request, error: ETagMismatch):
+        return JSONResponse(
+            error_body(
+                "ETAG_MISMATCH",
+                "The sales order was changed by someone else. Reload and try again.",
+                "SalesOrder",
+            ),
+            status_code=412,
         )
 
     @app.exception_handler(StarletteHTTPException)
