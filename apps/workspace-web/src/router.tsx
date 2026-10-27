@@ -7,6 +7,7 @@ import {
   useRouteContext,
 } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
+import type { SalesOrderClient } from './api/salesOrders'
 import type { Session } from './session/useSession'
 import { LoginPage } from './pages/LoginPage'
 import { HomePage } from './pages/HomePage'
@@ -20,6 +21,7 @@ export type RouterContext = {
   session: Session
   login: (username: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
+  salesOrders: SalesOrderClient
 }
 
 function RootLayout() {
