@@ -128,3 +128,220 @@ Supported on `SalesOrder`, `SalesOrderItem` and the summary entities:
 
 Not supported: `$apply`, `$search`, `$expand` on summaries, lambda operators (`any`, `all`).
 Unsupported options return `400` in the error format (section 7).
+
+## 5. Reads
+
+All examples use the root path from section 1. `{root}` stands for it.
+
+### List with count
+
+```
+GET {root}SalesOrder?$filter=OrderDate eq 2026-10-27&$select=SalesOrder,CustomerName,TotalNetAmount&$orderby=CreationDateTime desc&$top=2&$count=true
+```
+
+```json
+{
+  "@odata.context": "$metadata#SalesOrder(SalesOrder,CustomerName,TotalNetAmount)",
+  "@odata.count": 14,
+  "value": [
+    {
+      "SalesOrder": "0000012345",
+      "CustomerName": "Acme Industries",
+      "TotalNetAmount": "125000.00"
+    },
+    {
+      "SalesOrder": "0000012344",
+      "CustomerName": "Bharat Steels",
+      "TotalNetAmount": "98000.50"
+    }
+  ]
+}
+```
+
+Without `$select`, every field in section 2 is returned. `@odata.count` is the number of rows
+matching `$filter`, before `$top` and `$skip`. It appears only when `$count=true`.
+
+### Single order by key
+
+```
+GET {root}SalesOrder('0000012345')
+```
+
+```json
+{
+  "@odata.context": "$metadata#SalesOrder/$entity",
+  "@odata.etag": "W/\"20261027091530\"",
+  "SalesOrder": "0000012345",
+  "SalesOrderType": "OR",
+  "SoldToParty": "0000100001",
+  "CustomerName": "Acme Industries",
+  "OrderDate": "2026-10-27",
+  "RequestedDeliveryDate": "2026-11-05",
+  "TransactionCurrency": "INR",
+  "TotalNetAmount": "125000.00",
+  "OverallStatus": "A",
+  "CreatedByUser": "SMANI",
+  "CreationDateTime": "2026-10-27T09:15:30Z",
+  "LastChangeDateTime": "2026-10-27T09:15:30Z"
+}
+```
+
+A single-entity response carries `@odata.etag`. Collection rows do not.
+
+### Order with items
+
+```
+GET {root}SalesOrder('0000012345')?$expand=_Item
+```
+
+```json
+{
+  "@odata.context": "$metadata#SalesOrder(_Item())/$entity",
+  "@odata.etag": "W/\"20261027091530\"",
+  "SalesOrder": "0000012345",
+  "SalesOrderType": "OR",
+  "SoldToParty": "0000100001",
+  "CustomerName": "Acme Industries",
+  "OrderDate": "2026-10-27",
+  "RequestedDeliveryDate": "2026-11-05",
+  "TransactionCurrency": "INR",
+  "TotalNetAmount": "125000.00",
+  "OverallStatus": "A",
+  "CreatedByUser": "SMANI",
+  "CreationDateTime": "2026-10-27T09:15:30Z",
+  "LastChangeDateTime": "2026-10-27T09:15:30Z",
+  "_Item": [
+    {
+      "SalesOrder": "0000012345",
+      "SalesOrderItem": "000010",
+      "Material": "RM-1001",
+      "MaterialDescription": "Steel rod 12mm",
+      "Quantity": "50.000",
+      "QuantityUnit": "KG",
+      "NetAmount": "62500.00"
+    },
+    {
+      "SalesOrder": "0000012345",
+      "SalesOrderItem": "000020",
+      "Material": "RM-1002",
+      "MaterialDescription": "Steel plate 5mm",
+      "Quantity": "25.000",
+      "QuantityUnit": "KG",
+      "NetAmount": "62500.00"
+    }
+  ]
+}
+```
+
+### Items of one order
+
+```
+GET {root}SalesOrder('0000012345')/_Item?$orderby=SalesOrderItem
+```
+
+Returns `{"@odata.context": ..., "value": [ ...items as above... ]}`.
+
+### Summary
+
+```
+GET {root}SalesSummaryByDay?$filter=OrderDate ge 2026-10-26 and OrderDate le 2026-10-27&$orderby=OrderDate
+```
+
+```json
+{
+  "@odata.context": "$metadata#SalesSummaryByDay",
+  "value": [
+    {
+      "OrderDate": "2026-10-26",
+      "TotalNetAmount": "712000.00",
+      "OrderCount": 11,
+      "Currency": "INR"
+    },
+    {
+      "OrderDate": "2026-10-27",
+      "TotalNetAmount": "845000.00",
+      "OrderCount": 14,
+      "Currency": "INR"
+    }
+  ]
+}
+```
+
+### Paging
+
+A collection response never carries `@odata.nextLink`. Callers page with `$top` and `$skip`
+and stop when a page returns fewer rows than `$top`.
+
+## 7. Error format
+
+Every non-2xx response has this body and `Content-Type: application/json`:
+
+```json
+{
+  "error": {
+    "code": "string",
+    "message": "string",
+    "target": "string",
+    "details": [
+      { "code": "string", "message": "string", "target": "string" }
+    ]
+  }
+}
+```
+
+| Field | Rule |
+|-------|------|
+| `code` | Stable machine code, upper snake case. Apps branch on this, never on `message` |
+| `message` | Plain English for a person, safe to show |
+| `target` | Field or resource the error is about; omitted when there is none |
+| `details` | One entry per problem; omitted when there is only the top-level error |
+
+### 400 Bad request (unsupported option)
+
+```json
+{
+  "error": {
+    "code": "UNSUPPORTED_QUERY_OPTION",
+    "message": "Query option $apply is not supported.",
+    "target": "$apply"
+  }
+}
+```
+
+### 403 Not authorized
+
+```json
+{
+  "error": {
+    "code": "NOT_AUTHORIZED",
+    "message": "You are not authorized to read sales orders."
+  }
+}
+```
+
+### 404 Not found
+
+```json
+{
+  "error": {
+    "code": "SALES_ORDER_NOT_FOUND",
+    "message": "Sales order 0000099999 does not exist.",
+    "target": "SalesOrder"
+  }
+}
+```
+
+### 500 Server error
+
+```json
+{
+  "error": {
+    "code": "INTERNAL_ERROR",
+    "message": "An unexpected error occurred. Quote the request id when reporting it.",
+    "target": "request-id-0f3c9a"
+  }
+}
+```
+
+For `500`, `target` holds the request id. The `400` validation and `412` ETag mismatch
+examples are in section 6, next to the writes they belong to.
