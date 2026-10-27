@@ -95,3 +95,7 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - Menu and the `/sales-orders` guard share `allowedEntries` in `src/menu.ts`. Roles are matched with "any", so `admin` alone sees nothing.
 - Tests use `createMemoryHistory`; `tests/setup.ts` copies the `@sami/ui` stubs plus `scrollTo`.
 - Run: `pnpm --filter workspace-web test`.
+- Order entry (`/sales-orders/new`): `src/orderForm.ts` holds the pure form logic (defaults, add/remove rows, request body, `mapDetails`); the page only wires it. `SalesOrderClient` reaches pages through router context, so tests pass a fake.
+- SAP error `target` maps to fields: `SoldToParty` and the other header names, `_Item/<n>/Quantity` (zero-based row). Anything unmatched, such as `NO_ITEMS`, shows in the alert above the form. Branch on `code`, never on `message`.
+- Customer, material and unit are free text until lookup endpoints exist; SAP is the validator.
+- `tests/theme-only.test.ts` bans `@mantine/*` imports and inline styles in `src/`.
