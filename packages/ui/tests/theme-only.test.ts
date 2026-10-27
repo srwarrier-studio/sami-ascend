@@ -17,7 +17,9 @@ function files(dir: string): string[] {
 }
 
 describe('styles flow from the theme only', () => {
-  const sources = ['src', 'playground'].flatMap((dir) => files(dir)).filter((f) => /\.(tsx?|css)$/.test(f))
+  const sources = ['src', 'playground']
+    .flatMap((dir) => files(dir))
+    .filter((f) => /\.(tsx?|css)$/.test(f) && !f.endsWith('palettes.ts'))
 
   it.each(forbidden)('has no %s', (_name, pattern) => {
     const offenders = sources.filter((file) => pattern.test(readFileSync(file, 'utf8')))

@@ -1,0 +1,32 @@
+.root {
+  background-color: var(--notification-color, var(--mantine-primary-color-filled));
+  border: none;
+  box-shadow: var(--mantine-shadow-md);
+}
+
+.root::before {
+  display: none;
+}
+
+.title,
+.description,
+.closeButton {
+  color: var(--mantine-color-white);
+}
+
+.description {
+  opacity: 0.9;
+}
+
+.closeButton:hover {
+  background-color: color-mix(in srgb, var(--mantine-color-black) 20%, transparent);
+}
+
+.icon {
+  background-color: transparent;
+  color: var(--mantine-color-white);
+}
+
+.loader {
+  --loader-color: var(--mantine-color-white);
+}

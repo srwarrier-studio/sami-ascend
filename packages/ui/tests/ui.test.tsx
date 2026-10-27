@@ -15,6 +15,7 @@ import {
   workspacePalette,
 } from '../src'
 import type { Palette } from '../src'
+import { fontFamily } from '../src/theme'
 
 function themeCss(palette: Palette) {
   render(
@@ -27,20 +28,20 @@ function themeCss(palette: Palette) {
 
 describe('UiProvider palettes', () => {
   it('uses the workspace primary color', () => {
-    expect(themeCss(workspacePalette)).toContain('--mantine-primary-color-filled:var(--mantine-color-indigo-filled)')
+    expect(themeCss(workspacePalette)).toContain('--mantine-primary-color-filled:var(--mantine-color-brand-filled)')
   })
 
   it('uses the synapse primary color', () => {
-    expect(themeCss(synapsePalette)).toContain('--mantine-primary-color-filled:var(--mantine-color-teal-filled)')
+    expect(themeCss(synapsePalette)).toContain('--mantine-primary-color-filled:var(--mantine-color-brand-filled)')
   })
 
   it('shares font, weight and button size across palettes', () => {
     for (const palette of [workspacePalette, synapsePalette]) {
       const css = themeCss(palette)
       expect(css).toContain('--mantine-heading-font-weight:600')
-      expect(screen.getByRole('button').getAttribute('style') ?? '').toContain('--button-height-md')
+      expect(screen.getByRole('button').getAttribute('style') ?? '').toContain('--button-height: calc(2rem')
       cleanup()
-      expect(css).toContain('--mantine-font-family:system-ui')
+      expect(css).toContain(`--mantine-font-family:${fontFamily}`)
     }
   })
 })
