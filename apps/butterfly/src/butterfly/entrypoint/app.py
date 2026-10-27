@@ -2,13 +2,13 @@ import logging
 from datetime import date
 
 import uvicorn
-from fastapi import APIRouter, FastAPI, Request
+from fastapi import APIRouter, FastAPI, Query, Request
 from fastapi.responses import JSONResponse
 from structured_logging import RequestIdMiddleware, get_request_id, setup_logging
 
 from butterfly.application.usecase.get_sales_order import GetSalesOrder
 from butterfly.application.usecase.list_sales_orders import ListSalesOrders
-from butterfly.domain.errors import SalesOrderNotFound
+from butterfly.domain.errors import InvalidQuery, SalesOrderNotFound
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.api.odata import ROOT, error_body, etag, order_to_json
 from butterfly.infrastructure.memory.in_memory_sales_order_repo import InMemorySalesOrderRepo
@@ -22,8 +22,8 @@ def create_app(repo: SalesOrderRepo) -> FastAPI:
     router = APIRouter(prefix=ROOT.rstrip("/"))
 
     @router.get("/SalesOrder")
-    def list_orders():
-        orders = ListSalesOrders(repo).execute()
+    def list_orders(filter_text: str | None = Query(None, alias="$filter")):
+        orders = ListSalesOrders(repo).execute(filter_text)
         return {
             "@odata.context": "$metadata#SalesOrder",
             "value": [order_to_json(order) for order in orders],
@@ -46,6 +46,12 @@ def create_app(repo: SalesOrderRepo) -> FastAPI:
                 "SalesOrder",
             ),
             status_code=404,
+        )
+
+    @app.exception_handler(InvalidQuery)
+    def invalid_query(request: Request, error: InvalidQuery):
+        return JSONResponse(
+            error_body("INVALID_QUERY", error.message, error.target), status_code=400
         )
 
     @app.middleware("http")

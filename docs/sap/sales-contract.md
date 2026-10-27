@@ -126,6 +126,12 @@ Supported on `SalesOrder`, `SalesOrderItem` and the summary entities:
 | `$count` | `$count=true` adds `@odata.count` to a collection response |
 | `$expand` | `_Item` on `SalesOrder` only |
 
+`$filter` literals: strings in single quotes (`'O''Brien'`, a doubled quote is one quote),
+dates as `2026-10-27`, timestamps as `2026-10-27T09:15:30Z`, decimals as `125000.50` with no
+quotes. A literal must match the field type. `contains()` and `startswith()` work on string
+fields and are case-sensitive. A field with no value (null) matches no comparison or function.
+Operators and function names are lower case.
+
 Not supported: `$apply`, `$search`, `$expand` on summaries, lambda operators (`any`, `all`).
 Unsupported options return `400` in the error format (section 7).
 
@@ -408,6 +414,20 @@ Every non-2xx response has this body and `Content-Type: application/json`:
     "code": "UNSUPPORTED_QUERY_OPTION",
     "message": "Query option $apply is not supported.",
     "target": "$apply"
+  }
+}
+```
+
+### 400 Bad request (invalid query)
+
+A malformed `$filter`, an unknown field, or a literal that does not match the field type.
+
+```json
+{
+  "error": {
+    "code": "INVALID_QUERY",
+    "message": "Unknown field Colour in $filter.",
+    "target": "$filter"
   }
 }
 ```
