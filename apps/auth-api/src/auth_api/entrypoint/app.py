@@ -1,63 +1,112 @@
-from auth_api.infrastructure.api.schema import UserInDB
-from auth_api.application.dto.get_user_dto import GetUserDTO
-from auth_api.infrastructure.mock.mock_unit_of_work import MockAuthUnitOfWork
-from auth_api.application.usecase.get_user_by_email import GetUserByEmail
-from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
+
 import uvicorn
-from fastapi import FastAPI, APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import RedirectResponse
+
+from auth_api.application.dto.login_dto import LoginWithEntraDTO, LoginWithPasswordDTO
+from auth_api.application.usecase.login_with_entra import LoginWithEntra
+from auth_api.application.usecase.login_with_password import LoginWithPassword
+from auth_api.core.config import settings
+from auth_api.domain.errors import InvalidCredentials
+from auth_api.infrastructure.interface.argon2_password_hasher import Argon2PasswordHasher
+from auth_api.domain.value_objects.token_claims import TokenClaims
+from auth_api.entrypoint.dependencies import ACCESS_TOKEN_COOKIE, current_claims, token_service
+from auth_api.infrastructure.api.schema import Me
 from auth_api.infrastructure.interface.msal_auth_provider import MSALAuthProvider
+from auth_api.infrastructure.mock.mock_unit_of_work import MockAuthUnitOfWork
 
 auth_provider = MSALAuthProvider()
+uow = MockAuthUnitOfWork()
+password_hasher = Argon2PasswordHasher()
 
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"])
-app.add_middleware(SessionMiddleware, secret_key="your_super_secret_key")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.FRONTEND_URL],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True,
+)
+app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_SECRET)
 
 router_head = APIRouter()
 
-uow = MockAuthUnitOfWork()
 
-def fake_hash_password(password: str):
-    return "fakehashed" + password
+def set_access_token_cookie(response: Response, token: str):
+    response.set_cookie(
+        key=ACCESS_TOKEN_COOKIE,
+        value=token,
+        max_age=settings.JWT_EXPIRE_MINUTES * 60,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+    )
 
-@router_head.post("/token")
-async def token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    usecase = GetUserByEmail(uow=uow)
-    user_dict = usecase.execute(GetUserDTO(email_id=form_data.username))
-    if not user_dict:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    user = UserInDB(**user_dict)
-    hashed_password = fake_hash_password(form_data.password)
-    if not hashed_password == user.hashed_password:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
 
-    return {"access_token": user.userid, "token_type": "bearer"}
+@router_head.post("/login/password")
+def login_with_password(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], response: Response
+):
+    usecase = LoginWithPassword(uow, password_hasher, token_service)
+    try:
+        token = usecase.execute(
+            LoginWithPasswordDTO(email_id=form_data.username, password=form_data.password)
+        )
+    except InvalidCredentials:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
 
-@router_head.get("/login")
-async def login(request: Request):
+    set_access_token_cookie(response, token)
+    return {"message": "Logged in"}
+
+
+@router_head.get("/login/entra")
+def login_with_entra(request: Request):
     flow = auth_provider.initiate_flow()
     request.session["msal_flow"] = flow
     return RedirectResponse(url=flow["auth_uri"])
 
+
 @router_head.get("/callback")
-async def auth_callback(request: Request):
-    flow = request.session.get("msal_flow")
+def entra_callback(request: Request):
+    login_failed = RedirectResponse(url=f"{settings.FRONTEND_URL}/login?error=entra")
+
+    flow = request.session.pop("msal_flow", None)
     if not flow:
-        return {"error": "Authentication flow not found. Please log in again."}
-    
-    auth_response = dict(request.query_params)
-    result = auth_provider.authenticate(flow=flow, auth_response=auth_response)
-    
+        return login_failed
+
+    result = auth_provider.authenticate(flow=flow, auth_response=dict(request.query_params))
     if "error" in result:
-        return result
-        
-    request.session.pop("msal_flow", None)
-    request.session["user"] = result.get("user")
-    return result
+        return login_failed
+
+    usecase = LoginWithEntra(uow, token_service)
+    try:
+        token = usecase.execute(LoginWithEntraDTO(email_id=result["user"]["email"] or ""))
+    except InvalidCredentials:
+        return login_failed
+
+    response = RedirectResponse(url=settings.FRONTEND_URL)
+    set_access_token_cookie(response, token)
+    return response
+
+
+@router_head.get("/me")
+def me(claims: Annotated[TokenClaims, Depends(current_claims)]) -> Me:
+    return Me(
+        userid=claims.userid,
+        sap_username=claims.sap_username,
+        roles=[role.value for role in claims.roles],
+    )
+
+
+@router_head.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(ACCESS_TOKEN_COOKIE)
+    return {"message": "Logged out"}
+
 
 app.include_router(router_head, prefix="/v1/auth", tags=["Auth"])
 
