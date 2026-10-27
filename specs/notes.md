@@ -57,6 +57,15 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - Tests that need a fixed clock use `create_app(repo, now=...)`; `make_client()` in `tests/conftest.py` already does.
 - `tests/test_contract_writes.py` replays the contract's POST and PATCH examples and checks that every detail code listed in the contract can be produced.
 
+## ui-kit (`packages/ui`, `@sami/ui`)
+- Source-only package (`main` is `src/index.ts`), compiled by each app's Vite. Apps import only from `@sami/ui`; add a new Mantine component by re-exporting it from `src/index.ts`. Defaults live in the theme in `UiProvider.tsx`, not in wrappers.
+- Style rule is tested: `tests/theme-only.test.ts` bans inline styles, hex/rgb colors and px values in `src/` and `playground/`. The TanStack SVG writes its own `style="display:block;overflow:visible"`; that is the library's.
+- Chart colors: `src/charts.css` maps TanStack's `--ts-chart-1..6` to Mantine color variables, so palettes recolor charts.
+- Registry (`src/registry.tsx`): one entry per widget with a zod schema, description and size hints. A new widget is one entry plus its component. Props must stay JSON-only. OpenUI is not integrated; `registry.describe()` feeds either OpenUI or schema-constrained JSON in the AI POC.
+- Jsdom needs `matchMedia` and `ResizeObserver` stubs (`tests/setup.ts`); charts need `initialWidth` to render there.
+- TanStack Charts vs Recharts (spike, 2026-10-27, 6 charts of 30 points, headless Chrome, heap after GC, 5 runs): chart code 39.7 kB gzip vs 102.7 kB, React excluded in both. JS heap about 2.3 MB vs 8.7 MB. DOM nodes 845 vs 1452. Both draw SVG; the gap is library overhead, not raster vs vector. The spike was plain charts without Mantine and was thrown away.
+- Run: `pnpm --filter @sami/ui test`; `pnpm --filter @sami/ui dev` opens the playground.
+
 ## Sales contract (`docs/sap/sales-contract.md`)
 - Source of truth for butterfly, the gateways and the consultant guide. Change it first, then the code.
 - Decimals are JSON strings; dates are `Edm.Date`; timestamps are UTC with `Z`; `OverallStatus` is `A`, `B`, `C`, `X`.

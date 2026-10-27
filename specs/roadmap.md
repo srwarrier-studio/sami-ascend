@@ -16,7 +16,7 @@ workspace-web 03 and shared 04-05 can follow.
 - 03 structured-logging: JSON logs with a request id across services. done (tag `shared-phase-03-done`, 2026-10-27)
 - 04 sap-identity-decision: decide who posts in SAP for workspace writes (real user or technical user) and record it. todo
 - 05 sales-end-to-end: prove an order entered in workspace shows in synapse within 5 minutes. todo
-- 06 ui-kit: `packages/ui` with the Mantine provider, shared styling and wrappers every web app imports (each app supplies only its own color palette), plus a TanStack Charts wrapper and a short size and memory comparison against Recharts. todo
+- 06 ui-kit: `packages/ui` with the Mantine provider, shared styling and wrappers every web app imports (each app supplies only its own color palette), plus a TanStack Charts wrapper and a short size and memory comparison against Recharts. done (tag `shared-phase-06-done`, 2026-10-27)
 
 ## butterfly (mock SAP, FastAPI, OData V4)
 - 01 scaffold-sales-read: serve `SalesOrder` with `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$count` from seed data. done (tag `butterfly-phase-01-done`, 2026-10-27)
