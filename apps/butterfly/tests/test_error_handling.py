@@ -12,6 +12,15 @@ class BrokenRepo(SalesOrderRepo):
     def get(self, sales_order):
         raise RuntimeError("secret detail")
 
+    def next_number(self):
+        raise RuntimeError("secret detail")
+
+    def add(self, order):
+        raise RuntimeError("secret detail")
+
+    def update(self, order):
+        raise RuntimeError("secret detail")
+
 
 class TestUnexpectedError:
     def setup_method(self):
