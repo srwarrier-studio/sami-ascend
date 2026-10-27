@@ -1,0 +1,9 @@
+.sami-chart {
+  color: var(--mantine-color-text);
+  --ts-chart-1: var(--mantine-primary-color-filled);
+  --ts-chart-2: var(--mantine-color-orange-filled);
+  --ts-chart-3: var(--mantine-color-green-filled);
+  --ts-chart-4: var(--mantine-color-grape-filled);
+  --ts-chart-5: var(--mantine-color-pink-filled);
+  --ts-chart-6: var(--mantine-color-cyan-filled);
+}
