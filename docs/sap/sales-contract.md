@@ -124,7 +124,18 @@ Supported on `SalesOrder`, `SalesOrderItem` and the summary entities:
 | `$top` | Default 100, maximum 1000; larger values return `400` |
 | `$skip` | Non-negative integer |
 | `$count` | `$count=true` adds `@odata.count` to a collection response |
-| `$expand` | `_Item` on `SalesOrder` only |
+| `$expand` | `_Item` on `SalesOrder` only; a single order accepts `$expand` and no other option |
+
+`$filter` literals: strings in single quotes (`'O''Brien'`, a doubled quote is one quote),
+dates as `2026-10-27`, timestamps as `2026-10-27T09:15:30Z`, decimals as `125000.50` with no
+quotes. A literal must match the field type. `contains()` and `startswith()` work on string
+fields and are case-sensitive. A field with no value (null) matches no comparison or function.
+Operators and function names are lower case.
+
+`$select` returns the chosen fields in the order of the field tables in section 2, whatever
+order the request lists them. `$orderby` puts empty values first when ascending and last when
+descending; rows with equal values keep their original order. `$top`, `$skip` and `$count`
+accept only `0` or a positive whole number, and `true` or `false`.
 
 Not supported: `$apply`, `$search`, `$expand` on summaries, lambda operators (`any`, `all`).
 Unsupported options return `400` in the error format (section 7).
@@ -408,6 +419,21 @@ Every non-2xx response has this body and `Content-Type: application/json`:
     "code": "UNSUPPORTED_QUERY_OPTION",
     "message": "Query option $apply is not supported.",
     "target": "$apply"
+  }
+}
+```
+
+### 400 Bad request (invalid query)
+
+A malformed `$filter`, an unknown field in `$filter`, `$select` or `$orderby`, a literal that
+does not match the field type, or a bad value for `$top`, `$skip`, `$count` or `$expand` (only `_Item` can be expanded). `target` is the option.
+
+```json
+{
+  "error": {
+    "code": "INVALID_QUERY",
+    "message": "Unknown field Colour in $filter.",
+    "target": "$filter"
   }
 }
 ```

@@ -38,6 +38,15 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - synapse-api and workspace-api must call it in their first phase. Tests that read log output use `caplog`; the stdout handler binds to the stream at import.
 - Run tests with `uv run --package structured-logging --with pytest --with httpx --with fastapi pytest packages/structured-logging`.
 
+## butterfly (`apps/butterfly`)
+- Run: `uv run --package butterfly butterfly` (port 8003). Seed is built from today's date: 30 orders `0000012001` to `0000012030`, 2 to 3 items each. Data lives in memory behind `SalesOrderRepo`; writes add to the same repo.
+- One `apply_list_query(rows, query, fields)` serves orders and items. A new entity needs only a field table in `application/filter/fields.py` (OData name, attribute, type) and a JSON mapper.
+- `$filter` is a hand-written parser (`application/filter/parser.py`): `not` over `and` over `or`, lower-case operators, null fields match nothing, `any(`/`all(` rejected as unsupported.
+- Errors: `INVALID_QUERY` (bad value, `target` is the option), `UNSUPPORTED_QUERY_OPTION` (400), `SALES_ORDER_NOT_FOUND` (404), `INTERNAL_ERROR` (500, `target` is the request id). The 500 is built by a middleware inside `RequestIdMiddleware`; a plain exception handler runs after the request id is cleared.
+- Contract rules added while building: timestamp literals, `''` quote escape, empty values sort first ascending, `$select` follows field-table order, a single order accepts only `$expand`.
+- `tests/test_contract.py` reads field tables and examples from `docs/sap/sales-contract.md`. Add new contract examples there and they are checked automatically; the summary example is skipped until butterfly/03.
+- Tests are grouped in classes named for the use case (`pytest -v` is the coverage list). Run: `uv run --package butterfly --with pytest --with httpx pytest apps/butterfly -v`.
+
 ## Sales contract (`docs/sap/sales-contract.md`)
 - Source of truth for butterfly, the gateways and the consultant guide. Change it first, then the code.
 - Decimals are JSON strings; dates are `Edm.Date`; timestamps are UTC with `Z`; `OverallStatus` is `A`, `B`, `C`, `X`.

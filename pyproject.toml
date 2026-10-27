@@ -9,6 +9,7 @@ dependencies = [
 [tool.uv.workspace]
 members = [
     "apps/auth-api",
+    "apps/butterfly",
     "packages/structured-logging",
     "packages/token-verification",
     "apps/synapse-api",
