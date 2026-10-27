@@ -45,7 +45,7 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - `$filter` is a hand-written parser (`application/filter/parser.py`): `not` over `and` over `or`, lower-case operators, null fields match nothing, `any(`/`all(` rejected as unsupported.
 - Errors: `INVALID_QUERY` (bad value, `target` is the option), `UNSUPPORTED_QUERY_OPTION` (400), `SALES_ORDER_NOT_FOUND` (404), `INTERNAL_ERROR` (500, `target` is the request id). The 500 is built by a middleware inside `RequestIdMiddleware`; a plain exception handler runs after the request id is cleared.
 - Contract rules added while building: timestamp literals, `''` quote escape, empty values sort first ascending, `$select` follows field-table order, a single order accepts only `$expand`.
-- `tests/test_contract.py` reads field tables and examples from `docs/sap/sales-contract.md`. Add new contract examples there and they are checked automatically; the summary example is skipped until butterfly/03.
+- `tests/test_contract.py` reads field tables and examples from `docs/sap/sales-contract.md`. Add new contract examples there and they are checked automatically.
 - Tests are grouped in classes named for the use case (`pytest -v` is the coverage list). Run: `uv run --package butterfly --with pytest --with httpx pytest apps/butterfly -v`.
 
 ## butterfly writes
@@ -56,6 +56,11 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - Unknown paths and wrong methods return `RESOURCE_NOT_FOUND` / `METHOD_NOT_ALLOWED` in the error format. Any new exception type needs its own handler or it falls to the 500 middleware.
 - Tests that need a fixed clock use `create_app(repo, now=...)`; `make_client()` in `tests/conftest.py` already does.
 - `tests/test_contract_writes.py` replays the contract's POST and PATCH examples and checks that every detail code listed in the contract can be produced.
+
+## butterfly summaries
+- Three use cases (`SummarizeByDay`, `SummarizeByCustomer`, `SummarizeByMaterial`) read `SalesOrderRepo.list_all()` on every request and group in memory; nothing is stored. Rows come back sorted by date, then party or material, then currency.
+- Cancelled (`X`) orders are excluded everywhere (consultant question 11). Material rows sum item quantity and amount; the unit and description come from the first item, which is safe because a material has one unit.
+- `ListSalesSummary(summarize, fields)` applies the query options through `apply_list_query`; `add_summary_route` in `entrypoint/app.py` registers each entity. `OrderCount` uses the numeric filter type. Read by key is a 404; `$expand` is `UNSUPPORTED_QUERY_OPTION`.
 
 ## ui-kit (`packages/ui`, `@sami/ui`)
 - Source-only package (`main` is `src/index.ts`), compiled by each app's Vite. Apps import only from `@sami/ui`; add a new Mantine component by re-exporting it from `src/index.ts`. Defaults live in the theme in `UiProvider.tsx`, not in wrappers.

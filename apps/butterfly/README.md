@@ -16,11 +16,12 @@ curl "http://localhost:8003/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/
 ## Served
 - Reads: `SalesOrder`, `SalesOrder('key')` (with `@odata.etag`), `SalesOrder('key')/_Item`
 - Query options: `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$count`, `$expand=_Item`
+- Summaries: `SalesSummaryByDay`, `SalesSummaryByCustomer`, `SalesSummaryByMaterial`, read-only, computed from the orders on every request, cancelled (`X`) orders left out; same query options as `SalesOrder` except `$expand`
 - Writes: `POST SalesOrder` (deep insert, `201` + `Location`) and `PATCH SalesOrder('key')` (only `RequestedDeliveryDate`, needs `If-Match`)
 - Seed: 30 orders over the last 10 days, built from today's date. New orders continue from `0000012031`; they live in memory until restart.
 - Reference data: customers `0000100001` to `0000100005`; materials `RM-1001` to `RM-1004` in `KG`, `RM-1005` and `RM-1006` in `EA`; currency `INR`.
 
-Not yet: summaries (butterfly/03), delays and failures (butterfly/04), `$metadata`.
+Not yet: delays and failures (butterfly/04), `$metadata`.
 
 ## Try the flow
 ```
@@ -35,6 +36,8 @@ curl "$R?\$filter=CreatedByUser%20eq%20'BUTTERFLY'&\$expand=_Item"
 curl -X PATCH "$R('0000012031')" -H 'Content-Type: application/json' \
   -H 'If-Match: W/"<etag from the POST response>"' -d '{"RequestedDeliveryDate": "2030-01-15"}'
 ```
+Today's totals then include it: `curl "http://localhost:8003/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/0001/SalesSummaryByDay?\$orderby=OrderDate%20desc&\$top=1"`
+
 Mistakes come back as `400 VALIDATION_FAILED` with one entry per problem in `details`.
 
 ## Test

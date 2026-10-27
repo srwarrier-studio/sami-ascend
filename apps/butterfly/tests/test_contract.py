@@ -101,8 +101,6 @@ class TestContractReadExamples:
 
     @pytest.mark.parametrize("request_text,response_text", EXAMPLES, ids=[e[0][:60] for e in EXAMPLES])
     def test_response_has_the_same_shape_as_the_example(self, request_text, response_text):
-        if "SalesSummary" in request_text:
-            pytest.skip("summary entities are butterfly phase 03")
         response = make_client().get(ROOT + request_text.replace("0000012345", SEEDED_KEY))
 
         assert response.status_code == 200
