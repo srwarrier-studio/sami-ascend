@@ -25,7 +25,12 @@ class ButterflySalesOrderGateway(SalesOrderGateway):
         return order_from_json(response.json())
 
     def list_recent(self, top: int, skip: int) -> SalesOrderPage:
-        raise NotImplementedError
+        query = f"$orderby=SalesOrder%20desc&$top={top}&$skip={skip}&$count=true&$expand=_Item"
+        response = self.send("GET", f"SalesOrder?{query}")
+        if response.status_code != 200:
+            raise SapUnavailable(f"unexpected status {response.status_code}")
+        body = response.json()
+        return SalesOrderPage([order_from_json(row) for row in body["value"]], body["@odata.count"])
 
     def send(self, method: str, path: str, **kwargs) -> httpx.Response:
         headers = {"Accept": "application/json"}
