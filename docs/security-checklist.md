@@ -55,7 +55,7 @@ uvx bandit -r apps/auth-api/src                         # Python static analysis
 - [x] Entra login only matches pre-registered users; no auto-creation
 - [x] Disabled users cannot log in
 - [ ] Login rate limiting / account lockout
-- [ ] Password policy (length, breached-password check)
+- [ ] Password policy: minimum 12 characters enforced on create; breached-password check and password change flow still open
 - [ ] MFA for privileged users (admins use Entra login, which enforces MFA, and not password login)
 - [ ] Server-side logout / token revocation (today logout only clears the cookie)
 - [ ] JWT secret rotation procedure documented and tested
@@ -75,17 +75,18 @@ uvx bandit -r apps/auth-api/src                         # Python static analysis
 
 ## 5. Admin CLI & bootstrap
 
-- [ ] Password is prompted (`getpass`), never a command-line argument (shell history, process list)
-- [ ] No default or hardcoded credentials anywhere
-- [ ] Goes through the same use case as the admin API (same validation, same hashing)
-- [ ] Writes an audit event with the OS user who ran it
-- [ ] First-admin bootstrap refuses to run once an admin exists
+- [x] Password is prompted (`getpass`), never a command-line argument (shell history, process list)
+- [x] No default or hardcoded credentials anywhere
+- [x] Goes through the same use case as the admin API (same validation, same hashing); admin API not built yet, it must reuse `CreateUser`
+- [x] Writes an audit event with the OS user who ran it
+- [x] First-admin bootstrap refuses to run once an admin exists
 - [ ] Runs only on the server, by named operators with server access
-- [ ] User database file is not world-readable and is included in backups
+- [x] User database file is created owner-only (0600)
+- [ ] User database is included in backups
 
 ## 6. Logging, audit & monitoring (ISO A.8.15, A.8.16 / SOC 2 CC7.2)
 
-- [ ] Audit log records: login success/failure, logout, user created/disabled, role changes, admin CLI use
+- [ ] Audit log records: login success/failure, logout, user created/disabled, role changes, admin CLI use (table exists; only user creation is written so far)
 - [ ] Each audit event has who, what, when, source IP, outcome
 - [ ] Audit log cannot be edited or deleted through the app
 - [ ] Application logs are structured JSON on stdout, with a request id across services

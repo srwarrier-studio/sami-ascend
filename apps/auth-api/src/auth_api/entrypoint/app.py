@@ -17,10 +17,10 @@ from auth_api.domain.value_objects.token_claims import TokenClaims
 from auth_api.entrypoint.dependencies import ACCESS_TOKEN_COOKIE, current_claims, token_service
 from auth_api.infrastructure.api.schema import Me
 from auth_api.infrastructure.interface.msal_auth_provider import MSALAuthProvider
-from auth_api.infrastructure.mock.mock_unit_of_work import MockAuthUnitOfWork
+from auth_api.infrastructure.sqlite.sqlite_unit_of_work import SqliteAuthUnitOfWork
 
 auth_provider = MSALAuthProvider()
-uow = MockAuthUnitOfWork()
+uow = SqliteAuthUnitOfWork(settings.DATABASE_PATH)
 password_hasher = Argon2PasswordHasher()
 
 app = FastAPI()

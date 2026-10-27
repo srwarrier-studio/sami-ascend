@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-auth-api = "auth_api:main"
+auth-api = "auth_api.entrypoint.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.9.26,<0.10.0"]
