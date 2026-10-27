@@ -30,6 +30,14 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - Run package tests with `uv run --package token-verification --with pytest --with httpx pytest packages`.
 - Secret rotation and revocation are still open (security checklist).
 
+## structured-logging (`packages/structured-logging`)
+- Flat package. `setup_logging(service)` once at import, then `app.add_middleware(RequestIdMiddleware)` added last so it is outermost. Run with `uvicorn.run(..., log_config=None)`; the `uvicorn` command installs its own plain-text log config.
+- One JSON line per record: `timestamp`, `level`, `service`, `request_id`, `message`, `exception`. Access line is `METHOD path status ms`, never the query string.
+- `X-Request-ID` is kept only if it matches `[A-Za-z0-9_-]{1,64}`; otherwise a UUID. Gateways should send `get_request_id()` as `X-Request-ID` on outgoing calls.
+- `httpx`, `httpx2` (Starlette TestClient) and `httpcore` loggers are set to WARNING because they log full URLs with query strings.
+- synapse-api and workspace-api must call it in their first phase. Tests that read log output use `caplog`; the stdout handler binds to the stream at import.
+- Run tests with `uv run --package structured-logging --with pytest --with httpx --with fastapi pytest packages/structured-logging`.
+
 ## Sales contract (`docs/sap/sales-contract.md`)
 - Source of truth for butterfly, the gateways and the consultant guide. Change it first, then the code.
 - Decimals are JSON strings; dates are `Edm.Date`; timestamps are UTC with `Z`; `OverallStatus` is `A`, `B`, `C`, `X`.

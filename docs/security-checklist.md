@@ -89,7 +89,7 @@ uvx bandit -r apps/auth-api/src                         # Python static analysis
 - [ ] Audit log records: login success/failure, logout, user created/disabled, role changes, admin CLI use (table exists; only user creation is written so far)
 - [ ] Each audit event has who, what, when, source IP, outcome
 - [ ] Audit log cannot be edited or deleted through the app
-- [ ] Application logs are structured JSON on stdout, with a request id across services
+- [ ] Application logs are structured JSON on stdout, with a request id across services (package done, only auth-api uses it so far)
 - [ ] No personal data, passwords, tokens or cookies in logs
 - [ ] Log retention period defined (commonly at least 12 months for audit logs)
 - [ ] Alerting on repeated failed logins and on 5xx spikes
@@ -154,3 +154,4 @@ uvx bandit -r apps/auth-api/src                         # Python static analysis
 | Date | Commit | What was checked or fixed |
 |------|--------|---------------------------|
 | | | Baseline: `pip-audit` and `pnpm audit` found no known vulnerabilities |
+| 2026-10-27 | `7ac8a64` | Logging package: access log has no query string, headers or cookies; httpx URL logging silenced |
