@@ -13,6 +13,9 @@
 | Mock SAP | `butterfly` (`apps/butterfly`), FastAPI | Serves the same OData V4 shapes as the real RAP services. The contract in `docs/sap/` is the source of truth for both butterfly and the consultant guide |
 | Dashboard freshness | Polling, 5 minutes | RAP does not push. synapse-api caches and refreshes on a 5-minute cycle |
 | Dashboard totals | Summary CDS views exposed as read-only entities | Safer for RAP beginners than `$apply`; revisit if SAP confirms aggregation support |
+| Web UI | Mantine, imported only through the shared `@sami/ui` package (`packages/ui`) | Every web app gets the same components and styling from one place. Colors are the only per-app difference: workspace and synapse each pass their own palette to the provider |
+| Routing (web) | TanStack Router, code-based routes | |
+| Charts (web) | TanStack Charts v1 (SVG, optional canvas), wrapped in `@sami/ui` | Chosen over Recharts for fit with the TanStack stack; shared/06 compares size and memory, and the wrapper means a swap touches one package |
 | Widgets (web) | Each widget is a React component taking one JSON-serializable props object, registered by name in one registry | Keeps the dashboard data-driven so a model can pick widgets later. No extra dependency now |
 | AI dashboards | POC only, local-first, small model (e.g. Gemma 270M), not decided | A model this small should choose widgets and fill their parameters as structured output, not write UI code |
 | Roles | App-owned, in the token: admin, management, purchase, stores, production, quality, sales, accounts | Page and API access. SAP still enforces data access |
