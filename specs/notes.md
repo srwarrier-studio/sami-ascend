@@ -47,6 +47,15 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - `tests/test_contract.py` reads field tables and examples from `docs/sap/sales-contract.md`. Add new contract examples there and they are checked automatically; the summary example is skipped until butterfly/03.
 - Tests are grouped in classes named for the use case (`pytest -v` is the coverage list). Run: `uv run --package butterfly --with pytest --with httpx pytest apps/butterfly -v`.
 
+## butterfly writes
+- `POST SalesOrder` validates everything in `NewOrderValidator` and returns all problems at once, ordered: not-allowed fields, header fields, items. Nothing is stored and no number is used when any problem exists. Number is `max + 1`, so the first new order is `0000012031`.
+- `PATCH` checks in this order: order exists (404), `If-Match` present (428), etag equal to the current one (412), then the body (400). Only `RequestedDeliveryDate` can change; `A` and `B` orders only.
+- `SalesOrder.etag` is derived from `LastChangeDateTime`. A change sets it to the later of now and the old value plus one second, so two changes in one second still get different etags.
+- Reference data (`MasterDataRepo`) is the seed customers and materials; `INR` only; a material has one unit and one price. `CreatedByUser` is always `BUTTERFLY` until shared/04.
+- Unknown paths and wrong methods return `RESOURCE_NOT_FOUND` / `METHOD_NOT_ALLOWED` in the error format. Any new exception type needs its own handler or it falls to the 500 middleware.
+- Tests that need a fixed clock use `create_app(repo, now=...)`; `make_client()` in `tests/conftest.py` already does.
+- `tests/test_contract_writes.py` replays the contract's POST and PATCH examples and checks that every detail code listed in the contract can be produced.
+
 ## Sales contract (`docs/sap/sales-contract.md`)
 - Source of truth for butterfly, the gateways and the consultant guide. Change it first, then the code.
 - Decimals are JSON strings; dates are `Edm.Date`; timestamps are UTC with `Z`; `OverallStatus` is `A`, `B`, `C`, `X`.
