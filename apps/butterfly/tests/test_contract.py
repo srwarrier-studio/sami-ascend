@@ -1,18 +1,15 @@
 import json
 import re
 from datetime import date
-from pathlib import Path
 
 import pytest
 
 from butterfly.infrastructure.api.odata import ROOT
 from conftest import ORDERS, make_client
-
-CONTRACT = (Path(__file__).resolve().parents[3] / "docs/sap/sales-contract.md").read_text()
+from contract_helpers import CONTRACT, error_example, same_shape
 
 FIELD_ROW = re.compile(r"^\| `(\w+)` \| `(Edm\.\w+)`(?: \(([\d,]+)\))? \| (Yes|No) \|", re.MULTILINE)
 EXAMPLE = re.compile(r"```\nGET \{root\}([^\n]+)\n```\n\n```json\n(.*?)\n```", re.DOTALL)
-JSON_BLOCK = re.compile(r"```json\n(.*?)\n```", re.DOTALL)
 SEEDED_KEY = "0000012002"
 
 
@@ -53,22 +50,6 @@ def check_rows(rows, table):
                 assert nullable, f"{name} is null but the contract says not nullable"
             else:
                 check_value(name, edm, size, row[name])
-
-
-def same_shape(actual, expected, path="body"):
-    if expected is None or actual is None:
-        return
-    if isinstance(expected, dict):
-        assert isinstance(actual, dict), path
-        assert list(actual) == list(expected), f"{path}: {list(actual)} != {list(expected)}"
-        for key in expected:
-            same_shape(actual[key], expected[key], f"{path}.{key}")
-    elif isinstance(expected, list):
-        assert isinstance(actual, list), path
-        if actual and expected:
-            same_shape(actual[0], expected[0], f"{path}[0]")
-    else:
-        assert type(actual) is type(expected), f"{path}: {actual!r} vs {expected!r}"
 
 
 class TestContractFieldTables:
@@ -126,14 +107,6 @@ class TestContractReadExamples:
 
         assert response.status_code == 200
         same_shape(response.json(), json.loads(response_text))
-
-
-def error_example(code):
-    for text in JSON_BLOCK.findall(CONTRACT):
-        block = json.loads(text)
-        if block.get("error", {}).get("code") == code:
-            return block
-    pytest.fail(f"no example with code {code}")
 
 
 class TestContractErrorExamples:

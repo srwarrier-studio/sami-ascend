@@ -64,7 +64,10 @@ def order_row(order, select: list[str] | None, expand: bool) -> dict:
     return row
 
 
-HTTP_ERROR_CODES = {404: "RESOURCE_NOT_FOUND", 405: "METHOD_NOT_ALLOWED"}
+HTTP_ERRORS = {
+    404: ("RESOURCE_NOT_FOUND", "The requested resource does not exist."),
+    405: ("METHOD_NOT_ALLOWED", "This method is not supported for this resource."),
+}
 
 
 def create_app(
@@ -219,9 +222,9 @@ def create_app(
 
     @app.exception_handler(StarletteHTTPException)
     def http_error(request: Request, error: StarletteHTTPException):
-        code = HTTP_ERROR_CODES.get(error.status_code, "HTTP_ERROR")
+        code, message = HTTP_ERRORS.get(error.status_code, ("HTTP_ERROR", str(error.detail)))
         return JSONResponse(
-            error_body(code, str(error.detail)),
+            error_body(code, message),
             status_code=error.status_code,
             headers=getattr(error, "headers", None),
         )

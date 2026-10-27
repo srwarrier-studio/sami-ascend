@@ -390,7 +390,10 @@ Detail codes: `FIELD_REQUIRED`, `FIELD_INVALID`, `FIELD_NOT_ALLOWED`, `CUSTOMER_
 | `UNIT_INVALID` | The unit is not the material's unit | `_Item/n/QuantityUnit` |
 | `NO_ITEMS` | `_Item` is missing or empty | `_Item` |
 
-Format and field problems use the same shape, one entry each:
+Format and field problems use the same shape, one entry each. Entries are ordered: fields that
+are not allowed first, then the header fields in the order of the field table, then the items
+in request order.
+
 
 ```json
 {
@@ -399,14 +402,14 @@ Format and field problems use the same shape, one entry each:
     "message": "The sales order has errors.",
     "details": [
       {
-        "code": "FIELD_INVALID",
-        "message": "RequestedDeliveryDate must be a date like 2026-11-05.",
-        "target": "RequestedDeliveryDate"
-      },
-      {
         "code": "FIELD_NOT_ALLOWED",
         "message": "OverallStatus is set by SAP and cannot be sent.",
         "target": "OverallStatus"
+      },
+      {
+        "code": "FIELD_INVALID",
+        "message": "RequestedDeliveryDate must be a date like 2026-11-05.",
+        "target": "RequestedDeliveryDate"
       }
     ]
   }
@@ -490,6 +493,30 @@ The body is not valid JSON, or is JSON but not an object.
     "code": "INVALID_REQUEST_BODY",
     "message": "The request body must be a JSON object.",
     "target": "body"
+  }
+}
+```
+
+### 404 Unknown resource, 405 Method not allowed
+
+A path that is not in this service is `404 RESOURCE_NOT_FOUND`. A method the resource does not
+support, such as `DELETE` (there is no delete) or `PUT`, is `405 METHOD_NOT_ALLOWED`. Neither
+has a `target`.
+
+```json
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "The requested resource does not exist."
+  }
+}
+```
+
+```json
+{
+  "error": {
+    "code": "METHOD_NOT_ALLOWED",
+    "message": "This method is not supported for this resource."
   }
 }
 ```

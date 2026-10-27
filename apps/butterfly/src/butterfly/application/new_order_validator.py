@@ -5,6 +5,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from butterfly.application.delivery_date import check_delivery_date
+from butterfly.application.filter.fields import SALES_ORDER_FIELDS, SALES_ORDER_ITEM_FIELDS
 from butterfly.domain.entities.master_data import Customer, Material
 from butterfly.domain.errors import ValidationDetail
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
@@ -48,7 +49,7 @@ class NewOrderValidator:
 
     def validate(self, body: dict[str, Any]) -> tuple[NewOrder | None, list[ValidationDetail]]:
         self.details = []
-        self.check_not_allowed(body, HEADER_FIELDS + ["_Item"], "")
+        self.check_not_allowed(body, HEADER_FIELDS + ["_Item"], "", SALES_ORDER_FIELDS)
         order_type = self.text(body, "SalesOrderType", "SalesOrderType")
         customer = self.customer(body)
         delivery_date = self.delivery_date(body)
@@ -58,14 +59,15 @@ class NewOrderValidator:
             return None, self.details
         return NewOrder(order_type, customer, delivery_date, currency, items), []
 
-    def check_not_allowed(self, body: dict, allowed: list[str], prefix: str):
+    def check_not_allowed(self, body: dict, allowed: list[str], prefix: str, known: dict):
         for name in body:
-            if name not in allowed:
-                self.problem(
-                    "FIELD_NOT_ALLOWED",
-                    f"{name} is set by SAP or unknown and cannot be sent.",
-                    prefix + name,
-                )
+            if name in allowed:
+                continue
+            if name in known:
+                message = f"{name} is set by SAP and cannot be sent."
+            else:
+                message = f"{name} is not a field of the sales order."
+            self.problem("FIELD_NOT_ALLOWED", message, prefix + name)
 
     def text(self, body: dict, name: str, target: str) -> str | None:
         value = body.get(name)
@@ -121,7 +123,7 @@ class NewOrderValidator:
         if not isinstance(entry, dict):
             self.problem("FIELD_INVALID", "Each item must be an object.", f"_Item/{position}")
             return None
-        self.check_not_allowed(entry, ITEM_FIELDS, prefix)
+        self.check_not_allowed(entry, ITEM_FIELDS, prefix, SALES_ORDER_ITEM_FIELDS)
         material = self.material(entry, prefix)
         quantity = self.quantity(entry, prefix)
         unit = self.text(entry, "QuantityUnit", prefix + "QuantityUnit")
