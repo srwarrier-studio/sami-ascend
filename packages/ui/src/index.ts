@@ -12,6 +12,7 @@ export {
   NavLink,
   PasswordInput,
   SimpleGrid,
+  Table,
   Stack,
   Text,
   TextInput,
@@ -21,3 +22,5 @@ export { LineChart, BarChart } from './charts'
 export type { ChartProps, ChartPointData } from './charts'
 export { formatValue } from './format'
 export type { ValueFormat } from './format'
+export { KpiCard, RankedList, DataTable } from './widgets'
+export { registry } from './registry'

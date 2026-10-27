@@ -10,6 +10,7 @@ import {
   LineChart,
   NavLink,
   PasswordInput,
+  registry,
   SimpleGrid,
   Stack,
   synapsePalette,
@@ -49,6 +50,18 @@ function Gallery({ name, palette }: { name: string; palette: Palette }) {
             <NavLink label="Sales orders" active />
             <NavLink label="Reports" />
           </Card>
+          <SimpleGrid cols={3}>
+            {registry.render('KpiCard', { title: 'Today', value: 125000, valueFormat: 'currency', delta: 0.05, caption: 'vs yesterday' })}
+            {registry.render('RankedList', { title: 'Top customers', items: days, valueFormat: 'currency' })}
+            {registry.render('DataTable', {
+              title: 'Recent high-value sales',
+              columns: [
+                { key: 'order', label: 'Order' },
+                { key: 'amount', label: 'Amount', format: 'currency' },
+              ],
+              rows: [{ order: '0000012031', amount: 500000 }],
+            })}
+          </SimpleGrid>
           <SimpleGrid cols={2}>
             <LineChart data={days} title="Day sales" valueFormat="currency" />
             <BarChart data={days} title="Top customers" valueFormat="currency" />

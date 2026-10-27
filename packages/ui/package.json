@@ -18,7 +18,8 @@
   "dependencies": {
     "@mantine/core": "^9.7.4",
     "@mantine/hooks": "^9.7.4",
-    "@tanstack/charts": "^1.1.0"
+    "@tanstack/charts": "^1.1.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
