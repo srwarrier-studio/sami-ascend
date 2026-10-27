@@ -20,6 +20,8 @@ Python (FastAPI) backends. Backends talk to SAP OData (RAP). The browser never c
    `git branch --list '*/phase-*'`, not in the roadmap.
 6. **Phase folder:** `spec.md` (goal, behavior, acceptance cases, out of scope, depends on),
    `tasks.md`, `notes.md`, `reference/` for external material.
+   `tasks.md` is a checklist (`- [ ]` / `- [x]`), each task with a one-line "Done when". The agent
+   ticks a task in the same commit that finishes it.
 7. **Spec first.** Agree the spec before code. Acceptance cases become tests.
 8. **Closing a phase:**
    - All tests pass and the security checklist items touched are updated.
