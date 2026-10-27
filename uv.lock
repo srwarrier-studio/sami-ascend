@@ -1366,6 +1366,16 @@ requires-dist = [{ name = "starlette", specifier = ">=0.40.0" }]
 name = "synapse-api"
 version = "0.1.0"
 source = { editable = "apps/synapse-api" }
+dependencies = [
+    { name = "httpx" },
+    { name = "structured-logging" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "structured-logging", editable = "packages/structured-logging" },
+]
 
 [[package]]
 name = "token-verification"
