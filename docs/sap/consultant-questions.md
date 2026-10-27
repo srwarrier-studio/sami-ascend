@@ -15,6 +15,8 @@ Answered with the answer and the date, and update the document that depended on 
 6. Is `$top` above 1000 rejected, and `$count` supported on all entities?
 7. Do the validation detail codes in section 6 map to RAP messages with a stable `code`?
 8. Which orders may a read-only management login see (sales organisation, plant)?
+9. Which `SalesOrderType` values are valid on create, and which message code does SAP return for an invalid one? The contract has no detail code for it yet.
+10. May a caller send fields that SAP fills in (for example `OverallStatus`)? We reject them with `FIELD_NOT_ALLOWED`; confirm RAP can do the same.
 
 ## Answered
 
