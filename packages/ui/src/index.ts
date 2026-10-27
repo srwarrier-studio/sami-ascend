@@ -2,24 +2,45 @@ export { UiProvider } from './UiProvider'
 export { workspacePalette, synapsePalette } from './palettes'
 export type { Palette } from './palettes'
 export {
+  Accordion,
+  ActionIcon,
   Alert,
   AppShell,
-  Select,
-  SegmentedControl,
+  Avatar,
+  Badge,
+  Breadcrumbs,
   Button,
   Card,
+  Checkbox,
   Container,
+  Divider,
+  Drawer,
   Group,
   Loader,
+  Menu,
+  Modal,
+  MultiSelect,
   NavLink,
+  NumberInput,
+  Pagination,
   PasswordInput,
+  Progress,
+  Radio,
+  SegmentedControl,
+  Select,
   SimpleGrid,
-  Table,
+  Skeleton,
   Stack,
+  Switch,
+  Table,
+  Tabs,
   Text,
+  Textarea,
   TextInput,
   Title,
+  Tooltip,
 } from '@mantine/core'
+export { notifications } from '@mantine/notifications'
 export { LineChart, BarChart } from './charts'
 export type { ChartProps, ChartPointData } from './charts'
 export { formatValue } from './format'

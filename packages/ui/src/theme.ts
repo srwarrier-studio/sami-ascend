@@ -1,7 +1,8 @@
 import '@fontsource/ibm-plex-sans/400.css'
 import '@fontsource/ibm-plex-sans/500.css'
 import '@fontsource/ibm-plex-sans/600.css'
-import { Button, Input, createTheme, rem } from '@mantine/core'
+import classes from './Notification.module.css'
+import { Button, Input, Notification, createTheme, rem } from '@mantine/core'
 
 export const fontFamily = '"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
 
@@ -54,6 +55,7 @@ export const sharedTheme = createTheme({
     TextInput: { defaultProps: { size: 'sm' } },
     PasswordInput: { defaultProps: { size: 'sm' } },
     Card: { defaultProps: { withBorder: true, padding: 'md', radius: 'md' } },
+    Notification: Notification.extend({ classNames: classes }),
     Alert: { defaultProps: { variant: 'light', radius: 'sm' } },
   },
 })

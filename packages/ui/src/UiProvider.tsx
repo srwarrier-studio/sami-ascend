@@ -1,5 +1,7 @@
 import '@mantine/core/styles.css'
+import '@mantine/notifications/styles.css'
 import { MantineProvider, createTheme } from '@mantine/core'
+import { Notifications } from '@mantine/notifications'
 import type { ReactNode } from 'react'
 import type { Palette } from './palettes'
 import { sharedTheme } from './theme'
@@ -16,5 +18,8 @@ export function UiProvider({ palette, children }: UiProviderProps) {
     primaryColor: palette.primaryColor,
     primaryShade: palette.primaryShade as 6,
   })
-  return <MantineProvider theme={theme}>{children}</MantineProvider>
+  return <MantineProvider theme={theme}>
+      <Notifications />
+      {children}
+    </MantineProvider>
 }
