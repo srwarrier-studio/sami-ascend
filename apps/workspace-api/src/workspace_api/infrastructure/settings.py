@@ -8,3 +8,5 @@ DEFAULT_SAP_BASE_URL = "http://localhost:8003/sap/opu/odata4/sap/zui_sales_o4/sr
 class Settings:
     sap_base_url: str = field(default_factory=lambda: os.environ.get("SAP_BASE_URL", DEFAULT_SAP_BASE_URL))
     sap_timeout_seconds: float = 10.0
+    jwt_secret: str = field(default_factory=lambda: os.environ.get("JWT_SECRET", ""))
+    frontend_url: str = field(default_factory=lambda: os.environ.get("FRONTEND_URL", "http://localhost:5173"))

@@ -15,3 +15,6 @@ class SalesOrderRejected(Exception):
 
 
 class SapUnavailable(Exception): ...
+
+
+class InvalidQuery(Exception): ...

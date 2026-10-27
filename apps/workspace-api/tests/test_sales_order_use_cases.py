@@ -6,7 +6,7 @@ import pytest
 from workspace_api.application.usecase.create_sales_order import CreateSalesOrder
 from workspace_api.application.usecase.list_sales_orders import ListSalesOrders
 from workspace_api.domain.entities.sales_order import NewSalesOrder, NewSalesOrderItem
-from workspace_api.domain.errors import SalesOrderRejected, ValidationDetail
+from workspace_api.domain.errors import InvalidQuery, SalesOrderRejected, ValidationDetail
 from workspace_api.infrastructure.mock_sales_order_gateway import MockSalesOrderGateway
 
 
@@ -55,11 +55,11 @@ class TestListSalesOrders:
 
     @pytest.mark.parametrize("top", [0, 101, -1])
     def test_top_outside_range_is_rejected(self, top):
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidQuery):
             ListSalesOrders(MockSalesOrderGateway()).execute(top=top)
 
     def test_negative_skip_is_rejected(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidQuery):
             ListSalesOrders(MockSalesOrderGateway()).execute(skip=-1)
 
     def test_top_edges_are_accepted(self):

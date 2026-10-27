@@ -1,3 +1,4 @@
+from workspace_api.domain.errors import InvalidQuery
 from workspace_api.domain.entities.sales_order import SalesOrderPage
 from workspace_api.domain.gateways.sales_order_gateway import SalesOrderGateway
 
@@ -10,7 +11,7 @@ class ListSalesOrders:
 
     def execute(self, top: int = 20, skip: int = 0) -> SalesOrderPage:
         if not 1 <= top <= MAX_TOP:
-            raise ValueError(f"top must be between 1 and {MAX_TOP}")
+            raise InvalidQuery(f"top must be between 1 and {MAX_TOP}")
         if skip < 0:
-            raise ValueError("skip must be 0 or more")
+            raise InvalidQuery("skip must be 0 or more")
         return self.gateway.list_recent(top, skip)

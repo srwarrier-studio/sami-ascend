@@ -45,7 +45,7 @@ workspace-web 03 and shared 04-05 can follow.
 
 ## workspace-api (workflow backend)
 - 01 sales-order-gateway: an interface to create and list sales orders, with an implementation that calls butterfly. done (tag `workspace-api-phase-01-done`, 2026-10-27)
-- 02 sales-order-routes: role-checked routes for creating and listing orders. todo
+- 02 sales-order-routes: role-checked routes for creating and listing orders. done (tag `workspace-api-phase-02-done`, 2026-10-27)
 
 ## workspace-web (department users)
 - 01 shell-and-login: app shell, login page, menu by role. todo

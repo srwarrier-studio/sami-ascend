@@ -71,6 +71,10 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - The list query string is built by hand with `%20`: `httpx` params would send `+` for spaces, which real SAP may not accept.
 - `X-Request-ID` is sent only when `get_request_id()` has a value (it is `None` outside a request).
 - Any unexpected status (not 201/200/400) and an unreadable `400` body are `SapUnavailable`. `401`/`403` from SAP are not mapped yet; decide with shared/04.
-- `ListSalesOrders` raises `ValueError` for `top` outside 1..100 or negative `skip`; routes (phase 02) turn it into 422.
+- `ListSalesOrders` raises `InvalidQuery` for `top` outside 1..100 or negative `skip`; routes (phase 02) turn it into 422.
 - `setup_logging("workspace-api")` runs when `workspace_api.entrypoint` is imported; phase 02 must import the app from there.
 - Run: `uv run --package workspace-api --with pytest pytest apps/workspace-api -v`.
+- Routes (phase 02): `create_app(gateway, settings)` in `entrypoint/app.py` builds the app; tests pass `MockSalesOrderGateway`. `entrypoint/run.py` wires butterfly and starts uvicorn on 8002; it exits if `JWT_SECRET` is empty.
+- Only the `sales` role may use the routes; `admin` alone gets 403. A stand-in gets the `sales` role through auth-api 02.
+- `InvalidQuery` (domain error) becomes 422 `INVALID_QUERY`; `SalesOrderRejected` becomes 422 `VALIDATION_FAILED` with `details`; `SapUnavailable` becomes 503 `SAP_UNAVAILABLE` with no SAP detail.
+- Route tests share `make_client` and `VALID_BODY` from `tests/test_routes_access.py`.

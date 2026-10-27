@@ -1,2 +1,4 @@
 def main() -> None:
-    print("Hello from workspace-api!")
+    from workspace_api.entrypoint.run import main as run
+
+    run()
