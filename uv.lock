@@ -7,6 +7,7 @@ members = [
     "auth-api",
     "sami-ascend",
     "synapse-api",
+    "token-verification",
     "workspace-api",
 ]
 
@@ -113,6 +114,7 @@ dependencies = [
     { name = "msal" },
     { name = "pwdlib", extra = ["argon2"] },
     { name = "pyjwt" },
+    { name = "token-verification" },
 ]
 
 [package.metadata]
@@ -121,6 +123,7 @@ requires-dist = [
     { name = "msal", specifier = ">=1.39.0" },
     { name = "pwdlib", extras = ["argon2"], specifier = ">=0.3.1" },
     { name = "pyjwt", specifier = ">=2.15.1" },
+    { name = "token-verification", editable = "packages/token-verification" },
 ]
 
 [[package]]
@@ -1333,6 +1336,21 @@ wheels = [
 name = "synapse-api"
 version = "0.1.0"
 source = { editable = "apps/synapse-api" }
+
+[[package]]
+name = "token-verification"
+version = "0.1.0"
+source = { editable = "packages/token-verification" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "pyjwt" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.161.1" },
+    { name = "pyjwt", specifier = ">=2.15.1" },
+]
 
 [[package]]
 name = "truststore"

@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
-from auth_api.domain.value_objects.role import Role
+from token_verification import Role
 from auth_api.entrypoint.dependencies import (
     ACCESS_TOKEN_COOKIE,
     current_claims,

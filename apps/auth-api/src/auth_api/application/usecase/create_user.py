@@ -5,7 +5,7 @@ from auth_api.domain.errors import UserAlreadyExists, WeakPassword
 from auth_api.domain.interface.auth_unit_of_work import AuthUnitOfWork
 from auth_api.domain.interface.password_hasher import PasswordHasher
 from auth_api.domain.value_objects.email_id import EmailID
-from auth_api.domain.value_objects.role import Role
+from token_verification import Role
 from auth_api.domain.value_objects.user_id import UserID
 
 MIN_PASSWORD_LENGTH = 12

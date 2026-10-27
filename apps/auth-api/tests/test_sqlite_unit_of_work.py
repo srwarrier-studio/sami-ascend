@@ -2,7 +2,7 @@ import stat
 
 from auth_api.domain.entities.audit_event import AuditEvent
 from auth_api.domain.value_objects.email_id import EmailID
-from auth_api.domain.value_objects.role import Role
+from token_verification import Role
 from auth_api.infrastructure.mock.mock_user_repo import MOCK_USER
 from auth_api.infrastructure.sqlite.sqlite_unit_of_work import SqliteAuthUnitOfWork
 

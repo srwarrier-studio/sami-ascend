@@ -5,11 +5,14 @@ from auth_api.application.usecase.login_with_entra import LoginWithEntra
 from auth_api.application.usecase.login_with_password import LoginWithPassword
 from auth_api.domain.errors import InvalidCredentials
 from auth_api.infrastructure.interface.argon2_password_hasher import Argon2PasswordHasher
+from token_verification import TokenVerifier
+
 from auth_api.infrastructure.interface.jwt_token_service import JwtTokenService
 from auth_api.infrastructure.mock.mock_unit_of_work import MockAuthUnitOfWork
 from auth_api.infrastructure.mock.mock_user_repo import MOCK_USER
 
 token_service = JwtTokenService(secret="s" * 32, expire_minutes=5)
+verifier = TokenVerifier("s" * 32)
 
 
 def password_login():
@@ -19,7 +22,7 @@ def password_login():
 def test_password_login_returns_token_for_the_user():
     token = password_login().execute(LoginWithPasswordDTO("Test@Email.com", "password"))
 
-    assert token_service.verify(token).userid == str(MOCK_USER.userid.value)
+    assert verifier.verify(token).userid == str(MOCK_USER.userid.value)
 
 
 @pytest.mark.parametrize(
@@ -48,7 +51,7 @@ def test_entra_login_returns_token_for_registered_user():
         LoginWithEntraDTO("Test@Email.com")
     )
 
-    assert token_service.verify(token).userid == str(MOCK_USER.userid.value)
+    assert verifier.verify(token).userid == str(MOCK_USER.userid.value)
 
 
 def test_entra_login_rejects_unregistered_user():

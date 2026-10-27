@@ -13,7 +13,7 @@ from auth_api.application.usecase.login_with_password import LoginWithPassword
 from auth_api.core.config import settings
 from auth_api.domain.errors import InvalidCredentials
 from auth_api.infrastructure.interface.argon2_password_hasher import Argon2PasswordHasher
-from auth_api.domain.value_objects.token_claims import TokenClaims
+from token_verification import TokenClaims
 from auth_api.entrypoint.dependencies import ACCESS_TOKEN_COOKIE, current_claims, token_service
 from auth_api.infrastructure.api.schema import Me
 from auth_api.infrastructure.interface.msal_auth_provider import MSALAuthProvider

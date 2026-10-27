@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from auth_api.domain.value_objects.role import Role
+from token_verification.role import Role
 
 
 @dataclass(frozen=True)
