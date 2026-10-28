@@ -1,4 +1,6 @@
 import logging
+import threading
+import time
 
 import pytest
 
@@ -83,6 +85,24 @@ class TestSapFailure:
             cache.get("today", load)
 
 
+class TestSeveralThreads:
+    def test_simultaneous_first_reads_load_once(self):
+        cache = SalesCache(300)
+        calls = []
+
+        def slow():
+            calls.append(1)
+            time.sleep(0.05)
+            return "v1"
+
+        threads = [threading.Thread(target=cache.get, args=("k", slow)) for _ in range(5)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        assert len(calls) == 1
+
+
 class TestSettings:
     def test_default_is_five_minutes(self, monkeypatch):
         monkeypatch.delenv("CACHE_SECONDS", raising=False)
@@ -91,3 +111,10 @@ class TestSettings:
     def test_reads_cache_seconds_from_environment(self, monkeypatch):
         monkeypatch.setenv("CACHE_SECONDS", "60")
         assert Settings().cache_seconds == 60
+
+    def test_jwt_secret_and_frontend_url_have_defaults(self, monkeypatch):
+        monkeypatch.delenv("JWT_SECRET", raising=False)
+        monkeypatch.delenv("FRONTEND_URL", raising=False)
+        settings = Settings()
+        assert settings.jwt_secret == ""
+        assert settings.frontend_url == "http://localhost:5173"

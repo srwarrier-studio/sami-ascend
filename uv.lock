@@ -1367,14 +1367,18 @@ name = "synapse-api"
 version = "0.1.0"
 source = { editable = "apps/synapse-api" }
 dependencies = [
+    { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
     { name = "structured-logging" },
+    { name = "token-verification" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.115" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "structured-logging", editable = "packages/structured-logging" },
+    { name = "token-verification", editable = "packages/token-verification" },
 ]
 
 [[package]]
