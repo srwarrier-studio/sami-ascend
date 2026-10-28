@@ -113,3 +113,6 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - High-value orders are limited by `$top` only; there is no paging past it.
 - `setup_logging("synapse-api")` runs when `synapse_api.entrypoint` is imported; phase 03 must import the app from there.
 - Run: `uv run --package synapse-api --with pytest pytest apps/synapse-api -v`.
+- KPIs (phase 02): use cases are built with a `SalesSource` and take `today` in `execute`, so a long-lived instance never holds yesterday's date. Everything is per currency, never added across currencies; `top` applies to each currency separately. Limits: `top` 1..50, `months` 1..24, otherwise `InvalidQuery` (phase 03 maps it to 422).
+- Month-on-month gives every currency seen in the range a row for every month, zero when empty. Customer totals take the name from the first row, materials take unit and description from the first row.
+- `SalesCache.get(key, load)` refreshes on read, not on a timer (`CACHE_SECONDS`, default 300). On `SapUnavailable` it returns the old value and logs a warning; with nothing stored it raises. Include `today` in the key where the result depends on it. No lock yet: add one if phase 03 serves requests from several threads.
