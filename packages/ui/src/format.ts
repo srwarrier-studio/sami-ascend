@@ -13,3 +13,10 @@ const formatters: Record<ValueFormat, Intl.NumberFormat> = {
 export function formatValue(value: number, format: ValueFormat = 'number') {
   return formatters[format].format(value)
 }
+
+const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
+
+export function formatCompact(value: number, format: ValueFormat = 'number') {
+  if (format === 'percent') return formatValue(value, 'percent')
+  return `${format === 'currency' ? '₹' : ''}${compact.format(value)}`
+}

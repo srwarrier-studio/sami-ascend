@@ -68,6 +68,15 @@ describe('registry render with valid props', () => {
     expect(show('DataTable', samples.DataTable).getByText('₹5,00,000')).toBeInTheDocument()
   })
 
+  it('renders a LineChart with a compare series and its legend', () => {
+    const points = [
+      { label: 'Mon', value: 1 },
+      { label: 'Tue', value: 2 },
+    ]
+    const { container } = show('LineChart', { data: points, compare: points, compareLabel: 'Last week' })
+    expect(container.querySelector('.ts-chart__legend')?.textContent).toContain('Last week')
+  })
+
   it('ignores unknown props', () => {
     const { queryByText } = show('KpiCard', { ...samples.KpiCard, surprise: 'x' })
     expect(queryByText('Cannot show widget KpiCard')).toBeNull()

@@ -35,6 +35,11 @@ const days = Array.from({ length: 14 }, (_, index) => ({
   value: Math.round((1.4 + index * 0.03 + Math.sin(index * 0.9) * 0.35) * 1000000),
 }))
 
+const lastMonth = days.map((point, index) => ({
+  label: point.label,
+  value: Math.round((1.2 + index * 0.015 + Math.sin(index * 0.7 + 1) * 0.3) * 1000000),
+}))
+
 const customers = [
   { label: 'Northwind Trading', value: 412000 },
   { label: 'Harbor Steel Works', value: 368000 },
@@ -84,7 +89,7 @@ export function DashboardDemo() {
           <KpiCard title="Average invoice" value={2648} valueFormat="currency" delta={-0.014} caption="vs last month" />
         </SimpleGrid>
         <SimpleGrid cols={{ base: 1, lg: 2 }}>
-          <LineChart title="Day sales" data={days} valueFormat="currency" />
+          <LineChart title="Day sales" data={days} compare={lastMonth} label="This month" compareLabel="Last month" valueFormat="currency" />
           <BarChart title="Month-on-month sales" data={months} valueFormat="currency" />
         </SimpleGrid>
         <SimpleGrid cols={{ base: 1, lg: 3 }}>

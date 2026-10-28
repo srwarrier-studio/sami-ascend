@@ -52,8 +52,16 @@ const entries: Record<string, Entry> = {
     component: DataTable,
   },
   LineChart: {
-    description: 'A line over ordered labels, such as sales per day or per month.',
-    schema: z.object({ data: z.array(point), title: z.string().optional(), valueFormat }),
+    description:
+      'A line over ordered labels, such as sales per day or per month. An optional compare series shows the previous period behind it.',
+    schema: z.object({
+      data: z.array(point),
+      compare: z.array(point).optional(),
+      label: z.string().optional(),
+      compareLabel: z.string().optional(),
+      title: z.string().optional(),
+      valueFormat,
+    }),
     size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
     component: LineChart,
   },
