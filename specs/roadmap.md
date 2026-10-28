@@ -35,7 +35,7 @@ workspace-web 03 and shared 04-05 can follow.
 
 ## synapse-api (dashboard backend)
 - 01 sales-source: an interface to read sales data, with an implementation that calls butterfly. done (tag `synapse-api-phase-01-done`, 2026-10-27)
-- 02 sales-kpis: use cases for today, month-to-date, year-to-date, top customers and materials; cached and refreshed every 5 minutes. todo
+- 02 sales-kpis: use cases for today, month-to-date, year-to-date, top customers and materials; cached and refreshed every 5 minutes. done (tag `synapse-api-phase-02-done`, 2026-10-28).
 - 03 dashboard-routes: role-checked routes that return the data each catalog widget needs (month-on-month sales, day sales, recent high-value sales, top customers and materials). todo
 - 04 board-storage: each user's own boards (name, widgets with name, props and grid position), saved in SQLite behind a repo, with list, create, rename, delete and save-layout routes. todo
 
