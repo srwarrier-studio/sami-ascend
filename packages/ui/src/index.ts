@@ -2,6 +2,7 @@ export { UiProvider } from './UiProvider'
 export { presets, workspacePalette, synapsePalette } from './palettes'
 export type { Palette, PresetName } from './palettes'
 export type { RadiusMode } from './theme'
+export type { MotionMode } from './UiProvider'
 export {
   Accordion,
   ActionIcon,
