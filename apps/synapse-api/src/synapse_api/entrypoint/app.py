@@ -8,13 +8,19 @@ from structured_logging import RequestIdMiddleware
 from token_verification import TokenVerifier
 from token_verification.fastapi_deps import AuthDependencies
 
+from synapse_api.application.sales_cache import SalesCache
 from synapse_api.domain.errors import InvalidQuery, SapUnavailable
 from synapse_api.domain.gateways.sales_source import SalesSource
 from synapse_api.infrastructure.api.sales.router import create_sales_router
 from synapse_api.infrastructure.settings import Settings
 
 
-def create_app(source: SalesSource, settings: Settings, today: Callable[[], date] = date.today) -> FastAPI:
+def create_app(
+    source: SalesSource,
+    settings: Settings,
+    today: Callable[[], date] = date.today,
+    cache: SalesCache | None = None,
+) -> FastAPI:
     auth = AuthDependencies(TokenVerifier(settings.jwt_secret))
     app = FastAPI()
 
@@ -34,5 +40,6 @@ def create_app(source: SalesSource, settings: Settings, today: Callable[[], date
         allow_credentials=True,
     )
     app.add_middleware(RequestIdMiddleware)
-    app.include_router(create_sales_router(source, auth, today), prefix="/v1/synapse", tags=["Sales"])
+    sales_cache = cache or SalesCache(settings.cache_seconds)
+    app.include_router(create_sales_router(source, auth, today, sales_cache), prefix="/v1/synapse", tags=["Sales"])
     return app

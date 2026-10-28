@@ -19,9 +19,13 @@ class MockSalesSource(SalesSource):
         self.materials = materials or []
         self.orders = orders or []
         self.failing = False
+        self.calls = 0
 
     def fail(self) -> None:
         self.failing = True
+
+    def recover(self) -> None:
+        self.failing = False
 
     def daily_sales(self, start: date, end: date) -> list[DailySales]:
         return self._in_range(self.daily, start, end)
@@ -42,5 +46,6 @@ class MockSalesSource(SalesSource):
         return sorted((r for r in rows if start <= r.date <= end), key=lambda r: r.date)
 
     def _check(self) -> None:
+        self.calls += 1
         if self.failing:
             raise SapUnavailable()
