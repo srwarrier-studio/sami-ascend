@@ -1,0 +1,36 @@
+@keyframes sami-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+:root[data-motion='full'] .mantine-Card-root {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+:root[data-motion='full'] .mantine-Card-root:hover {
+  transform: translateY(-0.125rem);
+  box-shadow: var(--mantine-shadow-md);
+}
+
+:root[data-motion='full'] .sami-chart svg {
+  animation: sami-reveal 1.2s ease-out 0.2s backwards;
+}
+
+:root[data-motion='minimal'] *,
+:root[data-motion='minimal'] *::before,
+:root[data-motion='minimal'] *::after {
+  animation: none !important;
+  transition-duration: 0.12s !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0.12s !important;
+  }
+}

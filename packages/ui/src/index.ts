@@ -1,6 +1,8 @@
 export { UiProvider } from './UiProvider'
-export { workspacePalette, synapsePalette } from './palettes'
-export type { Palette } from './palettes'
+export { presets, workspacePalette, synapsePalette } from './palettes'
+export type { Palette, PresetName } from './palettes'
+export type { RadiusMode } from './theme'
+export type { MotionMode } from './UiProvider'
 export {
   Accordion,
   ActionIcon,
@@ -12,6 +14,7 @@ export {
   Button,
   Card,
   Checkbox,
+  ColorSwatch,
   Container,
   Divider,
   Drawer,
@@ -55,6 +58,9 @@ export {
   FileTextIcon,
   FilesIcon,
   HouseIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  SparkleIcon,
   SquaresFourIcon,
   UsersIcon,
 } from '@phosphor-icons/react'

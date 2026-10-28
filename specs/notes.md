@@ -70,6 +70,11 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - Jsdom needs `matchMedia` and `ResizeObserver` stubs (`tests/setup.ts`); charts need `initialWidth` to render there.
 - TanStack Charts vs Recharts (spike, 2026-10-27, 6 charts of 30 points, headless Chrome, heap after GC, 5 runs): chart code 39.7 kB gzip vs 102.7 kB, React excluded in both. JS heap about 2.3 MB vs 8.7 MB. DOM nodes 845 vs 1452. Both draw SVG; the gap is library overhead, not raster vs vector. The spike was plain charts without Mantine and was thrown away.
 - Run: `pnpm --filter @sami/ui test`; `pnpm --filter @sami/ui dev` opens the playground.
+- Soft theme (shared/08): `createSharedTheme('soft' | 'sharp')` builds the theme; soft is inputs 6, menus and tiles 12, cards and modals 16, buttons pill, sharp is 4 everywhere. Mantine omits CSS variables equal to its own defaults, so test the theme object, not the generated CSS.
+- Palettes come from the approved Synapse kitchen sink artifact (https://claude.ai/artifact/FyrY7tQuC9m18kTE6mME5R): `presets` teal, blue, indigo, graphite, copper, each with `brand`, a slate `gray` and a `dark` scale; filled shade 6 reads at 4.5:1 with white (tested). `synapsePalette` is teal, `workspacePalette` is blue; the owner picks the final presets.
+- Motion is plain CSS in `src/motion.css`, switched by `data-motion` on the root (`UiProvider` `motion` prop). Full: hover lift and chart wipe; no card entrance animation (the owner finds rise-up old-fashioned). Minimal and `prefers-reduced-motion`: no animation, 120 ms transitions. Framer-motion is not used; revisit in synapse-web 03 if widget exit or reorder animation needs it.
+- `AppFrame` `layout` is `top` (synapse) or `side` (default). workspace-web does not import `AppFrame` yet, so its tests do not cover it; `tests/appframe.test.tsx` does.
+- Playground: `playground/ThemeLab.tsx` holds the switches, `playground/TokensSection.tsx` the tokens; `tests/playground.test.tsx` renders every section under each preset, radius and motion setting.
 
 ## Sales contract (`docs/sap/sales-contract.md`)
 - Source of truth for butterfly, the gateways and the consultant guide. Change it first, then the code.

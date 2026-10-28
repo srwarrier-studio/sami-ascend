@@ -1,47 +1,59 @@
 import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
+import { DashboardDemo } from './DashboardDemo'
 import { KitchenSink } from './KitchenSink'
+import { ThemeLab, defaultLab } from './ThemeLab'
 import {
   AppFrame,
   Button,
   Card,
-  ClipboardTextIcon,
   Container,
   FileTextIcon,
   FilesIcon,
   Group,
   PageHeader,
-  SquaresFourIcon,
   Stack,
+  SquaresFourIcon,
   TextInput,
   UiProvider,
-  UsersIcon,
-  workspacePalette,
+  presets,
 } from '../src'
 
 function Demo() {
-  const [page, setPage] = useState('orders')
-  const link = (key: string) => ({ onSelect: () => setPage(key) })
+  const [page, setPage] = useState('dashboard')
+  const [lab, setLab] = useState(defaultLab)
+  const link = (key: string) => ({ onSelect: () => setPage(key), active: page === key })
   return (
-    <UiProvider palette={workspacePalette}>
+    <UiProvider palette={presets[lab.palette]} radius={lab.radius} motion={lab.motion}>
       <AppFrame
-        brand={{ name: 'Workspace', subtitle: 'Sales' }}
+        layout={lab.layout}
+        brand={{ name: 'Playground', subtitle: '@sami/ui' }}
         user={{ name: 'Mock Sami Admin', email: 'admin@mock-sami.com' }}
         onSignOut={() => undefined}
         notifications={3}
-        searchPlaceholder="Search orders or customers"
+        searchPlaceholder="Search"
         navGroups={[
-          [{ key: 'tasks', label: 'Tasks', icon: ClipboardTextIcon, badge: 2, ...link('tasks'), active: page === 'tasks' }],
           [
-            { key: 'dashboard', label: 'Dashboard', icon: SquaresFourIcon, ...link('dashboard'), active: page === 'dashboard' },
-            { key: 'orders', label: 'Sales orders', icon: FileTextIcon, ...link('orders'), active: page === 'orders' },
-            { key: 'documents', label: 'Documents', icon: FilesIcon, ...link('documents'), active: page === 'documents' },
-            { key: 'kitchen', label: 'Kitchen sink', icon: UsersIcon, ...link('kitchen'), active: page === 'kitchen' },
+            { key: 'dashboard', label: 'Dashboard', icon: SquaresFourIcon, ...link('dashboard') },
+            { key: 'kitchen', label: 'Kitchen sink', icon: FilesIcon, ...link('kitchen') },
+            { key: 'orders', label: 'New sales order', icon: FileTextIcon, ...link('orders') },
           ],
         ]}
       >
-        {page === 'kitchen' ? (
-          <KitchenSink />
+        {page === 'dashboard' ? (
+          <>
+            <Container py="md">
+              <ThemeLab lab={lab} onChange={setLab} />
+            </Container>
+            <DashboardDemo />
+          </>
+        ) : page === 'kitchen' ? (
+          <Container py="md">
+            <Stack>
+              <ThemeLab lab={lab} onChange={setLab} />
+              <KitchenSink />
+            </Stack>
+          </Container>
         ) : (
           <>
             <PageHeader
