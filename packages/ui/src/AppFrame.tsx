@@ -40,6 +40,7 @@ export type AppFrameProps = {
   onSignOut: () => void
   notifications?: number
   searchPlaceholder?: string
+  layout?: 'top' | 'side'
   children: ReactNode
 }
 
@@ -59,8 +60,9 @@ function ThemeToggle() {
   )
 }
 
-function NavLinkItem({ item }: { item: NavItem }) {
+function NavLinkItem({ item, pill }: { item: NavItem; pill?: boolean }) {
   const Glyph = item.icon
+  const className = pill ? classes.pillItem : classes.navItem
   const content = (
     <>
       <Glyph size={18} weight={item.active ? 'fill' : 'regular'} />
@@ -73,16 +75,59 @@ function NavLinkItem({ item }: { item: NavItem }) {
     </>
   )
   if (item.render) {
-    return item.render({ className: classes.navItem, active: !!item.active, children: content })
+    return item.render({ className, active: !!item.active, children: content })
   }
   return (
-    <UnstyledButton
-      className={classes.navItem}
-      data-active={item.active || undefined}
-      onClick={item.onSelect}
-    >
+    <UnstyledButton className={className} data-active={item.active || undefined} onClick={item.onSelect}>
       {content}
     </UnstyledButton>
+  )
+}
+
+function Actions({ notifications }: { notifications: number }) {
+  return (
+    <>
+      <ActionIcon variant="subtle" color="gray" size={32} aria-label="Help">
+        <QuestionIcon size={18} />
+      </ActionIcon>
+      <Indicator label={notifications} disabled={notifications === 0} size={14} offset={3}>
+        <ActionIcon variant="subtle" color="gray" size={32} aria-label="Notifications">
+          <BellIcon size={18} />
+        </ActionIcon>
+      </Indicator>
+    </>
+  )
+}
+
+function UserMenu({ user, onSignOut }: Pick<AppFrameProps, 'user' | 'onSignOut'>) {
+  return (
+    <Menu position="bottom-end" width={200}>
+      <Menu.Target>
+        <UnstyledButton className={classes.userButton}>
+          <Avatar color="brand" radius="xl" size={28}>
+            {user.name.slice(0, 1)}
+          </Avatar>
+          <div>
+            <div className={classes.userName}>{user.name}</div>
+            <div className={classes.userMail}>{user.email}</div>
+          </div>
+          <CaretDownIcon size={14} />
+        </UnstyledButton>
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Item leftSection={<SignOutIcon size={16} />} onClick={onSignOut}>
+          Sign out
+        </Menu.Item>
+      </Menu.Dropdown>
+    </Menu>
+  )
+}
+
+function Logo() {
+  return (
+    <span className={classes.logo}>
+      <SparkleIcon size={16} weight="fill" />
+    </span>
   )
 }
 
@@ -93,56 +138,60 @@ export function AppFrame({
   onSignOut,
   notifications = 0,
   searchPlaceholder = 'Search',
+  layout = 'side',
   children,
 }: AppFrameProps) {
+  const search = (
+    <TextInput
+      className={layout === 'top' ? classes.searchPill : classes.search}
+      variant={layout === 'top' ? 'filled' : 'unstyled'}
+      radius="xl"
+      placeholder={searchPlaceholder}
+      leftSection={<MagnifyingGlassIcon size={18} />}
+      aria-label={searchPlaceholder}
+    />
+  )
+
+  if (layout === 'top') {
+    return (
+      <div className={classes.topFrame}>
+        <header className={classes.topBar}>
+          <div className={classes.brandPill}>
+            <Logo />
+            <span className={classes.brandName}>{brand.name}</span>
+          </div>
+          <nav className={classes.pills} aria-label="Main">
+            {navGroups.flat().map((item) => (
+              <NavLinkItem key={item.key} item={item} pill />
+            ))}
+          </nav>
+          <div className={classes.topActions}>
+            {search}
+            <Actions notifications={notifications} />
+            <ThemeToggle />
+            <UserMenu user={user} onSignOut={onSignOut} />
+          </div>
+        </header>
+        <main className={classes.topMain}>{children}</main>
+      </div>
+    )
+  }
+
   return (
     <div className={classes.frame}>
       <div className={classes.brand}>
-        <span className={classes.logo}>
-          <SparkleIcon size={24} weight="fill" />
-        </span>
+        <Logo />
         <div>
           <div className={classes.brandName}>{brand.name}</div>
           <div className={classes.brandSub}>{brand.subtitle}</div>
         </div>
       </div>
       <div className={classes.top}>
-        <TextInput
-          className={classes.search}
-          variant="unstyled"
-          placeholder={searchPlaceholder}
-          leftSection={<MagnifyingGlassIcon size={18} />}
-          aria-label={searchPlaceholder}
-        />
+        {search}
         <div className={classes.topActions}>
-          <ActionIcon variant="subtle" color="gray" size={32} aria-label="Help">
-            <QuestionIcon size={18} />
-          </ActionIcon>
-          <Indicator label={notifications} disabled={notifications === 0} size={14} offset={3}>
-            <ActionIcon variant="subtle" color="gray" size={32} aria-label="Notifications">
-              <BellIcon size={18} />
-            </ActionIcon>
-          </Indicator>
+          <Actions notifications={notifications} />
           <span className={classes.divider} />
-          <Menu position="bottom-end" width={200}>
-            <Menu.Target>
-              <UnstyledButton className={classes.userButton}>
-                <Avatar color="brand" radius="xl" size={28}>
-                  {user.name.slice(0, 1)}
-                </Avatar>
-                <div>
-                  <div className={classes.userName}>{user.name}</div>
-                  <div className={classes.userMail}>{user.email}</div>
-                </div>
-                <CaretDownIcon size={14} />
-              </UnstyledButton>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item leftSection={<SignOutIcon size={16} />} onClick={onSignOut}>
-                Sign out
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
+          <UserMenu user={user} onSignOut={onSignOut} />
         </div>
       </div>
       <nav className={classes.side} aria-label="Main">
