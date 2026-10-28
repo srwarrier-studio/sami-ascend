@@ -1,6 +1,6 @@
 export { UiProvider } from './UiProvider'
-export { workspacePalette, synapsePalette } from './palettes'
-export type { Palette } from './palettes'
+export { presets, workspacePalette, synapsePalette } from './palettes'
+export type { Palette, PresetName } from './palettes'
 export {
   Accordion,
   ActionIcon,
