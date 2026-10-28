@@ -26,6 +26,7 @@
 ## Dependencies added so far
 `fastapi[standard]`, `msal`, `pwdlib[argon2]`, `pyjwt` (auth-api).
 `httpx` (workspace-api and synapse-api, to call butterfly/SAP over OData; also used by tests).
+`pydantic-settings` (synapse-api; auth-api already used it): typed settings read from environment variables and the repo-root `.env`, so one `.env` serves every API.
 `@phosphor-icons/react` (icons, as Mantine recommends) and `@fontsource/ibm-plex-sans` (IBM Plex Sans, Carbon's typeface, self-hosted) in `@sami/ui`.
 `@mantine/core`, `@mantine/hooks`, `@mantine/notifications` (toasts, same look as the other components), `@tanstack/charts`, `zod` (`@sami/ui`; zod gives one definition for prop validation and the JSON schema a model sees). Dev: `vitest`, `jsdom`, `@testing-library/*`, `vite`, `@vitejs/plugin-react`.
 `@tanstack/react-router` and `@sami/ui` (workspace-web, which also uses vitest, jsdom and Testing Library as dev dependencies; routing needs guards on each route, which the router provides without a generator).

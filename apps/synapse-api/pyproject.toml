@@ -8,8 +8,11 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "fastapi[standard]>=0.115",
     "httpx>=0.28.1",
+    "pydantic-settings>=2",
     "structured-logging",
+    "token-verification",
 ]
 
 [project.scripts]
@@ -21,3 +24,4 @@ build-backend = "uv_build"
 
 [tool.uv.sources]
 structured-logging = { workspace = true }
+token-verification = { workspace = true }

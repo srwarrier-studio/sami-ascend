@@ -1,4 +1,5 @@
 import logging
+import threading
 import time
 from collections.abc import Callable, Hashable
 from typing import Any
@@ -13,8 +14,13 @@ class SalesCache:
         self.seconds = seconds
         self.clock = clock
         self.entries: dict[Hashable, tuple[float, Any]] = {}
+        self.lock = threading.Lock()
 
     def get(self, key: Hashable, load: Callable[[], Any]) -> Any:
+        with self.lock:
+            return self.read(key, load)
+
+    def read(self, key: Hashable, load: Callable[[], Any]) -> Any:
         stored = self.entries.get(key)
         if stored and self.clock() - stored[0] < self.seconds:
             return stored[1]
