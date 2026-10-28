@@ -7,8 +7,10 @@ First slice is Sales. Workspace enters sales orders, synapse shows them, within 
 Everything runs against butterfly (mock SAP) until the real RAP services exist.
 
 Build order for the first slice: butterfly 01-03 (done), workspace-api 01-02 (done), shared 06, workspace-web 01-02
-(create an order from the browser), then synapse-api 01-03, synapse-web 01-03.
-workspace-web 03 and shared 04-05 can follow.
+(create an order from the browser), then synapse-api 01-03 (done).
+Change (2026-10-28): synapse is now frontend first. shared 08, then synapse-web 01-03 run against mock data behind
+small interfaces (session, sales data, board store). When the mock is final, its interfaces become the contract for
+synapse-api 04 and any missing dashboard routes, which are designed then. workspace-web 03 and shared 04-05 can follow.
 
 ## shared
 - 01 sales-odata-contract: agree the OData V4 Sales service (entities, fields, query options, error format) in `docs/sap/`. done (tag `shared-phase-01-done`, 2026-10-27)
@@ -18,6 +20,7 @@ workspace-web 03 and shared 04-05 can follow.
 - 05 sales-end-to-end: prove an order entered in workspace shows in synapse within 5 minutes. todo
 - 06 ui-kit: `packages/ui` with the Mantine provider, shared styling and wrappers every web app imports (each app supplies only its own color palette), plus a TanStack Charts wrapper and a short size and memory comparison against Recharts. done (tag `shared-phase-06-done`, 2026-10-27)
 - 07 conventions-alignment: bring every app in line with the owner's conventions. At the start the agent asks the owner what to align (known so far: HTTP routers, schemas and deps under `infrastructure/api/<domain>/`, pydantic-settings, application ports moving to the 5xxx series), then updates the constitution or conventions file from the answers before touching code. Best done after synapse-api 04 and before auth-api 01-03 add more routes. todo
+- 08 ui-soft-theme: bring the approved soft look into `@sami/ui`: token source with palette presets, soft radius, a motion switch (full for synapse, minimal for workspace), and the rounded pill app shell. The kitchen sink playground shows every component and the theme switches. todo
 
 ## butterfly (mock SAP, FastAPI, OData V4)
 - 01 scaffold-sales-read: serve `SalesOrder` with `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$count` from seed data. done (tag `butterfly-phase-01-done`, 2026-10-27)
@@ -38,12 +41,13 @@ workspace-web 03 and shared 04-05 can follow.
 - 01 sales-source: an interface to read sales data, with an implementation that calls butterfly. done (tag `synapse-api-phase-01-done`, 2026-10-27)
 - 02 sales-kpis: use cases for today, month-to-date, year-to-date, top customers and materials; cached and refreshed every 5 minutes. done (tag `synapse-api-phase-02-done`, 2026-10-28).
 - 03 dashboard-routes: role-checked routes that return the data each catalog widget needs (month-on-month sales, day sales, recent high-value sales, top customers and materials). done (tag `synapse-api-phase-03-done`, 2026-10-28).
-- 04 board-storage: each user's own boards (name, widgets with name, props and grid position), saved in SQLite behind a repo, with list, create, rename, delete and save-layout routes. todo
+- 04 board-storage: each user's own boards (name, widgets with name, props and grid position), saved in SQLite behind a repo, with list, create, rename, delete and save-layout routes. Postponed: designed after synapse-web 03, from the board store the mock settles on. todo
 
 ## synapse-web (management dashboards)
-- 01 shell-and-login: app shell, login page, and the "not allowed" page, using `/me`. todo
-- 02 widget-catalog: the predefined sales widgets (MoM sales, day sales, recent high-value sales table, top customers and materials) built on the `@sami/ui` registry from shared/06. todo
-- 03 board: a free board per user with drag, resize and a widget picker, saved through the board API, widgets auto-refresh every 5 minutes, no dropdown filters. todo
+All three phases use mock data (session, sales data and board store behind interfaces); no synapse-api calls yet.
+- 01 mock-shell: app shell in the soft look, mock login and `/me` session, the "not allowed" page, route guards. Depends on shared 08. todo
+- 02 widget-catalog: the predefined sales widgets (MoM sales, day sales, recent high-value sales table, top customers and materials, status split, KPI cards) on the `@sami/ui` registry, fed by the mock sales data. todo
+- 03 board: a free board per user with pages, drag, reorder, remove, a widget picker and an AI Mode panel that adds predefined widgets, saved in a mock board store, widgets auto-refresh every 5 minutes, no dropdown filters. todo
 - 04 ai-ready-review: check widgets against the AI dashboard needs before the POC. todo
 
 ## workspace-api (workflow backend)
