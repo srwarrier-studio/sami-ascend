@@ -1369,6 +1369,7 @@ source = { editable = "apps/synapse-api" }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
+    { name = "pydantic-settings" },
     { name = "structured-logging" },
     { name = "token-verification" },
 ]
@@ -1377,6 +1378,7 @@ dependencies = [
 requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115" },
     { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pydantic-settings", specifier = ">=2" },
     { name = "structured-logging", editable = "packages/structured-logging" },
     { name = "token-verification", editable = "packages/token-verification" },
 ]
