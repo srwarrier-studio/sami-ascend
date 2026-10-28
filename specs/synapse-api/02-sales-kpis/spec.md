@@ -5,7 +5,7 @@ synapse-api turns `SalesSource` rows into the sales numbers the dashboard needs,
 
 ## Behavior
 - **Domain:** `SalesTotal` (period start, period end, net amount, order count, currency), `RankedCustomer` (customer, name, net amount, order count, currency), `RankedMaterial` (material, description, quantity, unit, net amount, currency), `MonthSales` (year, month, net amount, currency). Frozen dataclasses, `Decimal` amounts.
-- **Use cases** (one class, one `execute`, each takes a `SalesSource` and `today: date`):
+- **Use cases** (one class, one `execute`, each is built with a `SalesSource` and takes `today: date` in `execute`):
   - `GetTodaySales`: one `SalesTotal` per currency for `today`.
   - `GetMonthToDateSales`: first of the month to `today`, summed per currency.
   - `GetYearToDateSales`: 1 January to `today`, summed per currency.
