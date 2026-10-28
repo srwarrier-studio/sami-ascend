@@ -1,2 +1,4 @@
 def main() -> None:
-    print("Hello from synapse-api!")
+    from synapse_api.entrypoint.run import main as run
+
+    run()
