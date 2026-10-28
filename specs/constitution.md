@@ -32,7 +32,9 @@ Python (FastAPI) backends. Backends talk to SAP OData (RAP). The browser never c
 ## Code style
 - Clean architecture with these folders per backend app: `domain` (entities, value objects,
   repository and service interfaces), `application` (use cases, DTOs), `infrastructure`
-  (implementations), `entrypoint` (HTTP, CLI). Dependencies point inward only.
+  (implementations, including the HTTP routers, schemas and deps under `infrastructure/api/<domain>/`),
+  `entrypoint` (the ways the outside world reaches the app: app factory, server runner, CLI).
+  Dependencies point inward only.
 - Simple classes with clear names. One use case is one class with one `execute` method.
 - Nothing clever: no metaprogramming, no deep inheritance, no abstractions with one use.
   The owner must be able to read the code and understand it.

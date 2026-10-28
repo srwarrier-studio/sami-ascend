@@ -17,6 +17,7 @@ workspace-web 03 and shared 04-05 can follow.
 - 04 sap-identity-decision: decide who posts in SAP for workspace writes (real user or technical user) and record it. todo
 - 05 sales-end-to-end: prove an order entered in workspace shows in synapse within 5 minutes. todo
 - 06 ui-kit: `packages/ui` with the Mantine provider, shared styling and wrappers every web app imports (each app supplies only its own color palette), plus a TanStack Charts wrapper and a short size and memory comparison against Recharts. done (tag `shared-phase-06-done`, 2026-10-27)
+- 07 conventions-alignment: bring every app in line with the owner's conventions. At the start the agent asks the owner what to align (known so far: HTTP routers, schemas and deps under `infrastructure/api/<domain>/`, pydantic-settings, application ports moving to the 5xxx series), then updates the constitution or conventions file from the answers before touching code. Best done after synapse-api 04 and before auth-api 01-03 add more routes. todo
 
 ## butterfly (mock SAP, FastAPI, OData V4)
 - 01 scaffold-sales-read: serve `SalesOrder` with `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$count` from seed data. done (tag `butterfly-phase-01-done`, 2026-10-27)

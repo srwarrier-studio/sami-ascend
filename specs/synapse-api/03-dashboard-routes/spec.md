@@ -14,7 +14,8 @@ synapse-api serves the sales numbers to management users through role-checked, c
 - Amounts are `Decimal` in the response models, as in workspace-api.
 - **Caching:** each route reads through `SalesCache`; the key holds the route name, `today` and the query values.
 - **Errors:** `InvalidQuery` → 422 `INVALID_QUERY`; `SapUnavailable` → 503 `SAP_UNAVAILABLE` (no SAP detail), same shapes as workspace-api.
-- **Wiring:** `create_app(source, settings)` in `entrypoint/app.py`; `entrypoint/run.py` builds `ButterflySalesSource`, exits if `JWT_SECRET` is empty, serves on port 8004. CORS for `FRONTEND_URL`, `RequestIdMiddleware` outermost, `setup_logging("synapse-api")` in `entrypoint/__init__.py`.
+- **Layout:** routes and response models live in `infrastructure/api/sales/` (`router.py`, `schemas.py`); `entrypoint` holds only the app factory and runner.
+- **Wiring:** `create_app(source, settings, today)` in `entrypoint/app.py`; `entrypoint/run.py` builds `ButterflySalesSource`, exits if `JWT_SECRET` is empty, serves on port 8004. CORS for `FRONTEND_URL`, `RequestIdMiddleware` outermost, `setup_logging("synapse-api")` in `entrypoint/__init__.py`.
 - **New dependencies:** `fastapi`, `uvicorn`, `token-verification` (workspace), already used by workspace-api. `Settings` gains `jwt_secret` and `frontend_url`.
 - `SalesCache` gets a lock, since FastAPI runs sync routes in threads.
 
