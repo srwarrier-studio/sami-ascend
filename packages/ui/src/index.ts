@@ -1,6 +1,7 @@
 export { UiProvider } from './UiProvider'
 export { presets, workspacePalette, synapsePalette } from './palettes'
 export type { Palette, PresetName } from './palettes'
+export type { RadiusMode } from './theme'
 export {
   Accordion,
   ActionIcon,

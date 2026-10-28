@@ -4,16 +4,18 @@ import { MantineProvider, createTheme } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import type { ReactNode } from 'react'
 import type { Palette } from './palettes'
-import { sharedTheme } from './theme'
+import { createSharedTheme } from './theme'
+import type { RadiusMode } from './theme'
 
 type UiProviderProps = {
   palette: Palette
+  radius?: RadiusMode
   children: ReactNode
 }
 
-export function UiProvider({ palette, children }: UiProviderProps) {
+export function UiProvider({ palette, radius = 'soft', children }: UiProviderProps) {
   const theme = createTheme({
-    ...sharedTheme,
+    ...createSharedTheme(radius),
     colors: palette.colors,
     primaryColor: palette.primaryColor,
     primaryShade: palette.primaryShade as 6,
