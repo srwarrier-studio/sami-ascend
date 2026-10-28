@@ -14,6 +14,7 @@ export {
   Button,
   Card,
   Checkbox,
+  ColorSwatch,
   Container,
   Divider,
   Drawer,
@@ -57,6 +58,9 @@ export {
   FileTextIcon,
   FilesIcon,
   HouseIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  SparkleIcon,
   SquaresFourIcon,
   UsersIcon,
 } from '@phosphor-icons/react'

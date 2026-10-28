@@ -9,11 +9,11 @@ Approved design: the Synapse kitchen sink artifact, https://claude.ai/artifact/F
 ## Behavior
 - **Palettes:** `palettes.ts` stays the only file with hex values. It exports the presets `teal`, `blue`, `indigo`, `graphite` and `copper` as 10-shade tuples next to the existing slate gray, and the two app palettes: `synapsePalette` (teal) and `workspacePalette` (blue). The owner picks the final preset per app after comparing them in the playground; changing it is one line.
 - **Radius:** the provider takes `radius: 'soft' | 'sharp'`, default `soft`. Soft: inputs 6px, menus and tiles 12px, cards and modals 16px, buttons pill. Sharp: 4px everywhere.
-- **Motion:** the provider takes `motion: 'full' | 'minimal'`, default `full`, and writes it as `data-motion` on the document root. Full: cards rise in, hover lift, charts draw. Minimal: no animations, 120 ms hover and focus transitions only. `prefers-reduced-motion` forces minimal.
+- **Motion:** the provider takes `motion: 'full' | 'minimal'`, default `full`, and writes it as `data-motion` on the document root. Full: hover lift and chart reveal; cards do not animate in. Minimal: no animations, 120 ms hover and focus transitions only. `prefers-reduced-motion` forces minimal.
 - **Control sizes** stay 24/32/40/48/56, body 14px, IBM Plex Sans.
 - **Light and dark** both work for every preset; status colors (success, warning, danger, info) stay separate from the accent.
 - **AppFrame** is restyled soft and gets `layout: 'top' | 'side'`. `top` is the rounded brand pill with a pill nav and the soft grey ground (synapse). `side` keeps today's sidebar structure, restyled (workspace). `NavItem`, `navGroups`, `user` and `onSignOut` keep their current shape, so workspace-web needs no change.
-- **Playground** (`pnpm --filter @sami/ui dev`) shows every component and has switches for palette, radius, motion and light or dark.
+- **Playground** (`pnpm --filter @sami/ui dev`) shows the components, restyled, in the artifact's section order, plus a tokens section, and has switches for palette, radius, motion, layout and light or dark. Matching the approved artifact section by section is shared 09.
 
 ## Acceptance cases
 - Every preset has a 10-shade `brand` tuple, and `synapsePalette` and `workspacePalette` use `teal` and `blue`.
@@ -22,10 +22,11 @@ Approved design: the Synapse kitchen sink artifact, https://claude.ai/artifact/F
 - `theme-only.test.ts` still passes: no hex outside `palettes.ts`, no inline styles, no raw px in `src/` and `playground/`.
 - `AppFrame` renders in both layouts with nav items, the active item, the badge, the user menu and sign out; the existing workspace-web tests pass unchanged.
 - The registry and chart tests pass unchanged.
-- Manual: the playground looks like the artifact in light and dark for each preset (owner check).
+- Every playground section renders without errors under each preset, radius and motion setting (test).
+- Manual: the switches restyle the playground live in light and dark (owner check).
 
 ## Out of scope
-Board widgets, drag and drop, the AI Mode panel and page tabs (synapse-web 03), the mock data layer (synapse-web 01), a new chart library, choosing the final preset, a theme editor in the apps.
+Launch screens, the sample dashboard and the screenshot comparison with the artifact (shared 09), board widgets, drag and drop, the AI Mode panel and page tabs (synapse-web 03), the mock data layer (synapse-web 01), a new chart library, choosing the final preset, a theme editor in the apps.
 
 ## Depends on
 shared 06 (done).
