@@ -72,6 +72,50 @@ describe('board limit', () => {
   })
 })
 
+describe('library drag', () => {
+  const transfer = (id: string) => ({ types: ['application/x-sami-widget'], getData: () => id, setData: () => undefined })
+
+  it('drops a library widget before the widget it lands on and keeps the library open', async () => {
+    const store = open()
+    await edit()
+    await userEvent.click(await screen.findByRole('button', { name: 'Add widget' }))
+    const card = await screen.findByRole('button', { name: 'Add Day sales' })
+    const target = screen.getByRole('button', { name: 'Remove Top materials' }).closest('[draggable]')!
+    fireEvent.dragStart(card, { dataTransfer: transfer('day-sales') })
+    fireEvent.dragOver(target, { dataTransfer: transfer('day-sales') })
+    fireEvent.drop(target, { dataTransfer: transfer('day-sales') })
+    await waitFor(async () => expect((await store.list())[0].widgets.map((w) => w.catalogId)).toEqual(['top-customers', 'day-sales', 'top-materials']))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+})
+
+describe('widget limit', () => {
+  const full = () =>
+    new MockBoardStore([
+      { id: 'b1', name: 'First', widgets: Array.from({ length: 15 }, (_, index) => ({ id: `w${index}`, catalogId: 'sales-today' })) },
+    ])
+
+  it('disables the library when the board has 15 widgets', async () => {
+    open(full())
+    await edit()
+    await userEvent.click(await screen.findByRole('button', { name: 'Add widget' }))
+    expect(await screen.findByText(/Board is full/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add Day sales' })).toBeDisabled()
+  })
+
+  it('adds only what fits from AI Mode', async () => {
+    const store = new MockBoardStore([
+      { id: 'b1', name: 'First', widgets: Array.from({ length: 14 }, (_, index) => ({ id: `w${index}`, catalogId: 'sales-today' })) },
+    ])
+    open(store)
+    await edit()
+    await userEvent.click(await screen.findByRole('button', { name: 'AI Mode' }))
+    await userEvent.type(await screen.findByLabelText('What do you want on this board?'), 'sales')
+    await userEvent.click(screen.getByRole('button', { name: 'Add widgets' }))
+    await waitFor(async () => expect((await store.list())[0].widgets).toHaveLength(15))
+  })
+})
+
 describe('edit mode', () => {
   it('renames the board in the header and saves it', async () => {
     const store = open()

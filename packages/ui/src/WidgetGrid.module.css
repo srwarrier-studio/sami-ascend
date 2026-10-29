@@ -29,6 +29,12 @@
   border-radius: var(--mantine-radius-lg);
 }
 
+.cell[data-over] {
+  background: color-mix(in srgb, var(--mantine-primary-color-filled) 12%, transparent);
+  outline-style: solid;
+  border-radius: var(--mantine-radius-lg);
+}
+
 .cell[data-dragging] > * {
   visibility: hidden;
 }

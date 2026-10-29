@@ -3,10 +3,20 @@ import type { SizeName } from '@sami/ui'
 import { catalog } from '../catalog/catalog'
 import type { BoardWidget } from './boardStore'
 
+export const MAX_WIDGETS = 15
+
 export const addWidget = (widgets: BoardWidget[], catalogId: string): BoardWidget[] => [
   ...widgets,
   { id: `w-${crypto.randomUUID()}`, catalogId },
 ]
+
+export const insertWidget = (widgets: BoardWidget[], catalogId: string, beforeId: string | null): BoardWidget[] => {
+  const at = widgets.findIndex((widget) => widget.id === beforeId)
+  if (at < 0) return addWidget(widgets, catalogId)
+  const next = [...widgets]
+  next.splice(at, 0, { id: `w-${crypto.randomUUID()}`, catalogId })
+  return next
+}
 
 export const removeWidget = (widgets: BoardWidget[], id: string) => widgets.filter((widget) => widget.id !== id)
 

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { ActionIcon, allowedSizes, EmptyBoard, notifications, TrashIcon, arrange, widgetShape, ArrowsOutSimpleIcon, Button, Group, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, registry, WidgetCell, WidgetGrid, SparkleIcon, Stack } from '../src'
+import type { DragEvent } from 'react'
+import { ActionIcon, allowedSizes, LIBRARY_DRAG, mockLibrary, WidgetLibrary, EmptyBoard, notifications, TrashIcon, arrange, widgetShape, ArrowsOutSimpleIcon, Button, Group, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, registry, WidgetCell, WidgetGrid, SparkleIcon, Stack } from '../src'
 import type { PageBarConfig, SizeName } from '../src'
 
 const months = [
@@ -131,6 +132,7 @@ export const dashboardRows: Row[] = [
 ]
 
 const MAX_BOARDS = 3
+const MAX_WIDGETS = 15
 
 const allWidgets = dashboardRows.flatMap((row) => row.widgets)
 
@@ -142,16 +144,45 @@ const nextSize = (resized: Record<number, SizeName>, position: number, widget: s
 
 type DashboardDemoProps = { config: PageBarConfig; onConfigChange: (config: PageBarConfig) => void }
 
+const domains: Record<string, string> = {
+  Invoices: 'Finance',
+  'Average invoice': 'Finance',
+  'Invoice status': 'Finance',
+  'Sales by invoice status': 'Finance',
+  'Top materials': 'Inventory',
+}
+
+const isLibraryDrag = (event: DragEvent<HTMLElement>) => event.dataTransfer.types.includes(LIBRARY_DRAG)
+
+const library = [
+  ...allWidgets.map((widget, index) => {
+    const title = String((widget.props as { title: string }).title)
+    return { id: `demo-${index}`, title, description: '', category: domains[title] ?? 'Sales', widget: widget.name, props: widget.props }
+  }),
+  ...mockLibrary,
+]
+
 export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
   const [editing, setEditing] = useState(false)
+  const [picking, setPicking] = useState(false)
+  const [widgets, setWidgets] = useState(allWidgets)
   const [orders, setOrders] = useState<Record<string, number[]>>({ sales: allWidgets.map((_, id) => id) })
   const lastMove = useRef(0)
   const [dragging, setDragging] = useState<number | null>(null)
+  const [overId, setOverId] = useState<number | null>(null)
   const [resized, setResized] = useState<Record<number, SizeName>>({})
   const [tabs, setTabs] = useState([{ id: 'sales', name: 'Sales overview' }])
   const [activeId, setActiveId] = useState('sales')
   const order = orders[activeId] ?? []
   const setOrder = (next: number[]) => setOrders({ ...orders, [activeId]: next })
+  const insert = (libraryId: string, beforeId: number | null) => {
+    const item = library.find((candidate) => candidate.id === libraryId)
+    if (!item || order.length >= MAX_WIDGETS) return
+    const next = [...order]
+    next.splice(beforeId === null ? next.length : next.indexOf(beforeId), 0, widgets.length)
+    setWidgets([...widgets, { name: item.widget, props: item.props }])
+    setOrder(next)
+  }
   return (
     <>
       <PageHeader
@@ -183,15 +214,31 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
             <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />}>
               AI Mode
             </Button>
-            <Button leftSection={<PlusIcon size={16} />}>Add widget</Button>
+            <Button leftSection={<PlusIcon size={16} />} onClick={() => setPicking(true)}>
+              Add widget
+            </Button>
           </Group>
         }
       />
-      <Stack p="md" pb={80}>
-        {order.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => undefined} />}
+      <Stack
+        p="md"
+        pb={80}
+        mih="calc(100vh - 12rem)"
+        onDragOver={(event) => isLibraryDrag(event) && event.preventDefault()}
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOverId(null)
+        }}
+        onDrop={(event) => {
+          if (!isLibraryDrag(event)) return
+          event.preventDefault()
+          insert(event.dataTransfer.getData(LIBRARY_DRAG), null)
+          setOverId(null)
+        }}
+      >
+        {order.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
         <WidgetGrid>
           {order.map((id) => {
-            const widget = allWidgets[id]
+            const widget = widgets[id]
             return (
             <WidgetCell
               key={id}
@@ -199,6 +246,7 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
               size={resized[id]}
               editing={editing}
               dragging={dragging === id}
+              over={overId === id}
               draggable={editing}
               onDragStart={() => setTimeout(() => setDragging(id))}
               onDragEnd={() => setDragging(null)}
@@ -209,7 +257,17 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
                 next.splice(order.indexOf(id), 0, dragging)
                 setOrder(next)
               }}
-              onDragOver={(event) => editing && event.preventDefault()}
+              onDragOver={(event) => {
+                if (isLibraryDrag(event)) setOverId(id)
+                if (editing || isLibraryDrag(event)) event.preventDefault()
+              }}
+              onDrop={(event) => {
+                if (!isLibraryDrag(event)) return
+                event.preventDefault()
+                event.stopPropagation()
+                insert(event.dataTransfer.getData(LIBRARY_DRAG), id)
+                setOverId(null)
+              }}
             >
               {editing && allowedSizes(widget.name).length > 1 && (
                 <ActionIcon
@@ -228,12 +286,23 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
           })}
         </WidgetGrid>
       </Stack>
+      <WidgetLibrary
+        opened={picking}
+        onClose={() => setPicking(false)}
+        items={library}
+        limit={{ used: order.length, max: MAX_WIDGETS }}
+        counts={order.reduce<Record<string, number>>((all, id) => {
+          const match = library.find((item) => item.widget === widgets[id].name && (item.props as { title: string }).title === (widgets[id].props as { title: string }).title)
+          return match ? { ...all, [match.id]: (all[match.id] ?? 0) + 1 } : all
+        }, {})}
+        onPick={(id) => insert(id, null)}
+      />
       <PageBar
         tabs={tabs}
         activeId={activeId}
         config={config}
         onSelect={setActiveId}
-        onArrange={editing ? () => setOrder(arrange(order, (id) => widgetShape(allWidgets[id].name, resized[id]))) : undefined}
+        onArrange={editing ? () => setOrder(arrange(order, (id) => widgetShape(widgets[id].name, resized[id]))) : undefined}
         onAdd={() => {
           if (tabs.length >= MAX_BOARDS) {
             notifications.show({ message: `Only ${MAX_BOARDS} sheets allowed` })

@@ -3,7 +3,7 @@ import type { SyntheticEvent } from 'react'
 import { Alert, Button, Drawer, Stack, Text, TextInput } from '@sami/ui'
 import { matchCatalog } from '../catalog/catalog'
 
-type AiDrawerProps = { opened: boolean; onClose: () => void; onAdd: (catalogIds: string[]) => void }
+type AiDrawerProps = { opened: boolean; onClose: () => void; onAdd: (catalogIds: string[]) => string[] }
 
 export function AiDrawer({ opened, onClose, onAdd }: AiDrawerProps) {
   const [sentence, setSentence] = useState('')
@@ -16,8 +16,8 @@ export function AiDrawer({ opened, onClose, onAdd }: AiDrawerProps) {
       setResult('No widget matches that. Try words like sales, customers or orders.')
       return
     }
-    onAdd(matches.map((entry) => entry.id))
-    setResult(`Added: ${matches.map((entry) => entry.title).join(', ')}`)
+    const added = onAdd(matches.map((entry) => entry.id))
+    setResult(added.length === 0 ? 'The board is full. Remove a widget to add another.' : `Added: ${matches.filter((entry) => added.includes(entry.id)).map((entry) => entry.title).join(', ')}`)
     setSentence('')
   }
 

@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useRouteContext } from '@tanstack/react-router'
-import { Button, EmptyBoard, Group, Modal, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, useColorScheme } from '@sami/ui'
+import { Button, EmptyBoard, Group, Modal, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, notifications, useColorScheme } from '@sami/ui'
 import { AiDrawer } from '../boards/AiDrawer'
 import { BoardGrid } from '../boards/BoardGrid'
-import { CatalogPicker } from '../boards/CatalogPicker'
-import { addWidget, arrangeWidgets } from '../boards/layout'
+import { catalog } from '../catalog/catalog'
+import { MAX_WIDGETS, addWidget, arrangeWidgets, insertWidget } from '../boards/layout'
 import { useBoards } from '../boards/useBoards'
 
 export function BoardsPage() {
@@ -17,6 +17,14 @@ export function BoardsPage() {
   const [deleting, setDeleting] = useState(false)
 
   if (!boards || !active) return null
+
+  const insert = (catalogId: string, beforeId: string | null) => {
+    if (active.widgets.length >= MAX_WIDGETS) {
+      notifications.show({ message: `Only ${MAX_WIDGETS} widgets allowed on a board` })
+      return
+    }
+    setWidgets(insertWidget(active.widgets, catalogId, beforeId))
+  }
 
   return (
     <>
@@ -48,8 +56,9 @@ export function BoardsPage() {
           </Group>
         }
       />
-      {active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
-      <BoardGrid widgets={active.widgets} data={salesData} editing={editing} onChange={setWidgets} />
+      <BoardGrid widgets={active.widgets} data={salesData} editing={editing} onChange={setWidgets} onInsert={insert}
+        empty={active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
+      />
       <PageBar
         tabs={boards}
         activeId={active.id}
@@ -62,18 +71,23 @@ export function BoardsPage() {
           setColorScheme(config.scheme)
         }}
       />
-      <Modal opened={picking} onClose={() => setPicking(false)} title="Add widget" size="lg">
-        <CatalogPicker
-          onPick={(catalogId) => {
-            setWidgets(addWidget(active.widgets, catalogId))
-            setPicking(false)
-          }}
-        />
-      </Modal>
+      <WidgetLibrary
+        opened={picking}
+        onClose={() => setPicking(false)}
+        items={catalog}
+        limit={{ used: active.widgets.length, max: MAX_WIDGETS }}
+        counts={active.widgets.reduce<Record<string, number>>((all, widget) => ({ ...all, [widget.catalogId]: (all[widget.catalogId] ?? 0) + 1 }), {})}
+        onPick={(catalogId) => insert(catalogId, null)}
+      />
       <AiDrawer
         opened={asking}
         onClose={() => setAsking(false)}
-        onAdd={(catalogIds) => setWidgets(catalogIds.reduce(addWidget, active.widgets))}
+        onAdd={(catalogIds) => {
+          const fitting = catalogIds.slice(0, MAX_WIDGETS - active.widgets.length)
+          if (fitting.length < catalogIds.length) notifications.show({ message: `Only ${MAX_WIDGETS} widgets allowed on a board` })
+          setWidgets(fitting.reduce(addWidget, active.widgets))
+          return fitting
+        }}
       />
       <Modal opened={deleting} onClose={() => setDeleting(false)} title="Delete board">
         <Text>Delete {active.name} and its widgets?</Text>

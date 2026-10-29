@@ -1,6 +1,7 @@
 .board {
   padding: var(--mantine-spacing-md);
   padding-bottom: 6rem;
+  min-height: calc(100vh - 12rem);
 }
 
 .controls {
