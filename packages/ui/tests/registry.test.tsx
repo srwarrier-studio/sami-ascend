@@ -7,7 +7,7 @@ const days = [
 ]
 
 const samples: Record<string, object> = {
-  KpiCard: { title: 'Today', value: 125000, valueFormat: 'currency', delta: 0.05, caption: 'vs yesterday' },
+  KpiCard: { title: 'Today', value: 125000, valueFormat: 'currency', delta: 0.05, caption: 'vs yesterday', trend: [1, 3, 2, 4] },
   RankedList: { title: 'Top customers', items: days, valueFormat: 'number' },
   DataTable: {
     title: 'Recent high-value sales',
@@ -17,6 +17,8 @@ const samples: Record<string, object> = {
     ],
     rows: [{ order: '0000012031', amount: 500000 }],
   },
+  DonutChart: { title: 'Invoice status', slices: [{ label: 'Paid', value: 58, tone: 'positive' }, { label: 'Open', value: 42 }] },
+  GaugeChart: { title: 'Month target', value: 72, target: 100, caption: 'this month' },
   LineChart: { data: days, title: 'Day sales' },
   BarChart: { data: days, title: 'By customer' },
 }
@@ -75,6 +77,14 @@ describe('registry render with valid props', () => {
     ]
     const { container } = show('LineChart', { data: points, compare: points, compareLabel: 'Last week' })
     expect(container.querySelector('.ts-chart__legend')?.textContent).toContain('Last week')
+  })
+
+  it('shows the fallback for donut slices that sum to zero', () => {
+    expect(show('DonutChart', { slices: [{ label: 'Paid', value: 0 }] }).getByText('Cannot show widget DonutChart')).toBeInTheDocument()
+  })
+
+  it('shows the fallback for a gauge without a positive target', () => {
+    expect(show('GaugeChart', { value: 1, target: 0 }).getByText('Cannot show widget GaugeChart')).toBeInTheDocument()
   })
 
   it('ignores unknown props', () => {

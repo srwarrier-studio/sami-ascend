@@ -2,6 +2,7 @@ import { Card, Text } from '@mantine/core'
 import type { ReactElement } from 'react'
 import { z } from 'zod'
 import { BarChart, LineChart } from './charts'
+import { DonutChart, GaugeChart } from './polarCharts'
 import { DataTable, KpiCard, RankedList } from './widgets'
 
 const valueFormat = z.enum(['number', 'currency', 'percent']).optional()
@@ -18,13 +19,15 @@ type Entry = {
 
 const entries: Record<string, Entry> = {
   KpiCard: {
-    description: 'One headline number with an optional change versus the previous period (a fraction, 0.05 is +5%).',
+    description:
+      'One headline number with an optional change versus the previous period (a fraction, 0.05 is +5%) and an optional trend of recent values drawn as a sparkline.',
     schema: z.object({
       title: z.string(),
       value: z.number(),
       valueFormat,
       delta: z.number().optional(),
       caption: z.string().optional(),
+      trend: z.array(z.number()).optional(),
     }),
     size: { minW: 2, minH: 2, defaultW: 3, defaultH: 2 },
     component: KpiCard,
@@ -64,6 +67,23 @@ const entries: Record<string, Entry> = {
     }),
     size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
     component: LineChart,
+  },
+  DonutChart: {
+    description: 'Shares of a whole, such as invoices by status. A slice may carry a tone: positive, caution, negative or neutral.',
+    schema: z.object({
+      title: z.string().optional(),
+      slices: z
+        .array(z.object({ label: z.string(), value: z.number().nonnegative(), tone: z.enum(['positive', 'caution', 'negative', 'neutral']).optional() }))
+        .refine((slices) => slices.reduce((sum, slice) => sum + slice.value, 0) > 0),
+    }),
+    size: { minW: 3, minH: 4, defaultW: 4, defaultH: 5 },
+    component: DonutChart,
+  },
+  GaugeChart: {
+    description: 'One value against a target as a progress ring, such as month-to-date sales against the monthly target.',
+    schema: z.object({ title: z.string().optional(), value: z.number(), target: z.number().positive(), valueFormat, caption: z.string().optional() }),
+    size: { minW: 3, minH: 3, defaultW: 3, defaultH: 4 },
+    component: GaugeChart,
   },
   BarChart: {
     description: 'Bars per label, such as sales by customer or by material.',

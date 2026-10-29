@@ -1,3 +1,9 @@
+:root {
+  --sami-positive: light-dark(var(--mantine-color-green-8), var(--mantine-color-green-4));
+  --sami-caution: light-dark(var(--mantine-color-yellow-9), var(--mantine-color-yellow-4));
+  --sami-negative: light-dark(var(--mantine-color-red-8), var(--mantine-color-red-4));
+}
+
 .sami-chart {
   color: var(--mantine-color-text);
   --ts-chart-1: var(--mantine-primary-color-filled);
@@ -18,4 +24,23 @@
 
 .sami-chart .ts-chart__bar rect:hover {
   opacity: 1;
+}
+
+.sami-spark {
+  width: 6rem;
+  height: 2rem;
+  flex: none;
+}
+
+.sami-spark-line {
+  fill: none;
+  stroke: var(--mantine-primary-color-filled);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sami-spark-area {
+  fill: var(--mantine-primary-color-filled);
+  opacity: 0.12;
 }

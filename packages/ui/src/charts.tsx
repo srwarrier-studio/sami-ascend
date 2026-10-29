@@ -1,12 +1,11 @@
 import './charts.css'
 import { areaY, barY, colorLegend, colorLegendItems, defineChart, dot, lineY } from '@tanstack/charts'
-import { Chart } from '@tanstack/charts/react'
 import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scalePoint } from '@tanstack/charts/scales/point'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Card, Text, Title } from '@mantine/core'
 import { useMemo } from 'react'
+import { ChartCard } from './ChartCard'
 import { formatCompact } from './format'
 import type { ValueFormat } from './format'
 
@@ -25,7 +24,6 @@ export type LineChartProps = ChartProps & {
 }
 
 const CHART_HEIGHT = 260
-const INITIAL_WIDTH = 640
 const BAR_RADIUS = 6
 const LINE_WIDTH = 2.5
 const LATEST_RADIUS = 5
@@ -75,32 +73,15 @@ function barDefinition({ data, valueFormat }: ChartProps) {
   })
 }
 
-type Definition = ReturnType<typeof lineDefinition> | ReturnType<typeof barDefinition>
-
-function ChartCard({ title, empty, definition, label }: { title?: string; empty: boolean; definition: Definition; label: string }) {
-  return (
-    <Card>
-      {title && <Title order={4}>{title}</Title>}
-      {empty ? (
-        <Text c="dimmed">No data</Text>
-      ) : (
-        <div className="sami-chart">
-          <Chart definition={definition} height={CHART_HEIGHT} initialWidth={INITIAL_WIDTH} ariaLabel={title ?? label} />
-        </div>
-      )}
-    </Card>
-  )
-}
-
 export function LineChart({ data, title, valueFormat, compare, label, compareLabel }: LineChartProps) {
   const definition = useMemo(
     () => lineDefinition({ data, valueFormat, compare, label, compareLabel }),
     [data, valueFormat, compare, label, compareLabel],
   )
-  return <ChartCard title={title} empty={data.length === 0} definition={definition} label="line chart" />
+  return <ChartCard title={title} empty={data.length === 0} definition={definition} label="line chart" height={CHART_HEIGHT} />
 }
 
 export function BarChart({ data, title, valueFormat }: ChartProps) {
   const definition = useMemo(() => barDefinition({ data, valueFormat }), [data, valueFormat])
-  return <ChartCard title={title} empty={data.length === 0} definition={definition} label="bar chart" />
+  return <ChartCard title={title} empty={data.length === 0} definition={definition} label="bar chart" height={CHART_HEIGHT} />
 }

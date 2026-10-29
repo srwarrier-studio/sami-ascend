@@ -1,5 +1,7 @@
 import { Card, Group, Stack, Table, Text, Title } from '@mantine/core'
-import { formatValue } from './format'
+import { ArrowDownIcon, ArrowUpIcon } from '@phosphor-icons/react'
+import { formatDelta, formatValue } from './format'
+import { Sparkline } from './Sparkline'
 import type { ValueFormat } from './format'
 
 export type KpiCardProps = {
@@ -8,17 +10,30 @@ export type KpiCardProps = {
   valueFormat?: ValueFormat
   delta?: number
   caption?: string
+  trend?: number[]
 }
 
-export function KpiCard({ title, value, valueFormat, delta, caption }: KpiCardProps) {
+export function KpiCard({ title, value, valueFormat, delta, caption, trend }: KpiCardProps) {
+  const rising = delta !== undefined && delta >= 0
+  const Arrow = rising ? ArrowUpIcon : ArrowDownIcon
   return (
     <Card>
       <Text c="dimmed">{title}</Text>
-      <Title order={2}>{formatValue(value, valueFormat)}</Title>
-      {delta !== undefined && (
-        <Text c={delta >= 0 ? 'green' : 'red'}>{formatValue(delta, 'percent')}</Text>
-      )}
-      {caption && <Text c="dimmed">{caption}</Text>}
+      <Group justify="space-between" align="flex-end" wrap="nowrap">
+        <Stack gap={0}>
+          <Title order={2}>{formatValue(value, valueFormat)}</Title>
+          {delta !== undefined && (
+            <Group gap={4}>
+              <Arrow size={14} weight="bold" color={rising ? 'var(--sami-positive)' : 'var(--sami-negative)'} aria-hidden />
+              <Text c={rising ? 'var(--sami-positive)' : 'var(--sami-negative)'} fw={500}>
+                {formatDelta(delta)}
+              </Text>
+            </Group>
+          )}
+          {caption && <Text c="dimmed">{caption}</Text>}
+        </Stack>
+        {trend && trend.length > 1 && <Sparkline values={trend} />}
+      </Group>
     </Card>
   )
 }

@@ -20,3 +20,9 @@ export function formatCompact(value: number, format: ValueFormat = 'number') {
   if (format === 'percent') return formatValue(value, 'percent')
   return `${format === 'currency' ? '₹' : ''}${compact.format(value)}`
 }
+
+const signedPercent = new Intl.NumberFormat('en-IN', { style: 'percent', maximumFractionDigits: 1, signDisplay: 'exceptZero' })
+
+export function formatDelta(value: number) {
+  return signedPercent.format(value)
+}

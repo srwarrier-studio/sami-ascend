@@ -2,6 +2,8 @@ import {
   BarChart,
   Button,
   DataTable,
+  DonutChart,
+  GaugeChart,
   Divider,
   Group,
   KpiCard,
@@ -83,14 +85,25 @@ export function DashboardDemo() {
       />
       <Stack p="md">
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }}>
-          <KpiCard title="Sales this month" value={3400000} valueFormat="currency" delta={0.062} caption="vs last month" />
-          <KpiCard title="Invoices" value={1284} delta={0.031} caption="Raised this month" />
-          <KpiCard title="Active customers" value={312} caption="9 new this month" />
-          <KpiCard title="Average invoice" value={2648} valueFormat="currency" delta={-0.014} caption="vs last month" />
+          <KpiCard title="Sales this month" value={3400000} valueFormat="currency" delta={0.062} caption="vs last month" trend={[2.1, 2.3, 2.2, 2.6, 2.8, 2.7, 3.0, 3.4]} />
+          <KpiCard title="Invoices" value={1284} delta={0.031} caption="Raised this month" trend={[1100, 1150, 1120, 1210, 1180, 1250, 1284]} />
+          <KpiCard title="Active customers" value={312} caption="9 new this month" trend={[290, 296, 301, 303, 308, 312]} />
+          <KpiCard title="Average invoice" value={2648} valueFormat="currency" delta={-0.014} caption="vs last month" trend={[2750, 2700, 2720, 2680, 2660, 2648]} />
         </SimpleGrid>
         <SimpleGrid cols={{ base: 1, lg: 2 }}>
           <LineChart title="Day sales" data={days} compare={lastMonth} label="This month" compareLabel="Last month" valueFormat="currency" />
           <BarChart title="Month-on-month sales" data={months} valueFormat="currency" />
+        </SimpleGrid>
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+          <DonutChart
+            title="Invoice status"
+            slices={[
+              { label: 'Paid', value: 58, tone: 'positive' },
+              { label: 'Open', value: 27 },
+              { label: 'Overdue', value: 15, tone: 'negative' },
+            ]}
+          />
+          <GaugeChart title="Month target" value={3400000} target={5000000} valueFormat="currency" caption="this month" />
         </SimpleGrid>
         <SimpleGrid cols={{ base: 1, lg: 3 }}>
           <RankedList title="Top customers" items={customers} valueFormat="currency" />
