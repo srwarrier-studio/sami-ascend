@@ -143,6 +143,8 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
       <PageHeader
         title={tabs.find((tab) => tab.id === activeId)?.name ?? ''}
         breadcrumb={['Boards']}
+        editing={editing}
+        onTitleChange={(name) => setTabs(tabs.map((tab) => (tab.id === activeId ? { ...tab, name } : tab)))}
         actions={
           <Group>
             <Button variant={editing ? 'filled' : 'default'} leftSection={<PencilSimpleIcon size={16} />} onClick={() => setEditing(!editing)}>
@@ -167,11 +169,9 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
       <PageBar
         tabs={tabs}
         activeId={activeId}
-        editing={editing}
         config={config}
         onSelect={setActiveId}
         onAdd={() => setTabs([...tabs, { id: `board-${tabs.length + 1}`, name: `Board ${tabs.length + 1}` }])}
-        onRename={(id, name) => setTabs(tabs.map((tab) => (tab.id === id ? { ...tab, name } : tab)))}
         onConfigChange={onConfigChange}
       />
     </>

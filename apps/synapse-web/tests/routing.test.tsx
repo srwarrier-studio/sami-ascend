@@ -50,7 +50,7 @@ describe('signing in', () => {
   it.each(['manager@mock-sami.com', 'admin@mock-sami.com'])('lets %s reach my boards', async (email) => {
     open('/login', new MockSessionClient())
     await signIn(email)
-    expect(await screen.findByRole('heading', { name: 'My boards' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sales overview' })).toBeInTheDocument()
   })
 
   it('sends a sales user to not allowed', async () => {
@@ -69,7 +69,7 @@ describe('signed in', () => {
 
   it('redirects login to my boards', async () => {
     open('/login', new MockSessionClient('manager@mock-sami.com'))
-    expect(await screen.findByRole('heading', { name: 'My boards' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sales overview' })).toBeInTheDocument()
   })
 
   it('shows page not found for an unknown path', async () => {

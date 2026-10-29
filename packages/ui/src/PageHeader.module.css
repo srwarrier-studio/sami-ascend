@@ -19,3 +19,11 @@
   font-weight: 600;
   line-height: 1.2;
 }
+
+.titleInput {
+  font-size: var(--mantine-h3-font-size);
+  font-weight: 600;
+  height: 2.25rem;
+  padding-inline: 0.5rem;
+  margin-top: 0.125rem;
+}

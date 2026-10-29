@@ -42,6 +42,7 @@ export {
   Title,
   Tooltip,
 } from '@mantine/core'
+export { useMantineColorScheme as useColorScheme } from '@mantine/core'
 export { notifications } from '@mantine/notifications'
 export { AreaChart, BarChart, LineChart, StackedBarChart } from './charts'
 export { CalendarHeatmapChart, dayLabel } from './calendarChart'
@@ -65,6 +66,8 @@ export { WidgetCatalog } from './WidgetCatalog'
 export { PageBar } from './PageBar'
 export type { PageBarConfig, PageBarProps, PageBarTab } from './PageBar'
 export {
+  ArrowLeftIcon,
+  ArrowRightIcon,
   ChartBarIcon,
   ClipboardTextIcon,
   FileTextIcon,
@@ -74,5 +77,6 @@ export {
   PlusIcon,
   SparkleIcon,
   SquaresFourIcon,
+  TrashIcon,
   UsersIcon,
 } from '@phosphor-icons/react'

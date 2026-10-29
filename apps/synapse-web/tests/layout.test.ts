@@ -1,0 +1,41 @@
+import { addWidget, dropWidget, moveWidget, removeWidget } from '../src/boards/layout'
+
+const widgets = [
+  { id: 'a', catalogId: 'x' },
+  { id: 'b', catalogId: 'y' },
+  { id: 'c', catalogId: 'z' },
+]
+const ids = (list: { id: string }[]) => list.map((widget) => widget.id)
+
+describe('board layout', () => {
+  it('adds a widget at the end with a new id', () => {
+    const next = addWidget(widgets, 'top-customers')
+    expect(next).toHaveLength(4)
+    expect(next[3].catalogId).toBe('top-customers')
+    expect(ids(widgets)).toEqual(['a', 'b', 'c'])
+  })
+
+  it('removes a widget', () => {
+    expect(ids(removeWidget(widgets, 'b'))).toEqual(['a', 'c'])
+  })
+
+  it('moves a widget later and earlier', () => {
+    expect(ids(moveWidget(widgets, 'a', 1))).toEqual(['b', 'a', 'c'])
+    expect(ids(moveWidget(widgets, 'c', -1))).toEqual(['a', 'c', 'b'])
+  })
+
+  it('does not move past either end', () => {
+    expect(moveWidget(widgets, 'a', -1)).toBe(widgets)
+    expect(moveWidget(widgets, 'c', 1)).toBe(widgets)
+  })
+
+  it('drops a widget onto another', () => {
+    expect(ids(dropWidget(widgets, 'a', 'c'))).toEqual(['b', 'c', 'a'])
+    expect(ids(dropWidget(widgets, 'c', 'a'))).toEqual(['c', 'a', 'b'])
+  })
+
+  it('ignores a drop onto itself or an unknown id', () => {
+    expect(dropWidget(widgets, 'a', 'a')).toBe(widgets)
+    expect(dropWidget(widgets, 'a', 'nope')).toBe(widgets)
+  })
+})
