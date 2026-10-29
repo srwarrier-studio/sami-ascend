@@ -90,6 +90,10 @@ export function PageBar({ tabs, activeId, config, onSelect, onAdd, onArrange, on
         <Button
           size="xs"
           variant="subtle"
+          h="2rem"
+          radius="xl"
+          fz="sm"
+          fw={500}
           miw="7.5rem"
           leftSection={onArrange ? <SquaresFourIcon size={14} /> : <PlusIcon size={14} />}
           onClick={onArrange ?? onAdd}

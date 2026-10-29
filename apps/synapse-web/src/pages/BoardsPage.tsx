@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useRouteContext } from '@tanstack/react-router'
-import { Button, Group, Modal, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, useColorScheme } from '@sami/ui'
+import { Button, EmptyBoard, Group, Modal, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, useColorScheme } from '@sami/ui'
 import { AiDrawer } from '../boards/AiDrawer'
 import { BoardGrid } from '../boards/BoardGrid'
 import { CatalogPicker } from '../boards/CatalogPicker'
@@ -48,11 +48,7 @@ export function BoardsPage() {
           </Group>
         }
       />
-      {active.widgets.length === 0 && (
-        <Text c="dimmed" p="md">
-          This board is empty. Press Edit, then Add widget.
-        </Text>
-      )}
+      {active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
       <BoardGrid widgets={active.widgets} data={salesData} editing={editing} onChange={setWidgets} />
       <PageBar
         tabs={boards}

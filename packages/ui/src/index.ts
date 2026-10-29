@@ -57,6 +57,7 @@ export type { DonutChartProps, DonutSlice, GaugeChartProps, Tone } from './polar
 export type { ValueFormat } from './format'
 export { KpiCard, RankedList, DataTable } from './widgets'
 export { registry } from './registry'
+export { EmptyBoard } from './EmptyBoard'
 export { arrange } from './arrange'
 export { WidgetCell, WidgetGrid, allowedSizes, widgetShape } from './WidgetGrid'
 export { sizes } from './sizes'

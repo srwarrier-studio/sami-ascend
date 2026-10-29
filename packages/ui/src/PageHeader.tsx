@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 import { TextInput } from '@mantine/core'
 import classes from './PageHeader.module.css'
 
+const MAX_TITLE = 30
+
 type PageHeaderProps = {
   title: string
   breadcrumb?: string[]
@@ -24,6 +26,7 @@ function TitleField({ title, onTitleChange }: { title: string; onTitleChange: (t
     <TextInput
       classNames={{ input: classes.titleInput }}
       aria-label="Board title"
+      maxLength={MAX_TITLE}
       value={value}
       onChange={(event) => setValue(event.currentTarget.value)}
       onBlur={save}

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { ActionIcon, allowedSizes, arrange, widgetShape, ArrowsOutSimpleIcon, Button, Group, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, registry, WidgetCell, WidgetGrid, SparkleIcon, Stack } from '../src'
+import { ActionIcon, allowedSizes, EmptyBoard, notifications, TrashIcon, arrange, widgetShape, ArrowsOutSimpleIcon, Button, Group, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, registry, WidgetCell, WidgetGrid, SparkleIcon, Stack } from '../src'
 import type { PageBarConfig, SizeName } from '../src'
 
 const months = [
@@ -130,6 +130,8 @@ export const dashboardRows: Row[] = [
   },
 ]
 
+const MAX_BOARDS = 3
+
 const allWidgets = dashboardRows.flatMap((row) => row.widgets)
 
 const nextSize = (resized: Record<number, SizeName>, position: number, widget: string) => {
@@ -142,17 +144,14 @@ type DashboardDemoProps = { config: PageBarConfig; onConfigChange: (config: Page
 
 export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
   const [editing, setEditing] = useState(false)
-  const [order, setOrder] = useState(() => allWidgets.map((_, id) => id))
+  const [orders, setOrders] = useState<Record<string, number[]>>({ sales: allWidgets.map((_, id) => id) })
   const lastMove = useRef(0)
   const [dragging, setDragging] = useState<number | null>(null)
   const [resized, setResized] = useState<Record<number, SizeName>>({})
-  const [tabs, setTabs] = useState([
-    { id: 'sales', name: 'Sales overview' },
-    { id: 'customers', name: 'Customers' },
-    { id: 'materials', name: 'Materials' },
-    { id: 'quality', name: 'Quality' },
-  ])
+  const [tabs, setTabs] = useState([{ id: 'sales', name: 'Sales overview' }])
   const [activeId, setActiveId] = useState('sales')
+  const order = orders[activeId] ?? []
+  const setOrder = (next: number[]) => setOrders({ ...orders, [activeId]: next })
   return (
     <>
       <PageHeader
@@ -162,6 +161,22 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
         onTitleChange={(name) => setTabs(tabs.map((tab) => (tab.id === activeId ? { ...tab, name } : tab)))}
         actions={
           <Group>
+            {editing && (
+              <Button
+                variant="subtle"
+                color="red"
+                leftSection={<TrashIcon size={16} />}
+                disabled={tabs.length < 2}
+                onClick={() => {
+                  const rest = tabs.filter((tab) => tab.id !== activeId)
+                  setTabs(rest)
+                  setActiveId(rest[0].id)
+                  setEditing(false)
+                }}
+              >
+                Delete board
+              </Button>
+            )}
             <Button variant={editing ? 'filled' : 'default'} leftSection={<PencilSimpleIcon size={16} />} onClick={() => setEditing(!editing)}>
               {editing ? 'Done' : 'Edit'}
             </Button>
@@ -173,6 +188,7 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
         }
       />
       <Stack p="md" pb={80}>
+        {order.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => undefined} />}
         <WidgetGrid>
           {order.map((id) => {
             const widget = allWidgets[id]
@@ -218,7 +234,17 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
         config={config}
         onSelect={setActiveId}
         onArrange={editing ? () => setOrder(arrange(order, (id) => widgetShape(allWidgets[id].name, resized[id]))) : undefined}
-        onAdd={() => setTabs([...tabs, { id: `board-${tabs.length + 1}`, name: `Board ${tabs.length + 1}` }])}
+        onAdd={() => {
+          if (tabs.length >= MAX_BOARDS) {
+            notifications.show({ message: `Only ${MAX_BOARDS} sheets allowed` })
+            return
+          }
+          const id = crypto.randomUUID()
+          let number = 1
+          while (tabs.some((tab) => tab.name === `Board ${number}`)) number += 1
+          setTabs([...tabs, { id, name: `Board ${number}` }])
+          setActiveId(id)
+        }}
         onConfigChange={onConfigChange}
       />
     </>
