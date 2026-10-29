@@ -5,13 +5,16 @@ import {
   redirect,
   Outlet,
   useRouteContext,
+  useRouterState,
 } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
 import type { BoardStore } from './boards/boardStore'
 import type { PresetName, MotionMode } from '@sami/ui'
 import type { SalesData } from './data/salesData'
 import type { Session } from './session/useSession'
+import type { ChatPlanner } from './ai/chatPlanner'
 import { canUseSynapse } from './access'
+import { AiPage } from './pages/AiPage'
 import { BoardsPage } from './pages/BoardsPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotAllowedPage } from './pages/NotAllowedPage'
@@ -27,13 +30,15 @@ export type RouterContext = {
   logout: () => Promise<void>
   salesData: SalesData
   boardStore: BoardStore
+  chatPlanner: ChatPlanner
   ui: UiSettings
   setUi: (ui: UiSettings) => void
 }
 
 function RootLayout() {
   const { session, logout } = useRouteContext({ from: '__root__' })
-  if (session.status !== 'signedIn') return <Outlet />
+  const path = useRouterState({ select: (state) => state.location.pathname })
+  if (session.status !== 'signedIn' || path === '/ai') return <Outlet />
   return (
     <Shell user={session.user} onLogout={logout}>
       <Outlet />
@@ -69,6 +74,7 @@ const loginRoute = createRoute({
 const boardsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  validateSearch: (search: Record<string, unknown>) => ({ board: typeof search.board === 'string' ? search.board : undefined }),
   beforeLoad: requireSynapseAccess,
   component: BoardsPage,
 })
@@ -80,6 +86,13 @@ const widgetsRoute = createRoute({
   component: WidgetsPage,
 })
 
+const aiRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/ai',
+  beforeLoad: requireSynapseAccess,
+  component: AiPage,
+})
+
 const notAllowedRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/not-allowed',
@@ -87,7 +100,7 @@ const notAllowedRoute = createRoute({
   component: NotAllowedPage,
 })
 
-const routeTree = rootRoute.addChildren([loginRoute, boardsRoute, widgetsRoute, notAllowedRoute])
+const routeTree = rootRoute.addChildren([loginRoute, boardsRoute, aiRoute, widgetsRoute, notAllowedRoute])
 
 export const createAppRouter = (context: RouterContext, history?: RouterHistory) =>
   createRouter({ routeTree, context, history })

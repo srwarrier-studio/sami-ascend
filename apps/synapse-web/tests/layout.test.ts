@@ -1,4 +1,5 @@
-import { addWidget, dropWidget, moveWidget, removeWidget, resizeWidget } from '../src/boards/layout'
+import { addWidget, buildWidgets, dropWidget, MAX_WIDGETS, moveWidget, removeWidget, resizeWidget } from '../src/boards/layout'
+import { catalog } from '../src/catalog/catalog'
 
 const widgets = [
   { id: 'a', catalogId: 'x' },
@@ -51,5 +52,17 @@ describe('resizing a widget', () => {
 
   it('leaves other widgets alone', () => {
     expect(resizeWidget(widgets, 'a', allowed)[1]).toBe(widgets[1])
+  })
+})
+
+describe('building widgets from ids', () => {
+  const catalogIds = (list: { catalogId: string }[]) => list.map((widget) => widget.catalogId)
+
+  it('keeps known ids in order and drops unknown and repeated ones', () => {
+    expect(catalogIds(buildWidgets(['top-customers', 'nope', 'day-sales', 'top-customers']))).toEqual(['top-customers', 'day-sales'])
+  })
+
+  it('stops at the widget limit', () => {
+    expect(buildWidgets(catalog.map((entry) => entry.id))).toHaveLength(MAX_WIDGETS)
   })
 })

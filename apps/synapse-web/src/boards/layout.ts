@@ -48,3 +48,9 @@ export const resizeWidget = (widgets: BoardWidget[], id: string, allowed: SizeNa
 
 export const arrangeWidgets = (widgets: BoardWidget[]) =>
   arrange(widgets, (widget) => widgetShape(catalog.find((entry) => entry.id === widget.catalogId)?.widget ?? '', widget.size))
+
+export const buildWidgets = (catalogIds: string[]): BoardWidget[] =>
+  [...new Set(catalogIds)]
+    .filter((catalogId) => catalog.some((entry) => entry.id === catalogId))
+    .slice(0, MAX_WIDGETS)
+    .map((catalogId) => ({ id: `w-${crypto.randomUUID()}`, catalogId }))

@@ -51,6 +51,7 @@ All three phases use mock data (session, sales data and board store behind inter
 - 02 widget-catalog: the predefined sales widgets (MoM sales, day sales, recent high-value sales table, top customers and materials, status split, KPI cards) on the `@sami/ui` registry, fed by the mock sales data. done (tag `synapse-web-phase-02-done`, 2026-10-29).
 - 03 board: the user's own boards as tabs with an Edit mode (rename, add and delete boards, drag, reorder, remove, widget picker, AI Mode), saved in a mock board store, widgets auto-refresh every 5 minutes, no dropdown filters. done (tag `synapse-web-phase-03-done`, 2026-10-29).
 - 04 ai-ready-review: check widgets against the AI dashboard needs before the POC. done (tag `synapse-web-phase-04-done`, 2026-10-29).
+- 05 ai-chat: full-screen AI Mode chat with widgets inside answers, `@builder` board modal and save as board, on a mock planner. done (tag `synapse-web-phase-05-done`, 2026-10-30).
 
 ## workspace-api (workflow backend)
 - 01 sales-order-gateway: an interface to create and list sales orders, with an implementation that calls butterfly. done (tag `workspace-api-phase-01-done`, 2026-10-27)

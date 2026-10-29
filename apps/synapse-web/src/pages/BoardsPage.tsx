@@ -1,19 +1,19 @@
 import { useState } from 'react'
-import { useRouteContext } from '@tanstack/react-router'
+import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
 import { Button, EmptyBoard, Group, Modal, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, notifications, useColorScheme } from '@sami/ui'
-import { AiDrawer } from '../boards/AiDrawer'
 import { BoardGrid } from '../boards/BoardGrid'
 import { catalog } from '../catalog/catalog'
-import { MAX_WIDGETS, addWidget, arrangeWidgets, insertWidget, removeWidget } from '../boards/layout'
+import { MAX_WIDGETS, arrangeWidgets, insertWidget, removeWidget } from '../boards/layout'
 import { useBoards } from '../boards/useBoards'
 
 export function BoardsPage() {
+  const navigate = useNavigate()
+  const search = useSearch({ from: '/' })
   const { boardStore, salesData, ui, setUi } = useRouteContext({ from: '/' })
   const { colorScheme, setColorScheme } = useColorScheme()
-  const { boards, active, select, add, rename, remove, setWidgets } = useBoards(boardStore)
+  const { boards, active, select, add, rename, remove, setWidgets } = useBoards(boardStore, search.board)
   const [editing, setEditing] = useState(false)
   const [picking, setPicking] = useState(false)
-  const [asking, setAsking] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
   if (!boards || !active) return null
@@ -44,11 +44,9 @@ export function BoardsPage() {
             <Button variant={editing ? 'filled' : 'default'} leftSection={<PencilSimpleIcon size={16} />} onClick={() => setEditing(!editing)}>
               {editing ? 'Done' : 'Edit'}
             </Button>
-            {editing && (
-              <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />} onClick={() => setAsking(true)}>
-                AI Mode
-              </Button>
-            )}
+            <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />} onClick={() => navigate({ to: '/ai' })}>
+              AI Mode
+            </Button>
             <Button
               leftSection={<PlusIcon size={16} />}
               onClick={() => {
@@ -84,16 +82,6 @@ export function BoardsPage() {
         counts={active.widgets.reduce<Record<string, number>>((all, widget) => ({ ...all, [widget.catalogId]: (all[widget.catalogId] ?? 0) + 1 }), {})}
         onPick={(catalogId) => insert(catalogId, null)}
         onRemove={(catalogId) => setWidgets(removeWidget(active.widgets, active.widgets.find((widget) => widget.catalogId === catalogId)?.id ?? ''))}
-      />
-      <AiDrawer
-        opened={asking}
-        onClose={() => setAsking(false)}
-        onAdd={(catalogIds) => {
-          const fitting = catalogIds.filter((id) => !active.widgets.some((widget) => widget.catalogId === id)).slice(0, MAX_WIDGETS - active.widgets.length)
-          if (fitting.length < catalogIds.length && active.widgets.length + fitting.length >= MAX_WIDGETS) notifications.show({ message: `Only ${MAX_WIDGETS} widgets allowed on a board` })
-          setWidgets(fitting.reduce(addWidget, active.widgets))
-          return fitting
-        }}
       />
       <Modal opened={deleting} onClose={() => setDeleting(false)} title="Delete board">
         <Text>Delete {active.name} and its widgets?</Text>
