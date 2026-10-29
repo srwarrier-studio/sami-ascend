@@ -5,14 +5,14 @@ import { scaleBand } from '@tanstack/charts/scales/band'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { useMemo } from 'react'
 import { ChartCard } from './ChartCard'
-import { help } from './help'
+import { helpText } from './help'
 import { formatValue } from './format'
 import type { ValueFormat } from './format'
 import { NONE, colorDomain, colorRange, levelOf } from './heat'
 import { HeatLegend } from './HeatLegend'
 
 export type CalendarDay = { date: string; value: number }
-export type CalendarHeatmapChartProps = { days: CalendarDay[]; title?: string; info?: string; valueFormat?: ValueFormat }
+export type CalendarHeatmapChartProps = { days: CalendarDay[]; title?: string; info?: string; measure?: string; valueFormat?: ValueFormat }
 
 type Square = { week: string; weekday: string; date: string; value: number | undefined; level: string }
 
@@ -103,13 +103,13 @@ function calendarDefinition(squares: Square[], valueFormat?: ValueFormat) {
   })
 }
 
-export function CalendarHeatmapChart({ days, title, info, valueFormat }: CalendarHeatmapChartProps) {
+export function CalendarHeatmapChart({ days, title, info, measure, valueFormat }: CalendarHeatmapChartProps) {
   const { squares, low, high } = useMemo(() => squaresOf(days), [days])
   const definition = useMemo(() => (squares.length > 0 ? calendarDefinition(squares, valueFormat) : undefined), [squares, valueFormat])
   return (
     <ChartCard
       title={title}
-      help={help.CalendarHeatmapChart}
+      help={helpText('CalendarHeatmapChart', measure)}
       info={info}
       empty={squares.length === 0}
       definition={definition}

@@ -5,13 +5,14 @@ import { AreaChart, BarChart, LineChart, StackedBarChart } from './charts'
 import { CalendarHeatmapChart } from './calendarChart'
 import { HeatmapChart } from './heatmapChart'
 import { DonutChart, GaugeChart } from './polarCharts'
-import { help } from './help'
+import { helpText } from './help'
 import type { WidgetName } from './help'
 import { DataTable, KpiCard, RankedList } from './widgets'
 
 const valueFormat = z.enum(['number', 'currency', 'percent']).optional()
 const point = z.object({ label: z.string(), value: z.number() })
 const info = z.string().optional()
+const measure = z.string().optional()
 
 type Size = { minW: number; minH: number; defaultW: number; defaultH: number }
 
@@ -29,6 +30,7 @@ const entries: Record<string, Entry> = {
     schema: z.object({
       title: z.string(),
       info,
+      measure,
       value: z.number(),
       valueFormat,
       delta: z.number().optional(),
@@ -40,7 +42,7 @@ const entries: Record<string, Entry> = {
   },
   RankedList: {
     description: 'Items ranked from highest to lowest value, such as top customers or materials.',
-    schema: z.object({ title: z.string(), info, items: z.array(point), valueFormat }),
+    schema: z.object({ title: z.string(), info, measure, items: z.array(point), valueFormat }),
     size: { minW: 3, minH: 3, defaultW: 4, defaultH: 4 },
     component: RankedList,
   },
@@ -49,6 +51,7 @@ const entries: Record<string, Entry> = {
     schema: z.object({
       title: z.string().optional(),
       info,
+      measure,
       columns: z.array(
         z.object({
           key: z.string(),
@@ -71,6 +74,7 @@ const entries: Record<string, Entry> = {
       compareLabel: z.string().optional(),
       title: z.string().optional(),
       info,
+      measure,
       valueFormat,
     }),
     size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
@@ -78,7 +82,7 @@ const entries: Record<string, Entry> = {
   },
   AreaChart: {
     description: 'A filled trend over ordered labels, such as cumulative sales or volume per day.',
-    schema: z.object({ data: z.array(point), title: z.string().optional(), info, valueFormat }),
+    schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat }),
     size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
     component: AreaChart,
   },
@@ -89,6 +93,7 @@ const entries: Record<string, Entry> = {
       layout: z.enum(['stacked', 'grouped']).optional(),
       title: z.string().optional(),
       info,
+      measure,
       valueFormat,
     }),
     size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
@@ -100,6 +105,7 @@ const entries: Record<string, Entry> = {
       cells: z.array(z.object({ row: z.string(), column: z.string(), value: z.number() })),
       title: z.string().optional(),
       info,
+      measure,
       valueFormat,
     }),
     size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
@@ -111,6 +117,7 @@ const entries: Record<string, Entry> = {
       days: z.array(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), value: z.number() })),
       title: z.string().optional(),
       info,
+      measure,
       valueFormat,
     }),
     size: { minW: 6, minH: 3, defaultW: 12, defaultH: 4 },
@@ -121,6 +128,7 @@ const entries: Record<string, Entry> = {
     schema: z.object({
       title: z.string().optional(),
       info,
+      measure,
       slices: z
         .array(z.object({ label: z.string(), value: z.number().nonnegative(), tone: z.enum(['positive', 'caution', 'negative', 'neutral']).optional() }))
         .refine((slices) => slices.reduce((sum, slice) => sum + slice.value, 0) > 0),
@@ -130,13 +138,13 @@ const entries: Record<string, Entry> = {
   },
   GaugeChart: {
     description: 'One value against a target as a progress ring, such as month-to-date sales against the monthly target.',
-    schema: z.object({ title: z.string().optional(), info, value: z.number(), target: z.number().positive(), valueFormat, caption: z.string().optional() }),
+    schema: z.object({ title: z.string().optional(), info, measure, value: z.number(), target: z.number().positive(), valueFormat, caption: z.string().optional() }),
     size: { minW: 3, minH: 3, defaultW: 3, defaultH: 4 },
     component: GaugeChart,
   },
   BarChart: {
     description: 'Bars per label, such as sales by customer or by material.',
-    schema: z.object({ data: z.array(point), title: z.string().optional(), info, valueFormat }),
+    schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat }),
     size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
     component: BarChart,
   },
@@ -161,7 +169,7 @@ export const registry = {
       description: entry.description,
       schema: z.toJSONSchema(entry.schema),
       size: entry.size,
-      help: help[name as WidgetName],
+      help: helpText(name as WidgetName),
     }))
   },
 

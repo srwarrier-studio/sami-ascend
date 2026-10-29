@@ -1,8 +1,8 @@
 import { ActionIcon, Group, Popover, Stack, Text, Title } from '@mantine/core'
 import { InfoIcon } from '@phosphor-icons/react'
-import type { Help } from './help'
+import type { HelpText } from './help'
 
-type WidgetTitleProps = { title?: string; help: Help; info?: string; label?: boolean }
+type WidgetTitleProps = { title?: string; help: HelpText; info?: string; label?: boolean }
 
 export function WidgetTitle({ title, help, info, label }: WidgetTitleProps) {
   if (!title) return null

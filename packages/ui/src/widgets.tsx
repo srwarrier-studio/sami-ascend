@@ -1,7 +1,7 @@
 import { Card, Group, Progress, Stack, Table, Text, Title } from '@mantine/core'
 import { ArrowDownIcon, ArrowUpIcon } from '@phosphor-icons/react'
 import { formatDelta, formatValue } from './format'
-import { help } from './help'
+import { helpText } from './help'
 import { Sparkline } from './Sparkline'
 import { statusTone } from './status'
 import { WidgetTitle } from './WidgetTitle'
@@ -16,14 +16,15 @@ export type KpiCardProps = {
   caption?: string
   trend?: number[]
   info?: string
+  measure?: string
 }
 
-export function KpiCard({ title, value, valueFormat, delta, caption, trend, info }: KpiCardProps) {
+export function KpiCard({ title, value, valueFormat, delta, caption, trend, info, measure }: KpiCardProps) {
   const rising = delta !== undefined && delta >= 0
   const Arrow = rising ? ArrowUpIcon : ArrowDownIcon
   return (
     <Card>
-      <WidgetTitle title={title} help={help.KpiCard} info={info} label />
+      <WidgetTitle title={title} help={helpText('KpiCard', measure)} info={info} label />
       <Group justify="space-between" align="flex-end" wrap="nowrap">
         <Stack gap={0}>
           <Title order={2}>{formatValue(value, valueFormat)}</Title>
@@ -48,13 +49,14 @@ export type RankedListProps = {
   items: { label: string; value: number }[]
   valueFormat?: ValueFormat
   info?: string
+  measure?: string
 }
 
-export function RankedList({ title, items, valueFormat, info }: RankedListProps) {
+export function RankedList({ title, items, valueFormat, info, measure }: RankedListProps) {
   const top = Math.max(0, ...items.map((item) => item.value))
   return (
     <Card>
-      <WidgetTitle title={title} help={help.RankedList} info={info} />
+      <WidgetTitle title={title} help={helpText('RankedList', measure)} info={info} />
       {items.length === 0 ? (
         <Text c="dimmed">No data</Text>
       ) : (
@@ -95,7 +97,7 @@ function cell(value: string | number | null | undefined, format: DataTableColumn
 export function DataTable({ title, info, columns, rows }: DataTableProps) {
   return (
     <Card>
-      <WidgetTitle title={title} help={help.DataTable} info={info} />
+      <WidgetTitle title={title} help={helpText('DataTable')} info={info} />
       {rows.length === 0 ? (
         <Text c="dimmed">No data</Text>
       ) : (

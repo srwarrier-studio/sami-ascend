@@ -2,12 +2,12 @@ import './charts.css'
 import { Chart } from '@tanstack/charts/react'
 import { Card, Text } from '@mantine/core'
 import type { ComponentProps, ReactNode } from 'react'
-import type { Help } from './help'
+import type { HelpText } from './help'
 import { WidgetTitle } from './WidgetTitle'
 
 type ChartCardProps = {
   title?: string
-  help: Help
+  help: HelpText
   info?: string
   empty: boolean
   definition?: ComponentProps<typeof Chart>['definition']

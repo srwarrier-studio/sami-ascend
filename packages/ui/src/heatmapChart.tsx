@@ -4,13 +4,13 @@ import { scaleBand } from '@tanstack/charts/scales/band'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { useMemo } from 'react'
 import { ChartCard } from './ChartCard'
-import { help } from './help'
+import { helpText } from './help'
 import { colorDomain, colorRange, levelOf } from './heat'
 import { HeatLegend } from './HeatLegend'
 import type { ValueFormat } from './format'
 
 export type HeatmapCell = { row: string; column: string; value: number }
-export type HeatmapChartProps = { cells: HeatmapCell[]; title?: string; info?: string; valueFormat?: ValueFormat }
+export type HeatmapChartProps = { cells: HeatmapCell[]; title?: string; info?: string; measure?: string; valueFormat?: ValueFormat }
 
 const ROW_HEIGHT = 32
 const AXIS_HEIGHT = 48
@@ -30,7 +30,7 @@ function heatmapDefinition(cells: HeatmapCell[], low: number, high: number) {
   })
 }
 
-export function HeatmapChart({ cells, title, info, valueFormat }: HeatmapChartProps) {
+export function HeatmapChart({ cells, title, info, measure, valueFormat }: HeatmapChartProps) {
   const values = cells.map((point) => point.value)
   const low = Math.min(...values)
   const high = Math.max(...values)
@@ -39,7 +39,7 @@ export function HeatmapChart({ cells, title, info, valueFormat }: HeatmapChartPr
   return (
     <ChartCard
       title={title}
-      help={help.HeatmapChart}
+      help={helpText('HeatmapChart', measure)}
       info={info}
       empty={cells.length === 0}
       definition={definition}
