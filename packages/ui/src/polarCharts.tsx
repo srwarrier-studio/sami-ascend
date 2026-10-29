@@ -5,6 +5,7 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { Text } from '@mantine/core'
 import { useMemo } from 'react'
 import { ChartCard } from './ChartCard'
+import { CHART_MIN_HEIGHT } from './sizes'
 import { helpText } from './help'
 import { formatValue } from './format'
 import type { ValueFormat } from './format'
@@ -16,8 +17,8 @@ export type DonutSlice = { label: string; value: number; tone?: Tone }
 export type DonutChartProps = { slices: DonutSlice[]; title?: string; info?: string; measure?: string }
 export type GaugeChartProps = { value: number; target: number; title?: string; info?: string; measure?: string; valueFormat?: ValueFormat; caption?: string }
 
-const DONUT_HEIGHT = 220
-const GAUGE_HEIGHT = 180
+const DONUT_HEIGHT = CHART_MIN_HEIGHT
+const GAUGE_HEIGHT = CHART_MIN_HEIGHT
 const PALETTE_SIZE = 6
 const SLICE_GAP = 0.03
 const GAUGE_SWEEP = Math.PI * 0.75

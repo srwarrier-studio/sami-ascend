@@ -1,4 +1,5 @@
 :root {
+  --sami-row-height: 4.5rem;
   --sami-positive: light-dark(var(--mantine-color-green-8), var(--mantine-color-green-4));
   --sami-caution: light-dark(var(--mantine-color-yellow-9), var(--mantine-color-yellow-4));
   --sami-negative: light-dark(var(--mantine-color-red-8), var(--mantine-color-red-4));

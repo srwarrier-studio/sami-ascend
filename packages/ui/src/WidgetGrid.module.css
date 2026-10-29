@@ -1,0 +1,51 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: var(--sami-row-height, 4.5rem);
+  grid-auto-flow: dense;
+  gap: var(--mantine-spacing-md);
+}
+
+.cell {
+  grid-column: span 12;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.cell[data-editing] {
+  outline: 0.125rem dashed var(--mantine-primary-color-filled);
+  outline-offset: 0.25rem;
+  border-radius: var(--mantine-radius-lg);
+  cursor: grab;
+}
+
+.cell[data-dragging] {
+  opacity: 0.45;
+}
+
+.cell[data-rows='1'] { grid-row: span 1; }
+.cell[data-rows='2'] { grid-row: span 2; }
+.cell[data-rows='3'] { grid-row: span 3; }
+.cell[data-rows='4'] { grid-row: span 4; }
+.cell[data-rows='5'] { grid-row: span 5; }
+.cell[data-rows='6'] { grid-row: span 6; }
+.cell[data-rows='7'] { grid-row: span 7; }
+.cell[data-rows='8'] { grid-row: span 8; }
+
+@media (min-width: 62em) {
+  .cell[data-span='1'] { grid-column: span 1; }
+  .cell[data-span='2'] { grid-column: span 2; }
+  .cell[data-span='3'] { grid-column: span 3; }
+  .cell[data-span='4'] { grid-column: span 4; }
+  .cell[data-span='5'] { grid-column: span 5; }
+  .cell[data-span='6'] { grid-column: span 6; }
+  .cell[data-span='7'] { grid-column: span 7; }
+  .cell[data-span='8'] { grid-column: span 8; }
+  .cell[data-span='9'] { grid-column: span 9; }
+  .cell[data-span='10'] { grid-column: span 10; }
+  .cell[data-span='11'] { grid-column: span 11; }
+  .cell[data-span='12'] { grid-column: span 12; }
+}

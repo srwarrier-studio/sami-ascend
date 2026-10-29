@@ -7,6 +7,7 @@ import { HeatmapChart } from './heatmapChart'
 import { DonutChart, GaugeChart } from './polarCharts'
 import { helpText } from './help'
 import type { WidgetName } from './help'
+import { sized } from './sizes'
 import { DataTable, KpiCard, RankedList } from './widgets'
 
 const valueFormat = z.enum(['number', 'currency', 'percent']).optional()
@@ -37,13 +38,13 @@ const entries: Record<string, Entry> = {
       caption: z.string().optional(),
       trend: z.array(z.number()).optional(),
     }),
-    size: { minW: 2, minH: 2, defaultW: 3, defaultH: 2 },
+    size: sized('kpi'),
     component: KpiCard,
   },
   RankedList: {
     description: 'Items ranked from highest to lowest value, such as top customers or materials.',
     schema: z.object({ title: z.string(), info, measure, items: z.array(point), valueFormat }),
-    size: { minW: 3, minH: 3, defaultW: 4, defaultH: 4 },
+    size: sized('small'),
     component: RankedList,
   },
   DataTable: {
@@ -61,7 +62,7 @@ const entries: Record<string, Entry> = {
       ),
       rows: z.array(z.record(z.string(), z.union([z.string(), z.number(), z.null()]))),
     }),
-    size: { minW: 4, minH: 3, defaultW: 12, defaultH: 4 },
+    size: sized('full'),
     component: DataTable,
   },
   LineChart: {
@@ -77,13 +78,13 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    size: sized('wide'),
     component: LineChart,
   },
   AreaChart: {
     description: 'A filled trend over ordered labels, such as cumulative sales or volume per day.',
     schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat }),
-    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    size: sized('wide'),
     component: AreaChart,
   },
   StackedBarChart: {
@@ -96,7 +97,7 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    size: sized('wide'),
     component: StackedBarChart,
   },
   HeatmapChart: {
@@ -108,7 +109,7 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    size: sized('wide'),
     component: HeatmapChart,
   },
   CalendarHeatmapChart: {
@@ -120,7 +121,7 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: { minW: 6, minH: 3, defaultW: 12, defaultH: 4 },
+    size: sized('full'),
     component: CalendarHeatmapChart,
   },
   DonutChart: {
@@ -133,19 +134,19 @@ const entries: Record<string, Entry> = {
         .array(z.object({ label: z.string(), value: z.number().nonnegative(), tone: z.enum(['positive', 'caution', 'negative', 'neutral']).optional() }))
         .refine((slices) => slices.reduce((sum, slice) => sum + slice.value, 0) > 0),
     }),
-    size: { minW: 3, minH: 3, defaultW: 4, defaultH: 4 },
+    size: sized('small'),
     component: DonutChart,
   },
   GaugeChart: {
     description: 'One value against a target as a progress ring, such as month-to-date sales against the monthly target.',
     schema: z.object({ title: z.string().optional(), info, measure, value: z.number(), target: z.number().positive(), valueFormat, caption: z.string().optional() }),
-    size: { minW: 3, minH: 3, defaultW: 4, defaultH: 4 },
+    size: sized('small'),
     component: GaugeChart,
   },
   BarChart: {
     description: 'Bars per label, such as sales by customer or by material.',
     schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat }),
-    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    size: sized('wide'),
     component: BarChart,
   },
 }
