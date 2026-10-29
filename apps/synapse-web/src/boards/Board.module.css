@@ -1,6 +1,8 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: 4.5rem;
+  grid-auto-flow: dense;
   gap: var(--mantine-spacing-md);
   padding: var(--mantine-spacing-md);
   padding-bottom: 6rem;
@@ -9,9 +11,10 @@
 .cell {
   grid-column: span 12;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--mantine-spacing-xs);
+  min-height: 0;
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .cell[data-editing] {
@@ -26,10 +29,22 @@
 }
 
 .controls {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  z-index: 2;
   display: flex;
   justify-content: flex-end;
   gap: 0.125rem;
 }
+
+.cell[data-rows='2'] { grid-row: span 2; }
+.cell[data-rows='3'] { grid-row: span 3; }
+.cell[data-rows='4'] { grid-row: span 4; }
+.cell[data-rows='5'] { grid-row: span 5; }
+.cell[data-rows='6'] { grid-row: span 6; }
+.cell[data-rows='7'] { grid-row: span 7; }
+.cell[data-rows='8'] { grid-row: span 8; }
 
 @media (min-width: 62em) {
   .cell[data-span='2'] { grid-column: span 2; }

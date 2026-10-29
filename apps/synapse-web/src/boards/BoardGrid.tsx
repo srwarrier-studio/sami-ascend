@@ -15,7 +15,7 @@ type BoardGridProps = {
   onChange: (widgets: BoardWidget[]) => void
 }
 
-const sizes = new Map(registry.describe().map((entry) => [entry.name, entry.size.defaultW]))
+const sizes = new Map(registry.describe().map((entry) => [entry.name, entry.size]))
 
 export function BoardGrid({ widgets, data, editing, onChange }: BoardGridProps) {
   const [dragging, setDragging] = useState<string | null>(null)
@@ -29,7 +29,8 @@ export function BoardGrid({ widgets, data, editing, onChange }: BoardGridProps) 
           <div
             key={widget.id}
             className={classes.cell}
-            data-span={sizes.get(entry.widget) ?? 4}
+            data-span={sizes.get(entry.widget)?.defaultW ?? 4}
+            data-rows={sizes.get(entry.widget)?.defaultH ?? 4}
             data-editing={editing || undefined}
             data-dragging={dragging === widget.id || undefined}
             draggable={editing}

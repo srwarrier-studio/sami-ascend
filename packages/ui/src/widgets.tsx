@@ -23,12 +23,16 @@ export function KpiCard({ title, value, valueFormat, delta, caption, trend, info
   const rising = delta !== undefined && delta >= 0
   const Arrow = rising ? ArrowUpIcon : ArrowDownIcon
   return (
-    <Card>
+    <Card className={classes.card}>
       <WidgetTitle title={title} help={helpText('KpiCard', measure)} info={info} label />
-      <Group justify="space-between" align="flex-end" wrap="nowrap">
+      <Group className={classes.body} justify="space-between" align="flex-end" wrap="nowrap">
         <Stack gap={0}>
           <Title order={2}>{formatValue(value, valueFormat)}</Title>
-          {delta !== undefined && (
+          {delta === undefined ? (
+            <Text aria-hidden className={classes.spacer}>
+              &nbsp;
+            </Text>
+          ) : (
             <Group gap={4}>
               <Arrow size={14} weight="bold" color={rising ? 'var(--sami-positive)' : 'var(--sami-negative)'} aria-hidden />
               <Text c={rising ? 'var(--sami-positive)' : 'var(--sami-negative)'} fw={500}>
@@ -55,12 +59,12 @@ export type RankedListProps = {
 export function RankedList({ title, items, valueFormat, info, measure }: RankedListProps) {
   const top = Math.max(0, ...items.map((item) => item.value))
   return (
-    <Card>
+    <Card className={classes.card}>
       <WidgetTitle title={title} help={helpText('RankedList', measure)} info={info} />
       {items.length === 0 ? (
         <Text c="dimmed">No data</Text>
       ) : (
-        <Stack gap="sm">
+        <Stack className={classes.body} gap="sm">
           {items.map((item, index) => (
             <Stack key={item.label} gap={4}>
               <Group justify="space-between">
@@ -96,12 +100,13 @@ function cell(value: string | number | null | undefined, format: DataTableColumn
 
 export function DataTable({ title, info, columns, rows }: DataTableProps) {
   return (
-    <Card>
+    <Card className={classes.card}>
       <WidgetTitle title={title} help={helpText('DataTable')} info={info} />
       {rows.length === 0 ? (
         <Text c="dimmed">No data</Text>
       ) : (
-        <Table>
+        <div className={classes.body}>
+        <Table stickyHeader>
           <Table.Thead>
             <Table.Tr>
               {columns.map((column) => (
@@ -123,6 +128,7 @@ export function DataTable({ title, info, columns, rows }: DataTableProps) {
             ))}
           </Table.Tbody>
         </Table>
+        </div>
       )}
     </Card>
   )
