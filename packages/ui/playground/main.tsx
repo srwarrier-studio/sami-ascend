@@ -35,7 +35,7 @@ function DashboardPage({ lab, onChange }: { lab: Lab; onChange: (lab: Lab) => vo
 }
 
 function Demo() {
-  const [page, setPage] = useState('dashboard')
+  const [page, setPage] = useState(location.hash.slice(1) || 'dashboard')
   const [lab, setLab] = useState(defaultLab)
   const link = (key: string) => ({ onSelect: () => setPage(key), active: page === key })
   return (

@@ -82,6 +82,7 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - Calendar heatmap: weeks start Monday, the range is first to last date given, days with no value are empty cells, the last value wins for a repeated date. Hover text comes from `dayLabel`.
 - Info popover: `help.ts` holds one function per widget type that takes the measure (default "the value"); `WidgetTitle` shows it; `info` replaces only "What it shows". A vague measure gives a vague sentence, so each catalog entry in synapse-web should set one.
 - Decisions: no card rise-in animation (owner dislikes it); board tabs are the user's own boards with rename only in Edit mode; the bottom `PageBar` (three tabs visible, rest scroll, quick config on the right) is planned in shared/10.
+- Parity (shared/10): `Alert` wraps Mantine's with a tone icon; `SplashScreen`, `SignInCard`, `WidgetCatalog` and `PageBar` take text and callbacks only (state lives in the app). `PageBar` is fixed at the bottom, three 8rem tabs visible, rest scroll; rename only when `editing`. Differences from the artifact are in `docs/ui-parity.md`. The playground opens a page from the URL hash (`#kitchen`).
 
 ## Sales contract (`docs/sap/sales-contract.md`)
 - Source of truth for butterfly, the gateways and the consultant guide. Change it first, then the code.
