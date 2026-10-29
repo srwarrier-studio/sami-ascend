@@ -1,4 +1,6 @@
+import { registry } from '@sami/ui'
 import { MockBoardStore } from '../src/boards/boardStore'
+import { catalog } from '../src/catalog/catalog'
 
 describe('MockBoardStore', () => {
   it('starts with the Sales overview board', async () => {
@@ -46,5 +48,21 @@ describe('MockBoardStore', () => {
     ['saveWidgets', (store: MockBoardStore) => store.saveWidgets('nope', [])],
   ])('fails on an unknown id for %s', async (_name, call) => {
     await expect(call(new MockBoardStore())).rejects.toThrow('not found')
+  })
+})
+
+describe('seed board packing', () => {
+  it('fills every row of 12 columns', async () => {
+    const width = (catalogId: string) => {
+      const widget = catalog.find((entry) => entry.id === catalogId)!.widget
+      return registry.describe().find((entry) => entry.name === widget)!.size.defaultW
+    }
+    let filled = 0
+    for (const widget of (await new MockBoardStore().list())[0].widgets) {
+      filled += width(widget.catalogId)
+      expect(filled).toBeLessThanOrEqual(12)
+      if (filled === 12) filled = 0
+    }
+    expect(filled).toBe(0)
   })
 })

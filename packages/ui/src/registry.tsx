@@ -62,7 +62,7 @@ const entries: Record<string, Entry> = {
       ),
       rows: z.array(z.record(z.string(), z.union([z.string(), z.number(), z.null()]))),
     }),
-    size: sized('full'),
+    size: sized('large'),
     component: DataTable,
   },
   LineChart: {
@@ -78,13 +78,13 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: sized('wide'),
+    size: sized('medium'),
     component: LineChart,
   },
   AreaChart: {
     description: 'A filled trend over ordered labels, such as cumulative sales or volume per day.',
     schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat }),
-    size: sized('wide'),
+    size: sized('medium'),
     component: AreaChart,
   },
   StackedBarChart: {
@@ -97,7 +97,7 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: sized('wide'),
+    size: sized('medium'),
     component: StackedBarChart,
   },
   HeatmapChart: {
@@ -109,7 +109,7 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: sized('wide'),
+    size: sized('large'),
     component: HeatmapChart,
   },
   CalendarHeatmapChart: {
@@ -121,7 +121,7 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: sized('full'),
+    size: sized('large'),
     component: CalendarHeatmapChart,
   },
   DonutChart: {
@@ -146,7 +146,7 @@ const entries: Record<string, Entry> = {
   BarChart: {
     description: 'Bars per label, such as sales by customer or by material.',
     schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat }),
-    size: sized('wide'),
+    size: sized('medium'),
     component: BarChart,
   },
 }

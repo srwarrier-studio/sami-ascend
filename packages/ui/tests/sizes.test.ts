@@ -14,3 +14,17 @@ describe('standard widget sizes', () => {
     expect(size('DonutChart')).toEqual(size('GaugeChart'))
   })
 })
+
+describe('rows', () => {
+  it('pack the playground dashboard into full rows of 12 columns', async () => {
+    const { dashboardRows } = await import('../playground/DashboardDemo')
+    const width = (name: string) => registry.describe().find((entry) => entry.name === name)!.size.defaultW
+    let filled = 0
+    for (const widget of dashboardRows.flatMap((row) => row.widgets)) {
+      filled += width(widget.name)
+      expect(filled).toBeLessThanOrEqual(12)
+      if (filled === 12) filled = 0
+    }
+    expect(filled).toBe(0)
+  })
+})

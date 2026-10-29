@@ -69,6 +69,10 @@ export class MockSalesData implements SalesData {
     return orders.slice(0, top).map(([order, customerName, netAmount, status]) => ({ order, customerName, orderDate: date, netAmount, status }))
   }
 
+  async monthTarget() {
+    return 5000000
+  }
+
   async statusSplit() {
     return [
       { status: 'Paid', orders: 58 },
