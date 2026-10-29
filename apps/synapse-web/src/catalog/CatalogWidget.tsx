@@ -25,7 +25,7 @@ export function CatalogWidget({ entry, data, refreshMs = REFRESH_MS }: { entry: 
     }
   }, [entry, data, refreshMs])
 
-  if (state.status === 'loading') return <Skeleton height={160} radius="lg" aria-label={`Loading ${entry.title}`} />
+  if (state.status === 'loading') return <Skeleton height="100%" radius="lg" aria-label={`Loading ${entry.title}`} />
   if (state.status === 'failed') return <Alert color="red" title={entry.title}>{state.message}</Alert>
   return registry.render(entry.widget, state.props)
 }

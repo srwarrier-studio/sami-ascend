@@ -61,7 +61,7 @@ const entries: Record<string, Entry> = {
       ),
       rows: z.array(z.record(z.string(), z.union([z.string(), z.number(), z.null()]))),
     }),
-    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    size: { minW: 4, minH: 3, defaultW: 12, defaultH: 4 },
     component: DataTable,
   },
   LineChart: {
@@ -133,13 +133,13 @@ const entries: Record<string, Entry> = {
         .array(z.object({ label: z.string(), value: z.number().nonnegative(), tone: z.enum(['positive', 'caution', 'negative', 'neutral']).optional() }))
         .refine((slices) => slices.reduce((sum, slice) => sum + slice.value, 0) > 0),
     }),
-    size: { minW: 3, minH: 4, defaultW: 4, defaultH: 5 },
+    size: { minW: 3, minH: 3, defaultW: 4, defaultH: 4 },
     component: DonutChart,
   },
   GaugeChart: {
     description: 'One value against a target as a progress ring, such as month-to-date sales against the monthly target.',
     schema: z.object({ title: z.string().optional(), info, measure, value: z.number(), target: z.number().positive(), valueFormat, caption: z.string().optional() }),
-    size: { minW: 3, minH: 3, defaultW: 3, defaultH: 4 },
+    size: { minW: 3, minH: 3, defaultW: 4, defaultH: 4 },
     component: GaugeChart,
   },
   BarChart: {
