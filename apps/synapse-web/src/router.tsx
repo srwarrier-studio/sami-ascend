@@ -7,18 +7,21 @@ import {
   useRouteContext,
 } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
+import type { SalesData } from './data/salesData'
 import type { Session } from './session/useSession'
 import { canUseSynapse } from './access'
 import { BoardsPage } from './pages/BoardsPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotAllowedPage } from './pages/NotAllowedPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { WidgetsPage } from './pages/WidgetsPage'
 import { Shell } from './Shell'
 
 export type RouterContext = {
   session: Session
   login: (email: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
+  salesData: SalesData
 }
 
 function RootLayout() {
@@ -63,6 +66,13 @@ const boardsRoute = createRoute({
   component: BoardsPage,
 })
 
+const widgetsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/widgets',
+  beforeLoad: requireSynapseAccess,
+  component: WidgetsPage,
+})
+
 const notAllowedRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/not-allowed',
@@ -70,7 +80,7 @@ const notAllowedRoute = createRoute({
   component: NotAllowedPage,
 })
 
-const routeTree = rootRoute.addChildren([loginRoute, boardsRoute, notAllowedRoute])
+const routeTree = rootRoute.addChildren([loginRoute, boardsRoute, widgetsRoute, notAllowedRoute])
 
 export const createAppRouter = (context: RouterContext, history?: RouterHistory) =>
   createRouter({ routeTree, context, history })
