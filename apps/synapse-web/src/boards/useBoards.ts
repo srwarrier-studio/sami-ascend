@@ -4,14 +4,14 @@ import type { Board, BoardStore, BoardWidget } from './boardStore'
 
 export const MAX_BOARDS = 3
 
-export function useBoards(store: BoardStore) {
+export function useBoards(store: BoardStore, firstId = '') {
   const [boards, setBoards] = useState<Board[] | null>(null)
   const [activeId, setActiveId] = useState('')
 
   useEffect(() => {
     store.list().then((loaded) => {
       setBoards(loaded)
-      setActiveId((current) => current || loaded[0]?.id || '')
+      setActiveId((current) => current || (loaded.some((board) => board.id === firstId) ? firstId : loaded[0]?.id) || '')
     })
   }, [store])
 

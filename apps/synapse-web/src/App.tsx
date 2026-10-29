@@ -6,6 +6,8 @@ import { MockSalesData } from './data/mockSalesData'
 import type { SalesData } from './data/salesData'
 import { MockBoardStore } from './boards/boardStore'
 import type { BoardStore } from './boards/boardStore'
+import { MockChatPlanner } from './ai/chatPlanner'
+import type { ChatPlanner } from './ai/chatPlanner'
 import { createAppRouter } from './router'
 import type { RouterContext, UiSettings } from './router'
 import type { SessionClient } from './session/sessionClient'
@@ -15,6 +17,7 @@ type AppProps = {
   client: SessionClient
   salesData?: SalesData
   boardStore?: BoardStore
+  chatPlanner?: ChatPlanner
   ui?: UiSettings
   onUiChange?: (ui: UiSettings) => void
   history?: RouterHistory
@@ -35,10 +38,11 @@ function Routed({ context, history }: { context: RouterContext; history?: Router
 
 const defaultSalesData = new MockSalesData()
 const defaultBoardStore = new MockBoardStore()
+const defaultChatPlanner = new MockChatPlanner()
 const defaultUi: UiSettings = { palette: 'teal', motion: 'full' }
 
-export default function App({ client, salesData = defaultSalesData, boardStore = defaultBoardStore, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
+export default function App({ client, salesData = defaultSalesData, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
   const { session, login, logout } = useSession(client)
   if (session.status === 'loading') return <SplashScreen name="Synapse" tagline="Your sales, on one board" />
-  return <Routed context={{ session, login, logout, salesData, boardStore, ui, setUi: onUiChange }} history={history} />
+  return <Routed context={{ session, login, logout, salesData, boardStore, chatPlanner, ui, setUi: onUiChange }} history={history} />
 }

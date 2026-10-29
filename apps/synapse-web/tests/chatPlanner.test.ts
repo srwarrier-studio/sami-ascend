@@ -1,55 +1,39 @@
 import { MockChatPlanner } from '../src/ai/chatPlanner'
-import { applyOps } from '../src/boards/layout'
 
 const planner = new MockChatPlanner()
-const ids = (widgets: { catalogId: string }[]) => widgets.map((widget) => widget.catalogId)
 
-describe('asking for widgets', () => {
-  it('adds the widgets a topic word matches', async () => {
-    const plan = await planner.plan('show me top customers', [])
-    expect(applyOps([], plan.ops).map((widget) => widget.catalogId)).toContain('top-customers')
+describe('asking a question', () => {
+  it('returns the widgets a topic word matches, at most four', async () => {
+    const answer = await planner.plan('show me top customers')
+    expect(answer.catalogIds).toContain('top-customers')
+    expect(answer.catalogIds.length).toBeLessThanOrEqual(4)
+    expect(answer.board).toBeUndefined()
   })
 
-  it('does not add a widget that is already on the canvas', async () => {
-    const canvas = [{ id: 'a', catalogId: 'top-customers' }]
-    const plan = await planner.plan('top customers', canvas)
-    expect(ids(applyOps(canvas, plan.ops)).filter((id) => id === 'top-customers')).toHaveLength(1)
-  })
-
-  it('says so when nothing matches and changes nothing', async () => {
-    const plan = await planner.plan('zebra', [])
-    expect(plan.ops).toEqual([])
-    expect(plan.reply).toMatch(/could not match/)
+  it('says so when nothing matches', async () => {
+    const answer = await planner.plan('zebra')
+    expect(answer.catalogIds).toEqual([])
+    expect(answer.reply).toMatch(/could not match/)
   })
 })
 
-describe('building a board', () => {
-  it('fills the canvas with a domain and suggests a name', async () => {
-    const plan = await planner.plan('build me an inventory board', [{ id: 'a', catalogId: 'sales-today' }])
-    const next = applyOps([{ id: 'a', catalogId: 'sales-today' }], plan.ops)
-    expect(next.length).toBeGreaterThan(1)
-    expect(ids(next)).not.toContain('sales-today')
-    expect(plan.boardName).toBe('Inventory review')
-  })
-})
-
-describe('editing the canvas', () => {
-  const canvas = [
-    { id: 'a', catalogId: 'top-customers' },
-    { id: 'b', catalogId: 'day-sales' },
-  ]
-
-  it('clears on start over', async () => {
-    expect(applyOps(canvas, (await planner.plan('start over', canvas)).ops)).toEqual([])
+describe('@builder', () => {
+  it('builds a domain board with a name', async () => {
+    const answer = await planner.plan('@builder build me an inventory board')
+    expect(answer.board?.name).toBe('Inventory review')
+    expect(answer.board?.catalogIds.length).toBeGreaterThan(1)
+    expect(answer.catalogIds).toEqual([])
   })
 
-  it('removes the widget named', async () => {
-    expect(ids(applyOps(canvas, (await planner.plan('remove top customers', canvas)).ops))).toEqual(['day-sales'])
+  it('builds from matching words when no domain is named', async () => {
+    const answer = await planner.plan('@builder top customers')
+    expect(answer.board?.name).toBe('My board')
+    expect(answer.board?.catalogIds).toContain('top-customers')
   })
 
-  it('makes the last widget bigger', async () => {
-    const next = applyOps(canvas, (await planner.plan('make it bigger', canvas)).ops)
-    expect(next[1].size).toBeDefined()
-    expect(next[0].size).toBeUndefined()
+  it('explains what to ask when there is nothing to build', async () => {
+    const answer = await planner.plan('@builder')
+    expect(answer.board).toBeUndefined()
+    expect(answer.reply).toMatch(/Tell me what to build/)
   })
 })

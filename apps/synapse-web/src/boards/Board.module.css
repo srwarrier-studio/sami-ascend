@@ -13,3 +13,82 @@
   justify-content: flex-end;
   gap: 0.125rem;
 }
+
+.chat {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  padding: var(--mantine-spacing-md);
+  background: var(--mantine-color-body);
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+.welcome {
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.aiPage {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--mantine-color-body);
+}
+
+.thread {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-lg) var(--mantine-spacing-md);
+}
+
+.bubble {
+  max-width: 85%;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border-radius: var(--mantine-radius-xl);
+  font-size: var(--mantine-font-size-lg);
+  line-height: 1.5;
+  background: var(--mantine-color-default-hover);
+}
+
+.bubble[data-wide] {
+  max-width: 100%;
+  width: 100%;
+  padding: 0;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+}
+
+.bubble[data-from='you'] {
+  align-self: flex-end;
+  background: var(--mantine-primary-color-filled);
+  color: var(--mantine-color-white);
+}
+
+.aiPage .chat {
+  position: static;
+  border-top: 0;
+}
+
+.mention {
+  font-weight: 700;
+  padding: 0 0.25rem;
+  border-radius: var(--mantine-radius-sm);
+  background: color-mix(in srgb, var(--mantine-color-white) 25%, transparent);
+}

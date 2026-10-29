@@ -1,4 +1,4 @@
-import { addWidget, applyOps, dropWidget, MAX_WIDGETS, moveWidget, removeWidget, resizeWidget } from '../src/boards/layout'
+import { addWidget, buildWidgets, dropWidget, MAX_WIDGETS, moveWidget, removeWidget, resizeWidget } from '../src/boards/layout'
 import { catalog } from '../src/catalog/catalog'
 
 const widgets = [
@@ -55,35 +55,14 @@ describe('resizing a widget', () => {
   })
 })
 
-describe('applying canvas ops', () => {
-  const start = [{ id: 'a', catalogId: 'sales-today' }]
+describe('building widgets from ids', () => {
+  const catalogIds = (list: { catalogId: string }[]) => list.map((widget) => widget.catalogId)
 
-  it('adds a known widget once', () => {
-    const next = applyOps(start, [{ type: 'add', catalogId: 'top-customers' }, { type: 'add', catalogId: 'top-customers' }])
-    expect(next.map((widget) => widget.catalogId)).toEqual(['sales-today', 'top-customers'])
-  })
-
-  it('ignores an unknown widget and a duplicate of one already there', () => {
-    expect(applyOps(start, [{ type: 'add', catalogId: 'nope' }, { type: 'add', catalogId: 'sales-today' }])).toBe(start)
-  })
-
-  it('removes a widget by id', () => {
-    expect(applyOps(start, [{ type: 'remove', widgetId: 'a' }])).toEqual([])
-  })
-
-  it('replaces everything with the given widgets, skipping unknown and repeated ones', () => {
-    const next = applyOps(start, [{ type: 'replaceAll', catalogIds: ['top-customers', 'nope', 'top-customers', 'day-sales'] }])
-    expect(next.map((widget) => widget.catalogId)).toEqual(['top-customers', 'day-sales'])
-  })
-
-  it('resizes to an allowed size and ignores a size the widget does not allow', () => {
-    const chart = [{ id: 'c', catalogId: 'month-on-month' }]
-    expect(applyOps(chart, [{ type: 'resize', widgetId: 'c', size: 'large' }])[0].size).toBe('large')
-    expect(applyOps(chart, [{ type: 'resize', widgetId: 'c', size: 'kpi' }])).toBe(chart)
+  it('keeps known ids in order and drops unknown and repeated ones', () => {
+    expect(catalogIds(buildWidgets(['top-customers', 'nope', 'day-sales', 'top-customers']))).toEqual(['top-customers', 'day-sales'])
   })
 
   it('stops at the widget limit', () => {
-    const ids = catalog.map((entry) => entry.id)
-    expect(applyOps([], [{ type: 'replaceAll', catalogIds: ids }])).toHaveLength(MAX_WIDGETS)
+    expect(buildWidgets(catalog.map((entry) => entry.id))).toHaveLength(MAX_WIDGETS)
   })
 })

@@ -1,4 +1,4 @@
-import { allowedSizes, arrange, widgetShape } from '@sami/ui'
+import { arrange, widgetShape } from '@sami/ui'
 import type { SizeName } from '@sami/ui'
 import { catalog } from '../catalog/catalog'
 import type { BoardWidget } from './boardStore'
@@ -49,24 +49,8 @@ export const resizeWidget = (widgets: BoardWidget[], id: string, allowed: SizeNa
 export const arrangeWidgets = (widgets: BoardWidget[]) =>
   arrange(widgets, (widget) => widgetShape(catalog.find((entry) => entry.id === widget.catalogId)?.widget ?? '', widget.size))
 
-export type CanvasOp =
-  | { type: 'add'; catalogId: string }
-  | { type: 'remove'; widgetId: string }
-  | { type: 'resize'; widgetId: string; size: SizeName }
-  | { type: 'replaceAll'; catalogIds: string[] }
-
-const known = (catalogId: string) => catalog.some((entry) => entry.id === catalogId)
-
-const applyOp = (widgets: BoardWidget[], op: CanvasOp): BoardWidget[] => {
-  if (op.type === 'add') {
-    const ok = known(op.catalogId) && widgets.length < MAX_WIDGETS && !widgets.some((widget) => widget.catalogId === op.catalogId)
-    return ok ? addWidget(widgets, op.catalogId) : widgets
-  }
-  if (op.type === 'remove') return removeWidget(widgets, op.widgetId)
-  if (op.type === 'replaceAll') return op.catalogIds.reduce((all, catalogId) => applyOp(all, { type: 'add', catalogId }), [])
-  const entry = catalog.find((candidate) => candidate.id === widgets.find((widget) => widget.id === op.widgetId)?.catalogId)
-  if (!entry || !allowedSizes(entry.widget).includes(op.size)) return widgets
-  return widgets.map((widget) => (widget.id === op.widgetId ? { ...widget, size: op.size } : widget))
-}
-
-export const applyOps = (widgets: BoardWidget[], ops: CanvasOp[]) => ops.reduce(applyOp, widgets)
+export const buildWidgets = (catalogIds: string[]): BoardWidget[] =>
+  [...new Set(catalogIds)]
+    .filter((catalogId) => catalog.some((entry) => entry.id === catalogId))
+    .slice(0, MAX_WIDGETS)
+    .map((catalogId) => ({ id: `w-${crypto.randomUUID()}`, catalogId }))
