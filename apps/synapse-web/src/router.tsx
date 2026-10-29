@@ -7,6 +7,8 @@ import {
   useRouteContext,
 } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
+import type { BoardStore } from './boards/boardStore'
+import type { PresetName, MotionMode } from '@sami/ui'
 import type { SalesData } from './data/salesData'
 import type { Session } from './session/useSession'
 import { canUseSynapse } from './access'
@@ -17,11 +19,16 @@ import { NotFoundPage } from './pages/NotFoundPage'
 import { WidgetsPage } from './pages/WidgetsPage'
 import { Shell } from './Shell'
 
+export type UiSettings = { palette: PresetName; motion: MotionMode }
+
 export type RouterContext = {
   session: Session
   login: (email: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
   salesData: SalesData
+  boardStore: BoardStore
+  ui: UiSettings
+  setUi: (ui: UiSettings) => void
 }
 
 function RootLayout() {
