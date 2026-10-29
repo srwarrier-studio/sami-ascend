@@ -137,3 +137,4 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - Same structure as workspace-web: `App` takes a client and optional history; routes guard with `beforeLoad`; `Shell` uses `AppFrame` top layout. All UI from `@sami/ui`.
 - Session is `SessionClient` (`me`, `login(email, password)`, `logout`); only `MockSessionClient` exists (password `mock`; `manager@`, `admin@`, `sales@mock-sami.com`). It becomes the contract for the real auth calls later. `canUseSynapse` allows `management` and `admin`.
 - Run: `pnpm --filter synapse-web test`, `pnpm --filter synapse-web dev`.
+- Widget catalog (synapse-web/02): `SalesData` (mock only) mirrors the synapse-api routes plus `daySales` and `statusSplit`, which have no route yet and need designing in synapse-api 04. `catalog` entries are `{ id, title, description, widget, load(data) }`; `load` returns registry props. `CatalogWidget` handles loading and errors. `/widgets` shows all entries.
