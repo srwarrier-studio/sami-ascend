@@ -47,7 +47,7 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 
 ## synapse-web (management dashboards)
 All three phases use mock data (session, sales data and board store behind interfaces); no synapse-api calls yet.
-- 01 mock-shell: app shell in the soft look, mock login and `/me` session, the "not allowed" page, route guards. Depends on shared 08. todo
+- 01 mock-shell: app shell in the soft look, mock login and `/me` session, the "not allowed" page, route guards. Depends on shared 08. done (tag `synapse-web-phase-01-done`, 2026-10-29).
 - 02 widget-catalog: the predefined sales widgets (MoM sales, day sales, recent high-value sales table, top customers and materials, status split, KPI cards) on the `@sami/ui` registry, fed by the mock sales data. todo
 - 03 board: the user's own boards as tabs with an Edit mode (rename, add and delete boards, drag, reorder, remove, widget picker, AI Mode), saved in a mock board store, widgets auto-refresh every 5 minutes, no dropdown filters. todo
 - 04 ai-ready-review: check widgets against the AI dashboard needs before the POC. todo
