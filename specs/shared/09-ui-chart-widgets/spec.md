@@ -20,10 +20,12 @@ Approved design: https://claude.ai/artifact/FyrY7tQuC9m18kTE6mME5R. Board and ch
   - `KpiCard`: value, signed delta with an arrow (green up, red down), caption and an optional sparkline (`trend`).
   - `RankedList`: rows with a proportional bar under each label.
   - `DataTable`: right-aligned numbers and optional status pills.
+- **Info button on every widget:** a small "i" button after the widget's title opens a short popover with two parts. "What it shows" says what the widget displays, from an optional `info` text the widget is given (for example "Net sales per day, from SAP billing") or, when none is given, the widget type's own sentence. "How to read it" is a fixed explanation per widget type, written once in `@sami/ui` (for example for the calendar: each square is one day, darker means higher, faint means no data). The button is keyboard reachable and named "About <title>". `registry.describe()` includes the same texts so a model can choose widgets by how they read.
 - **Sample dashboard page** in the playground (the "Charts" page): every widget above with sample data in the top layout, plus the static Edit, AI Mode, Add widget buttons and the page bar. Behavior of those is synapse-web 03 (the Edit button toggles Edit mode; Add widget and AI Mode belong to Edit mode).
 - Chart colors come from Mantine variables, so palettes, radius and motion switches restyle every chart; no hex in `src/` or `playground/`.
 
 ## Acceptance cases
+- Every widget with a title shows an "About <title>" button that opens the popover with "What it shows" and "How to read it"; a given `info` text replaces the type's default "what it shows"; a widget without a title shows no button; `registry.describe()` returns both texts for every widget.
 - The registry lists the eleven widgets above; each renders with its sample props and shows the fallback card for bad props.
 - No widget schema has a color, style, class or pixel-size prop; a test fails if one is added.
 - `LineChart` with `compare` renders two series and a legend; without it, one series and no legend; the latest point is marked.
