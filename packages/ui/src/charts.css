@@ -8,21 +8,21 @@
   color: var(--mantine-color-text);
   --ts-chart-1: var(--mantine-primary-color-filled);
   --ts-chart-2: var(--mantine-color-gray-5);
-  --ts-chart-3: var(--mantine-color-blue-filled);
-  --ts-chart-4: var(--mantine-color-orange-filled);
-  --ts-chart-5: var(--mantine-color-grape-filled);
-  --ts-chart-6: var(--mantine-color-cyan-filled);
+  --ts-chart-3: light-dark(var(--mantine-color-brand-4), var(--mantine-color-brand-5));
+  --ts-chart-4: light-dark(var(--mantine-color-orange-7), var(--mantine-color-orange-4));
+  --ts-chart-5: light-dark(var(--mantine-color-grape-7), var(--mantine-color-grape-4));
+  --ts-chart-6: light-dark(var(--mantine-color-cyan-8), var(--mantine-color-cyan-4));
 }
 
-.sami-chart .ts-chart__bar rect {
+.sami-chart .ts-chart__bar path {
   transition: opacity 0.15s ease;
 }
 
-.sami-chart:hover .ts-chart__bar rect {
+.sami-chart:hover .ts-chart__bar path {
   opacity: 0.45;
 }
 
-.sami-chart .ts-chart__bar rect:hover {
+.sami-chart .ts-chart__bar path:hover {
   opacity: 1;
 }
 

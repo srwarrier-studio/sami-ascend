@@ -1,5 +1,5 @@
 import './charts.css'
-import { areaY, barY, colorLegend, colorLegendItems, defineChart, dot, lineY } from '@tanstack/charts'
+import { areaY, barY, colorLegend, colorLegendItems, defineChart, dot, group, lineY, stack } from '@tanstack/charts'
 import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scalePoint } from '@tanstack/charts/scales/point'
@@ -21,6 +21,15 @@ export type LineChartProps = ChartProps & {
   compare?: ChartPointData[]
   label?: string
   compareLabel?: string
+}
+
+export type StackedSeries = { name: string; data: ChartPointData[] }
+
+export type StackedBarChartProps = {
+  series: StackedSeries[]
+  layout?: 'stacked' | 'grouped'
+  title?: string
+  valueFormat?: ValueFormat
 }
 
 const CHART_HEIGHT = 260
@@ -52,7 +61,7 @@ function lineDefinition({ data, valueFormat, compare = [], label = 'This period'
       dot(main.slice(-1), { ...options, r: LATEST_RADIUS, stroke: 'var(--mantine-color-body)', strokeWidth: 2 }),
     ],
     scales: scales('line', valueFormat),
-    ...(previous.length > 0 ? { color: { legend: colorLegend({ items: colorLegendItems({ justify: 'start' }) }) } } : {}),
+    ...(previous.length > 0 ? { color: legend } : {}),
     tooltip,
   })
 }
@@ -73,6 +82,37 @@ function barDefinition({ data, valueFormat }: ChartProps) {
   })
 }
 
+const legend = { legend: colorLegend({ items: colorLegendItems({ justify: 'start' }) }) }
+
+function areaDefinition({ data, valueFormat }: ChartProps) {
+  const options = { x: 'label', y: 'value', color: 'series' } as const
+  const rows = data.map((point) => ({ ...point, series: 'value' }))
+  return defineChart({
+    marks: [areaY(rows, { ...options, fillOpacity: 0.28 }), lineY(rows, { ...options, strokeWidth: 2 })],
+    scales: scales('line', valueFormat),
+    tooltip,
+  })
+}
+
+function stackedDefinition({ series, layout = 'stacked', valueFormat }: StackedBarChartProps) {
+  const rows = series.flatMap((part) => part.data.map((point) => ({ label: point.label, series: part.name, value: point.value })))
+  return defineChart({
+    marks: [
+      barY(rows, {
+        x: 'label',
+        y: 'value',
+        color: 'series',
+        ...(layout === 'grouped'
+          ? { layout: group(), radius: { end: BAR_RADIUS } }
+          : { layout: stack(), radius: { end: BAR_RADIUS, stack: 'outer' as const } }),
+      }),
+    ],
+    scales: scales('bar', valueFormat),
+    color: legend,
+    tooltip,
+  })
+}
+
 export function LineChart({ data, title, valueFormat, compare, label, compareLabel }: LineChartProps) {
   const definition = useMemo(
     () => lineDefinition({ data, valueFormat, compare, label, compareLabel }),
@@ -84,4 +124,22 @@ export function LineChart({ data, title, valueFormat, compare, label, compareLab
 export function BarChart({ data, title, valueFormat }: ChartProps) {
   const definition = useMemo(() => barDefinition({ data, valueFormat }), [data, valueFormat])
   return <ChartCard title={title} empty={data.length === 0} definition={definition} label="bar chart" height={CHART_HEIGHT} />
+}
+
+export function AreaChart({ data, title, valueFormat }: ChartProps) {
+  const definition = useMemo(() => areaDefinition({ data, valueFormat }), [data, valueFormat])
+  return <ChartCard title={title} empty={data.length === 0} definition={definition} label="area chart" height={CHART_HEIGHT} />
+}
+
+export function StackedBarChart({ series, layout, title, valueFormat }: StackedBarChartProps) {
+  const definition = useMemo(() => stackedDefinition({ series, layout, valueFormat }), [series, layout, valueFormat])
+  return (
+    <ChartCard
+      title={title}
+      empty={series.every((part) => part.data.length === 0)}
+      definition={definition}
+      label="stacked bar chart"
+      height={CHART_HEIGHT}
+    />
+  )
 }

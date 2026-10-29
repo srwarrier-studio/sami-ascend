@@ -19,7 +19,7 @@ Approved design: https://claude.ai/artifact/FyrY7tQuC9m18kTE6mME5R. Board and ch
   - `KpiCard`: value, signed delta with an arrow (green up, red down), caption and an optional sparkline (`trend`).
   - `RankedList`: rows with a proportional bar under each label.
   - `DataTable`: right-aligned numbers and optional status pills.
-- **Sample dashboard page** in the playground (the "Charts" page): every widget above with sample data in the top layout, plus the static Edit layout, AI Mode, Add widget buttons and the page bar. Behavior of those is synapse-web 03.
+- **Sample dashboard page** in the playground (the "Charts" page): every widget above with sample data in the top layout, plus the static Edit, AI Mode, Add widget buttons and the page bar. Behavior of those is synapse-web 03.
 - Chart colors come from Mantine variables, so palettes, radius and motion switches restyle every chart; no hex in `src/` or `playground/`.
 
 ## Acceptance cases

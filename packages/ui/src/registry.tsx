@@ -1,7 +1,8 @@
 import { Card, Text } from '@mantine/core'
 import type { ReactElement } from 'react'
 import { z } from 'zod'
-import { BarChart, LineChart } from './charts'
+import { AreaChart, BarChart, LineChart, StackedBarChart } from './charts'
+import { HeatmapChart } from './heatmapChart'
 import { DonutChart, GaugeChart } from './polarCharts'
 import { DataTable, KpiCard, RankedList } from './widgets'
 
@@ -67,6 +68,33 @@ const entries: Record<string, Entry> = {
     }),
     size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
     component: LineChart,
+  },
+  AreaChart: {
+    description: 'A filled trend over ordered labels, such as cumulative sales or volume per day.',
+    schema: z.object({ data: z.array(point), title: z.string().optional(), valueFormat }),
+    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    component: AreaChart,
+  },
+  StackedBarChart: {
+    description: 'Bars split into named parts, such as sales by status per month. Layout is stacked (default) or grouped side by side.',
+    schema: z.object({
+      series: z.array(z.object({ name: z.string(), data: z.array(point) })),
+      layout: z.enum(['stacked', 'grouped']).optional(),
+      title: z.string().optional(),
+      valueFormat,
+    }),
+    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    component: StackedBarChart,
+  },
+  HeatmapChart: {
+    description: 'An intensity grid for a value over two named axes, such as sales by weekday and hour or by customer and month.',
+    schema: z.object({
+      cells: z.array(z.object({ row: z.string(), column: z.string(), value: z.number() })),
+      title: z.string().optional(),
+      valueFormat,
+    }),
+    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    component: HeatmapChart,
   },
   DonutChart: {
     description: 'Shares of a whole, such as invoices by status. A slice may carry a tone: positive, caution, negative or neutral.',

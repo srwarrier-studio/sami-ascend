@@ -44,7 +44,10 @@ export {
   Tooltip,
 } from '@mantine/core'
 export { notifications } from '@mantine/notifications'
-export { LineChart, BarChart } from './charts'
+export { AreaChart, BarChart, LineChart, StackedBarChart } from './charts'
+export { HeatmapChart } from './heatmapChart'
+export type { HeatmapCell, HeatmapChartProps } from './heatmapChart'
+export type { StackedBarChartProps, StackedSeries } from './charts'
 export type { ChartProps, ChartPointData } from './charts'
 export { formatCompact, formatDelta, formatValue } from './format'
 export { DonutChart, GaugeChart } from './polarCharts'

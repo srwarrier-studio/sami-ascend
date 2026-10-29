@@ -19,6 +19,9 @@ const samples: Record<string, object> = {
   },
   DonutChart: { title: 'Invoice status', slices: [{ label: 'Paid', value: 58, tone: 'positive' }, { label: 'Open', value: 42 }] },
   GaugeChart: { title: 'Month target', value: 72, target: 100, caption: 'this month' },
+  AreaChart: { data: days, title: 'Cumulative sales' },
+  StackedBarChart: { title: 'Sales by status', series: [{ name: 'Paid', data: days }, { name: 'Open', data: days }], layout: 'stacked' },
+  HeatmapChart: { title: 'Sales by hour', cells: [{ row: 'Mon', column: '9', value: 1 }, { row: 'Mon', column: '10', value: 4 }] },
   LineChart: { data: days, title: 'Day sales' },
   BarChart: { data: days, title: 'By customer' },
 }

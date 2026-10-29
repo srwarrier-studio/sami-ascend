@@ -1,9 +1,11 @@
 import {
+  AreaChart,
   BarChart,
   Button,
   DataTable,
   DonutChart,
   GaugeChart,
+  HeatmapChart,
   Divider,
   Group,
   KpiCard,
@@ -15,6 +17,7 @@ import {
   SimpleGrid,
   SparkleIcon,
   Stack,
+  StackedBarChart,
 } from '../src'
 
 const months = [
@@ -41,6 +44,23 @@ const lastMonth = days.map((point, index) => ({
   label: point.label,
   value: Math.round((1.2 + index * 0.015 + Math.sin(index * 0.7 + 1) * 0.3) * 1000000),
 }))
+
+const cumulative = days.map((point, index) => ({
+  label: point.label,
+  value: days.slice(0, index + 1).reduce((sum, day) => sum + day.value, 0),
+}))
+
+const byStatus = [
+  { name: 'Paid', data: [['Aug', 1.9], ['Sep', 2.1], ['Oct', 2.0]] },
+  { name: 'Open', data: [['Aug', 0.8], ['Sep', 0.8], ['Oct', 1.0]] },
+  { name: 'Overdue', data: [['Aug', 0.3], ['Sep', 0.3], ['Oct', 0.4]] },
+].map(({ name, data }) => ({ name, data: data.map(([label, value]) => ({ label: String(label), value: Number(value) * 1000000 })) }))
+
+const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+const hours = ['9am', '10am', '11am', '12pm', '1pm', '2pm']
+const busy = weekdays.flatMap((row, rowIndex) =>
+  hours.map((column, columnIndex) => ({ row, column, value: Math.round(40 + 30 * Math.sin(columnIndex * 0.9 + rowIndex) + rowIndex * 4) })),
+)
 
 const customers = [
   { label: 'Northwind Trading', value: 412000 },
@@ -74,7 +94,7 @@ export function DashboardDemo() {
         actions={
           <Group>
             <Button variant="default" leftSection={<PencilSimpleIcon size={16} />}>
-              Edit layout
+              Edit
             </Button>
             <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />}>
               AI Mode
@@ -104,6 +124,11 @@ export function DashboardDemo() {
             ]}
           />
           <GaugeChart title="Month target" value={3400000} target={5000000} valueFormat="currency" caption="this month" />
+          <AreaChart title="Cumulative sales" data={cumulative} valueFormat="currency" />
+        </SimpleGrid>
+        <SimpleGrid cols={{ base: 1, lg: 2 }}>
+          <StackedBarChart title="Sales by invoice status" series={byStatus} valueFormat="currency" />
+          <HeatmapChart title="Orders by weekday and hour" cells={busy} />
         </SimpleGrid>
         <SimpleGrid cols={{ base: 1, lg: 3 }}>
           <RankedList title="Top customers" items={customers} valueFormat="currency" />

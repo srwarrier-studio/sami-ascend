@@ -1,0 +1,19 @@
+.legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.ramp {
+  width: 8rem;
+  height: 0.5rem;
+  border-radius: var(--mantine-radius-xl);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--ts-chart-1) 12%, transparent),
+    var(--ts-chart-1)
+  );
+}
