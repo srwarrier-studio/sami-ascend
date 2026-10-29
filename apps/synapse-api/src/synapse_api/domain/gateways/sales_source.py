@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import date
 from decimal import Decimal
 
-from synapse_api.domain.entities.sales import CustomerSales, DailySales, HighValueOrder, MaterialSales
+from synapse_api.domain.entities.sales import CustomerSales, DailySales, HighValueOrder, MaterialSales, OrderStatus
 
 
 class SalesSource(ABC):
@@ -14,6 +14,9 @@ class SalesSource(ABC):
 
     @abstractmethod
     def material_sales(self, start: date, end: date) -> list[MaterialSales]: ...
+
+    @abstractmethod
+    def order_statuses(self, start: date, end: date) -> list[OrderStatus]: ...
 
     @abstractmethod
     def high_value_orders(self, minimum: Decimal, top: int) -> list[HighValueOrder]: ...

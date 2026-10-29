@@ -40,3 +40,9 @@ class HighValueOrder:
     net_amount: Decimal
     currency: str
     status: str
+
+
+@dataclass(frozen=True)
+class OrderStatus:
+    date: date
+    status: str

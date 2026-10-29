@@ -44,6 +44,7 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 02 sales-kpis: use cases for today, month-to-date, year-to-date, top customers and materials; cached and refreshed every 5 minutes. done (tag `synapse-api-phase-02-done`, 2026-10-28).
 - 03 dashboard-routes: role-checked routes that return the data each catalog widget needs (month-on-month sales, day sales, recent high-value sales, top customers and materials). done (tag `synapse-api-phase-03-done`, 2026-10-28).
 - 04 board-storage: each user's own boards (name, widgets with name, props and grid position), saved in SQLite behind a repo, with list, create, rename, delete and save-layout routes. Postponed: designed after synapse-web 03, from the board store the mock settles on. todo
+- 05 catalog: the widget catalog and each widget's ready-to-render props served from synapse-api (`/v1/synapse/catalog`), sales entries from the sales source and the other domains from a mock library. done (tag `synapse-api-phase-05-done`, 2026-10-30).
 
 ## synapse-web (management dashboards)
 All three phases use mock data (session, sales data and board store behind interfaces); no synapse-api calls yet.

@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from synapse_api.domain.entities.sales import CustomerSales, DailySales, HighValueOrder, MaterialSales
+from synapse_api.domain.entities.sales import CustomerSales, DailySales, HighValueOrder, MaterialSales, OrderStatus
 
 
 def daily_from_json(row: dict) -> DailySales:
@@ -45,3 +45,7 @@ def order_from_json(row: dict) -> HighValueOrder:
         row["TransactionCurrency"],
         row["OverallStatus"],
     )
+
+
+def status_from_json(row: dict) -> OrderStatus:
+    return OrderStatus(date.fromisoformat(row["OrderDate"]), row["OverallStatus"])
