@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
-import type { DragEvent, ReactNode } from 'react'
-import { LIBRARY_DRAG, ActionIcon, ArrowLeftIcon, ArrowRightIcon, ArrowsOutSimpleIcon, TrashIcon, WidgetCell, WidgetGrid, allowedSizes } from '@sami/ui'
+import type { ReactNode } from 'react'
+import { ActionIcon, ArrowLeftIcon, ArrowRightIcon, ArrowsOutSimpleIcon, TrashIcon, WidgetCell, WidgetGrid, allowedSizes } from '@sami/ui'
 import { CatalogWidget } from '../catalog/CatalogWidget'
 import { catalog } from '../catalog/catalog'
 import type { SalesData } from '../data/salesData'
@@ -13,33 +13,17 @@ type BoardGridProps = {
   data: SalesData
   editing: boolean
   onChange: (widgets: BoardWidget[]) => void
-  onInsert: (catalogId: string, beforeId: string | null) => void
   empty?: ReactNode
 }
 
-const isLibraryDrag = (event: DragEvent<HTMLElement>) => event.dataTransfer.types.includes(LIBRARY_DRAG)
-
-export function BoardGrid({ widgets, data, editing, onChange, onInsert, empty }: BoardGridProps) {
+export function BoardGrid({ widgets, data, editing, onChange, empty }: BoardGridProps) {
   const [dragging, setDragging] = useState<string | null>(null)
   const [preview, setPreview] = useState<BoardWidget[] | null>(null)
   const shown = preview ?? widgets
   const lastMove = useRef(0)
-  const [overId, setOverId] = useState<string | null>(null)
 
   return (
-    <div
-      className={classes.board}
-      onDragOver={(event) => isLibraryDrag(event) && event.preventDefault()}
-      onDragLeave={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOverId(null)
-      }}
-      onDrop={(event) => {
-        if (!isLibraryDrag(event)) return
-        event.preventDefault()
-        onInsert(event.dataTransfer.getData(LIBRARY_DRAG), null)
-        setOverId(null)
-      }}
-    >
+    <div className={classes.board}>
       {empty}
       <WidgetGrid>
       {shown.map((widget) => {
@@ -52,7 +36,6 @@ export function BoardGrid({ widgets, data, editing, onChange, onInsert, empty }:
             size={widget.size}
             editing={editing}
             dragging={dragging === widget.id}
-            over={overId === widget.id}
             draggable={editing}
             onDragStart={() => setTimeout(() => setDragging(widget.id))}
             onDragEnd={() => {
@@ -65,17 +48,7 @@ export function BoardGrid({ widgets, data, editing, onChange, onInsert, empty }:
               lastMove.current = Date.now()
               setPreview(dropWidget(shown, dragging, widget.id))
             }}
-            onDragOver={(event) => {
-              if (isLibraryDrag(event)) setOverId(widget.id)
-              if (editing || isLibraryDrag(event)) event.preventDefault()
-            }}
-            onDrop={(event) => {
-              if (!isLibraryDrag(event)) return
-              event.preventDefault()
-              event.stopPropagation()
-              onInsert(event.dataTransfer.getData(LIBRARY_DRAG), widget.id)
-              setOverId(null)
-            }}
+            onDragOver={(event) => editing && event.preventDefault()}
           >
             {editing && (
               <div className={classes.controls}>

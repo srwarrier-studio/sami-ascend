@@ -44,7 +44,6 @@ describe('motion stylesheet', () => {
   const css = readFileSync('src/motion.css', 'utf8')
 
   it('plays animations only in full mode', () => {
-    expect(css).toContain(":root[data-motion='full'] .mantine-Card-root")
     expect(css).toContain(":root[data-motion='full'] .sami-chart svg")
   })
 

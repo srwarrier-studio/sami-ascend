@@ -55,7 +55,6 @@ describe('board page', () => {
     await screen.findByRole('heading', { name: 'First' })
     expect(screen.queryByRole('textbox', { name: 'Board title' })).toBeNull()
     expect(screen.queryByRole('button', { name: /^Remove/ })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Add widget' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'AI Mode' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Delete board' })).toBeNull()
   })
@@ -69,23 +68,6 @@ describe('board limit', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Add' }))
     expect(await screen.findByText('Only 3 sheets allowed')).toBeInTheDocument()
     expect(await store.list()).toHaveLength(3)
-  })
-})
-
-describe('library drag', () => {
-  const transfer = (id: string) => ({ types: ['application/x-sami-widget'], getData: () => id, setData: () => undefined })
-
-  it('drops a library widget before the widget it lands on and keeps the library open', async () => {
-    const store = open()
-    await edit()
-    await userEvent.click(await screen.findByRole('button', { name: 'Add widget' }))
-    const card = await screen.findByRole('button', { name: 'Add Day sales' })
-    const target = screen.getByRole('button', { name: 'Remove Top materials' }).closest('[draggable]')!
-    fireEvent.dragStart(card, { dataTransfer: transfer('day-sales') })
-    fireEvent.dragOver(target, { dataTransfer: transfer('day-sales') })
-    fireEvent.drop(target, { dataTransfer: transfer('day-sales') })
-    await waitFor(async () => expect((await store.list())[0].widgets.map((w) => w.catalogId)).toEqual(['top-customers', 'day-sales', 'top-materials']))
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 })
 
@@ -160,6 +142,16 @@ describe('edit mode', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Add widget' }))
     await userEvent.click(await screen.findByRole('button', { name: 'Add Day sales' }))
     await waitFor(async () => expect((await store.list())[0].widgets.map((w) => w.catalogId)).toEqual(['top-customers', 'top-materials', 'day-sales']))
+  })
+
+  it('removes a widget already on the board from the library and cannot add it twice', async () => {
+    const store = open()
+    await edit()
+    await userEvent.click(await screen.findByRole('button', { name: 'Add widget' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Add Day sales' }))
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove Day sales' }))
+    await waitFor(async () => expect((await store.list())[0].widgets.map((w) => w.catalogId)).toEqual(['top-customers', 'top-materials']))
+    expect(screen.getAllByRole('button', { name: 'Remove Top customers' })[0]).toBeInTheDocument()
   })
 
   it('AI Mode adds widgets that match the sentence', async () => {

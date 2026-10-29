@@ -18,8 +18,6 @@ import {
 import type { Icon } from '@phosphor-icons/react'
 import classes from './WidgetLibrary.module.css'
 
-export const LIBRARY_DRAG = 'application/x-sami-widget'
-
 export type LibraryItem = { id: string; title: string; category: string; widget: string }
 
 const kinds: Record<string, { label: string; icon: Icon }> = {
@@ -36,9 +34,9 @@ const kinds: Record<string, { label: string; icon: Icon }> = {
   DataTable: { label: 'Table', icon: TableIcon },
 }
 
-type WidgetLibraryProps = { opened: boolean; onClose: () => void; items: LibraryItem[]; onPick: (id: string) => void; counts?: Record<string, number>; limit?: { used: number; max: number } }
+type WidgetLibraryProps = { opened: boolean; onClose: () => void; items: LibraryItem[]; onPick: (id: string) => void; onRemove: (id: string) => void; counts?: Record<string, number>; limit?: { used: number; max: number } }
 
-export function WidgetLibrary({ opened, onClose, items, onPick, counts = {}, limit }: WidgetLibraryProps) {
+export function WidgetLibrary({ opened, onClose, items, onPick, onRemove, counts = {}, limit }: WidgetLibraryProps) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
   useEffect(() => {
@@ -104,14 +102,15 @@ export function WidgetLibrary({ opened, onClose, items, onPick, counts = {}, lim
             </Text>
             {section.items.map((item) => {
               const kind = kinds[item.widget]
+              const onBoard = counts[item.id] > 0
               return (
-                <UnstyledButton key={item.id} className={classes.item} aria-label={`Add ${item.title}`} disabled={full} draggable={!full} onDragStart={(event) => event.dataTransfer.setData(LIBRARY_DRAG, item.id)} onClick={() => onPick(item.id)}>
+                <UnstyledButton key={item.id} className={classes.item} aria-label={`${onBoard ? 'Remove' : 'Add'} ${item.title}`} disabled={full && !onBoard} onClick={() => (onBoard ? onRemove(item.id) : onPick(item.id))}>
                   <div>
                     <Group gap="xs" wrap="nowrap">
                       <Text fw={600}>{item.title}</Text>
-                      {counts[item.id] > 0 && (
+                      {onBoard && (
                         <Badge size="xs" variant="light" leftSection={<CheckIcon size={10} weight="bold" />}>
-                          {counts[item.id] > 1 ? `On board ×${counts[item.id]}` : 'On board'}
+                          On board · click to remove
                         </Badge>
                       )}
                     </Group>

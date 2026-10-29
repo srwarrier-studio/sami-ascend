@@ -17,7 +17,7 @@ export function AiDrawer({ opened, onClose, onAdd }: AiDrawerProps) {
       return
     }
     const added = onAdd(matches.map((entry) => entry.id))
-    setResult(added.length === 0 ? 'The board is full. Remove a widget to add another.' : `Added: ${matches.filter((entry) => added.includes(entry.id)).map((entry) => entry.title).join(', ')}`)
+    setResult(added.length === 0 ? 'Nothing added: the board is full or already has these widgets.' : `Added: ${matches.filter((entry) => added.includes(entry.id)).map((entry) => entry.title).join(', ')}`)
     setSentence('')
   }
 

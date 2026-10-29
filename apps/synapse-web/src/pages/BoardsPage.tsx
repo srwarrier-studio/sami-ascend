@@ -4,7 +4,7 @@ import { Button, EmptyBoard, Group, Modal, PageBar, PageHeader, PencilSimpleIcon
 import { AiDrawer } from '../boards/AiDrawer'
 import { BoardGrid } from '../boards/BoardGrid'
 import { catalog } from '../catalog/catalog'
-import { MAX_WIDGETS, addWidget, arrangeWidgets, insertWidget } from '../boards/layout'
+import { MAX_WIDGETS, addWidget, arrangeWidgets, insertWidget, removeWidget } from '../boards/layout'
 import { useBoards } from '../boards/useBoards'
 
 export function BoardsPage() {
@@ -19,6 +19,7 @@ export function BoardsPage() {
   if (!boards || !active) return null
 
   const insert = (catalogId: string, beforeId: string | null) => {
+    if (active.widgets.some((widget) => widget.catalogId === catalogId)) return
     if (active.widgets.length >= MAX_WIDGETS) {
       notifications.show({ message: `Only ${MAX_WIDGETS} widgets allowed on a board` })
       return
@@ -44,19 +45,23 @@ export function BoardsPage() {
               {editing ? 'Done' : 'Edit'}
             </Button>
             {editing && (
-              <>
-                <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />} onClick={() => setAsking(true)}>
-                  AI Mode
-                </Button>
-                <Button leftSection={<PlusIcon size={16} />} onClick={() => setPicking(true)}>
-                  Add widget
-                </Button>
-              </>
+              <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />} onClick={() => setAsking(true)}>
+                AI Mode
+              </Button>
             )}
+            <Button
+              leftSection={<PlusIcon size={16} />}
+              onClick={() => {
+                setEditing(true)
+                setPicking(true)
+              }}
+            >
+              Add widget
+            </Button>
           </Group>
         }
       />
-      <BoardGrid widgets={active.widgets} data={salesData} editing={editing} onChange={setWidgets} onInsert={insert}
+      <BoardGrid widgets={active.widgets} data={salesData} editing={editing} onChange={setWidgets}
         empty={active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
       />
       <PageBar
@@ -78,13 +83,14 @@ export function BoardsPage() {
         limit={{ used: active.widgets.length, max: MAX_WIDGETS }}
         counts={active.widgets.reduce<Record<string, number>>((all, widget) => ({ ...all, [widget.catalogId]: (all[widget.catalogId] ?? 0) + 1 }), {})}
         onPick={(catalogId) => insert(catalogId, null)}
+        onRemove={(catalogId) => setWidgets(removeWidget(active.widgets, active.widgets.find((widget) => widget.catalogId === catalogId)?.id ?? ''))}
       />
       <AiDrawer
         opened={asking}
         onClose={() => setAsking(false)}
         onAdd={(catalogIds) => {
-          const fitting = catalogIds.slice(0, MAX_WIDGETS - active.widgets.length)
-          if (fitting.length < catalogIds.length) notifications.show({ message: `Only ${MAX_WIDGETS} widgets allowed on a board` })
+          const fitting = catalogIds.filter((id) => !active.widgets.some((widget) => widget.catalogId === id)).slice(0, MAX_WIDGETS - active.widgets.length)
+          if (fitting.length < catalogIds.length && active.widgets.length + fitting.length >= MAX_WIDGETS) notifications.show({ message: `Only ${MAX_WIDGETS} widgets allowed on a board` })
           setWidgets(fitting.reduce(addWidget, active.widgets))
           return fitting
         }}
