@@ -2,6 +2,7 @@ import { Card, Text } from '@mantine/core'
 import type { ReactElement } from 'react'
 import { z } from 'zod'
 import { AreaChart, BarChart, LineChart, StackedBarChart } from './charts'
+import { CalendarHeatmapChart } from './calendarChart'
 import { HeatmapChart } from './heatmapChart'
 import { DonutChart, GaugeChart } from './polarCharts'
 import { DataTable, KpiCard, RankedList } from './widgets'
@@ -95,6 +96,16 @@ const entries: Record<string, Entry> = {
     }),
     size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
     component: HeatmapChart,
+  },
+  CalendarHeatmapChart: {
+    description: 'A year calendar with one cell per day, shaded by value, such as sales per day. Shows which months and days were busy or quiet. Dates are YYYY-MM-DD.',
+    schema: z.object({
+      days: z.array(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), value: z.number() })),
+      title: z.string().optional(),
+      valueFormat,
+    }),
+    size: { minW: 6, minH: 3, defaultW: 12, defaultH: 4 },
+    component: CalendarHeatmapChart,
   },
   DonutChart: {
     description: 'Shares of a whole, such as invoices by status. A slice may carry a tone: positive, caution, negative or neutral.',

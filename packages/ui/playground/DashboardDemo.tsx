@@ -1,6 +1,7 @@
 import {
   AreaChart,
   BarChart,
+  CalendarHeatmapChart,
   Button,
   DataTable,
   DonutChart,
@@ -61,6 +62,14 @@ const hours = ['9am', '10am', '11am', '12pm', '1pm', '2pm']
 const busy = weekdays.flatMap((row, rowIndex) =>
   hours.map((column, columnIndex) => ({ row, column, value: Math.round(40 + 30 * Math.sin(columnIndex * 0.9 + rowIndex) + rowIndex * 4) })),
 )
+
+const yearOfSales = Array.from({ length: 360 }, (_, index) => {
+  const time = Date.UTC(2025, 10, 3) + index * 86400000
+  const weekday = (new Date(time).getUTCDay() + 6) % 7
+  const season = 1 + 0.35 * Math.sin((index / 360) * Math.PI * 2 + 1)
+  const noise = 0.75 + 0.5 * Math.abs(Math.sin(index * 12.9898) * 43758.5453 % 1)
+  return { date: new Date(time).toISOString().slice(0, 10), value: Math.round((weekday < 5 ? 90000 : 18000) * season * noise) }
+})
 
 const customers = [
   { label: 'Northwind Trading', value: 412000 },
@@ -126,6 +135,7 @@ export function DashboardDemo() {
           <GaugeChart title="Month target" value={3400000} target={5000000} valueFormat="currency" caption="this month" />
           <AreaChart title="Cumulative sales" data={cumulative} valueFormat="currency" />
         </SimpleGrid>
+        <CalendarHeatmapChart title="Sales per day" days={yearOfSales} valueFormat="currency" />
         <SimpleGrid cols={{ base: 1, lg: 2 }}>
           <StackedBarChart title="Sales by invoice status" series={byStatus} valueFormat="currency" />
           <HeatmapChart title="Orders by weekday and hour" cells={busy} />

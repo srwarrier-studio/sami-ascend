@@ -45,6 +45,8 @@ export {
 } from '@mantine/core'
 export { notifications } from '@mantine/notifications'
 export { AreaChart, BarChart, LineChart, StackedBarChart } from './charts'
+export { CalendarHeatmapChart, dayLabel } from './calendarChart'
+export type { CalendarDay, CalendarHeatmapChartProps } from './calendarChart'
 export { HeatmapChart } from './heatmapChart'
 export type { HeatmapCell, HeatmapChartProps } from './heatmapChart'
 export type { StackedBarChartProps, StackedSeries } from './charts'

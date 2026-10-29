@@ -21,6 +21,7 @@ const samples: Record<string, object> = {
   GaugeChart: { title: 'Month target', value: 72, target: 100, caption: 'this month' },
   AreaChart: { data: days, title: 'Cumulative sales' },
   StackedBarChart: { title: 'Sales by status', series: [{ name: 'Paid', data: days }, { name: 'Open', data: days }], layout: 'stacked' },
+  CalendarHeatmapChart: { title: 'Sales per day', days: [{ date: '2026-10-01', value: 1 }, { date: '2026-10-02', value: 4 }] },
   HeatmapChart: { title: 'Sales by hour', cells: [{ row: 'Mon', column: '9', value: 1 }, { row: 'Mon', column: '10', value: 4 }] },
   LineChart: { data: days, title: 'Day sales' },
   BarChart: { data: days, title: 'By customer' },
