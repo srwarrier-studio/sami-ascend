@@ -31,7 +31,7 @@ export function UiProvider({ palette, radius = 'soft', motion = 'full', children
     primaryShade: palette.primaryShade as 6,
   })
   return <MantineProvider theme={theme}>
-      <Notifications />
+      <Notifications position="top-center" />
       {children}
     </MantineProvider>
 }

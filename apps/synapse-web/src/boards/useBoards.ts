@@ -19,7 +19,7 @@ export function useBoards(store: BoardStore) {
 
   const add = useCallback(async () => {
     if ((boards?.length ?? 0) >= MAX_BOARDS) {
-      notifications.show({ color: 'yellow', message: `Only ${MAX_BOARDS} sheets allowed` })
+      notifications.show({ message: `Only ${MAX_BOARDS} sheets allowed` })
       return
     }
     const created = await store.create(`Board ${(boards?.length ?? 0) + 1}`)
