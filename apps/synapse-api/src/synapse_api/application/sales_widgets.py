@@ -137,13 +137,68 @@ class TopMaterialsWidget:
         return {"title": self.entry.title, "measure": "sales", "valueFormat": "currency", "items": items}
 
 
+class DaySalesWidget:
+    def __init__(self, source: SalesSource, entry: CatalogEntry):
+        self.source = source
+        self.entry = entry
+
+    def props(self, today: date) -> dict:
+        this_month, last_month = month_periods(today)[0][0], month_periods(today)[1][0]
+        totals = {row.date: float(row.net_amount) for row in self.source.daily_sales(last_month, today) if row.currency == CURRENCY}
+
+        def points(first: date, last: date) -> list[dict]:
+            return [{"label": str(day), "value": totals.get(first.replace(day=day), 0.0)} for day in range(1, last.day + 1)]
+
+        last_days = this_month - timedelta(days=1)
+        return {
+            "title": self.entry.title,
+            "measure": "sales",
+            "valueFormat": "currency",
+            "data": points(this_month, today),
+            "compare": points(last_month, last_days),
+            "label": "This month",
+            "compareLabel": "Last month",
+        }
+
+
+class MonthTargetWidget:
+    def __init__(self, source: SalesSource, entry: CatalogEntry, target: Decimal):
+        self.source = source
+        self.entry = entry
+        self.target = target
+
+    def props(self, today: date) -> dict:
+        now, _ = sales_in(self.source, month_periods(today)[0])
+        return {"title": self.entry.title, "measure": "sales", "value": float(now), "target": float(self.target), "valueFormat": "currency", "caption": "this month"}
+
+
+class StatusSplitWidget:
+    def __init__(self, source: SalesSource, entry: CatalogEntry):
+        self.source = source
+        self.entry = entry
+
+    def props(self, today: date) -> dict:
+        counts: dict[str, int] = {}
+        for row in self.source.order_statuses(today.replace(day=1), today):
+            counts[row.status] = counts.get(row.status, 0) + 1
+        slices = []
+        for code, name in ORDER_STATUS.items():
+            if counts.get(code):
+                slice_ = {"label": name, "value": counts[code]}
+                if code == "C":
+                    slice_["tone"] = "positive"
+                slices.append(slice_)
+        return {"title": self.entry.title, "measure": "orders", "slices": slices}
+
+
 def entry(id: str, title: str, description: str, category: str, widget: str) -> CatalogEntry:
     return CatalogEntry(id, title, description, category, widget)
 
 
 class SalesWidgetCatalog(WidgetCatalog):
-    def __init__(self, source: SalesSource):
+    def __init__(self, source: SalesSource, month_target: Decimal):
         self.source = source
+        self.month_target = month_target
         self.widgets = self.build(source)
 
     def build(self, source: SalesSource) -> list:
@@ -164,9 +219,12 @@ class SalesWidgetCatalog(WidgetCatalog):
             SalesKpiWidget(source, year_entry, "vs last year", year_periods, monthly_trend),
             OrdersMonthWidget(source, entry("orders-month", "Orders this month", "Number of sales orders since the 1st of this month.", "Sales", "KpiCard")),
             MonthOnMonthWidget(source, entry("month-on-month", "Month-on-month sales", "Net sales for each of the last 12 months.", "Sales", "BarChart")),
+            DaySalesWidget(source, entry("day-sales", "Day sales", "Net sales for each day of this month, with last month behind it.", "Sales", "LineChart")),
             HighValueOrdersWidget(source, entry("high-value-sales", "Recent high-value sales", "The latest sales orders above the high-value limit.", "Sales", "DataTable")),
             TopCustomersWidget(source, entry("top-customers", "Top customers", "Customers ranked by net sales this month.", "Sales", "RankedList")),
             TopMaterialsWidget(source, entry("top-materials", "Top materials", "Materials ranked by net sales this month.", "Inventory", "RankedList")),
+            MonthTargetWidget(source, entry("month-target", "Month target", "Net sales this month against the monthly sales target.", "Sales", "GaugeChart"), self.month_target),
+            StatusSplitWidget(source, entry("status-split", "Invoice status split", "Share of orders that are paid, open or overdue.", "Finance", "DonutChart")),
         ]
 
     def entries(self) -> list[CatalogEntry]:

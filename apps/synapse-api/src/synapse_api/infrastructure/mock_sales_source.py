@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from synapse_api.domain.entities.sales import CustomerSales, DailySales, HighValueOrder, MaterialSales
+from synapse_api.domain.entities.sales import CustomerSales, DailySales, HighValueOrder, MaterialSales, OrderStatus
 from synapse_api.domain.errors import SapUnavailable
 from synapse_api.domain.gateways.sales_source import SalesSource
 
@@ -13,11 +13,13 @@ class MockSalesSource(SalesSource):
         customers: list[CustomerSales] | None = None,
         materials: list[MaterialSales] | None = None,
         orders: list[HighValueOrder] | None = None,
+        statuses: list[OrderStatus] | None = None,
     ):
         self.daily = daily or []
         self.customers = customers or []
         self.materials = materials or []
         self.orders = orders or []
+        self.statuses = statuses or []
         self.failing = False
         self.calls = 0
 
@@ -35,6 +37,9 @@ class MockSalesSource(SalesSource):
 
     def material_sales(self, start: date, end: date) -> list[MaterialSales]:
         return self._in_range(self.materials, start, end)
+
+    def order_statuses(self, start: date, end: date) -> list[OrderStatus]:
+        return self._in_range(self.statuses, start, end)
 
     def high_value_orders(self, minimum: Decimal, top: int) -> list[HighValueOrder]:
         self._check()

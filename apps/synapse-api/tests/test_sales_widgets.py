@@ -5,7 +5,7 @@ import pytest
 
 from synapse_api.application.catalog import GetWidgetData, ListCatalog
 from synapse_api.application.sales_widgets import SalesWidgetCatalog
-from synapse_api.domain.entities.sales import CustomerSales, DailySales, HighValueOrder, MaterialSales
+from synapse_api.domain.entities.sales import CustomerSales, DailySales, HighValueOrder, MaterialSales, OrderStatus
 from synapse_api.domain.errors import CatalogEntryNotFound
 from synapse_api.infrastructure.mock_sales_source import MockSalesSource
 
@@ -17,7 +17,7 @@ def day(d: date, amount: str, count: int = 1, currency: str = "INR") -> DailySal
 
 
 def make_catalog(**rows) -> SalesWidgetCatalog:
-    return SalesWidgetCatalog(MockSalesSource(**rows))
+    return SalesWidgetCatalog(MockSalesSource(**rows), Decimal(1000))
 
 
 def data(catalog: SalesWidgetCatalog, entry_id: str) -> dict:
@@ -87,3 +87,23 @@ class TestSalesCharts:
         orders = [HighValueOrder("0000012001", "Northwind", TODAY, Decimal("150000"), "INR", "B")]
         row = data(make_catalog(orders=orders), "high-value-sales")["rows"][0]
         assert row == {"order": "0000012001", "customer": "Northwind", "status": "In process", "amount": 150000.0}
+
+
+class TestDayTargetAndStatus:
+    def test_day_sales_has_this_month_and_last_month_by_day(self):
+        catalog = make_catalog(daily=[day(date(2026, 10, 1), "10"), day(TODAY, "30"), day(date(2026, 9, 1), "5"), day(date(2026, 9, 30), "7")])
+        props = data(catalog, "day-sales")
+        assert [p["label"] for p in props["data"]] == [str(n) for n in range(1, 28)]
+        assert (props["data"][0]["value"], props["data"][26]["value"], props["data"][1]["value"]) == (10.0, 30.0, 0.0)
+        assert len(props["compare"]) == 30
+        assert (props["compare"][0]["value"], props["compare"][29]["value"]) == (5.0, 7.0)
+        assert (props["label"], props["compareLabel"]) == ("This month", "Last month")
+
+    def test_month_target_is_sales_against_the_configured_target(self):
+        props = data(make_catalog(daily=[day(date(2026, 10, 3), "400")]), "month-target")
+        assert (props["value"], props["target"]) == (400.0, 1000.0)
+
+    def test_status_split_counts_this_months_orders_by_status_name(self):
+        statuses = [OrderStatus(date(2026, 10, 2), "A"), OrderStatus(date(2026, 10, 3), "A"), OrderStatus(date(2026, 10, 4), "C"), OrderStatus(date(2026, 9, 30), "B")]
+        slices = data(make_catalog(statuses=statuses), "status-split")["slices"]
+        assert slices == [{"label": "Open", "value": 2}, {"label": "Completed", "value": 1, "tone": "positive"}]

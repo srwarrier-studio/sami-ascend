@@ -1,3 +1,4 @@
+from decimal import Decimal
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -11,5 +12,6 @@ class Settings(BaseSettings):
     sap_base_url: str = DEFAULT_SAP_BASE_URL
     sap_timeout_seconds: float = 10.0
     cache_seconds: float = 300
+    monthly_sales_target: Decimal = Decimal(5000000)
     jwt_secret: str = ""
     frontend_url: str = "http://localhost:5173"
