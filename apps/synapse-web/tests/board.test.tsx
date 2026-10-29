@@ -61,6 +61,17 @@ describe('board page', () => {
   })
 })
 
+describe('board limit', () => {
+  it('allows three boards and notifies on the fourth', async () => {
+    const store = open()
+    await userEvent.click(await screen.findByRole('button', { name: 'Add' }))
+    expect(await screen.findByRole('heading', { name: 'Board 3' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Add' }))
+    expect(await screen.findByText('Only 3 sheets allowed')).toBeInTheDocument()
+    expect(await store.list()).toHaveLength(3)
+  })
+})
+
 describe('edit mode', () => {
   it('renames the board in the header and saves it', async () => {
     const store = open()
