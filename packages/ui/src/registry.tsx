@@ -173,6 +173,10 @@ export const registry = {
     }))
   },
 
+  validate(name: string, props: unknown): boolean {
+    return Object.hasOwn(entries, name) && entries[name].schema.safeParse(props).success
+  },
+
   render(name: string, props: unknown): ReactElement {
     const entry = Object.hasOwn(entries, name) ? entries[name] : undefined
     const parsed = entry?.schema.safeParse(props)
