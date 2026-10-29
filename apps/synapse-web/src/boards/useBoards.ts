@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
+import { notifications } from '@sami/ui'
 import type { Board, BoardStore, BoardWidget } from './boardStore'
+
+export const MAX_BOARDS = 3
 
 export function useBoards(store: BoardStore) {
   const [boards, setBoards] = useState<Board[] | null>(null)
@@ -15,6 +18,10 @@ export function useBoards(store: BoardStore) {
   const active = boards?.find((board) => board.id === activeId) ?? boards?.[0]
 
   const add = useCallback(async () => {
+    if ((boards?.length ?? 0) >= MAX_BOARDS) {
+      notifications.show({ color: 'yellow', message: `Only ${MAX_BOARDS} sheets allowed` })
+      return
+    }
     const created = await store.create(`Board ${(boards?.length ?? 0) + 1}`)
     setBoards((current) => [...(current ?? []), created])
     setActiveId(created.id)
