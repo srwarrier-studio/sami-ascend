@@ -1,4 +1,6 @@
-import { Button, Divider, Group, PageHeader, PencilSimpleIcon, PlusIcon, registry, SimpleGrid, SparkleIcon, Stack } from '../src'
+import { useState } from 'react'
+import { Button, Group, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, registry, SimpleGrid, SparkleIcon, Stack } from '../src'
+import type { PageBarConfig } from '../src'
 
 const months = [
   ['Nov', 2.1],
@@ -125,16 +127,26 @@ export const dashboardRows: Row[] = [
   },
 ]
 
-export function DashboardDemo() {
+type DashboardDemoProps = { config: PageBarConfig; onConfigChange: (config: PageBarConfig) => void }
+
+export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
+  const [editing, setEditing] = useState(false)
+  const [tabs, setTabs] = useState([
+    { id: 'sales', name: 'Sales overview' },
+    { id: 'customers', name: 'Customers' },
+    { id: 'materials', name: 'Materials' },
+    { id: 'quality', name: 'Quality' },
+  ])
+  const [activeId, setActiveId] = useState('sales')
   return (
     <>
       <PageHeader
-        title="Sales overview"
-        breadcrumb={['Boards', 'Sales overview']}
+        title={tabs.find((tab) => tab.id === activeId)?.name ?? ''}
+        breadcrumb={['Boards']}
         actions={
           <Group>
-            <Button variant="default" leftSection={<PencilSimpleIcon size={16} />}>
-              Edit
+            <Button variant={editing ? 'filled' : 'default'} leftSection={<PencilSimpleIcon size={16} />} onClick={() => setEditing(!editing)}>
+              {editing ? 'Done' : 'Edit'}
             </Button>
             <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />}>
               AI Mode
@@ -143,7 +155,7 @@ export function DashboardDemo() {
           </Group>
         }
       />
-      <Stack p="md">
+      <Stack p="md" pb={80}>
         {dashboardRows.map((row, index) => (
           <SimpleGrid key={index} cols={row.cols}>
             {row.widgets.map((widget, position) => (
@@ -151,19 +163,17 @@ export function DashboardDemo() {
             ))}
           </SimpleGrid>
         ))}
-        <Divider />
-        <Group gap="xs" aria-label="Board pages" role="group">
-          <Button variant="light" size="xs">
-            Page 1
-          </Button>
-          <Button variant="subtle" color="gray" size="xs">
-            Page 2
-          </Button>
-          <Button variant="subtle" size="xs" leftSection={<PlusIcon size={14} />}>
-            Add
-          </Button>
-        </Group>
       </Stack>
+      <PageBar
+        tabs={tabs}
+        activeId={activeId}
+        editing={editing}
+        config={config}
+        onSelect={setActiveId}
+        onAdd={() => setTabs([...tabs, { id: `board-${tabs.length + 1}`, name: `Board ${tabs.length + 1}` }])}
+        onRename={(id, name) => setTabs(tabs.map((tab) => (tab.id === id ? { ...tab, name } : tab)))}
+        onConfigChange={onConfigChange}
+      />
     </>
   )
 }

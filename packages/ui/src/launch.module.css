@@ -1,0 +1,72 @@
+.splash {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 20rem;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-lg);
+  background: var(--mantine-primary-color-filled);
+  color: var(--mantine-color-white);
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background: var(--mantine-color-white);
+  color: var(--mantine-primary-color-filled);
+}
+
+.name {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  margin: 0;
+  opacity: 0.85;
+}
+
+.track {
+  position: absolute;
+  bottom: 1.75rem;
+  left: 24%;
+  right: 24%;
+  height: 0.25rem;
+  overflow: hidden;
+  border-radius: 0.125rem;
+  background: color-mix(in srgb, var(--mantine-color-white) 25%, transparent);
+}
+
+.sweep {
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--mantine-color-white);
+  animation: sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+[data-motion='minimal'] .sweep {
+  animation: none;
+}
+
+.signin {
+  width: min(100%, 22rem);
+  margin: 0 auto;
+}

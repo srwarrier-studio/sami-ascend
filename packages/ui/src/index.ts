@@ -6,7 +6,6 @@ export type { MotionMode } from './UiProvider'
 export {
   Accordion,
   ActionIcon,
-  Alert,
   AppShell,
   Avatar,
   Badge,
@@ -60,6 +59,11 @@ export { registry } from './registry'
 export { AppFrame } from './AppFrame'
 export type { AppFrameProps, NavItem } from './AppFrame'
 export { PageHeader } from './PageHeader'
+export { Alert } from './Alert'
+export { SplashScreen, SignInCard } from './launch'
+export { WidgetCatalog } from './WidgetCatalog'
+export { PageBar } from './PageBar'
+export type { PageBarConfig, PageBarProps, PageBarTab } from './PageBar'
 export {
   ClipboardTextIcon,
   FileTextIcon,

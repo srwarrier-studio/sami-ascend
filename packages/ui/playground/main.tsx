@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { DashboardDemo } from './DashboardDemo'
 import { KitchenSink } from './KitchenSink'
 import { ThemeLab, defaultLab } from './ThemeLab'
+import type { Lab } from './ThemeLab'
+import { useMantineColorScheme } from '@mantine/core'
 import {
   AppFrame,
   Button,
@@ -18,6 +20,19 @@ import {
   UiProvider,
   presets,
 } from '../src'
+
+function DashboardPage({ lab, onChange }: { lab: Lab; onChange: (lab: Lab) => void }) {
+  const { colorScheme, setColorScheme } = useMantineColorScheme()
+  return (
+    <DashboardDemo
+      config={{ palette: lab.palette, scheme: colorScheme === 'dark' ? 'dark' : 'light', motion: lab.motion }}
+      onConfigChange={(config) => {
+        onChange({ ...lab, palette: config.palette, motion: config.motion })
+        setColorScheme(config.scheme)
+      }}
+    />
+  )
+}
 
 function Demo() {
   const [page, setPage] = useState('dashboard')
@@ -45,7 +60,7 @@ function Demo() {
             <Container py="md">
               <ThemeLab lab={lab} onChange={setLab} />
             </Container>
-            <DashboardDemo />
+            <DashboardPage lab={lab} onChange={setLab} />
           </>
         ) : page === 'kitchen' ? (
           <Container py="md">
