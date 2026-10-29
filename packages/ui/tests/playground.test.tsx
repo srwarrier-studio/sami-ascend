@@ -13,6 +13,8 @@ const sections = [
   'Feedback',
   'Notifications',
   'Navigation',
+  'Launch',
+  'Widget catalog',
   'Widgets and charts',
 ]
 

@@ -1,0 +1,67 @@
+.bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem;
+  pointer-events: none;
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: var(--mantine-radius-xl);
+  background: var(--mantine-color-body);
+  border: thin solid var(--mantine-color-default-border);
+  box-shadow: var(--mantine-shadow-md);
+  pointer-events: auto;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.125rem;
+  max-width: 24rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.tab {
+  flex: none;
+  width: 8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  height: 2rem;
+  border-radius: var(--mantine-radius-xl);
+  color: var(--mantine-color-dimmed);
+  font-weight: 500;
+  font-size: var(--mantine-font-size-sm);
+  scroll-snap-align: start;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.tab:hover {
+  color: var(--mantine-color-text);
+}
+
+.tab[data-active] {
+  background: var(--mantine-primary-color-light);
+  color: var(--mantine-primary-color-light-color);
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rename {
+  width: 6rem;
+}

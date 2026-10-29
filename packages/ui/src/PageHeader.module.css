@@ -4,8 +4,6 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: var(--mantine-color-body);
-  border-bottom: thin solid var(--mantine-color-default-border);
 }
 
 .crumbs {

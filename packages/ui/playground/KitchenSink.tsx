@@ -21,6 +21,9 @@ import {
   NavLink,
   NumberInput,
   Pagination,
+  SignInCard,
+  SplashScreen,
+  WidgetCatalog,
   PasswordInput,
   Progress,
   Radio,
@@ -260,6 +263,17 @@ export function KitchenSink() {
             <Accordion.Panel>More content</Accordion.Panel>
           </Accordion.Item>
         </Accordion>
+      </Section>
+
+      <Section title="Launch">
+        <SimpleGrid cols={{ base: 1, md: 2 }}>
+          <SplashScreen name="Synapse" tagline="Your sales, on one board" />
+          <SignInCard title="Sign in to Synapse" onSubmit={() => undefined} />
+        </SimpleGrid>
+      </Section>
+
+      <Section title="Widget catalog">
+        <WidgetCatalog onPick={(name) => notifications.show({ message: `Added ${name}` })} />
       </Section>
 
       <Section title="Widgets and charts">
