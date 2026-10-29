@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { ActionIcon, Button, Popover, SegmentedControl, Stack, Text, TextInput, UnstyledButton } from '@mantine/core'
-import { GearSixIcon, PencilSimpleIcon, PlusIcon } from '@phosphor-icons/react'
+import { ActionIcon, Button, Popover, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core'
+import { GearSixIcon, PlusIcon } from '@phosphor-icons/react'
 import type { MotionMode } from './UiProvider'
 import { presets } from './palettes'
 import type { PresetName } from './palettes'
@@ -12,36 +11,10 @@ export type PageBarConfig = { palette: PresetName; scheme: 'light' | 'dark'; mot
 export type PageBarProps = {
   tabs: PageBarTab[]
   activeId: string
-  editing?: boolean
   config: PageBarConfig
   onSelect: (id: string) => void
   onAdd: () => void
-  onRename: (id: string, name: string) => void
   onConfigChange: (config: PageBarConfig) => void
-}
-
-function RenameField({ tab, onRename, onDone }: { tab: PageBarTab; onRename: PageBarProps['onRename']; onDone: () => void }) {
-  const [value, setValue] = useState(tab.name)
-  const save = () => {
-    const name = value.trim()
-    if (name) onRename(tab.id, name)
-    onDone()
-  }
-  return (
-    <TextInput
-      className={classes.rename}
-      size="xs"
-      aria-label={`Rename ${tab.name}`}
-      value={value}
-      autoFocus
-      onChange={(event) => setValue(event.currentTarget.value)}
-      onBlur={save}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') save()
-        if (event.key === 'Escape') onDone()
-      }}
-    />
-  )
 }
 
 function QuickConfig({ config, onChange }: { config: PageBarConfig; onChange: PageBarProps['onConfigChange'] }) {
@@ -93,35 +66,22 @@ function QuickConfig({ config, onChange }: { config: PageBarConfig; onChange: Pa
   )
 }
 
-export function PageBar({ tabs, activeId, editing = false, config, onSelect, onAdd, onRename, onConfigChange }: PageBarProps) {
-  const [renaming, setRenaming] = useState<string | null>(null)
+export function PageBar({ tabs, activeId, config, onSelect, onAdd, onConfigChange }: PageBarProps) {
   return (
     <nav className={classes.bar} aria-label="Boards">
       <div className={classes.inner}>
         <div className={classes.tabs} role="tablist">
           {tabs.map((tab) => (
-            <div key={tab.id} className={classes.tab} data-active={tab.id === activeId || undefined}>
-              {editing && renaming === tab.id ? (
-                <RenameField tab={tab} onRename={onRename} onDone={() => setRenaming(null)} />
-              ) : (
-                <>
-                  <UnstyledButton
-                    role="tab"
-                    aria-selected={tab.id === activeId}
-                    className={classes.name}
-                    onClick={() => onSelect(tab.id)}
-                    onDoubleClick={() => editing && setRenaming(tab.id)}
-                  >
-                    {tab.name}
-                  </UnstyledButton>
-                  {editing && (
-                    <ActionIcon size={20} variant="subtle" color="gray" radius="xl" aria-label={`Rename ${tab.name}`} onClick={() => setRenaming(tab.id)}>
-                      <PencilSimpleIcon size={12} />
-                    </ActionIcon>
-                  )}
-                </>
-              )}
-            </div>
+            <UnstyledButton
+              key={tab.id}
+              role="tab"
+              aria-selected={tab.id === activeId}
+              className={classes.tab}
+              data-active={tab.id === activeId || undefined}
+              onClick={() => onSelect(tab.id)}
+            >
+              <span className={classes.name}>{tab.name}</span>
+            </UnstyledButton>
           ))}
         </div>
         <Button size="xs" variant="subtle" leftSection={<PlusIcon size={14} />} onClick={onAdd}>

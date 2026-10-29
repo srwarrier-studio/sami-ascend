@@ -47,7 +47,7 @@ describe('widget catalog', () => {
 
 const config: PageBarConfig = { palette: 'teal', scheme: 'light', motion: 'full' }
 
-function Bar({ editing, onConfig = () => undefined }: { editing: boolean; onConfig?: (config: PageBarConfig) => void }) {
+function Bar({ onConfig = () => undefined }: { onConfig?: (config: PageBarConfig) => void }) {
   const [tabs, setTabs] = useState([
     { id: 'a', name: 'Alpha' },
     { id: 'b', name: 'Beta' },
@@ -59,61 +59,70 @@ function Bar({ editing, onConfig = () => undefined }: { editing: boolean; onConf
     <PageBar
       tabs={tabs}
       activeId={active}
-      editing={editing}
       config={config}
       onSelect={setActive}
       onAdd={() => setTabs([...tabs, { id: 'e', name: 'Epsilon' }])}
-      onRename={(id, name) => setTabs(tabs.map((tab) => (tab.id === id ? { ...tab, name } : tab)))}
       onConfigChange={onConfig}
     />
   )
 }
 
+describe('page header title', () => {
+  const header = (editing: boolean, onTitleChange = vi.fn()) => {
+    wrap(<PageHeader title="Sales" editing={editing} onTitleChange={onTitleChange} />)
+    return onTitleChange
+  }
+
+  it('is plain text outside Edit mode', () => {
+    header(false)
+    expect(screen.queryByRole('textbox')).toBeNull()
+  })
+
+  it('saves a new title on Enter', () => {
+    const onTitleChange = header(true)
+    const input = screen.getByRole('textbox', { name: 'Board title' })
+    fireEvent.change(input, { target: { value: 'Revenue' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    fireEvent.blur(input)
+    expect(onTitleChange).toHaveBeenCalledWith('Revenue')
+  })
+
+  it('ignores an empty title', () => {
+    const onTitleChange = header(true)
+    const input = screen.getByRole('textbox', { name: 'Board title' })
+    fireEvent.change(input, { target: { value: '  ' } })
+    fireEvent.blur(input)
+    expect(onTitleChange).not.toHaveBeenCalled()
+    expect(input).toHaveValue('Sales')
+  })
+
+  it('escape cancels', () => {
+    const onTitleChange = header(true)
+    const input = screen.getByRole('textbox', { name: 'Board title' })
+    fireEvent.change(input, { target: { value: 'Nope' } })
+    fireEvent.keyDown(input, { key: 'Escape' })
+    fireEvent.blur(input)
+    expect(onTitleChange).not.toHaveBeenCalled()
+  })
+})
+
 describe('page bar', () => {
   it('lists every tab in one scroll container and selects on click', () => {
-    wrap(<Bar editing={false} />)
-    const tabs = within(screen.getByRole('tablist')).getAllByRole('tab')
-    expect(tabs).toHaveLength(4)
+    wrap(<Bar />)
+    expect(within(screen.getByRole('tablist')).getAllByRole('tab')).toHaveLength(4)
     fireEvent.click(screen.getByRole('tab', { name: 'Gamma' }))
     expect(screen.getByRole('tab', { name: 'Gamma' })).toHaveAttribute('aria-selected', 'true')
   })
 
   it('adds a board', () => {
-    wrap(<Bar editing={false} />)
+    wrap(<Bar />)
     fireEvent.click(screen.getByRole('button', { name: 'Add' }))
     expect(screen.getByRole('tab', { name: 'Epsilon' })).toBeInTheDocument()
   })
 
-  it('cannot rename outside Edit mode', () => {
-    wrap(<Bar editing={false} />)
-    expect(screen.queryByRole('button', { name: 'Rename Alpha' })).toBeNull()
-    fireEvent.doubleClick(screen.getByRole('tab', { name: 'Alpha' }))
-    expect(screen.queryByRole('textbox')).toBeNull()
-  })
-
-  it('renames in Edit mode with Enter and ignores an empty name', () => {
-    wrap(<Bar editing />)
-    fireEvent.click(screen.getByRole('button', { name: 'Rename Alpha' }))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Rename Alpha' }), { target: { value: 'Sales' } })
-    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Rename Alpha' }), { key: 'Enter' })
-    expect(screen.getByRole('tab', { name: 'Sales' })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Rename Sales' }))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Rename Sales' }), { target: { value: '  ' } })
-    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Rename Sales' }), { key: 'Enter' })
-    expect(screen.getByRole('tab', { name: 'Sales' })).toBeInTheDocument()
-  })
-
-  it('escape cancels a rename', () => {
-    wrap(<Bar editing />)
-    fireEvent.click(screen.getByRole('button', { name: 'Rename Beta' }))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Rename Beta' }), { target: { value: 'Nope' } })
-    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Rename Beta' }), { key: 'Escape' })
-    expect(screen.getByRole('tab', { name: 'Beta' })).toBeInTheDocument()
-  })
-
   it('reports quick config changes', async () => {
     const onConfig = vi.fn()
-    wrap(<Bar editing={false} onConfig={onConfig} />)
+    wrap(<Bar onConfig={onConfig} />)
     fireEvent.click(screen.getByRole('button', { name: 'Quick settings' }))
     fireEvent.click(await screen.findByText('Dark'))
     expect(onConfig).toHaveBeenCalledWith({ ...config, scheme: 'dark' })
