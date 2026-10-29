@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { ActionIcon, ArrowLeftIcon, ArrowRightIcon, ArrowsOutSimpleIcon, TrashIcon, WidgetCell, WidgetGrid, allowedSizes } from '@sami/ui'
 import { CatalogWidget } from '../catalog/CatalogWidget'
 import { catalog } from '../catalog/catalog'
@@ -16,11 +16,14 @@ type BoardGridProps = {
 
 export function BoardGrid({ widgets, data, editing, onChange }: BoardGridProps) {
   const [dragging, setDragging] = useState<string | null>(null)
+  const [preview, setPreview] = useState<BoardWidget[] | null>(null)
+  const shown = preview ?? widgets
+  const lastMove = useRef(0)
 
   return (
     <div className={classes.board}>
       <WidgetGrid>
-      {widgets.map((widget) => {
+      {shown.map((widget) => {
         const entry = catalog.find((candidate) => candidate.id === widget.catalogId)
         if (!entry) return null
         return (
@@ -31,13 +34,18 @@ export function BoardGrid({ widgets, data, editing, onChange }: BoardGridProps) 
             editing={editing}
             dragging={dragging === widget.id}
             draggable={editing}
-            onDragStart={() => setDragging(widget.id)}
-            onDragEnd={() => setDragging(null)}
-            onDragOver={(event) => editing && event.preventDefault()}
-            onDrop={() => {
-              if (editing && dragging) onChange(dropWidget(widgets, dragging, widget.id))
+            onDragStart={() => setTimeout(() => setDragging(widget.id))}
+            onDragEnd={() => {
+              if (preview) onChange(preview)
               setDragging(null)
+              setPreview(null)
             }}
+            onDragEnter={() => {
+              if (!editing || !dragging || dragging === widget.id || Date.now() - lastMove.current < 300) return
+              lastMove.current = Date.now()
+              setPreview(dropWidget(shown, dragging, widget.id))
+            }}
+            onDragOver={(event) => editing && event.preventDefault()}
           >
             {editing && (
               <div className={classes.controls}>

@@ -4,7 +4,7 @@ import { Button, Group, Modal, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, 
 import { AiDrawer } from '../boards/AiDrawer'
 import { BoardGrid } from '../boards/BoardGrid'
 import { CatalogPicker } from '../boards/CatalogPicker'
-import { addWidget } from '../boards/layout'
+import { addWidget, arrangeWidgets } from '../boards/layout'
 import { useBoards } from '../boards/useBoards'
 
 export function BoardsPage() {
@@ -60,6 +60,7 @@ export function BoardsPage() {
         config={{ ...ui, scheme: colorScheme === 'dark' ? 'dark' : 'light' }}
         onSelect={select}
         onAdd={add}
+        onArrange={editing ? () => setWidgets(arrangeWidgets(active.widgets)) : undefined}
         onConfigChange={(config) => {
           setUi({ palette: config.palette, motion: config.motion })
           setColorScheme(config.scheme)

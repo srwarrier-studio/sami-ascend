@@ -57,7 +57,8 @@ export type { DonutChartProps, DonutSlice, GaugeChartProps, Tone } from './polar
 export type { ValueFormat } from './format'
 export { KpiCard, RankedList, DataTable } from './widgets'
 export { registry } from './registry'
-export { WidgetCell, WidgetGrid, allowedSizes } from './WidgetGrid'
+export { arrange } from './arrange'
+export { WidgetCell, WidgetGrid, allowedSizes, widgetShape } from './WidgetGrid'
 export { sizes } from './sizes'
 export type { SizeName } from './sizes'
 export { AppFrame } from './AppFrame'
@@ -72,6 +73,7 @@ export {
   ArrowLeftIcon,
   ArrowsOutSimpleIcon,
   ArrowRightIcon,
+  SquaresFourIcon,
   ChartBarIcon,
   ClipboardTextIcon,
   FileTextIcon,
@@ -80,7 +82,6 @@ export {
   PencilSimpleIcon,
   PlusIcon,
   SparkleIcon,
-  SquaresFourIcon,
   TrashIcon,
   UsersIcon,
 } from '@phosphor-icons/react'

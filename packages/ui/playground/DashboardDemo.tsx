@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ActionIcon, allowedSizes, ArrowsOutSimpleIcon, Button, Group, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, registry, WidgetCell, WidgetGrid, SparkleIcon, Stack } from '../src'
+import { useRef, useState } from 'react'
+import { ActionIcon, allowedSizes, arrange, widgetShape, ArrowsOutSimpleIcon, Button, Group, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, registry, WidgetCell, WidgetGrid, SparkleIcon, Stack } from '../src'
 import type { PageBarConfig, SizeName } from '../src'
 
 const months = [
@@ -130,6 +130,8 @@ export const dashboardRows: Row[] = [
   },
 ]
 
+const allWidgets = dashboardRows.flatMap((row) => row.widgets)
+
 const nextSize = (resized: Record<number, SizeName>, position: number, widget: string) => {
   const allowed = allowedSizes(widget)
   const next = allowed[(allowed.indexOf(resized[position] ?? allowed[0]) + 1) % allowed.length]
@@ -140,6 +142,9 @@ type DashboardDemoProps = { config: PageBarConfig; onConfigChange: (config: Page
 
 export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
   const [editing, setEditing] = useState(false)
+  const [order, setOrder] = useState(() => allWidgets.map((_, id) => id))
+  const lastMove = useRef(0)
+  const [dragging, setDragging] = useState<number | null>(null)
   const [resized, setResized] = useState<Record<number, SizeName>>({})
   const [tabs, setTabs] = useState([
     { id: 'sales', name: 'Sales overview' },
@@ -169,22 +174,42 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
       />
       <Stack p="md" pb={80}>
         <WidgetGrid>
-          {dashboardRows.flatMap((row) => row.widgets).map((widget, position) => (
-            <WidgetCell key={position} widget={widget.name} size={resized[position]} editing={editing}>
+          {order.map((id) => {
+            const widget = allWidgets[id]
+            return (
+            <WidgetCell
+              key={id}
+              widget={widget.name}
+              size={resized[id]}
+              editing={editing}
+              dragging={dragging === id}
+              draggable={editing}
+              onDragStart={() => setTimeout(() => setDragging(id))}
+              onDragEnd={() => setDragging(null)}
+              onDragEnter={() => {
+                if (!editing || dragging === null || dragging === id || Date.now() - lastMove.current < 300) return
+                lastMove.current = Date.now()
+                const next = order.filter((candidate) => candidate !== dragging)
+                next.splice(order.indexOf(id), 0, dragging)
+                setOrder(next)
+              }}
+              onDragOver={(event) => editing && event.preventDefault()}
+            >
               {editing && allowedSizes(widget.name).length > 1 && (
                 <ActionIcon
                   variant="light"
                   size="sm"
                   aria-label={`Resize ${widget.name}`}
                   style={{ position: 'absolute', top: 4, right: 4, zIndex: 2 }}
-                  onClick={() => setResized(nextSize(resized, position, widget.name))}
+                  onClick={() => setResized(nextSize(resized, id, widget.name))}
                 >
                   <ArrowsOutSimpleIcon size={14} />
                 </ActionIcon>
               )}
               {registry.render(widget.name, widget.props)}
             </WidgetCell>
-          ))}
+            )
+          })}
         </WidgetGrid>
       </Stack>
       <PageBar
@@ -192,6 +217,7 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
         activeId={activeId}
         config={config}
         onSelect={setActiveId}
+        onArrange={editing ? () => setOrder(arrange(order, (id) => widgetShape(allWidgets[id].name, resized[id]))) : undefined}
         onAdd={() => setTabs([...tabs, { id: `board-${tabs.length + 1}`, name: `Board ${tabs.length + 1}` }])}
         onConfigChange={onConfigChange}
       />

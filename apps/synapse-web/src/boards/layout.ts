@@ -1,4 +1,6 @@
+import { arrange, widgetShape } from '@sami/ui'
 import type { SizeName } from '@sami/ui'
+import { catalog } from '../catalog/catalog'
 import type { BoardWidget } from './boardStore'
 
 export const addWidget = (widgets: BoardWidget[], catalogId: string): BoardWidget[] => [
@@ -33,3 +35,6 @@ export const resizeWidget = (widgets: BoardWidget[], id: string, allowed: SizeNa
     const next = allowed[(allowed.indexOf(widget.size ?? allowed[0]) + 1) % allowed.length]
     return { ...widget, size: next }
   })
+
+export const arrangeWidgets = (widgets: BoardWidget[]) =>
+  arrange(widgets, (widget) => widgetShape(catalog.find((entry) => entry.id === widget.catalogId)?.widget ?? '', widget.size))

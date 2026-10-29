@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryHistory } from '@tanstack/react-router'
 import { UiProvider, synapsePalette } from '@sami/ui'
@@ -104,8 +104,9 @@ describe('edit mode', () => {
     const first = (await screen.findByRole('button', { name: 'Remove Top customers' })).closest('[draggable]')!
     const second = screen.getByRole('button', { name: 'Remove Top materials' }).closest('[draggable]')!
     fireEvent.dragStart(first)
-    fireEvent.dragOver(second)
-    fireEvent.drop(second)
+    await act(() => new Promise((resolve) => setTimeout(resolve)))
+    fireEvent.dragEnter(second)
+    fireEvent.dragEnd(first)
     await waitFor(async () => expect((await store.list())[0].widgets.map((w) => w.id)).toEqual(['w2', 'w1']))
   })
 

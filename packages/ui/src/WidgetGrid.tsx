@@ -19,8 +19,11 @@ const allowed = new Map(registry.describe().map((entry) => [entry.name, entry.si
 
 export const allowedSizes = (widget: string): SizeName[] => allowed.get(widget) ?? []
 
+export const widgetShape = (widget: string, size?: SizeName) =>
+  sizes[size && allowedSizes(widget).includes(size) ? size : (allowedSizes(widget)[0] ?? 'medium')]
+
 export function WidgetCell({ widget, size, editing, dragging, children, ...rest }: WidgetCellProps) {
-  const { w, h } = sizes[size && allowedSizes(widget).includes(size) ? size : (allowedSizes(widget)[0] ?? 'medium')]
+  const { w, h } = widgetShape(widget, size)
   return (
     <div
       {...rest}
