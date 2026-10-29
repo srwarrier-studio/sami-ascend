@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { ActionIcon, ArrowLeftIcon, ArrowRightIcon, TrashIcon, WidgetCell, WidgetGrid } from '@sami/ui'
+import { ActionIcon, ArrowLeftIcon, ArrowRightIcon, ArrowsOutSimpleIcon, TrashIcon, WidgetCell, WidgetGrid, allowedSizes } from '@sami/ui'
 import { CatalogWidget } from '../catalog/CatalogWidget'
 import { catalog } from '../catalog/catalog'
 import type { SalesData } from '../data/salesData'
 import type { BoardWidget } from './boardStore'
-import { dropWidget, moveWidget, removeWidget } from './layout'
+import { dropWidget, moveWidget, removeWidget, resizeWidget } from './layout'
 import classes from './Board.module.css'
 
 type BoardGridProps = {
@@ -27,6 +27,7 @@ export function BoardGrid({ widgets, data, editing, onChange }: BoardGridProps) 
           <WidgetCell
             key={widget.id}
             widget={entry.widget}
+            size={widget.size}
             editing={editing}
             dragging={dragging === widget.id}
             draggable={editing}
@@ -46,6 +47,11 @@ export function BoardGrid({ widgets, data, editing, onChange }: BoardGridProps) 
                 <ActionIcon variant="light" size="sm" aria-label={`Move ${entry.title} later`} onClick={() => onChange(moveWidget(widgets, widget.id, 1))}>
                   <ArrowRightIcon size={14} />
                 </ActionIcon>
+                {allowedSizes(entry.widget).length > 1 && (
+                  <ActionIcon variant="light" size="sm" aria-label={`Resize ${entry.title}`} onClick={() => onChange(resizeWidget(widgets, widget.id, allowedSizes(entry.widget)))}>
+                    <ArrowsOutSimpleIcon size={14} />
+                  </ActionIcon>
+                )}
                 <ActionIcon variant="light" color="red" size="sm" aria-label={`Remove ${entry.title}`} onClick={() => onChange(removeWidget(widgets, widget.id))}>
                   <TrashIcon size={14} />
                 </ActionIcon>

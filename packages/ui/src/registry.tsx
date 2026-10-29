@@ -8,6 +8,7 @@ import { DonutChart, GaugeChart } from './polarCharts'
 import { helpText } from './help'
 import type { WidgetName } from './help'
 import { sized } from './sizes'
+import type { SizeName } from './sizes'
 import { DataTable, KpiCard, RankedList } from './widgets'
 
 const valueFormat = z.enum(['number', 'currency', 'percent']).optional()
@@ -15,12 +16,10 @@ const point = z.object({ label: z.string(), value: z.number() })
 const info = z.string().optional()
 const measure = z.string().optional()
 
-type Size = { minW: number; minH: number; defaultW: number; defaultH: number }
-
 type Entry = {
   description: string
   schema: z.ZodType
-  size: Size
+  sizes: SizeName[]
   component: (props: never) => ReactElement
 }
 
@@ -38,13 +37,13 @@ const entries: Record<string, Entry> = {
       caption: z.string().optional(),
       trend: z.array(z.number()).optional(),
     }),
-    size: sized('kpi'),
+    sizes: ['kpi'],
     component: KpiCard,
   },
   RankedList: {
     description: 'Items ranked from highest to lowest value, such as top customers or materials.',
     schema: z.object({ title: z.string(), info, measure, items: z.array(point), valueFormat }),
-    size: sized('small'),
+    sizes: ['small', 'medium'],
     component: RankedList,
   },
   DataTable: {
@@ -62,7 +61,7 @@ const entries: Record<string, Entry> = {
       ),
       rows: z.array(z.record(z.string(), z.union([z.string(), z.number(), z.null()]))),
     }),
-    size: sized('large'),
+    sizes: ['large'],
     component: DataTable,
   },
   LineChart: {
@@ -78,13 +77,13 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: sized('medium'),
+    sizes: ['medium', 'large'],
     component: LineChart,
   },
   AreaChart: {
     description: 'A filled trend over ordered labels, such as cumulative sales or volume per day.',
     schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat }),
-    size: sized('medium'),
+    sizes: ['medium', 'large'],
     component: AreaChart,
   },
   StackedBarChart: {
@@ -97,7 +96,7 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: sized('medium'),
+    sizes: ['medium', 'large'],
     component: StackedBarChart,
   },
   HeatmapChart: {
@@ -109,7 +108,7 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: sized('large'),
+    sizes: ['medium', 'large'],
     component: HeatmapChart,
   },
   CalendarHeatmapChart: {
@@ -121,7 +120,7 @@ const entries: Record<string, Entry> = {
       measure,
       valueFormat,
     }),
-    size: sized('large'),
+    sizes: ['large'],
     component: CalendarHeatmapChart,
   },
   DonutChart: {
@@ -134,19 +133,19 @@ const entries: Record<string, Entry> = {
         .array(z.object({ label: z.string(), value: z.number().nonnegative(), tone: z.enum(['positive', 'caution', 'negative', 'neutral']).optional() }))
         .refine((slices) => slices.reduce((sum, slice) => sum + slice.value, 0) > 0),
     }),
-    size: sized('small'),
+    sizes: ['small', 'medium'],
     component: DonutChart,
   },
   GaugeChart: {
     description: 'One value against a target as a progress ring, such as month-to-date sales against the monthly target.',
     schema: z.object({ title: z.string().optional(), info, measure, value: z.number(), target: z.number().positive(), valueFormat, caption: z.string().optional() }),
-    size: sized('small'),
+    sizes: ['small', 'medium'],
     component: GaugeChart,
   },
   BarChart: {
     description: 'Bars per label, such as sales by customer or by material.',
     schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat }),
-    size: sized('medium'),
+    sizes: ['medium', 'large'],
     component: BarChart,
   },
 }
@@ -169,7 +168,8 @@ export const registry = {
       name,
       description: entry.description,
       schema: z.toJSONSchema(entry.schema),
-      size: entry.size,
+      size: sized(entry.sizes[0]),
+      sizes: entry.sizes,
       help: helpText(name as WidgetName),
     }))
   },

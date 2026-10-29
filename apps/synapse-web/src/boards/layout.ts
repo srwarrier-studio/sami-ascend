@@ -1,3 +1,4 @@
+import type { SizeName } from '@sami/ui'
 import type { BoardWidget } from './boardStore'
 
 export const addWidget = (widgets: BoardWidget[], catalogId: string): BoardWidget[] => [
@@ -25,3 +26,10 @@ export const dropWidget = (widgets: BoardWidget[], draggedId: string, targetId: 
   next.splice(to, 0, dragged)
   return next
 }
+
+export const resizeWidget = (widgets: BoardWidget[], id: string, allowed: SizeName[]) =>
+  widgets.map((widget) => {
+    if (widget.id !== id) return widget
+    const next = allowed[(allowed.indexOf(widget.size ?? allowed[0]) + 1) % allowed.length]
+    return { ...widget, size: next }
+  })

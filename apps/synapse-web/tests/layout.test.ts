@@ -1,4 +1,4 @@
-import { addWidget, dropWidget, moveWidget, removeWidget } from '../src/boards/layout'
+import { addWidget, dropWidget, moveWidget, removeWidget, resizeWidget } from '../src/boards/layout'
 
 const widgets = [
   { id: 'a', catalogId: 'x' },
@@ -37,5 +37,19 @@ describe('board layout', () => {
   it('ignores a drop onto itself or an unknown id', () => {
     expect(dropWidget(widgets, 'a', 'a')).toBe(widgets)
     expect(dropWidget(widgets, 'a', 'nope')).toBe(widgets)
+  })
+})
+
+describe('resizing a widget', () => {
+  const allowed: ('medium' | 'large')[] = ['medium', 'large']
+
+  it('moves to the next allowed size and wraps to the first', () => {
+    const large = resizeWidget(widgets, 'a', allowed)
+    expect(large[0].size).toBe('large')
+    expect(resizeWidget(large, 'a', allowed)[0].size).toBe('medium')
+  })
+
+  it('leaves other widgets alone', () => {
+    expect(resizeWidget(widgets, 'a', allowed)[1]).toBe(widgets[1])
   })
 })
