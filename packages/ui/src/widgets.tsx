@@ -1,7 +1,11 @@
-import { Card, Group, Stack, Table, Text, Title } from '@mantine/core'
+import { Card, Group, Progress, Stack, Table, Text, Title } from '@mantine/core'
 import { ArrowDownIcon, ArrowUpIcon } from '@phosphor-icons/react'
 import { formatDelta, formatValue } from './format'
+import { help } from './help'
 import { Sparkline } from './Sparkline'
+import { statusTone } from './status'
+import { WidgetTitle } from './WidgetTitle'
+import classes from './Widgets.module.css'
 import type { ValueFormat } from './format'
 
 export type KpiCardProps = {
@@ -11,14 +15,15 @@ export type KpiCardProps = {
   delta?: number
   caption?: string
   trend?: number[]
+  info?: string
 }
 
-export function KpiCard({ title, value, valueFormat, delta, caption, trend }: KpiCardProps) {
+export function KpiCard({ title, value, valueFormat, delta, caption, trend, info }: KpiCardProps) {
   const rising = delta !== undefined && delta >= 0
   const Arrow = rising ? ArrowUpIcon : ArrowDownIcon
   return (
     <Card>
-      <Text c="dimmed">{title}</Text>
+      <WidgetTitle title={title} help={help.KpiCard} info={info} label />
       <Group justify="space-between" align="flex-end" wrap="nowrap">
         <Stack gap={0}>
           <Title order={2}>{formatValue(value, valueFormat)}</Title>
@@ -42,21 +47,26 @@ export type RankedListProps = {
   title: string
   items: { label: string; value: number }[]
   valueFormat?: ValueFormat
+  info?: string
 }
 
-export function RankedList({ title, items, valueFormat }: RankedListProps) {
+export function RankedList({ title, items, valueFormat, info }: RankedListProps) {
+  const top = Math.max(0, ...items.map((item) => item.value))
   return (
     <Card>
-      <Title order={4}>{title}</Title>
+      <WidgetTitle title={title} help={help.RankedList} info={info} />
       {items.length === 0 ? (
         <Text c="dimmed">No data</Text>
       ) : (
-        <Stack>
+        <Stack gap="sm">
           {items.map((item, index) => (
-            <Group key={item.label} justify="space-between">
-              <Text>{`${index + 1}. ${item.label}`}</Text>
-              <Text fw={600}>{formatValue(item.value, valueFormat)}</Text>
-            </Group>
+            <Stack key={item.label} gap={4}>
+              <Group justify="space-between">
+                <Text>{`${index + 1}. ${item.label}`}</Text>
+                <Text fw={600}>{formatValue(item.value, valueFormat)}</Text>
+              </Group>
+              <Progress value={top > 0 ? (Math.max(0, item.value) / top) * 100 : 0} size="xs" radius="xl" aria-label={item.label} />
+            </Stack>
           ))}
         </Stack>
       )}
@@ -64,24 +74,28 @@ export function RankedList({ title, items, valueFormat }: RankedListProps) {
   )
 }
 
-export type DataTableColumn = { key: string; label: string; format?: ValueFormat | 'text' }
+export type DataTableColumn = { key: string; label: string; format?: ValueFormat | 'text' | 'status' }
 
 export type DataTableProps = {
   title?: string
+  info?: string
   columns: DataTableColumn[]
   rows: Record<string, string | number | null>[]
 }
 
+const isNumeric = (format: DataTableColumn['format']) => format === 'number' || format === 'currency' || format === 'percent'
+
 function cell(value: string | number | null | undefined, format: DataTableColumn['format']) {
   if (value === null || value === undefined) return ''
+  if (format === 'status') return <span className={classes.pill} data-tone={statusTone(String(value))}>{String(value)}</span>
   if (typeof value === 'number' && format && format !== 'text') return formatValue(value, format)
   return String(value)
 }
 
-export function DataTable({ title, columns, rows }: DataTableProps) {
+export function DataTable({ title, info, columns, rows }: DataTableProps) {
   return (
     <Card>
-      {title && <Title order={4}>{title}</Title>}
+      <WidgetTitle title={title} help={help.DataTable} info={info} />
       {rows.length === 0 ? (
         <Text c="dimmed">No data</Text>
       ) : (
@@ -89,7 +103,9 @@ export function DataTable({ title, columns, rows }: DataTableProps) {
           <Table.Thead>
             <Table.Tr>
               {columns.map((column) => (
-                <Table.Th key={column.key}>{column.label}</Table.Th>
+                <Table.Th key={column.key} ta={isNumeric(column.format) ? 'right' : undefined}>
+                  {column.label}
+                </Table.Th>
               ))}
             </Table.Tr>
           </Table.Thead>
@@ -97,7 +113,9 @@ export function DataTable({ title, columns, rows }: DataTableProps) {
             {rows.map((row, index) => (
               <Table.Tr key={index}>
                 {columns.map((column) => (
-                  <Table.Td key={column.key}>{cell(row[column.key], column.format)}</Table.Td>
+                  <Table.Td key={column.key} ta={isNumeric(column.format) ? 'right' : undefined}>
+                    {cell(row[column.key], column.format)}
+                  </Table.Td>
                 ))}
               </Table.Tr>
             ))}

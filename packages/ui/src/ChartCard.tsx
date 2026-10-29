@@ -1,10 +1,14 @@
 import './charts.css'
 import { Chart } from '@tanstack/charts/react'
-import { Card, Text, Title } from '@mantine/core'
+import { Card, Text } from '@mantine/core'
 import type { ComponentProps, ReactNode } from 'react'
+import type { Help } from './help'
+import { WidgetTitle } from './WidgetTitle'
 
 type ChartCardProps = {
   title?: string
+  help: Help
+  info?: string
   empty: boolean
   definition?: ComponentProps<typeof Chart>['definition']
   label: string
@@ -14,10 +18,10 @@ type ChartCardProps = {
 
 const INITIAL_WIDTH = 640
 
-export function ChartCard({ title, empty, definition, label, height, footer }: ChartCardProps) {
+export function ChartCard({ title, help, info, empty, definition, label, height, footer }: ChartCardProps) {
   return (
     <Card>
-      {title && <Title order={4}>{title}</Title>}
+      <WidgetTitle title={title} help={help} info={info} />
       {empty || !definition ? (
         <Text c="dimmed">No data</Text>
       ) : (

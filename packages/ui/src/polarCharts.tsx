@@ -5,6 +5,7 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { Text } from '@mantine/core'
 import { useMemo } from 'react'
 import { ChartCard } from './ChartCard'
+import { help } from './help'
 import { formatValue } from './format'
 import type { ValueFormat } from './format'
 import classes from './PolarCharts.module.css'
@@ -12,8 +13,8 @@ import classes from './PolarCharts.module.css'
 export type Tone = 'positive' | 'caution' | 'negative' | 'neutral'
 export type DonutSlice = { label: string; value: number; tone?: Tone }
 
-export type DonutChartProps = { slices: DonutSlice[]; title?: string }
-export type GaugeChartProps = { value: number; target: number; title?: string; valueFormat?: ValueFormat; caption?: string }
+export type DonutChartProps = { slices: DonutSlice[]; title?: string; info?: string }
+export type GaugeChartProps = { value: number; target: number; title?: string; info?: string; valueFormat?: ValueFormat; caption?: string }
 
 const DONUT_HEIGHT = 220
 const GAUGE_HEIGHT = 180
@@ -63,12 +64,14 @@ function donutDefinition(slices: DonutSlice[]) {
   })
 }
 
-export function DonutChart({ slices, title }: DonutChartProps) {
+export function DonutChart({ slices, title, info }: DonutChartProps) {
   const sum = total(slices)
   const definition = useMemo(() => (sum > 0 ? donutDefinition(slices) : undefined), [slices, sum])
   return (
     <ChartCard
       title={title}
+      help={help.DonutChart}
+      info={info}
       empty={!definition}
       definition={definition}
       label="donut chart"
@@ -122,11 +125,13 @@ function gaugeDefinition(value: number, target: number) {
   })
 }
 
-export function GaugeChart({ value, target, title, valueFormat, caption }: GaugeChartProps) {
+export function GaugeChart({ value, target, title, info, valueFormat, caption }: GaugeChartProps) {
   const definition = useMemo(() => (target > 0 ? gaugeDefinition(value, target) : undefined), [value, target])
   return (
     <ChartCard
       title={title}
+      help={help.GaugeChart}
+      info={info}
       empty={!definition}
       definition={definition}
       label="gauge"

@@ -6,6 +6,7 @@ import { scalePoint } from '@tanstack/charts/scales/point'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { useMemo } from 'react'
 import { ChartCard } from './ChartCard'
+import { help } from './help'
 import { formatCompact } from './format'
 import type { ValueFormat } from './format'
 
@@ -14,6 +15,7 @@ export type ChartPointData = { label: string; value: number }
 export type ChartProps = {
   data: ChartPointData[]
   title?: string
+  info?: string
   valueFormat?: ValueFormat
 }
 
@@ -29,6 +31,7 @@ export type StackedBarChartProps = {
   series: StackedSeries[]
   layout?: 'stacked' | 'grouped'
   title?: string
+  info?: string
   valueFormat?: ValueFormat
 }
 
@@ -113,29 +116,31 @@ function stackedDefinition({ series, layout = 'stacked', valueFormat }: StackedB
   })
 }
 
-export function LineChart({ data, title, valueFormat, compare, label, compareLabel }: LineChartProps) {
+export function LineChart({ data, title, info, valueFormat, compare, label, compareLabel }: LineChartProps) {
   const definition = useMemo(
     () => lineDefinition({ data, valueFormat, compare, label, compareLabel }),
     [data, valueFormat, compare, label, compareLabel],
   )
-  return <ChartCard title={title} empty={data.length === 0} definition={definition} label="line chart" height={CHART_HEIGHT} />
+  return <ChartCard title={title} help={help.LineChart} info={info} empty={data.length === 0} definition={definition} label="line chart" height={CHART_HEIGHT} />
 }
 
-export function BarChart({ data, title, valueFormat }: ChartProps) {
+export function BarChart({ data, title, info, valueFormat }: ChartProps) {
   const definition = useMemo(() => barDefinition({ data, valueFormat }), [data, valueFormat])
-  return <ChartCard title={title} empty={data.length === 0} definition={definition} label="bar chart" height={CHART_HEIGHT} />
+  return <ChartCard title={title} help={help.BarChart} info={info} empty={data.length === 0} definition={definition} label="bar chart" height={CHART_HEIGHT} />
 }
 
-export function AreaChart({ data, title, valueFormat }: ChartProps) {
+export function AreaChart({ data, title, info, valueFormat }: ChartProps) {
   const definition = useMemo(() => areaDefinition({ data, valueFormat }), [data, valueFormat])
-  return <ChartCard title={title} empty={data.length === 0} definition={definition} label="area chart" height={CHART_HEIGHT} />
+  return <ChartCard title={title} help={help.AreaChart} info={info} empty={data.length === 0} definition={definition} label="area chart" height={CHART_HEIGHT} />
 }
 
-export function StackedBarChart({ series, layout, title, valueFormat }: StackedBarChartProps) {
+export function StackedBarChart({ series, layout, title, info, valueFormat }: StackedBarChartProps) {
   const definition = useMemo(() => stackedDefinition({ series, layout, valueFormat }), [series, layout, valueFormat])
   return (
     <ChartCard
       title={title}
+      help={help.StackedBarChart}
+      info={info}
       empty={series.every((part) => part.data.length === 0)}
       definition={definition}
       label="stacked bar chart"
