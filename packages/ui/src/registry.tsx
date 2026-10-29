@@ -1,11 +1,18 @@
 import { Card, Text } from '@mantine/core'
 import type { ReactElement } from 'react'
 import { z } from 'zod'
-import { BarChart, LineChart } from './charts'
+import { AreaChart, BarChart, LineChart, StackedBarChart } from './charts'
+import { CalendarHeatmapChart } from './calendarChart'
+import { HeatmapChart } from './heatmapChart'
+import { DonutChart, GaugeChart } from './polarCharts'
+import { helpText } from './help'
+import type { WidgetName } from './help'
 import { DataTable, KpiCard, RankedList } from './widgets'
 
 const valueFormat = z.enum(['number', 'currency', 'percent']).optional()
 const point = z.object({ label: z.string(), value: z.number() })
+const info = z.string().optional()
+const measure = z.string().optional()
 
 type Size = { minW: number; minH: number; defaultW: number; defaultH: number }
 
@@ -18,20 +25,24 @@ type Entry = {
 
 const entries: Record<string, Entry> = {
   KpiCard: {
-    description: 'One headline number with an optional change versus the previous period (a fraction, 0.05 is +5%).',
+    description:
+      'One headline number with an optional change versus the previous period (a fraction, 0.05 is +5%) and an optional trend of recent values drawn as a sparkline.',
     schema: z.object({
       title: z.string(),
+      info,
+      measure,
       value: z.number(),
       valueFormat,
       delta: z.number().optional(),
       caption: z.string().optional(),
+      trend: z.array(z.number()).optional(),
     }),
     size: { minW: 2, minH: 2, defaultW: 3, defaultH: 2 },
     component: KpiCard,
   },
   RankedList: {
     description: 'Items ranked from highest to lowest value, such as top customers or materials.',
-    schema: z.object({ title: z.string(), items: z.array(point), valueFormat }),
+    schema: z.object({ title: z.string(), info, measure, items: z.array(point), valueFormat }),
     size: { minW: 3, minH: 3, defaultW: 4, defaultH: 4 },
     component: RankedList,
   },
@@ -39,11 +50,13 @@ const entries: Record<string, Entry> = {
     description: 'A table of rows, such as recent high-value sales. Each column picks a key from the rows.',
     schema: z.object({
       title: z.string().optional(),
+      info,
+      measure,
       columns: z.array(
         z.object({
           key: z.string(),
           label: z.string(),
-          format: z.enum(['text', 'number', 'currency', 'percent']).optional(),
+          format: z.enum(['text', 'number', 'currency', 'percent', 'status']).optional(),
         }),
       ),
       rows: z.array(z.record(z.string(), z.union([z.string(), z.number(), z.null()]))),
@@ -52,14 +65,86 @@ const entries: Record<string, Entry> = {
     component: DataTable,
   },
   LineChart: {
-    description: 'A line over ordered labels, such as sales per day or per month.',
-    schema: z.object({ data: z.array(point), title: z.string().optional(), valueFormat }),
+    description:
+      'A line over ordered labels, such as sales per day or per month. An optional compare series shows the previous period behind it.',
+    schema: z.object({
+      data: z.array(point),
+      compare: z.array(point).optional(),
+      label: z.string().optional(),
+      compareLabel: z.string().optional(),
+      title: z.string().optional(),
+      info,
+      measure,
+      valueFormat,
+    }),
     size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
     component: LineChart,
   },
+  AreaChart: {
+    description: 'A filled trend over ordered labels, such as cumulative sales or volume per day.',
+    schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat }),
+    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    component: AreaChart,
+  },
+  StackedBarChart: {
+    description: 'Bars split into named parts, such as sales by status per month. Layout is stacked (default) or grouped side by side.',
+    schema: z.object({
+      series: z.array(z.object({ name: z.string(), data: z.array(point) })),
+      layout: z.enum(['stacked', 'grouped']).optional(),
+      title: z.string().optional(),
+      info,
+      measure,
+      valueFormat,
+    }),
+    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    component: StackedBarChart,
+  },
+  HeatmapChart: {
+    description: 'An intensity grid for a value over two named axes, such as sales by weekday and hour or by customer and month.',
+    schema: z.object({
+      cells: z.array(z.object({ row: z.string(), column: z.string(), value: z.number() })),
+      title: z.string().optional(),
+      info,
+      measure,
+      valueFormat,
+    }),
+    size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
+    component: HeatmapChart,
+  },
+  CalendarHeatmapChart: {
+    description: 'A year calendar with one cell per day, shaded by value, such as sales per day. Shows which months and days were busy or quiet. Dates are YYYY-MM-DD.',
+    schema: z.object({
+      days: z.array(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), value: z.number() })),
+      title: z.string().optional(),
+      info,
+      measure,
+      valueFormat,
+    }),
+    size: { minW: 6, minH: 3, defaultW: 12, defaultH: 4 },
+    component: CalendarHeatmapChart,
+  },
+  DonutChart: {
+    description: 'Shares of a whole, such as invoices by status. A slice may carry a tone: positive, caution, negative or neutral.',
+    schema: z.object({
+      title: z.string().optional(),
+      info,
+      measure,
+      slices: z
+        .array(z.object({ label: z.string(), value: z.number().nonnegative(), tone: z.enum(['positive', 'caution', 'negative', 'neutral']).optional() }))
+        .refine((slices) => slices.reduce((sum, slice) => sum + slice.value, 0) > 0),
+    }),
+    size: { minW: 3, minH: 4, defaultW: 4, defaultH: 5 },
+    component: DonutChart,
+  },
+  GaugeChart: {
+    description: 'One value against a target as a progress ring, such as month-to-date sales against the monthly target.',
+    schema: z.object({ title: z.string().optional(), info, measure, value: z.number(), target: z.number().positive(), valueFormat, caption: z.string().optional() }),
+    size: { minW: 3, minH: 3, defaultW: 3, defaultH: 4 },
+    component: GaugeChart,
+  },
   BarChart: {
     description: 'Bars per label, such as sales by customer or by material.',
-    schema: z.object({ data: z.array(point), title: z.string().optional(), valueFormat }),
+    schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat }),
     size: { minW: 4, minH: 3, defaultW: 6, defaultH: 4 },
     component: BarChart,
   },
@@ -84,6 +169,7 @@ export const registry = {
       description: entry.description,
       schema: z.toJSONSchema(entry.schema),
       size: entry.size,
+      help: helpText(name as WidgetName),
     }))
   },
 

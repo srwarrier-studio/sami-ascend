@@ -1,19 +1,4 @@
-import {
-  BarChart,
-  Button,
-  DataTable,
-  Divider,
-  Group,
-  KpiCard,
-  LineChart,
-  PageHeader,
-  PencilSimpleIcon,
-  PlusIcon,
-  RankedList,
-  SimpleGrid,
-  SparkleIcon,
-  Stack,
-} from '../src'
+import { Button, Divider, Group, PageHeader, PencilSimpleIcon, PlusIcon, registry, SimpleGrid, SparkleIcon, Stack } from '../src'
 
 const months = [
   ['Nov', 2.1],
@@ -34,6 +19,36 @@ const days = Array.from({ length: 14 }, (_, index) => ({
   label: String(index + 15),
   value: Math.round((1.4 + index * 0.03 + Math.sin(index * 0.9) * 0.35) * 1000000),
 }))
+
+const lastMonth = days.map((point, index) => ({
+  label: point.label,
+  value: Math.round((1.2 + index * 0.015 + Math.sin(index * 0.7 + 1) * 0.3) * 1000000),
+}))
+
+const cumulative = days.map((point, index) => ({
+  label: point.label,
+  value: days.slice(0, index + 1).reduce((sum, day) => sum + day.value, 0),
+}))
+
+const byStatus = [
+  { name: 'Paid', data: [['Aug', 1.9], ['Sep', 2.1], ['Oct', 2.0]] },
+  { name: 'Open', data: [['Aug', 0.8], ['Sep', 0.8], ['Oct', 1.0]] },
+  { name: 'Overdue', data: [['Aug', 0.3], ['Sep', 0.3], ['Oct', 0.4]] },
+].map(({ name, data }) => ({ name, data: data.map(([label, value]) => ({ label: String(label), value: Number(value) * 1000000 })) }))
+
+const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+const hours = ['9am', '10am', '11am', '12pm', '1pm', '2pm']
+const busy = weekdays.flatMap((row, rowIndex) =>
+  hours.map((column, columnIndex) => ({ row, column, value: Math.round(40 + 30 * Math.sin(columnIndex * 0.9 + rowIndex) + rowIndex * 4) })),
+)
+
+const yearOfSales = Array.from({ length: 360 }, (_, index) => {
+  const time = Date.UTC(2025, 10, 3) + index * 86400000
+  const weekday = (new Date(time).getUTCDay() + 6) % 7
+  const season = 1 + 0.35 * Math.sin((index / 360) * Math.PI * 2 + 1)
+  const noise = 0.75 + 0.5 * Math.abs(Math.sin(index * 12.9898) * 43758.5453 % 1)
+  return { date: new Date(time).toISOString().slice(0, 10), value: Math.round((weekday < 5 ? 90000 : 18000) * season * noise) }
+})
 
 const customers = [
   { label: 'Northwind Trading', value: 412000 },
@@ -58,6 +73,58 @@ const sales = [
   { invoice: 'INV-20399', customer: 'Kestrel Logistics', status: 'Paid', amount: 58780 },
 ]
 
+const salesColumns = [
+  { key: 'invoice', label: 'Invoice', format: 'text' },
+  { key: 'customer', label: 'Customer', format: 'text' },
+  { key: 'status', label: 'Status', format: 'status' },
+  { key: 'amount', label: 'Amount', format: 'currency' },
+]
+
+type Row = { cols: object; widgets: { name: string; props: object }[] }
+
+export const dashboardRows: Row[] = [
+  {
+    cols: { base: 1, sm: 2, lg: 4 },
+    widgets: [
+      { name: 'KpiCard', props: { title: 'Sales this month', measure: 'sales', value: 3400000, valueFormat: 'currency', delta: 0.062, caption: 'vs last month', trend: [2.1, 2.3, 2.2, 2.6, 2.8, 2.7, 3.0, 3.4], info: 'Net invoiced sales since the 1st of this month.' } },
+      { name: 'KpiCard', props: { title: 'Invoices', measure: 'invoices', value: 1284, delta: 0.031, caption: 'Raised this month', trend: [1100, 1150, 1120, 1210, 1180, 1250, 1284] } },
+      { name: 'KpiCard', props: { title: 'Active customers', measure: 'customers', value: 312, caption: '9 new this month', trend: [290, 296, 301, 303, 308, 312] } },
+      { name: 'KpiCard', props: { title: 'Average invoice', measure: 'the average invoice value', value: 2648, valueFormat: 'currency', delta: -0.014, caption: 'vs last month', trend: [2750, 2700, 2720, 2680, 2660, 2648] } },
+    ],
+  },
+  {
+    cols: { base: 1, lg: 2 },
+    widgets: [
+      { name: 'LineChart', props: { title: 'Day sales', measure: 'sales', data: days, compare: lastMonth, label: 'This month', compareLabel: 'Last month', valueFormat: 'currency' } },
+      { name: 'BarChart', props: { title: 'Month-on-month sales', measure: 'sales', data: months, valueFormat: 'currency' } },
+    ],
+  },
+  {
+    cols: { base: 1, sm: 2, lg: 3 },
+    widgets: [
+      { name: 'DonutChart', props: { title: 'Invoice status', measure: 'invoices', slices: [{ label: 'Paid', value: 58, tone: 'positive' }, { label: 'Open', value: 27 }, { label: 'Overdue', value: 15, tone: 'negative' }] } },
+      { name: 'GaugeChart', props: { title: 'Month target', measure: 'sales', value: 3400000, target: 5000000, valueFormat: 'currency', caption: 'this month' } },
+      { name: 'AreaChart', props: { title: 'Cumulative sales', measure: 'sales', data: cumulative, valueFormat: 'currency' } },
+    ],
+  },
+  { cols: { base: 1 }, widgets: [{ name: 'CalendarHeatmapChart', props: { title: 'Sales per day', measure: 'sales', days: yearOfSales, valueFormat: 'currency' } }] },
+  {
+    cols: { base: 1, lg: 2 },
+    widgets: [
+      { name: 'StackedBarChart', props: { title: 'Sales by invoice status', measure: 'sales', series: byStatus, valueFormat: 'currency' } },
+      { name: 'HeatmapChart', props: { title: 'Orders by weekday and hour', measure: 'orders', cells: busy } },
+    ],
+  },
+  {
+    cols: { base: 1, lg: 3 },
+    widgets: [
+      { name: 'RankedList', props: { title: 'Top customers', measure: 'sales', items: customers, valueFormat: 'currency' } },
+      { name: 'RankedList', props: { title: 'Top materials', measure: 'sales', items: materials, valueFormat: 'currency' } },
+      { name: 'DataTable', props: { title: 'Recent high-value sales', columns: salesColumns, rows: sales } },
+    ],
+  },
+]
+
 export function DashboardDemo() {
   return (
     <>
@@ -67,7 +134,7 @@ export function DashboardDemo() {
         actions={
           <Group>
             <Button variant="default" leftSection={<PencilSimpleIcon size={16} />}>
-              Edit layout
+              Edit
             </Button>
             <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />}>
               AI Mode
@@ -77,30 +144,13 @@ export function DashboardDemo() {
         }
       />
       <Stack p="md">
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }}>
-          <KpiCard title="Sales this month" value={3400000} valueFormat="currency" delta={0.062} caption="vs last month" />
-          <KpiCard title="Invoices" value={1284} delta={0.031} caption="Raised this month" />
-          <KpiCard title="Active customers" value={312} caption="9 new this month" />
-          <KpiCard title="Average invoice" value={2648} valueFormat="currency" delta={-0.014} caption="vs last month" />
-        </SimpleGrid>
-        <SimpleGrid cols={{ base: 1, lg: 2 }}>
-          <LineChart title="Day sales" data={days} valueFormat="currency" />
-          <BarChart title="Month-on-month sales" data={months} valueFormat="currency" />
-        </SimpleGrid>
-        <SimpleGrid cols={{ base: 1, lg: 3 }}>
-          <RankedList title="Top customers" items={customers} valueFormat="currency" />
-          <RankedList title="Top materials" items={materials} valueFormat="currency" />
-          <DataTable
-            title="Recent high-value sales"
-            columns={[
-              { key: 'invoice', label: 'Invoice', format: 'text' },
-              { key: 'customer', label: 'Customer', format: 'text' },
-              { key: 'status', label: 'Status', format: 'text' },
-              { key: 'amount', label: 'Amount', format: 'currency' },
-            ]}
-            rows={sales}
-          />
-        </SimpleGrid>
+        {dashboardRows.map((row, index) => (
+          <SimpleGrid key={index} cols={row.cols}>
+            {row.widgets.map((widget, position) => (
+              <div key={position}>{registry.render(widget.name, widget.props)}</div>
+            ))}
+          </SimpleGrid>
+        ))}
         <Divider />
         <Group gap="xs" aria-label="Board pages" role="group">
           <Button variant="light" size="xs">

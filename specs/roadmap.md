@@ -21,7 +21,8 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 06 ui-kit: `packages/ui` with the Mantine provider, shared styling and wrappers every web app imports (each app supplies only its own color palette), plus a TanStack Charts wrapper and a short size and memory comparison against Recharts. done (tag `shared-phase-06-done`, 2026-10-27)
 - 07 conventions-alignment: bring every app in line with the owner's conventions. At the start the agent asks the owner what to align (known so far: HTTP routers, schemas and deps under `infrastructure/api/<domain>/`, pydantic-settings, application ports moving to the 5xxx series), then updates the constitution or conventions file from the answers before touching code. Best done after synapse-api 04 and before auth-api 01-03 add more routes. todo
 - 08 ui-soft-theme: bring the approved soft look into `@sami/ui`: token source with palette presets, soft radius, a motion switch (full for synapse, minimal for workspace), and the rounded pill app shell. The kitchen sink playground shows every component and the theme switches. done (tag `shared-phase-08-done`, 2026-10-28).
-- 09 ui-kitchen-sink-parity: launch screens (splash, sign-in), a sample dashboard from the `@sami/ui` widgets in the top layout, and a screenshot comparison of the playground with the approved Synapse kitchen sink artifact, every difference listed for the owner. Depends on shared 08. todo
+- 09 ui-chart-widgets: one standardized set of chart and data widgets (line, area, bar, stacked bar, donut, gauge, heatmap, calendar heatmap, KPI with sparkline, ranked list, table) registered in `@sami/ui`, with a sample dashboard page in the playground showing every chart type, an info popover on every widget and a `measure` prop to word it. Depends on shared 08. done (tag `shared-phase-09-done`, 2026-10-29).
+- 10 ui-parity-check: soft page header and alerts, launch screens, a widget catalog section, a `PageBar` of board tabs fixed at the bottom (three visible, the rest scroll, + Add, rename in Edit mode, quick config for palette, light or dark and motion), and a screenshot comparison of the playground with the approved Synapse kitchen sink artifact, every difference listed for the owner. Depends on shared 09. todo
 
 ## butterfly (mock SAP, FastAPI, OData V4)
 - 01 scaffold-sales-read: serve `SalesOrder` with `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$count` from seed data. done (tag `butterfly-phase-01-done`, 2026-10-27)
@@ -48,7 +49,7 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 All three phases use mock data (session, sales data and board store behind interfaces); no synapse-api calls yet.
 - 01 mock-shell: app shell in the soft look, mock login and `/me` session, the "not allowed" page, route guards. Depends on shared 08. todo
 - 02 widget-catalog: the predefined sales widgets (MoM sales, day sales, recent high-value sales table, top customers and materials, status split, KPI cards) on the `@sami/ui` registry, fed by the mock sales data. todo
-- 03 board: a free board per user with pages, drag, reorder, remove, a widget picker and an AI Mode panel that adds predefined widgets, saved in a mock board store, widgets auto-refresh every 5 minutes, no dropdown filters. todo
+- 03 board: the user's own boards as tabs with an Edit mode (rename, add and delete boards, drag, reorder, remove, widget picker, AI Mode), saved in a mock board store, widgets auto-refresh every 5 minutes, no dropdown filters. todo
 - 04 ai-ready-review: check widgets against the AI dashboard needs before the POC. todo
 
 ## workspace-api (workflow backend)

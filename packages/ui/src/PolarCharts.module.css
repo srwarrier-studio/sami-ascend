@@ -1,0 +1,37 @@
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  justify-content: center;
+  font-size: var(--mantine-font-size-sm);
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.name {
+  color: var(--mantine-color-dimmed);
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+
+.dot[data-color='1'] { background: var(--ts-chart-1); }
+.dot[data-color='2'] { background: var(--ts-chart-2); }
+.dot[data-color='3'] { background: var(--ts-chart-3); }
+.dot[data-color='4'] { background: var(--ts-chart-4); }
+.dot[data-color='5'] { background: var(--ts-chart-5); }
+.dot[data-color='6'] { background: var(--ts-chart-6); }
+.dot[data-color='positive'] { background: var(--sami-positive); }
+.dot[data-color='caution'] { background: var(--sami-caution); }
+.dot[data-color='negative'] { background: var(--sami-negative); }
+.dot[data-color='neutral'] { background: var(--mantine-color-gray-5); }

@@ -1,0 +1,29 @@
+.pill {
+  display: inline-block;
+  padding: 0 0.5rem;
+  border-radius: var(--mantine-radius-xl);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 500;
+  line-height: 1.5rem;
+  white-space: nowrap;
+}
+
+.pill[data-tone='positive'] {
+  color: var(--sami-positive);
+  background: color-mix(in srgb, var(--sami-positive) 14%, transparent);
+}
+
+.pill[data-tone='caution'] {
+  color: var(--sami-caution);
+  background: color-mix(in srgb, var(--sami-caution) 16%, transparent);
+}
+
+.pill[data-tone='negative'] {
+  color: var(--sami-negative);
+  background: color-mix(in srgb, var(--sami-negative) 14%, transparent);
+}
+
+.pill[data-tone='neutral'] {
+  color: var(--mantine-color-dimmed);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
