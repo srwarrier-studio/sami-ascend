@@ -90,3 +90,12 @@ describe('registry render with bad input', () => {
     expect(show('toString', {}).getByText('Cannot show widget toString')).toBeInTheDocument()
   })
 })
+
+describe('registry.validate', () => {
+  it('accepts good props and rejects bad props and unknown names', () => {
+    expect(registry.validate('KpiCard', { title: 'T', value: 1 })).toBe(true)
+    expect(registry.validate('KpiCard', { title: 'T' })).toBe(false)
+    expect(registry.validate('Nope', {})).toBe(false)
+    expect(registry.validate('toString', {})).toBe(false)
+  })
+})
