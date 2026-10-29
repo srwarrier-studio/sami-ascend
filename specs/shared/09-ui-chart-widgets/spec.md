@@ -16,14 +16,15 @@ Approved design: https://claude.ai/artifact/FyrY7tQuC9m18kTE6mME5R. Board and ch
   - `DonutChart`: shares of a whole with the main share in the center and a legend.
   - `GaugeChart`: a progress ring for one value against a target, with the percent in the center.
   - `HeatmapChart`: an intensity grid over two labelled axes (day by hour, customer by month) with a color ramp legend.
+  - `CalendarHeatmapChart`: a GitHub-style calendar, one cell per day, weeks as columns starting Monday, weekdays as rows, month names across the top, hover shows the date and the value. It shows the date range of the data, padded to whole weeks; days with no value inside the range are faint empty cells. A year of sales shows which months and days were busy or quiet. The data decides the range (trailing 12 months, calendar year or financial year).
   - `KpiCard`: value, signed delta with an arrow (green up, red down), caption and an optional sparkline (`trend`).
   - `RankedList`: rows with a proportional bar under each label.
   - `DataTable`: right-aligned numbers and optional status pills.
-- **Sample dashboard page** in the playground (the "Charts" page): every widget above with sample data in the top layout, plus the static Edit, AI Mode, Add widget buttons and the page bar. Behavior of those is synapse-web 03.
+- **Sample dashboard page** in the playground (the "Charts" page): every widget above with sample data in the top layout, plus the static Edit, AI Mode, Add widget buttons and the page bar. Behavior of those is synapse-web 03 (the Edit button toggles Edit mode; Add widget and AI Mode belong to Edit mode).
 - Chart colors come from Mantine variables, so palettes, radius and motion switches restyle every chart; no hex in `src/` or `playground/`.
 
 ## Acceptance cases
-- The registry lists the ten widgets above; each renders with its sample props and shows the fallback card for bad props.
+- The registry lists the eleven widgets above; each renders with its sample props and shows the fallback card for bad props.
 - No widget schema has a color, style, class or pixel-size prop; a test fails if one is added.
 - `LineChart` with `compare` renders two series and a legend; without it, one series and no legend; the latest point is marked.
 - `BarChart` highlights the last bar. `AreaChart` renders one filled area.
@@ -31,6 +32,7 @@ Approved design: https://claude.ai/artifact/FyrY7tQuC9m18kTE6mME5R. Board and ch
 - `DonutChart` shows the main share and a legend entry per slice and rejects slices that do not sum to a positive total.
 - `GaugeChart` shows the percent of target and caps the ring at 100% while still showing the real percent.
 - `HeatmapChart` renders one cell per row and column pair and a color legend; a missing pair is an empty cell.
+- `CalendarHeatmapChart` draws one cell per day from the first to the last date given; weeks start on Monday (a Sunday and the next Monday are in different columns); month names appear at the first week of each month; a day without a value is an empty cell; the last value wins for a repeated date; dates that are not `YYYY-MM-DD` are rejected by the registry; no days shows No data; its hover text reads like `Tue 14 Oct 2026`.
 - `KpiCard` shows the delta with a sign and an arrow, and a sparkline only when `trend` is given.
 - `RankedList` bar widths follow the values; `DataTable` right-aligns number columns and renders status pills for status columns.
 - Axis labels use compact formats and currency values keep the rupee format elsewhere.
