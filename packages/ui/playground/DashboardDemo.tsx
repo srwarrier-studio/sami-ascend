@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, Group, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, registry, SimpleGrid, SparkleIcon, Stack } from '../src'
+import { Button, Group, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, registry, WidgetCell, WidgetGrid, SparkleIcon, Stack } from '../src'
 import type { PageBarConfig } from '../src'
 
 const months = [
@@ -158,13 +158,13 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
         }
       />
       <Stack p="md" pb={80}>
-        {dashboardRows.map((row, index) => (
-          <SimpleGrid key={index} cols={row.cols}>
-            {row.widgets.map((widget, position) => (
-              <div key={position}>{registry.render(widget.name, widget.props)}</div>
-            ))}
-          </SimpleGrid>
-        ))}
+        <WidgetGrid>
+          {dashboardRows.flatMap((row) => row.widgets).map((widget, position) => (
+            <WidgetCell key={position} widget={widget.name}>
+              {registry.render(widget.name, widget.props)}
+            </WidgetCell>
+          ))}
+        </WidgetGrid>
       </Stack>
       <PageBar
         tabs={tabs}

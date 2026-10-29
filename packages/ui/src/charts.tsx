@@ -6,6 +6,7 @@ import { scalePoint } from '@tanstack/charts/scales/point'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { useMemo } from 'react'
 import { ChartCard } from './ChartCard'
+import { CHART_MIN_HEIGHT } from './sizes'
 import { helpText } from './help'
 import { formatCompact } from './format'
 import type { ValueFormat } from './format'
@@ -37,7 +38,7 @@ export type StackedBarChartProps = {
   valueFormat?: ValueFormat
 }
 
-const CHART_HEIGHT = 260
+const CHART_HEIGHT = CHART_MIN_HEIGHT
 const BAR_RADIUS = 6
 const LINE_WIDTH = 2.5
 const LATEST_RADIUS = 5
