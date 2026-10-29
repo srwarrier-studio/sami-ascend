@@ -121,6 +121,16 @@ export const catalog: CatalogEntry[] = [
     }),
   },
   {
+    id: 'month-target',
+    title: 'Month target',
+    description: 'Net sales this month against the monthly sales target.',
+    widget: 'GaugeChart',
+    load: async (data) => {
+      const [sales, target] = await Promise.all([data.monthToDate(), data.monthTarget()])
+      return { title: 'Month target', measure: 'sales', value: sales.netAmount, target, valueFormat: 'currency', caption: 'this month' }
+    },
+  },
+  {
     id: 'status-split',
     title: 'Invoice status split',
     description: 'Share of orders that are paid, open or overdue.',

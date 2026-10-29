@@ -15,5 +15,6 @@ export type SalesData = {
   topCustomers: (top: number) => Promise<RankedCustomer[]>
   topMaterials: (top: number) => Promise<RankedMaterial[]>
   highValueOrders: (top: number) => Promise<HighValueOrder[]>
+  monthTarget: () => Promise<number>
   statusSplit: () => Promise<StatusShare[]>
 }

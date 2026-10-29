@@ -68,7 +68,7 @@ describe('Widgets page', () => {
       </UiProvider>,
     )
     expect(await screen.findByRole('heading', { name: 'Widgets' })).toBeInTheDocument()
-    for (const title of ['Sales today', 'Sales this month', 'Sales this year', 'Orders this month', 'Month-on-month sales', 'Day sales', 'Recent high-value sales', 'Top customers', 'Top materials', 'Invoice status']) {
+    for (const title of ['Sales today', 'Sales this month', 'Sales this year', 'Orders this month', 'Month-on-month sales', 'Day sales', 'Recent high-value sales', 'Top customers', 'Top materials', 'Month target', 'Invoice status']) {
       expect((await screen.findAllByText(title)).length).toBeGreaterThan(0)
     }
   })

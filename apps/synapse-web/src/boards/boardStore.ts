@@ -13,7 +13,7 @@ const seed = (): Board[] => [
   {
     id: 'board-1',
     name: 'Sales overview',
-    widgets: ['sales-today', 'sales-month', 'sales-year', 'orders-month', 'month-on-month', 'day-sales', 'status-split', 'top-customers', 'top-materials', 'high-value-sales'].map(
+    widgets: ['sales-today', 'sales-month', 'sales-year', 'orders-month', 'month-on-month', 'day-sales', 'status-split', 'month-target', 'top-customers', 'top-materials', 'high-value-sales'].map(
       (catalogId, index) => ({ id: `w-${index + 1}`, catalogId }),
     ),
   },
