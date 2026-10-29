@@ -1,9 +1,11 @@
+import { libraryEntries } from './libraryEntries'
 import type { PeriodSales, SalesData } from '../data/salesData'
 
 export type CatalogEntry = {
   id: string
   title: string
   description: string
+  category: string
   widget: string
   load: (data: SalesData) => Promise<object>
 }
@@ -17,11 +19,12 @@ const salesKpi = (title: string, caption: string, read: (data: SalesData) => Pro
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-export const catalog: CatalogEntry[] = [
+const salesEntries: CatalogEntry[] = [
   {
     id: 'sales-today',
     title: 'Sales today',
     description: 'Net sales invoiced today against yesterday.',
+    category: 'Sales',
     widget: 'KpiCard',
     load: salesKpi('Sales today', 'vs yesterday', (data) => data.today()),
   },
@@ -29,6 +32,7 @@ export const catalog: CatalogEntry[] = [
     id: 'sales-month',
     title: 'Sales this month',
     description: 'Net sales since the 1st of this month against the same days last month.',
+    category: 'Sales',
     widget: 'KpiCard',
     load: salesKpi('Sales this month', 'vs last month', (data) => data.monthToDate()),
   },
@@ -36,6 +40,7 @@ export const catalog: CatalogEntry[] = [
     id: 'sales-year',
     title: 'Sales this year',
     description: 'Net sales since the start of the year against the same period last year.',
+    category: 'Sales',
     widget: 'KpiCard',
     load: salesKpi('Sales this year', 'vs last year', (data) => data.yearToDate()),
   },
@@ -43,6 +48,7 @@ export const catalog: CatalogEntry[] = [
     id: 'orders-month',
     title: 'Orders this month',
     description: 'Number of sales orders since the 1st of this month.',
+    category: 'Sales',
     widget: 'KpiCard',
     load: async (data) => {
       const sales = await data.monthToDate()
@@ -53,6 +59,7 @@ export const catalog: CatalogEntry[] = [
     id: 'month-on-month',
     title: 'Month-on-month sales',
     description: 'Net sales for each of the last 12 months.',
+    category: 'Sales',
     widget: 'BarChart',
     load: async (data) => ({
       title: 'Month-on-month sales',
@@ -65,6 +72,7 @@ export const catalog: CatalogEntry[] = [
     id: 'day-sales',
     title: 'Day sales',
     description: 'Net sales for each day of this month, with last month behind it.',
+    category: 'Sales',
     widget: 'LineChart',
     load: async (data) => {
       const { thisMonth, lastMonth } = await data.daySales()
@@ -84,6 +92,7 @@ export const catalog: CatalogEntry[] = [
     id: 'high-value-sales',
     title: 'Recent high-value sales',
     description: 'The latest sales orders above the high-value limit.',
+    category: 'Sales',
     widget: 'DataTable',
     load: async (data) => ({
       title: 'Recent high-value sales',
@@ -100,6 +109,7 @@ export const catalog: CatalogEntry[] = [
     id: 'top-customers',
     title: 'Top customers',
     description: 'Customers ranked by net sales this month.',
+    category: 'Sales',
     widget: 'RankedList',
     load: async (data) => ({
       title: 'Top customers',
@@ -112,6 +122,7 @@ export const catalog: CatalogEntry[] = [
     id: 'top-materials',
     title: 'Top materials',
     description: 'Materials ranked by net sales this month.',
+    category: 'Inventory',
     widget: 'RankedList',
     load: async (data) => ({
       title: 'Top materials',
@@ -124,6 +135,7 @@ export const catalog: CatalogEntry[] = [
     id: 'month-target',
     title: 'Month target',
     description: 'Net sales this month against the monthly sales target.',
+    category: 'Sales',
     widget: 'GaugeChart',
     load: async (data) => {
       const [sales, target] = await Promise.all([data.monthToDate(), data.monthTarget()])
@@ -134,6 +146,7 @@ export const catalog: CatalogEntry[] = [
     id: 'status-split',
     title: 'Invoice status split',
     description: 'Share of orders that are paid, open or overdue.',
+    category: 'Finance',
     widget: 'DonutChart',
     load: async (data) => ({
       title: 'Invoice status',
@@ -146,6 +159,8 @@ export const catalog: CatalogEntry[] = [
     }),
   },
 ]
+
+export const catalog: CatalogEntry[] = [...salesEntries, ...libraryEntries]
 
 const filler = new Set(['the', 'and', 'show', 'add', 'me', 'my', 'a', 'of', 'for', 'to', 'in', 'on', 'by', 'with', 'this', 'that', 'last', 'please'])
 

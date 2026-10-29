@@ -1,4 +1,6 @@
-export type BoardWidget = { id: string; catalogId: string }
+import type { SizeName } from '@sami/ui'
+
+export type BoardWidget = { id: string; catalogId: string; size?: SizeName }
 export type Board = { id: string; name: string; widgets: BoardWidget[] }
 
 export type BoardStore = {

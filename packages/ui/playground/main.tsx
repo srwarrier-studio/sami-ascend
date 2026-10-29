@@ -56,12 +56,7 @@ function Demo() {
         ]}
       >
         {page === 'dashboard' ? (
-          <>
-            <Container py="md">
-              <ThemeLab lab={lab} onChange={setLab} />
-            </Container>
-            <DashboardPage lab={lab} onChange={setLab} />
-          </>
+          <DashboardPage lab={lab} onChange={setLab} />
         ) : page === 'kitchen' ? (
           <Container py="md">
             <Stack>

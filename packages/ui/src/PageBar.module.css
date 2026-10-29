@@ -48,7 +48,12 @@
   overflow: hidden;
 }
 
-.tab:hover {
+.tab:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tab:hover:not(:disabled) {
   color: var(--mantine-color-text);
 }
 

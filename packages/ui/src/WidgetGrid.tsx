@@ -1,29 +1,43 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import { registry } from './registry'
+import { sizes } from './sizes'
+import type { SizeName } from './sizes'
 import classes from './WidgetGrid.module.css'
 
-export function WidgetGrid({ children }: { children: ReactNode }) {
-  return <div className={classes.grid}>{children}</div>
+export function WidgetGrid({ children, ...rest }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
+  return (
+    <div {...rest} className={classes.grid}>
+      {children}
+    </div>
+  )
 }
 
 type WidgetCellProps = HTMLAttributes<HTMLDivElement> & {
   widget: string
+  size?: SizeName
   editing?: boolean
   dragging?: boolean
+  over?: boolean
 }
 
-const defaults = new Map(registry.describe().map((entry) => [entry.name, entry.size]))
+const allowed = new Map(registry.describe().map((entry) => [entry.name, entry.sizes]))
 
-export function WidgetCell({ widget, editing, dragging, children, ...rest }: WidgetCellProps) {
-  const size = defaults.get(widget)
+export const allowedSizes = (widget: string): SizeName[] => allowed.get(widget) ?? []
+
+export const widgetShape = (widget: string, size?: SizeName) =>
+  sizes[size && allowedSizes(widget).includes(size) ? size : (allowedSizes(widget)[0] ?? 'medium')]
+
+export function WidgetCell({ widget, size, editing, dragging, over, children, ...rest }: WidgetCellProps) {
+  const { w, h } = widgetShape(widget, size)
   return (
     <div
       {...rest}
       className={classes.cell}
-      data-span={size?.defaultW ?? 4}
-      data-rows={size?.defaultH ?? 4}
+      data-span={w}
+      data-rows={h}
       data-editing={editing || undefined}
       data-dragging={dragging || undefined}
+      data-over={over || undefined}
     >
       {children}
     </div>

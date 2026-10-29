@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryHistory } from '@tanstack/react-router'
 import { UiProvider, synapsePalette } from '@sami/ui'
@@ -55,7 +55,6 @@ describe('board page', () => {
     await screen.findByRole('heading', { name: 'First' })
     expect(screen.queryByRole('textbox', { name: 'Board title' })).toBeNull()
     expect(screen.queryByRole('button', { name: /^Remove/ })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Add widget' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'AI Mode' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Delete board' })).toBeNull()
   })
@@ -69,6 +68,33 @@ describe('board limit', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Add' }))
     expect(await screen.findByText('Only 3 sheets allowed')).toBeInTheDocument()
     expect(await store.list()).toHaveLength(3)
+  })
+})
+
+describe('widget limit', () => {
+  const full = () =>
+    new MockBoardStore([
+      { id: 'b1', name: 'First', widgets: Array.from({ length: 15 }, (_, index) => ({ id: `w${index}`, catalogId: 'sales-today' })) },
+    ])
+
+  it('disables the library when the board has 15 widgets', async () => {
+    open(full())
+    await edit()
+    await userEvent.click(await screen.findByRole('button', { name: 'Add widget' }))
+    expect(await screen.findByText(/Board is full/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add Day sales' })).toBeDisabled()
+  })
+
+  it('adds only what fits from AI Mode', async () => {
+    const store = new MockBoardStore([
+      { id: 'b1', name: 'First', widgets: Array.from({ length: 14 }, (_, index) => ({ id: `w${index}`, catalogId: 'sales-today' })) },
+    ])
+    open(store)
+    await edit()
+    await userEvent.click(await screen.findByRole('button', { name: 'AI Mode' }))
+    await userEvent.type(await screen.findByLabelText('What do you want on this board?'), 'sales')
+    await userEvent.click(screen.getByRole('button', { name: 'Add widgets' }))
+    await waitFor(async () => expect((await store.list())[0].widgets).toHaveLength(15))
   })
 })
 
@@ -104,8 +130,9 @@ describe('edit mode', () => {
     const first = (await screen.findByRole('button', { name: 'Remove Top customers' })).closest('[draggable]')!
     const second = screen.getByRole('button', { name: 'Remove Top materials' }).closest('[draggable]')!
     fireEvent.dragStart(first)
-    fireEvent.dragOver(second)
-    fireEvent.drop(second)
+    await act(() => new Promise((resolve) => setTimeout(resolve)))
+    fireEvent.dragEnter(second)
+    fireEvent.dragEnd(first)
     await waitFor(async () => expect((await store.list())[0].widgets.map((w) => w.id)).toEqual(['w2', 'w1']))
   })
 
@@ -115,6 +142,16 @@ describe('edit mode', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Add widget' }))
     await userEvent.click(await screen.findByRole('button', { name: 'Add Day sales' }))
     await waitFor(async () => expect((await store.list())[0].widgets.map((w) => w.catalogId)).toEqual(['top-customers', 'top-materials', 'day-sales']))
+  })
+
+  it('removes a widget already on the board from the library and cannot add it twice', async () => {
+    const store = open()
+    await edit()
+    await userEvent.click(await screen.findByRole('button', { name: 'Add widget' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Add Day sales' }))
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove Day sales' }))
+    await waitFor(async () => expect((await store.list())[0].widgets.map((w) => w.catalogId)).toEqual(['top-customers', 'top-materials']))
+    expect(screen.getAllByRole('button', { name: 'Remove Top customers' })[0]).toBeInTheDocument()
   })
 
   it('AI Mode adds widgets that match the sentence', async () => {

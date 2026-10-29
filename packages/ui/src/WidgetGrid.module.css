@@ -20,10 +20,23 @@
   outline-offset: 0.25rem;
   border-radius: var(--mantine-radius-lg);
   cursor: grab;
+  user-select: none;
 }
 
 .cell[data-dragging] {
-  opacity: 0.45;
+  background: color-mix(in srgb, var(--mantine-primary-color-filled) 12%, transparent);
+  outline-style: solid;
+  border-radius: var(--mantine-radius-lg);
+}
+
+.cell[data-over] {
+  background: color-mix(in srgb, var(--mantine-primary-color-filled) 12%, transparent);
+  outline-style: solid;
+  border-radius: var(--mantine-radius-lg);
+}
+
+.cell[data-dragging] > * {
+  visibility: hidden;
 }
 
 .cell[data-rows='1'] { grid-row: span 1; }

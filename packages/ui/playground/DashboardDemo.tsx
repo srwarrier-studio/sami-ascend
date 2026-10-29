@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { Button, Group, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, registry, WidgetCell, WidgetGrid, SparkleIcon, Stack } from '../src'
-import type { PageBarConfig } from '../src'
+import { useRef, useState } from 'react'
+import { ActionIcon, allowedSizes, mockLibrary, WidgetLibrary, EmptyBoard, notifications, TrashIcon, arrange, widgetShape, ArrowsOutSimpleIcon, Button, Group, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, registry, WidgetCell, WidgetGrid, SparkleIcon, Stack } from '../src'
+import type { PageBarConfig, SizeName } from '../src'
 
 const months = [
   ['Nov', 2.1],
@@ -130,17 +130,58 @@ export const dashboardRows: Row[] = [
   },
 ]
 
+const MAX_BOARDS = 3
+const MAX_WIDGETS = 15
+
+const allWidgets = dashboardRows.flatMap((row) => row.widgets)
+
+const nextSize = (resized: Record<number, SizeName>, position: number, widget: string) => {
+  const allowed = allowedSizes(widget)
+  const next = allowed[(allowed.indexOf(resized[position] ?? allowed[0]) + 1) % allowed.length]
+  return { ...resized, [position]: next }
+}
+
 type DashboardDemoProps = { config: PageBarConfig; onConfigChange: (config: PageBarConfig) => void }
+
+const domains: Record<string, string> = {
+  Invoices: 'Finance',
+  'Average invoice': 'Finance',
+  'Invoice status': 'Finance',
+  'Sales by invoice status': 'Finance',
+  'Top materials': 'Inventory',
+}
+
+const library = [
+  ...allWidgets.map((widget, index) => {
+    const title = String((widget.props as { title: string }).title)
+    return { id: `demo-${index}`, title, description: '', category: domains[title] ?? 'Sales', widget: widget.name, props: widget.props }
+  }),
+  ...mockLibrary,
+]
+
+const libraryIdOf = (widget: { name: string; props: unknown }) =>
+  library.find((item) => item.widget === widget.name && (item.props as { title: string }).title === (widget.props as { title: string }).title)?.id
 
 export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
   const [editing, setEditing] = useState(false)
-  const [tabs, setTabs] = useState([
-    { id: 'sales', name: 'Sales overview' },
-    { id: 'customers', name: 'Customers' },
-    { id: 'materials', name: 'Materials' },
-    { id: 'quality', name: 'Quality' },
-  ])
+  const [picking, setPicking] = useState(false)
+  const [widgets, setWidgets] = useState(allWidgets)
+  const [orders, setOrders] = useState<Record<string, number[]>>({ sales: allWidgets.map((_, id) => id) })
+  const lastMove = useRef(0)
+  const [dragging, setDragging] = useState<number | null>(null)
+  const [resized, setResized] = useState<Record<number, SizeName>>({})
+  const [tabs, setTabs] = useState([{ id: 'sales', name: 'Sales overview' }])
   const [activeId, setActiveId] = useState('sales')
+  const order = orders[activeId] ?? []
+  const setOrder = (next: number[]) => setOrders({ ...orders, [activeId]: next })
+  const insert = (libraryId: string, beforeId: number | null) => {
+    const item = library.find((candidate) => candidate.id === libraryId)
+    if (!item || order.length >= MAX_WIDGETS || order.some((id) => libraryIdOf(widgets[id]) === libraryId)) return
+    const next = [...order]
+    next.splice(beforeId === null ? next.length : next.indexOf(beforeId), 0, widgets.length)
+    setWidgets([...widgets, { name: item.widget, props: item.props }])
+    setOrder(next)
+  }
   return (
     <>
       <PageHeader
@@ -150,31 +191,123 @@ export function DashboardDemo({ config, onConfigChange }: DashboardDemoProps) {
         onTitleChange={(name) => setTabs(tabs.map((tab) => (tab.id === activeId ? { ...tab, name } : tab)))}
         actions={
           <Group>
+            {editing && (
+              <Button
+                variant="subtle"
+                color="red"
+                leftSection={<TrashIcon size={16} />}
+                disabled={tabs.length < 2}
+                onClick={() => {
+                  const rest = tabs.filter((tab) => tab.id !== activeId)
+                  setTabs(rest)
+                  setActiveId(rest[0].id)
+                  setEditing(false)
+                }}
+              >
+                Delete board
+              </Button>
+            )}
             <Button variant={editing ? 'filled' : 'default'} leftSection={<PencilSimpleIcon size={16} />} onClick={() => setEditing(!editing)}>
               {editing ? 'Done' : 'Edit'}
             </Button>
             <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />}>
               AI Mode
             </Button>
-            <Button leftSection={<PlusIcon size={16} />}>Add widget</Button>
+            <Button leftSection={<PlusIcon size={16} />} onClick={() => {
+                setEditing(true)
+                setPicking(true)
+              }}>
+              Add widget
+            </Button>
           </Group>
         }
       />
-      <Stack p="md" pb={80}>
+      <Stack
+        p="md"
+        pb={80}
+        mih="calc(100vh - 12rem)"
+      >
+        {order.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
         <WidgetGrid>
-          {dashboardRows.flatMap((row) => row.widgets).map((widget, position) => (
-            <WidgetCell key={position} widget={widget.name}>
+          {order.map((id) => {
+            const widget = widgets[id]
+            return (
+            <WidgetCell
+              key={id}
+              widget={widget.name}
+              size={resized[id]}
+              editing={editing}
+              dragging={dragging === id}
+              draggable={editing}
+              onDragStart={() => setTimeout(() => setDragging(id))}
+              onDragEnd={() => setDragging(null)}
+              onDragEnter={() => {
+                if (!editing || dragging === null || dragging === id || Date.now() - lastMove.current < 300) return
+                lastMove.current = Date.now()
+                const next = order.filter((candidate) => candidate !== dragging)
+                next.splice(order.indexOf(id), 0, dragging)
+                setOrder(next)
+              }}
+              onDragOver={(event) => editing && event.preventDefault()}
+            >
+              {editing && allowedSizes(widget.name).length > 1 && (
+                <ActionIcon
+                  variant="light"
+                  size="sm"
+                  aria-label={`Resize ${widget.name}`}
+                  style={{ position: 'absolute', top: 4, right: 4, zIndex: 2 }}
+                  onClick={() => setResized(nextSize(resized, id, widget.name))}
+                >
+                  <ArrowsOutSimpleIcon size={14} />
+                </ActionIcon>
+              )}
+              {editing && (
+                <ActionIcon
+                  variant="light"
+                  color="red"
+                  size="sm"
+                  aria-label={`Remove ${widget.name}`}
+                  style={{ position: 'absolute', top: 4, right: allowedSizes(widget.name).length > 1 ? 32 : 4, zIndex: 2 }}
+                  onClick={() => setOrder(order.filter((candidate) => candidate !== id))}
+                >
+                  <TrashIcon size={14} />
+                </ActionIcon>
+              )}
               {registry.render(widget.name, widget.props)}
             </WidgetCell>
-          ))}
+            )
+          })}
         </WidgetGrid>
       </Stack>
+      <WidgetLibrary
+        opened={picking}
+        onClose={() => setPicking(false)}
+        items={library}
+        limit={{ used: order.length, max: MAX_WIDGETS }}
+        counts={order.reduce<Record<string, number>>((all, id) => {
+          const match = libraryIdOf(widgets[id])
+          return match ? { ...all, [match]: (all[match] ?? 0) + 1 } : all
+        }, {})}
+        onPick={(id) => insert(id, null)}
+        onRemove={(libraryId) => setOrder(order.filter((id) => libraryIdOf(widgets[id]) !== libraryId))}
+      />
       <PageBar
         tabs={tabs}
         activeId={activeId}
         config={config}
         onSelect={setActiveId}
-        onAdd={() => setTabs([...tabs, { id: `board-${tabs.length + 1}`, name: `Board ${tabs.length + 1}` }])}
+        onArrange={editing ? () => setOrder(arrange(order, (id) => widgetShape(widgets[id].name, resized[id]))) : undefined}
+        onAdd={() => {
+          if (tabs.length >= MAX_BOARDS) {
+            notifications.show({ message: `Only ${MAX_BOARDS} sheets allowed` })
+            return
+          }
+          const id = crypto.randomUUID()
+          let number = 1
+          while (tabs.some((tab) => tab.name === `Board ${number}`)) number += 1
+          setTabs([...tabs, { id, name: `Board ${number}` }])
+          setActiveId(id)
+        }}
         onConfigChange={onConfigChange}
       />
     </>

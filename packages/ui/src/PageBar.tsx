@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Popover, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core'
-import { GearSixIcon, PlusIcon } from '@phosphor-icons/react'
+import { GearSixIcon, PlusIcon, SquaresFourIcon } from '@phosphor-icons/react'
 import type { MotionMode } from './UiProvider'
 import { presets } from './palettes'
 import type { PresetName } from './palettes'
@@ -14,6 +14,7 @@ export type PageBarProps = {
   config: PageBarConfig
   onSelect: (id: string) => void
   onAdd: () => void
+  onArrange?: () => void
   onConfigChange: (config: PageBarConfig) => void
 }
 
@@ -66,7 +67,8 @@ function QuickConfig({ config, onChange }: { config: PageBarConfig; onChange: Pa
   )
 }
 
-export function PageBar({ tabs, activeId, config, onSelect, onAdd, onConfigChange }: PageBarProps) {
+export function PageBar({ tabs, activeId, config, onSelect, onAdd, onArrange, onConfigChange }: PageBarProps) {
+  const editing = onArrange !== undefined
   return (
     <nav className={classes.bar} aria-label="Boards">
       <div className={classes.inner}>
@@ -78,14 +80,25 @@ export function PageBar({ tabs, activeId, config, onSelect, onAdd, onConfigChang
               aria-selected={tab.id === activeId}
               className={classes.tab}
               data-active={tab.id === activeId || undefined}
+              disabled={editing && tab.id !== activeId}
               onClick={() => onSelect(tab.id)}
             >
               <span className={classes.name}>{tab.name}</span>
             </UnstyledButton>
           ))}
         </div>
-        <Button size="xs" variant="subtle" leftSection={<PlusIcon size={14} />} onClick={onAdd}>
-          Add
+        <Button
+          size="xs"
+          variant="subtle"
+          h="2rem"
+          radius="xl"
+          fz="sm"
+          fw={500}
+          miw="7.5rem"
+          leftSection={onArrange ? <SquaresFourIcon size={14} /> : <PlusIcon size={14} />}
+          onClick={onArrange ?? onAdd}
+        >
+          {onArrange ? 'Auto arrange' : 'Add'}
         </Button>
         <QuickConfig config={config} onChange={onConfigChange} />
       </div>

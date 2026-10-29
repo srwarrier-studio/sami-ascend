@@ -1,9 +1,22 @@
+import { arrange, widgetShape } from '@sami/ui'
+import type { SizeName } from '@sami/ui'
+import { catalog } from '../catalog/catalog'
 import type { BoardWidget } from './boardStore'
+
+export const MAX_WIDGETS = 15
 
 export const addWidget = (widgets: BoardWidget[], catalogId: string): BoardWidget[] => [
   ...widgets,
   { id: `w-${crypto.randomUUID()}`, catalogId },
 ]
+
+export const insertWidget = (widgets: BoardWidget[], catalogId: string, beforeId: string | null): BoardWidget[] => {
+  const at = widgets.findIndex((widget) => widget.id === beforeId)
+  if (at < 0) return addWidget(widgets, catalogId)
+  const next = [...widgets]
+  next.splice(at, 0, { id: `w-${crypto.randomUUID()}`, catalogId })
+  return next
+}
 
 export const removeWidget = (widgets: BoardWidget[], id: string) => widgets.filter((widget) => widget.id !== id)
 
@@ -25,3 +38,13 @@ export const dropWidget = (widgets: BoardWidget[], draggedId: string, targetId: 
   next.splice(to, 0, dragged)
   return next
 }
+
+export const resizeWidget = (widgets: BoardWidget[], id: string, allowed: SizeName[]) =>
+  widgets.map((widget) => {
+    if (widget.id !== id) return widget
+    const next = allowed[(allowed.indexOf(widget.size ?? allowed[0]) + 1) % allowed.length]
+    return { ...widget, size: next }
+  })
+
+export const arrangeWidgets = (widgets: BoardWidget[]) =>
+  arrange(widgets, (widget) => widgetShape(catalog.find((entry) => entry.id === widget.catalogId)?.widget ?? '', widget.size))
