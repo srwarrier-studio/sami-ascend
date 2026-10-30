@@ -5,7 +5,7 @@ from auth_api.application.usecase.create_first_admin import CreateFirstAdmin
 from auth_api.application.usecase.create_user import CreateUser
 from auth_api.domain.errors import AdminAlreadyExists, UserAlreadyExists, WeakPassword
 from auth_api.domain.value_objects.email_id import EmailID
-from token_verification import Role
+from token_verification import Company, Role
 from auth_api.infrastructure.interface.argon2_password_hasher import Argon2PasswordHasher
 from auth_api.infrastructure.sqlite.sqlite_unit_of_work import SqliteAuthUnitOfWork
 
@@ -65,3 +65,22 @@ def test_first_admin_is_created_once_only(uow):
     dto.email_id = "second@email.com"
     with pytest.raises(AdminAlreadyExists):
         usecase.execute(dto)
+
+
+def test_creates_user_with_the_given_companies(uow):
+    dto = user_dto()
+    dto.companies = ["organica", "organica", "sabinsa"]
+
+    CreateUser(uow, Argon2PasswordHasher()).execute(dto)
+
+    with uow:
+        user = uow.user_repo.find_by_email(EmailID("buyer@email.com"))
+    assert user.companies == [Company.ORGANICA, Company.SABINSA]
+
+
+def test_rejects_unknown_company(uow):
+    dto = user_dto()
+    dto.companies = ["acme"]
+
+    with pytest.raises(ValueError):
+        CreateUser(uow, Argon2PasswordHasher()).execute(dto)

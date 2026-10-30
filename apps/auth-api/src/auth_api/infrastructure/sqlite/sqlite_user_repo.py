@@ -45,6 +45,15 @@ class SqliteUserRepo(UserRepo):
         ).fetchone()
         return self._to_user(row) if row else None
 
+    def set_companies(self, user: User, companies: list[Company]) -> None:
+        userid = str(user.userid.value)
+        self.conn.execute("DELETE FROM user_companies WHERE userid = ?", (userid,))
+        self.conn.executemany(
+            "INSERT INTO user_companies (userid, company) VALUES (?, ?)",
+            [(userid, company.value) for company in companies],
+        )
+        user.companies = companies
+
     def _to_user(self, row: sqlite3.Row) -> User:
         role_rows = self.conn.execute(
             "SELECT role FROM user_roles WHERE userid = ? ORDER BY role", (row["userid"],)

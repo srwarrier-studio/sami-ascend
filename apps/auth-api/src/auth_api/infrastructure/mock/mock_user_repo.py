@@ -31,3 +31,6 @@ class MockUserRepo(UserRepo):
         for user in self.store:
             if user.email == email:
                 return user
+
+    def set_companies(self, user, companies):
+        user.companies = companies
