@@ -13,5 +13,6 @@ members = [
     "packages/structured-logging",
     "packages/token-verification",
     "apps/synapse-api",
+    "apps/sami-agents",
     "apps/workspace-api",
 ]
