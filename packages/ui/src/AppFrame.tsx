@@ -41,6 +41,7 @@ export type AppFrameProps = {
   notifications?: number
   searchPlaceholder?: string
   layout?: 'top' | 'side'
+  themeToggle?: boolean
   children: ReactNode
 }
 
@@ -139,6 +140,7 @@ export function AppFrame({
   notifications = 0,
   searchPlaceholder = 'Search',
   layout = 'side',
+  themeToggle = true,
   children,
 }: AppFrameProps) {
   const search = (
@@ -168,7 +170,7 @@ export function AppFrame({
           <div className={classes.topActions}>
             {search}
             <Actions notifications={notifications} />
-            <ThemeToggle />
+            {themeToggle && <ThemeToggle />}
             <UserMenu user={user} onSignOut={onSignOut} />
           </div>
         </header>
@@ -205,7 +207,7 @@ export function AppFrame({
           </div>
         ))}
         <div className={classes.sideFooter}>
-          <ThemeToggle />
+          {themeToggle && <ThemeToggle />}
         </div>
       </nav>
       <main className={classes.main}>{children}</main>
