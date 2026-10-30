@@ -46,7 +46,7 @@ const defaultBoardStore = new MockBoardStore()
 const defaultCatalogClient = new MockCatalogClient()
 const defaultBoardExporter = new MockBoardExporter()
 const defaultChatPlanner = new MockChatPlanner()
-const defaultUi: UiSettings = { palette: 'teal', motion: 'full' }
+const defaultUi: UiSettings = { palette: 'midnight', motion: 'full' }
 
 export default function App({ client, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, catalogClient = defaultCatalogClient, boardExporter = defaultBoardExporter, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
   const { session, login, logout, retry } = useSession(client)

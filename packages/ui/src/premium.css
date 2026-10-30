@@ -1,0 +1,21 @@
+:root {
+  --sami-canvas: var(--mantine-color-gray-1);
+  --sami-surface: var(--mantine-color-white);
+  --sami-border: var(--mantine-color-default-border);
+  --sami-shadow: none;
+}
+
+:root[data-look='premium'] body {
+  background: var(--sami-canvas);
+  background-attachment: fixed;
+}
+
+:root[data-look='premium'] .mantine-Card-root {
+  background: var(--sami-surface);
+  border-color: var(--sami-border);
+  box-shadow: var(--sami-shadow);
+}
+
+:root[data-look='premium'] :where(h1, h2, h3) {
+  letter-spacing: -0.015em;
+}
