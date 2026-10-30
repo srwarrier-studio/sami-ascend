@@ -41,6 +41,14 @@
   flex: none;
 }
 
+.mark {
+  display: flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+  color: light-dark(var(--mantine-primary-color-7), var(--mantine-color-white));
+}
+
 .brandName {
   font-size: var(--mantine-font-size-sm);
   font-weight: 600;
@@ -234,4 +242,43 @@
   .searchPill {
     display: none;
   }
+}
+
+:global(:root[data-look='premium']) .frame,
+:global(:root[data-look='premium']) .topFrame {
+  background: var(--sami-canvas);
+  background-attachment: fixed;
+}
+
+:global(:root[data-look='premium']) .brand,
+:global(:root[data-look='premium']) .top,
+:global(:root[data-look='premium']) .side,
+:global(:root[data-look='premium']) .topBar {
+  background: var(--sami-surface);
+  border: thin solid var(--sami-border);
+  box-shadow: var(--sami-shadow);
+}
+
+:global(:root[data-look='premium']) .logo {
+  background: linear-gradient(135deg, var(--mantine-primary-color-4), var(--mantine-primary-color-7));
+  box-shadow: 0 0 0.75rem color-mix(in srgb, var(--mantine-primary-color-filled) 55%, transparent);
+}
+
+:global(:root[data-look='premium']) .brandName {
+  letter-spacing: -0.01em;
+}
+
+:global(:root[data-look='premium']) .pills {
+  background: light-dark(var(--mantine-color-gray-1), color-mix(in srgb, var(--mantine-color-white) 6%, transparent));
+}
+
+:global(:root[data-look='premium']) .navItem[data-active],
+:global(:root[data-look='premium']) .pillItem[data-active] {
+  background: var(--mantine-primary-color-filled);
+  color: var(--mantine-color-white);
+  box-shadow: 0 0.25rem 0.75rem color-mix(in srgb, var(--mantine-primary-color-filled) 35%, transparent);
+}
+
+:global(:root[data-look='premium']) .userButton:hover {
+  background: color-mix(in srgb, var(--mantine-primary-color-filled) 10%, transparent);
 }

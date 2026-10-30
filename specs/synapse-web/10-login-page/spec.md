@@ -4,7 +4,7 @@
 The sign-in page looks like a product, not a form on a blank page: a centred card over a full-screen animation that says "synapse": a network of neurons with an occasional electric pulse.
 
 ## Behavior
-- `/login` is a full-screen page (no shell) on a deep navy gradient with the animated network filling the whole background. The sign-in card sits in the centre, with the Synapse mark, name and `Your sales, on one board` above it in white. The same on narrow screens.
+- `/login` is a full-screen page (no shell) on a deep navy gradient with the animated network filling the whole background. The sign-in card sits in the centre, with the Synapse mark, name and `Sense. Connect. Lead.` above it in white. The same on narrow screens.
 - Form: the existing sign-in (`Work email`, `Password`, `Sign in`, the `Incorrect email or password` error) with the title `Sign in to Synapse`, and the same behaviour as today.
 - Animation, drawn as neurons on a canvas (cell bodies, branching dendrites, long axons) with a fixed hand-placed layout:
   - seven neurons, each drifting a few pixels on its own slow loop, like floating in fluid;

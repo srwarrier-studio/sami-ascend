@@ -17,7 +17,7 @@ describe('the login page', () => {
     const { container } = open('full')
     expect(await screen.findByText('Sign in to Sami Synapse')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Sami Synapse' })).toBeInTheDocument()
-    expect(screen.getByText('Your sales, on one board')).toBeInTheDocument()
+    expect(screen.getByText('Sense. Connect. Lead.')).toBeInTheDocument()
     expect(container.querySelector('canvas[aria-hidden="true"]')).toHaveAttribute('data-animated', 'true')
   })
 

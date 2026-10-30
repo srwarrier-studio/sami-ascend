@@ -1,7 +1,8 @@
-import { APP_NAME } from '../config'
+import { APP_NAME, TAGLINE } from '../config'
 import { useState } from 'react'
 import { useRouteContext } from '@tanstack/react-router'
-import { Button, SignInCard, SparkleIcon, notifications } from '@sami/ui'
+import { Button, SignInCard, notifications } from '@sami/ui'
+import { SynapseLogo } from '../brand/SynapseLogo'
 import { SynapseNetwork } from '../login/SynapseNetwork'
 import classes from '../login/Login.module.css'
 
@@ -27,11 +28,11 @@ export function LoginPage() {
       <SynapseNetwork animated={ui.motion === 'full' && !prefersReducedMotion()} />
       <div className={classes.content}>
         <div className={classes.brand}>
-          <span className={classes.mark} aria-hidden="true">
-            <SparkleIcon size={28} weight="fill" />
+          <span className={classes.mark}>
+            <SynapseLogo size={72} />
           </span>
           <h1 className={classes.name}>{APP_NAME}</h1>
-          <p className={classes.tagline}>Your sales, on one board</p>
+          <p className={classes.tagline}>{TAGLINE}</p>
         </div>
         <SignInCard
           title={`Sign in to ${APP_NAME}`}

@@ -142,3 +142,7 @@
     animation: none;
   }
 }
+
+:global(:root[data-look='premium']) .sheet:not([data-exporting]) {
+  background: transparent;
+}

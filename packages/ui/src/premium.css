@@ -19,3 +19,15 @@
 :root[data-look='premium'] :where(h1, h2, h3) {
   letter-spacing: -0.015em;
 }
+
+:root[data-look='premium'] .mantine-Modal-content,
+:root[data-look='premium'] .mantine-Menu-dropdown,
+:root[data-look='premium'] .mantine-Popover-dropdown {
+  background: var(--sami-surface);
+  border: thin solid var(--sami-border);
+  box-shadow: var(--sami-shadow);
+}
+
+:root[data-look='premium'] .mantine-Input-input {
+  border-color: var(--sami-border);
+}

@@ -161,7 +161,7 @@ export const premiumSurfaces: { light: Surfaces; dark: Surfaces } = {
     shadow: '0 1px 2px rgb(16 24 64 / 5%), 0 8px 24px rgb(16 24 64 / 6%)',
   },
   dark: {
-    canvas: 'radial-gradient(ellipse at 20% 0%, #16306b 0%, #0b1329 55%, #060b1c 100%)',
+    canvas: '#0b1329',
     surface: '#111b36',
     border: 'rgb(143 180 255 / 14%)',
     shadow: '0 0 0 1px rgb(143 180 255 / 4%), 0 10px 30px rgb(0 0 0 / 35%)',

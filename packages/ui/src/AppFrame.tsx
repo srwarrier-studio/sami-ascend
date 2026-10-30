@@ -34,7 +34,7 @@ export type NavItem = {
 }
 
 export type AppFrameProps = {
-  brand: { name: string; subtitle: string }
+  brand: { name: string; subtitle: string; logo?: ReactNode }
   navGroups: NavItem[][]
   user: { name: string; email: string }
   onSignOut: () => void
@@ -126,7 +126,8 @@ function UserMenu({ user, onSignOut }: Pick<AppFrameProps, 'user' | 'onSignOut'>
   )
 }
 
-function Logo() {
+function Logo({ custom }: { custom?: ReactNode }) {
+  if (custom) return <span className={classes.mark}>{custom}</span>
   return (
     <span className={classes.logo}>
       <SparkleIcon size={16} weight="fill" />
@@ -163,7 +164,7 @@ export function AppFrame({
       <div className={classes.topFrame}>
         <header className={classes.topBar}>
           <div className={classes.brandPill}>
-            <Logo />
+            <Logo custom={brand.logo} />
             <span className={classes.brandName}>{brand.name}</span>
           </div>
           <nav className={classes.pills} aria-label="Main">
@@ -187,7 +188,7 @@ export function AppFrame({
   return (
     <div className={classes.frame}>
       <div className={classes.brand}>
-        <Logo />
+        <Logo custom={brand.logo} />
         <div>
           <div className={classes.brandName}>{brand.name}</div>
           <div className={classes.brandSub}>{brand.subtitle}</div>

@@ -23,7 +23,7 @@ describe('loading', () => {
   it('shows the splash until me answers', () => {
     const client: SessionClient = { ...new MockSessionClient(), me: () => new Promise<User | null>(() => {}) } as SessionClient
     open('/', client)
-    expect(screen.getByText('Your sales, on one board')).toBeInTheDocument()
+    expect(screen.getByText('Sense. Connect. Lead.')).toBeInTheDocument()
   })
 })
 
