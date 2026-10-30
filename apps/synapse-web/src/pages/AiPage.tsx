@@ -8,7 +8,6 @@ import { BoardGrid } from '../boards/BoardGrid'
 import { SaveBoardModal } from '../boards/SaveBoardModal'
 import { buildWidgets } from '../boards/layout'
 import { CatalogWidget } from '../catalog/CatalogWidget'
-import { catalog } from '../catalog/catalog'
 import classes from '../boards/Board.module.css'
 
 type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard }
@@ -17,7 +16,7 @@ const examples = ['Show top customers and top materials', `${BUILDER} build me a
 
 export function AiPage() {
   const navigate = useNavigate()
-  const { salesData, chatPlanner, boardStore } = useRouteContext({ from: '/ai' })
+  const { catalog, catalogClient, chatPlanner, boardStore } = useRouteContext({ from: '/ai' })
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [building, setBuilding] = useState(false)
@@ -36,7 +35,7 @@ export function AiPage() {
     setBusy(true)
     setText('')
     setMessages((all) => [...all, { from: 'you', text: asked }])
-    const answer = await chatPlanner.plan(asked)
+    const answer = await chatPlanner.plan(asked, catalog)
     setMessages((all) => [...all, { from: 'ai', text: answer.reply, catalogIds: answer.catalogIds, board: answer.board }])
     if (answer.board) setBoard(answer.board)
     setBusy(false)
@@ -98,7 +97,7 @@ export function AiPage() {
                     return (
                       entry && (
                         <WidgetCell key={id} widget={entry.widget}>
-                          <CatalogWidget entry={entry} data={salesData} />
+                          <CatalogWidget entry={entry} client={catalogClient} />
                         </WidgetCell>
                       )
                     )
@@ -152,7 +151,7 @@ export function AiPage() {
         size="90%"
         closeButtonProps={{ 'aria-label': 'Close' }}
       >
-        {board && <BoardGrid widgets={buildWidgets(board.catalogIds)} data={salesData} editing={false} onChange={() => undefined} />}
+        {board && <BoardGrid widgets={buildWidgets(board.catalogIds, catalog)} catalog={catalog} client={catalogClient} editing={false} onChange={() => undefined} />}
       </Modal>
       {board && (
         <SaveBoardModal
@@ -160,7 +159,7 @@ export function AiPage() {
           onClose={() => setSaving(false)}
           store={boardStore}
           name={board.name}
-          widgets={buildWidgets(board.catalogIds)}
+          widgets={buildWidgets(board.catalogIds, catalog)}
           onSaved={(id) => navigate({ to: '/', search: { board: id } })}
         />
       )}

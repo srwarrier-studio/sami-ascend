@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { RouterProvider } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
-import { SplashScreen } from '@sami/ui'
-import { MockSalesData } from './data/mockSalesData'
-import type { SalesData } from './data/salesData'
+import { Alert, Button, Container, SplashScreen, Stack } from '@sami/ui'
 import { MockBoardStore } from './boards/boardStore'
 import type { BoardStore } from './boards/boardStore'
 import { MockChatPlanner } from './ai/chatPlanner'
 import type { ChatPlanner } from './ai/chatPlanner'
+import { MockCatalogClient } from './catalog/mockCatalogClient'
+import type { CatalogClient } from './catalog/catalogClient'
+import { useCatalog } from './catalog/useCatalog'
 import { createAppRouter } from './router'
 import type { RouterContext, UiSettings } from './router'
 import type { SessionClient } from './session/sessionClient'
@@ -15,9 +16,9 @@ import { useSession } from './session/useSession'
 
 type AppProps = {
   client: SessionClient
-  salesData?: SalesData
   boardStore?: BoardStore
   chatPlanner?: ChatPlanner
+  catalogClient?: CatalogClient
   ui?: UiSettings
   onUiChange?: (ui: UiSettings) => void
   history?: RouterHistory
@@ -36,13 +37,25 @@ function Routed({ context, history }: { context: RouterContext; history?: Router
   return <RouterProvider router={router} context={context} />
 }
 
-const defaultSalesData = new MockSalesData()
 const defaultBoardStore = new MockBoardStore()
+const defaultCatalogClient = new MockCatalogClient()
 const defaultChatPlanner = new MockChatPlanner()
 const defaultUi: UiSettings = { palette: 'teal', motion: 'full' }
 
-export default function App({ client, salesData = defaultSalesData, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
-  const { session, login, logout } = useSession(client)
-  if (session.status === 'loading') return <SplashScreen name="Synapse" tagline="Your sales, on one board" />
-  return <Routed context={{ session, login, logout, salesData, boardStore, chatPlanner, ui, setUi: onUiChange }} history={history} />
+export default function App({ client, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, catalogClient = defaultCatalogClient, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
+  const { session, login, logout, retry } = useSession(client)
+  const { state: catalog, retry: retryCatalog } = useCatalog(catalogClient, session.status === 'signedIn')
+  if (session.status === 'loading' || (session.status === 'signedIn' && catalog.status !== 'ready' && catalog.status !== 'failed')) return <SplashScreen name="Synapse" tagline="Your sales, on one board" />
+  if (session.status === 'unreachable' || (session.status === 'signedIn' && catalog.status === 'failed'))
+    return (
+      <Container py="xl">
+        <Stack align="flex-start">
+          <Alert color="red" title="Cannot reach the server">
+            Check that the login and Synapse services are running and try again.
+          </Alert>
+          <Button onClick={session.status === 'unreachable' ? retry : retryCatalog}>Try again</Button>
+        </Stack>
+      </Container>
+    )
+  return <Routed context={{ session, login, logout, catalogClient, catalog: catalog.status === 'ready' ? catalog.entries : [], boardStore, chatPlanner, ui, setUi: onUiChange }} history={history} />
 }

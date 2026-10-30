@@ -5,13 +5,18 @@ export type Session =
   | { status: 'loading' }
   | { status: 'signedOut' }
   | { status: 'signedIn'; user: User }
+  | { status: 'unreachable' }
 
 export function useSession(client: SessionClient) {
   const [session, setSession] = useState<Session>({ status: 'loading' })
 
   const refresh = useCallback(async () => {
-    const user = await client.me()
-    setSession(user ? { status: 'signedIn', user } : { status: 'signedOut' })
+    try {
+      const user = await client.me()
+      setSession(user ? { status: 'signedIn', user } : { status: 'signedOut' })
+    } catch {
+      setSession({ status: 'unreachable' })
+    }
   }, [client])
 
   useEffect(() => {
@@ -32,5 +37,10 @@ export function useSession(client: SessionClient) {
     setSession({ status: 'signedOut' })
   }, [client])
 
-  return { session, login, logout }
+  const retry = useCallback(() => {
+    setSession({ status: 'loading' })
+    return refresh()
+  }, [refresh])
+
+  return { session, login, logout, retry }
 }

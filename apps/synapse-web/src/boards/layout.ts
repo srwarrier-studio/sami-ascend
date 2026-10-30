@@ -1,6 +1,6 @@
 import { arrange, widgetShape } from '@sami/ui'
 import type { SizeName } from '@sami/ui'
-import { catalog } from '../catalog/catalog'
+import type { CatalogEntry } from '../catalog/catalogClient'
 import type { BoardWidget } from './boardStore'
 
 export const MAX_WIDGETS = 15
@@ -46,10 +46,10 @@ export const resizeWidget = (widgets: BoardWidget[], id: string, allowed: SizeNa
     return { ...widget, size: next }
   })
 
-export const arrangeWidgets = (widgets: BoardWidget[]) =>
+export const arrangeWidgets = (widgets: BoardWidget[], catalog: CatalogEntry[]) =>
   arrange(widgets, (widget) => widgetShape(catalog.find((entry) => entry.id === widget.catalogId)?.widget ?? '', widget.size))
 
-export const buildWidgets = (catalogIds: string[]): BoardWidget[] =>
+export const buildWidgets = (catalogIds: string[], catalog: CatalogEntry[]): BoardWidget[] =>
   [...new Set(catalogIds)]
     .filter((catalogId) => catalog.some((entry) => entry.id === catalogId))
     .slice(0, MAX_WIDGETS)

@@ -4,13 +4,13 @@ import { createMemoryHistory } from '@tanstack/react-router'
 import { UiProvider, synapsePalette } from '@sami/ui'
 import App from '../src/App'
 import { MockBoardStore } from '../src/boards/boardStore'
-import { MockSalesData } from '../src/data/mockSalesData'
+import { MockCatalogClient } from '../src/catalog/mockCatalogClient'
 import { MockSessionClient } from '../src/session/sessionClient'
 
 const open = (store = new MockBoardStore()) => {
   render(
     <UiProvider palette={synapsePalette}>
-      <App client={new MockSessionClient('manager@mock-sami.com')} salesData={new MockSalesData(new Date('2026-10-29T10:00:00Z'))} boardStore={store} history={createMemoryHistory({ initialEntries: ['/ai'] })} />
+      <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={new MockCatalogClient()} boardStore={store} history={createMemoryHistory({ initialEntries: ['/ai'] })} />
     </UiProvider>,
   )
   return store

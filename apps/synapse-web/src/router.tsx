@@ -10,7 +10,7 @@ import {
 import type { RouterHistory } from '@tanstack/react-router'
 import type { BoardStore } from './boards/boardStore'
 import type { PresetName, MotionMode } from '@sami/ui'
-import type { SalesData } from './data/salesData'
+import type { CatalogClient, CatalogEntry } from './catalog/catalogClient'
 import type { Session } from './session/useSession'
 import type { ChatPlanner } from './ai/chatPlanner'
 import { canUseSynapse } from './access'
@@ -19,7 +19,7 @@ import { BoardsPage } from './pages/BoardsPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotAllowedPage } from './pages/NotAllowedPage'
 import { NotFoundPage } from './pages/NotFoundPage'
-import { WidgetsPage } from './pages/WidgetsPage'
+import { ReportsPage } from './pages/ReportsPage'
 import { Shell } from './Shell'
 
 export type UiSettings = { palette: PresetName; motion: MotionMode }
@@ -28,7 +28,8 @@ export type RouterContext = {
   session: Session
   login: (email: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
-  salesData: SalesData
+  catalogClient: CatalogClient
+  catalog: CatalogEntry[]
   boardStore: BoardStore
   chatPlanner: ChatPlanner
   ui: UiSettings
@@ -79,11 +80,11 @@ const boardsRoute = createRoute({
   component: BoardsPage,
 })
 
-const widgetsRoute = createRoute({
+const reportsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/widgets',
+  path: '/reports',
   beforeLoad: requireSynapseAccess,
-  component: WidgetsPage,
+  component: ReportsPage,
 })
 
 const aiRoute = createRoute({
@@ -100,7 +101,7 @@ const notAllowedRoute = createRoute({
   component: NotAllowedPage,
 })
 
-const routeTree = rootRoute.addChildren([loginRoute, boardsRoute, aiRoute, widgetsRoute, notAllowedRoute])
+const routeTree = rootRoute.addChildren([loginRoute, boardsRoute, aiRoute, reportsRoute, notAllowedRoute])
 
 export const createAppRouter = (context: RouterContext, history?: RouterHistory) =>
   createRouter({ routeTree, context, history })

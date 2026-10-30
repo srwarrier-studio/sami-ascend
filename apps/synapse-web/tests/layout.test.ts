@@ -1,5 +1,6 @@
 import { addWidget, buildWidgets, dropWidget, MAX_WIDGETS, moveWidget, removeWidget, resizeWidget } from '../src/boards/layout'
-import { catalog } from '../src/catalog/catalog'
+import { fixtureEntries } from '../src/catalog/fixtures'
+
 
 const widgets = [
   { id: 'a', catalogId: 'x' },
@@ -59,10 +60,11 @@ describe('building widgets from ids', () => {
   const catalogIds = (list: { catalogId: string }[]) => list.map((widget) => widget.catalogId)
 
   it('keeps known ids in order and drops unknown and repeated ones', () => {
-    expect(catalogIds(buildWidgets(['top-customers', 'nope', 'day-sales', 'top-customers']))).toEqual(['top-customers', 'day-sales'])
+    expect(catalogIds(buildWidgets(['top-customers', 'nope', 'day-sales', 'top-customers'], fixtureEntries))).toEqual(['top-customers', 'day-sales'])
   })
 
   it('stops at the widget limit', () => {
-    expect(buildWidgets(catalog.map((entry) => entry.id))).toHaveLength(MAX_WIDGETS)
+    const many = Array.from({ length: MAX_WIDGETS + 5 }, (_, index) => ({ ...fixtureEntries[0], id: `entry-${index}` }))
+    expect(buildWidgets(many.map((entry) => entry.id), many)).toHaveLength(MAX_WIDGETS)
   })
 })

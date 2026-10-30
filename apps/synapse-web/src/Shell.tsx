@@ -6,7 +6,7 @@ import type { User } from './session/sessionClient'
 
 type ShellProps = { user: User; onLogout: () => void; children: ReactNode }
 
-const navItem = (key: string, label: string, icon: NavItem['icon'], to: '/' | '/widgets', current: string): NavItem => ({
+const navItem = (key: string, label: string, icon: NavItem['icon'], to: '/' | '/reports', current: string): NavItem => ({
   key,
   label,
   icon,
@@ -23,13 +23,14 @@ export function Shell({ user, onLogout, children }: ShellProps) {
   return (
     <AppFrame
       layout="top"
+      themeToggle={false}
       brand={{ name: 'Synapse', subtitle: 'Management' }}
       user={{ name: user.name, email: user.email }}
       onSignOut={onLogout}
       navGroups={[
         [
           navItem('boards', 'My boards', SquaresFourIcon, '/', current),
-          navItem('widgets', 'Widgets', ChartBarIcon, '/widgets', current),
+          navItem('reports', 'Reports', ChartBarIcon, '/reports', current),
         ],
       ]}
     >

@@ -64,6 +64,17 @@ describe.each<Layout>(['top', 'side'])('AppFrame %s layout', (layout) => {
   })
 })
 
+it('leaves the toggle out when themeToggle is off', () => {
+  render(
+    <UiProvider palette={synapsePalette}>
+      <AppFrame brand={{ name: 'Synapse', subtitle: 'Management' }} user={{ name: 'A', email: 'a@b.c' }} onSignOut={() => undefined} navGroups={[]} layout="top" themeToggle={false}>
+        <p>Body</p>
+      </AppFrame>
+    </UiProvider>,
+  )
+  expect(screen.queryByLabelText('Dark theme')).toBeNull()
+})
+
 describe('AppFrame differences', () => {
   it('shows the brand subtitle in the side layout only', () => {
     renderFrame('side')

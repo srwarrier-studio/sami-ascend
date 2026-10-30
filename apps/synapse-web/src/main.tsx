@@ -3,15 +3,17 @@ import { createRoot } from 'react-dom/client'
 import { UiProvider, presets } from '@sami/ui'
 import App from './App.tsx'
 import type { UiSettings } from './router'
-import { MockSessionClient } from './session/sessionClient'
+import { HttpCatalogClient } from './catalog/catalogClient'
+import { HttpSessionClient } from './session/httpSessionClient'
 
-const client = new MockSessionClient()
+const client = new HttpSessionClient()
+const catalogClient = new HttpCatalogClient()
 
 function Root() {
   const [ui, setUi] = useState<UiSettings>({ palette: 'teal', motion: 'full' })
   return (
     <UiProvider palette={presets[ui.palette]} motion={ui.motion}>
-      <App client={client} ui={ui} onUiChange={setUi} />
+      <App client={client} catalogClient={catalogClient} ui={ui} onUiChange={setUi} />
     </UiProvider>
   )
 }
