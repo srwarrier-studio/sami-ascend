@@ -23,11 +23,12 @@ Knowledge kept after phases close. Add to it when a phase ends. Keep entries sho
 - `Settings` reads the `.env` at the repo root, whatever the working directory.
 - Logout only clears the cookie; tokens are not revoked server-side yet (see security checklist).
 - `MockAuthUnitOfWork` has no audit repo; use `SqliteAuthUnitOfWork` with a temp file in tests that need audit.
+- Companies (auth-api 04): each user has `companies` (`sabinsa`, `neutraceuticals`, `organica`) in the `user_companies` table, in the token and on `/me`. Until the admin endpoints exist, set them with `create-admin --company <id>` (no flag = all three) or `set-companies --email <email> --company <id>...`. Existing users have none until set. Setting companies is not audited yet.
 
 ## token-verification (`packages/token-verification`)
 - Flat package, not layered: the layer rule is per backend app. `TokenVerifier`, `TokenClaims`, `Role` and `InvalidToken` never import FastAPI; `fastapi_deps.AuthDependencies` is the HTTP part.
 - Each API builds `AuthDependencies(TokenVerifier(settings.JWT_SECRET))` with the same `JWT_SECRET` as auth-api. HS256 only; tokens missing `exp`, `sub`, `sap_username` or `roles`, or with an unknown role, are rejected.
-- auth-api only issues tokens; verifying lives in the package. `Role` is defined once, in the package.
+- auth-api only issues tokens; verifying lives in the package. `Role` and `Company` are defined once, in the package. A token without a `companies` claim still verifies, with an empty list; an unknown company is rejected.
 - Run package tests with `uv run --package token-verification --with pytest --with httpx pytest packages`.
 - Secret rotation and revocation are still open (security checklist).
 

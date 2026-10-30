@@ -38,7 +38,7 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 01 login-audit: record login success and failure in `audit_log`. todo
 - 02 admin-endpoints: list, create, disable users and change roles, admin only. todo
 - 03 entra-only-admins: allow users without a password so admins sign in through Entra (MFA). todo
-- 04 user-companies: each user has the companies they may see (Sami Sabinsa Group Company, Sami Neutraceuticals Private Limited, Organica Aromatic; most users one, a CFO several), carried by `/me` and the token. todo
+- 04 user-companies: each user has the companies they may see (Sami Sabinsa Group Company, Sami Neutraceuticals Private Limited, Organica Aromatic; most users one, a CFO several), carried by `/me` and the token. done (tag `auth-api-phase-04-done`, 2026-10-30).
 - Later, not scheduled: filter SAP data and boards by company (each company maps to an SAP company code).
 
 ## synapse-api (dashboard backend)
