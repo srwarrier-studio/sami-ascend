@@ -31,7 +31,7 @@ class TestRequest:
         assert seen["url"] == "http://localhost:11434/api/chat"
         assert body["model"] == "gemma3:270m"
         assert body["stream"] is False
-        assert body["options"] == {"temperature": 0}
+        assert body["options"] == {"temperature": 0, "num_predict": 200}
         assert body["messages"][1] == {"role": "user", "content": "show sales"}
         assert "sales-today: Sales today - Net sales invoiced today against yesterday." in body["messages"][0]["content"]
 
@@ -44,6 +44,7 @@ class TestRequest:
 
         model_with(handler).pick_widgets("hi", DEFAULT_ENTRIES)
         assert seen["format"]["properties"]["widgets"]["items"]["enum"] == [entry.id for entry in DEFAULT_ENTRIES]
+        assert seen["format"]["properties"]["widgets"]["maxItems"] == 8
         assert seen["format"]["required"] == ["widgets"]
 
     def test_uses_the_configured_model_and_url(self):

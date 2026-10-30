@@ -8,6 +8,9 @@ from sami_agents.domain.errors import InvalidModelAnswer, ModelUnavailable
 from sami_agents.domain.gateways.chat_model import ChatModel
 from sami_agents.infrastructure.settings import Settings
 
+MAX_TOKENS = 200
+MAX_PICKS = 8
+
 INSTRUCTIONS = (
     "You choose dashboard widgets for a sales manager. "
     "Below is the list of available widgets, one per line as `id: title - description`. "
@@ -20,7 +23,7 @@ INSTRUCTIONS = (
 def widget_schema(catalog: list[CatalogEntry]) -> dict:
     return {
         "type": "object",
-        "properties": {"widgets": {"type": "array", "items": {"type": "string", "enum": [entry.id for entry in catalog]}}},
+        "properties": {"widgets": {"type": "array", "maxItems": MAX_PICKS, "items": {"type": "string", "enum": [entry.id for entry in catalog]}}},
         "required": ["widgets"],
     }
 
@@ -36,7 +39,7 @@ class OllamaChatModel(ChatModel):
             "model": self.model,
             "stream": False,
             "format": widget_schema(catalog),
-            "options": {"temperature": 0},
+            "options": {"temperature": 0, "num_predict": MAX_TOKENS},
             "messages": [
                 {"role": "system", "content": f"{INSTRUCTIONS}\n\nWidgets:\n{listing}"},
                 {"role": "user", "content": message},

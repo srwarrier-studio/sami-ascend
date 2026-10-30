@@ -45,6 +45,9 @@ class PlanChat:
     def execute(self, message: str, catalog: list[CatalogEntry]) -> str:
         return self.graph.invoke({"message": message, "catalog": catalog})["program"]
 
+    def choose(self, message: str, catalog: list[CatalogEntry]) -> list[str]:
+        return self.graph.invoke({"message": message, "catalog": catalog})["ids"]
+
     def _build(self):
         graph = StateGraph(ChatState)
         graph.add_node("route", self._route)
