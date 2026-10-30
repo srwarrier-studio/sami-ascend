@@ -3,6 +3,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
+from sami_agents.application.keyword_matcher import KeywordMatcher
 from sami_agents.application.plan_chat import PlanChat
 from sami_agents.domain.entities.catalog import CatalogEntry
 from sami_agents.domain.errors import InvalidModelAnswer, ModelUnavailable
@@ -65,9 +66,10 @@ class RecordingModel(ChatModel):
 
 
 class EvaluateAgent:
-    def __init__(self, model: ChatModel, catalog: list[CatalogEntry]):
+    def __init__(self, model: ChatModel, catalog: list[CatalogEntry], matcher: KeywordMatcher | None = None):
         self.model = model
         self.catalog = catalog
+        self.matcher = matcher
 
     def execute(self, cases: list[EvalCase], parallel: int = 1, on_result: Callable[[CaseResult], None] | None = None) -> list[CaseResult]:
         size = -(-len(cases) // max(parallel, 1))
@@ -86,7 +88,7 @@ class EvaluateAgent:
 
     def run(self, case: EvalCase) -> CaseResult:
         recorder = RecordingModel(self.model)
-        final = PlanChat(recorder).choose(case.message, self.catalog)
+        final = PlanChat(recorder, self.matcher).choose(case.message, self.catalog)
         known = {entry.id for entry in self.catalog}
         picks = list(dict.fromkeys(entry_id for entry_id in recorder.raw if entry_id in known))
         return CaseResult(case, recorder.status, picks, final, recorder.seconds, passes(case, picks), passes(case, final))

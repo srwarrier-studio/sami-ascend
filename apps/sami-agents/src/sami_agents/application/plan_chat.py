@@ -36,9 +36,9 @@ def join_titles(titles: list[str]) -> str:
 
 
 class PlanChat:
-    def __init__(self, model: ChatModel):
+    def __init__(self, model: ChatModel, matcher: KeywordMatcher | None = None):
         self.model = model
-        self.matcher = KeywordMatcher()
+        self.matcher = matcher or KeywordMatcher()
         self.writer = OpenUiWriter()
         self.graph = self._build()
 
