@@ -1,8 +1,4 @@
-class ModelUnavailable(Exception):
-    pass
-
-
-class InvalidModelAnswer(Exception):
+class RelevanceUnavailable(Exception):
     pass
 
 

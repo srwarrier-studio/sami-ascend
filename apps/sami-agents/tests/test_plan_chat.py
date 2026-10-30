@@ -1,15 +1,16 @@
-import pytest
-
-from sami_agents.application.plan_chat import BOARD_LIMIT, INLINE_LIMIT, PlanChat
+from sami_agents.application.keyword_matcher import KeywordMatcher
+from sami_agents.application.plan_chat import BOARD_CHECKS, BOARD_LIMIT, INLINE_CHECKS, INLINE_LIMIT, PlanChat, board_name_from
 from sami_agents.domain.entities.catalog import CatalogEntry
-from sami_agents.domain.errors import InvalidModelAnswer, ModelUnavailable
 from sami_agents.infrastructure.mock_catalog_source import DEFAULT_ENTRIES
-from sami_agents.infrastructure.mock_chat_model import MockChatModel
+from sami_agents.infrastructure.mock_relevance_checker import MockRelevanceChecker
 
 
-def plan(message, picks=None, error=None, catalog=DEFAULT_ENTRIES):
-    model = MockChatModel(picks, error)
-    return PlanChat(model).execute(message, catalog), model
+def reports(count: int) -> list[CatalogEntry]:
+    return [CatalogEntry(f"w{n:02d}", f"Report {n:02d}", "") for n in range(count)]
+
+
+def run(message, checker=None, catalog=None, **options):
+    return PlanChat(checker, **options).run(message, DEFAULT_ENTRIES if catalog is None else catalog)
 
 
 def widget_ids(program):
@@ -18,89 +19,136 @@ def widget_ids(program):
 
 class TestRoute:
     def test_a_question_is_an_inline_answer_with_at_most_four_widgets(self):
-        many = [CatalogEntry(f"w{n}", f"Widget {n}", "") for n in range(10)]
-        program, _ = plan("show me everything", [entry.id for entry in many], catalog=many)
-        assert widget_ids(program) == ["w0", "w1", "w2", "w3"][:INLINE_LIMIT]
-        assert "Board(" not in program
+        state = run("report", MockRelevanceChecker(), reports(10))
+        assert len(state["ids"]) == INLINE_LIMIT
+        assert "Board(" not in state["program"]
 
     def test_builder_makes_a_board_of_up_to_fifteen_widgets(self):
-        many = [CatalogEntry(f"w{n}", f"Widget {n}", "") for n in range(30)]
-        program, _ = plan("@builder everything", [entry.id for entry in many], catalog=many)
-        board = [line for line in program.splitlines() if line.startswith("board = Board(")][0]
-        assert board.count('"w') == BOARD_LIMIT
+        state = run("@builder report", MockRelevanceChecker(), reports(30))
+        assert len(state["ids"]) == BOARD_LIMIT
+        assert f'board = Board("Report", [' in state["program"]
 
     def test_builder_names_the_board_after_the_request(self):
-        program, _ = plan("@builder sales overview", ["sales-today"])
-        assert 'board = Board("Sales Overview", ["sales-today"])' in program
+        assert 'Board("Sales Overview",' in run("@builder sales overview", MockRelevanceChecker())["program"]
 
-    def test_builder_without_a_request_gets_a_default_name(self):
-        program, _ = plan("@builder", ["sales-today"])
-        assert 'Board("AI board",' in program
+    def test_a_request_with_no_words_gets_the_default_board_name(self):
+        assert board_name_from("   ") == "AI board"
 
-    def test_the_model_does_not_see_the_builder_tag(self):
-        _, model = plan("@builder sales overview", ["sales-today"])
-        assert model.messages == ["sales overview"]
+    def test_a_long_request_gives_a_short_board_name(self):
+        assert len(board_name_from("sales " * 20)) <= 30
 
-    def test_builder_tag_is_case_insensitive(self):
-        assert "Board(" in plan("@Builder sales", ["sales-today"])[0]
-
-
-class TestValidate:
-    def test_unknown_ids_are_dropped(self):
-        program, _ = plan("sales", ["sales-today", "made-up", "../../etc"])
-        assert widget_ids(program) == ["sales-today"]
-
-    def test_repeated_ids_are_kept_once(self):
-        program, _ = plan("sales", ["sales-today", "sales-today", "day-sales"])
-        assert widget_ids(program) == ["sales-today", "day-sales"]
-
-    def test_the_order_the_model_chose_is_kept(self):
-        program, _ = plan("sales", ["top-customers", "sales-today"])
-        assert widget_ids(program) == ["top-customers", "sales-today"]
+    def test_the_checker_does_not_see_the_builder_tag(self):
+        checker = MockRelevanceChecker()
+        run("@Builder top customers", checker)
+        assert {message for message, _ in checker.calls} == {"top customers"}
 
 
-class TestFallback:
-    @pytest.mark.parametrize("error", [ModelUnavailable(), InvalidModelAnswer()])
-    def test_a_failing_model_falls_back_to_keywords(self, error):
-        program, _ = plan("show top customers", error=error)
-        assert widget_ids(program)[0] == "top-customers"
+class TestVerifyLoop:
+    def test_a_rejected_widget_is_skipped_and_the_next_is_tried(self):
+        checker = MockRelevanceChecker({"w00": 0.1})
+        state = run("report", checker, reports(3))
+        assert state["ids"] == ["w01", "w02"]
+        assert state["rejected"] == ["w00"]
+        assert [entry_id for _, entry_id in checker.calls] == ["w00", "w01", "w02"]
 
-    def test_a_model_that_picks_nothing_falls_back_to_keywords(self):
-        assert widget_ids(plan("show top customers", [])[0])[0] == "top-customers"
+    def test_the_threshold_itself_is_approved(self):
+        assert run("report", MockRelevanceChecker({"w00": 0.35}), reports(1))["ids"] == ["w00"]
 
-    def test_a_model_that_picks_only_unknown_ids_falls_back_to_keywords(self):
-        assert widget_ids(plan("show top customers", ["nope"])[0])[0] == "top-customers"
+    def test_just_below_the_threshold_is_rejected(self):
+        assert run("report", MockRelevanceChecker({"w00": 0.349}), reports(1))["ids"] == []
 
-    def test_a_working_model_wins_over_the_keywords(self):
-        assert widget_ids(plan("show top customers", ["day-sales"])[0]) == ["day-sales"]
+    def test_the_threshold_can_be_changed(self):
+        assert run("report", MockRelevanceChecker({"w00": 0.5}), reports(1), threshold=0.6)["ids"] == []
+        assert run("report", MockRelevanceChecker({"w00": 0.5}), reports(1), threshold=0.4)["ids"] == ["w00"]
 
-    def test_nothing_matching_says_so_with_no_widgets(self):
-        program, _ = plan("weather in paris", error=ModelUnavailable())
-        assert program.splitlines() == ["root = Stack([intro])", 'intro = Text("I could not find a matching widget.")']
+    def test_no_widget_is_checked_twice(self):
+        checker = MockRelevanceChecker(default=0.0)
+        run("report", checker, reports(5))
+        ids = [entry_id for _, entry_id in checker.calls]
+        assert len(ids) == len(set(ids)) == 5
 
-    def test_the_fallback_keeps_the_builder_limit(self):
-        many = [CatalogEntry(f"w{n}", "Sales report", "") for n in range(30)]
-        program, _ = plan("@builder sales report", error=ModelUnavailable(), catalog=many)
-        assert program.count('"w') == BOARD_LIMIT
+    def test_approved_widgets_keep_the_keyword_order(self):
+        catalog = [CatalogEntry("a", "Sales", ""), CatalogEntry("b", "Sales sales report", ""), CatalogEntry("c", "Sales", "")]
+        assert run("sales report", MockRelevanceChecker(), catalog)["ids"] == ["b", "a", "c"]
+
+    def test_stops_asking_once_the_limit_is_reached(self):
+        checker = MockRelevanceChecker()
+        run("report", checker, reports(10))
+        assert len(checker.calls) == INLINE_LIMIT
+
+    def test_an_inline_answer_stops_after_the_check_budget(self):
+        checker = MockRelevanceChecker(default=0.0)
+        state = run("report", checker, reports(30))
+        assert len(checker.calls) == INLINE_CHECKS
+        assert state["ids"] == []
+
+    def test_a_board_stops_after_its_larger_check_budget(self):
+        checker = MockRelevanceChecker(default=0.0)
+        run("@builder report", checker, reports(30))
+        assert len(checker.calls) == BOARD_CHECKS
+
+    def test_a_widget_found_after_several_rejections_is_still_approved(self):
+        scores = {f"w{n:02d}": 0.0 for n in range(6)}
+        assert run("report", MockRelevanceChecker(scores), reports(8))["ids"] == ["w06", "w07"]
+
+    def test_nothing_proposed_means_nothing_is_checked(self):
+        checker = MockRelevanceChecker()
+        state = run("weather in paris", checker)
+        assert checker.calls == [] and state["ids"] == []
+
+
+class TestUnchecked:
+    def test_without_a_checker_the_keyword_candidates_are_used(self):
+        state = run("report", None, reports(10))
+        assert len(state["ids"]) == INLINE_LIMIT and state["unchecked"] is True and state["checks"] == 0
+
+    def test_a_checker_that_is_down_from_the_start_falls_back_to_the_keywords(self):
+        state = run("report", MockRelevanceChecker(fail_from=0), reports(10))
+        assert state["ids"] == ["w00", "w01", "w02", "w03"]
+        assert state["unchecked"] is True
+
+    def test_a_checker_that_goes_down_midway_keeps_the_checked_results(self):
+        state = run("report", MockRelevanceChecker({"w00": 0.0}, fail_from=2), reports(10))
+        assert state["rejected"] == ["w00"]
+        assert state["ids"] == ["w01", "w02", "w03", "w04"]
+        assert state["checks"] == 2
+
+    def test_unchecked_boards_are_not_limited_by_the_check_budget(self):
+        assert len(run("@builder report", None, reports(30))["ids"]) == BOARD_LIMIT
+
+    def test_the_answer_is_still_a_valid_program(self):
+        assert run("report", MockRelevanceChecker(fail_from=0), reports(3))["program"].startswith("root = Stack(")
 
 
 class TestReply:
     def test_the_sentence_is_built_from_catalog_titles(self):
-        program, _ = plan("sales", ["sales-today", "top-customers"])
-        assert 'Text("Here is Sales today and Top customers.")' in program
+        program = run("sales", MockRelevanceChecker({"sales-month": 0.0, "top-customers": 0.0}), DEFAULT_ENTRIES)["program"]
+        assert 'Text("Here is Sales today, Day sales and Top materials.")' in program
 
-    def test_three_titles_read_as_a_list(self):
-        program, _ = plan("sales", ["sales-today", "day-sales", "top-customers"])
-        assert 'Here is Sales today, Day sales and Top customers.' in program
+    def test_four_titles_read_as_a_list(self):
+        assert "Here is Sales today, Sales this month, Day sales and Top customers." in run("sales", MockRelevanceChecker(), DEFAULT_ENTRIES)["program"]
+
+    def test_nothing_approved_says_so_with_no_widgets(self):
+        program = run("report", MockRelevanceChecker(default=0.0), reports(3))["program"]
+        assert program.splitlines() == ["root = Stack([intro])", 'intro = Text("I could not find a matching widget.")']
 
     def test_a_board_sentence_counts_its_widgets(self):
-        assert "I built Sales with 1 widget." in plan("@builder sales", ["sales-today"])[0]
+        assert "I built Report with 1 widget." in run("@builder report", MockRelevanceChecker(), reports(1))["program"]
 
-    def test_every_program_has_a_root(self):
-        for program in [plan("sales", ["sales-today"])[0], plan("zzz", error=ModelUnavailable())[0], plan("@builder x", ["day-sales"])[0]]:
+    def test_every_program_has_a_root_and_only_catalog_ids(self):
+        for message in ["sales", "weather", "@builder customers"]:
+            program = run(message, MockRelevanceChecker(), DEFAULT_ENTRIES)["program"]
             assert program.startswith("root = Stack(")
+            assert set(widget_ids(program)) <= {entry.id for entry in DEFAULT_ENTRIES}
 
-    def test_text_the_model_wrote_never_reaches_the_program(self):
-        program, _ = plan("sales", ['sales-today"]) root = Evil("x', "sales-today"])
-        assert "Evil" not in program
-        assert widget_ids(program) == ["sales-today"]
+    def test_a_title_with_quotes_cannot_break_the_program(self):
+        catalog = [CatalogEntry("a", 'Sales "x")\nroot = Evil()', "")]
+        program = run("sales", MockRelevanceChecker(), catalog)["program"]
+        assert len(program.splitlines()) == 3 and "root = Evil()" not in program.splitlines()
+
+
+class TestMatcher:
+    def test_uses_the_matcher_it_is_given(self):
+        catalog = [CatalogEntry("top-materials", "Top materials", "")]
+        plan = PlanChat(MockRelevanceChecker(), KeywordMatcher({"top-materials": ["products"]}))
+        assert plan.choose("which products", catalog) == ["top-materials"]
