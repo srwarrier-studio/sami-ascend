@@ -87,6 +87,7 @@ export {
   ClipboardTextIcon,
   FileTextIcon,
   FilesIcon,
+  FilePdfIcon,
   HouseIcon,
   PencilSimpleIcon,
   PlusIcon,

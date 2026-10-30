@@ -4,16 +4,18 @@ import { UiProvider, presets } from '@sami/ui'
 import App from './App.tsx'
 import type { UiSettings } from './router'
 import { HttpCatalogClient } from './catalog/catalogClient'
+import { PdfBoardExporter } from './export/boardExporter'
 import { HttpSessionClient } from './session/httpSessionClient'
 
 const client = new HttpSessionClient()
 const catalogClient = new HttpCatalogClient()
+const boardExporter = new PdfBoardExporter()
 
 function Root() {
   const [ui, setUi] = useState<UiSettings>({ palette: 'teal', motion: 'full' })
   return (
     <UiProvider palette={presets[ui.palette]} motion={ui.motion}>
-      <App client={client} catalogClient={catalogClient} ui={ui} onUiChange={setUi} />
+      <App client={client} catalogClient={catalogClient} boardExporter={boardExporter} ui={ui} onUiChange={setUi} />
     </UiProvider>
   )
 }
