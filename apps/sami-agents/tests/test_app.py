@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -56,3 +58,10 @@ class TestRunner:
         monkeypatch.setattr(run, "Settings", lambda: Settings(jwt_secret="", _env_file=None))
         with pytest.raises(SystemExit, match="JWT_SECRET"):
             run.main()
+
+    def test_turns_langsmith_tracing_off(self, monkeypatch):
+        monkeypatch.setenv("LANGSMITH_TRACING", "true")
+        monkeypatch.setattr(run, "Settings", lambda: Settings(jwt_secret="", _env_file=None))
+        with pytest.raises(SystemExit):
+            run.main()
+        assert os.environ["LANGSMITH_TRACING"] == "false"
