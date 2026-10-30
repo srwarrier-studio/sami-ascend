@@ -30,3 +30,4 @@
 `@phosphor-icons/react` (icons, as Mantine recommends) and `@fontsource/ibm-plex-sans` (IBM Plex Sans, Carbon's typeface, self-hosted) in `@sami/ui`.
 `@mantine/core`, `@mantine/hooks`, `@mantine/notifications` (toasts, same look as the other components), `@tanstack/charts`, `zod` (`@sami/ui`; zod gives one definition for prop validation and the JSON schema a model sees). Dev: `vitest`, `jsdom`, `@testing-library/*`, `vite`, `@vitejs/plugin-react`.
 `@tanstack/react-router` and `@sami/ui` (workspace-web, which also uses vitest, jsdom and Testing Library as dev dependencies; routing needs guards on each route, which the router provides without a generator).
+`html-to-image` and `jspdf` (synapse-web, board export to PDF): both MIT, no native code. `html-to-image` is by bubkoo (github.com/bubkoo/html-to-image), `jspdf` by parallax (github.com/parallax/jsPDF); `jspdf` pulls in `@babel/runtime`, `fflate` and `fast-png`. Licence and supplier checked 2026-10-30.
