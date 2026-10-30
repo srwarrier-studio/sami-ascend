@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Badge, Chip, Drawer, Group, Progress, Stack, Text, TextInput, ThemeIcon, UnstyledButton } from '@mantine/core'
+import { Badge, Button, Card, Chip, Drawer, Group, Progress, SegmentedControl, Stack, Text, TextInput, ThemeIcon, UnstyledButton } from '@mantine/core'
 import {
   CalendarDotsIcon,
   CheckIcon,
@@ -18,6 +18,8 @@ import {
 import type { Icon } from '@phosphor-icons/react'
 import classes from './WidgetLibrary.module.css'
 
+export type LibraryPreset = { id: string; name: string; description: string; count: number }
+
 export type LibraryItem = { id: string; title: string; category: string; widget: string }
 
 const kinds: Record<string, { label: string; icon: Icon }> = {
@@ -34,15 +36,17 @@ const kinds: Record<string, { label: string; icon: Icon }> = {
   DataTable: { label: 'Table', icon: TableIcon },
 }
 
-type WidgetLibraryProps = { opened: boolean; onClose: () => void; items: LibraryItem[]; onPick: (id: string) => void; onRemove: (id: string) => void; counts?: Record<string, number>; limit?: { used: number; max: number } }
+type WidgetLibraryProps = { opened: boolean; onClose: () => void; items: LibraryItem[]; onPick: (id: string) => void; onRemove: (id: string) => void; counts?: Record<string, number>; limit?: { used: number; max: number }; presets?: LibraryPreset[]; onUsePreset?: (id: string) => void }
 
-export function WidgetLibrary({ opened, onClose, items, onPick, onRemove, counts = {}, limit }: WidgetLibraryProps) {
+export function WidgetLibrary({ opened, onClose, items, onPick, onRemove, counts = {}, limit, presets, onUsePreset }: WidgetLibraryProps) {
+  const [tab, setTab] = useState('widgets')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
   useEffect(() => {
     if (!opened) {
       setQuery('')
       setCategory('All')
+      setTab('widgets')
     }
   }, [opened])
   const full = limit !== undefined && limit.used >= limit.max
@@ -67,6 +71,41 @@ export function WidgetLibrary({ opened, onClose, items, onPick, onRemove, counts
       trapFocus={false}
       classNames={{ content: classes.content, body: classes.body }}
     >
+      {presets && (
+        <SegmentedControl
+          fullWidth
+          aria-label="Library view"
+          value={tab}
+          onChange={setTab}
+          data={[
+            { value: 'widgets', label: 'Widgets' },
+            { value: 'presets', label: 'Preset boards' },
+          ]}
+        />
+      )}
+      {presets && tab === 'presets' ? (
+        <Stack gap="md" className={classes.list}>
+          {presets.map((preset) => (
+            <Card key={preset.id} withBorder>
+              <Stack gap="xs">
+                <Text fw={600}>{preset.name}</Text>
+                <Text size="sm" c="dimmed">
+                  {preset.description}
+                </Text>
+                <Group justify="space-between">
+                  <Text size="xs" c="dimmed">
+                    {preset.count} widgets
+                  </Text>
+                  <Button size="xs" aria-label={`Use ${preset.name}`} onClick={() => onUsePreset?.(preset.id)}>
+                    Use this board
+                  </Button>
+                </Group>
+              </Stack>
+            </Card>
+          ))}
+        </Stack>
+      ) : (
+        <>
       <Stack gap="md" className={classes.head}>
         <TextInput
           aria-label="Search widgets"
@@ -131,6 +170,8 @@ export function WidgetLibrary({ opened, onClose, items, onPick, onRemove, counts
           </Stack>
         ))}
       </Stack>
+        </>
+      )}
     </Drawer>
   )
 }
