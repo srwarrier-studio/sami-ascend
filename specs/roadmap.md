@@ -38,6 +38,8 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 01 login-audit: record login success and failure in `audit_log`. todo
 - 02 admin-endpoints: list, create, disable users and change roles, admin only. todo
 - 03 entra-only-admins: allow users without a password so admins sign in through Entra (MFA). todo
+- 04 user-companies: each user has the companies they may see (Sami Sabinsa Group Company, Sami Neutraceuticals Private Limited, Organica Aromatic; most users one, a CFO several), carried by `/me` and the token. todo
+- Later, not scheduled: filter SAP data and boards by company (each company maps to an SAP company code).
 
 ## synapse-api (dashboard backend)
 - 01 sales-source: an interface to read sales data, with an implementation that calls butterfly. done (tag `synapse-api-phase-01-done`, 2026-10-27)
@@ -53,7 +55,9 @@ All three phases use mock data (session, sales data and board store behind inter
 - 03 board: the user's own boards as tabs with an Edit mode (rename, add and delete boards, drag, reorder, remove, widget picker, AI Mode), saved in a mock board store, widgets auto-refresh every 5 minutes, no dropdown filters. done (tag `synapse-web-phase-03-done`, 2026-10-29).
 - 04 ai-ready-review: check widgets against the AI dashboard needs before the POC. done (tag `synapse-web-phase-04-done`, 2026-10-29).
 - 05 ai-chat: full-screen AI Mode chat with widgets inside answers, `@builder` board modal and save as board, on a mock planner. done (tag `synapse-web-phase-05-done`, 2026-10-30).
-- Feature request (2026-10-30), not scheduled: export a board as an infographic-style PDF, made in the browser (only the browser has the board as drawn). Top: the company logo and title (placeholders for now) instead of the app header and page bar; body: the layout exactly as drawn; bottom: a small line with the time it was generated and the username of who generated it. Decided: a library renders the board to a PDF download, no print dialog. Open for its spec: which library (an image capture such as html-to-image plus a PDF writer such as jsPDF; needs the supplier and licence check and a `tech-stack.md` entry), the capture scale so charts stay sharp, how a tall board splits across pages, and where the real company name and logo come from later. todo
+- 06 backend-catalog: login through auth-api, catalog and every widget's data from synapse-api, local catalog removed; the Widgets tab became a Reports placeholder. done (tag `synapse-web-phase-06-done`, 2026-10-30).
+- 07 board-export: `Export PDF` on a board, one page sized to the board, raster capture at 3x with `html-to-image` and `jspdf`, placeholder logo and company name on top and a generated-by line below. done (tag `synapse-web-phase-07-done`, 2026-10-30).
+- 08 company-picker: after login a screen of company cards (name and logo) to pick from, skipped for users with one company, a switch-company button in the header, and the chosen company's name and logo on the PDF. Depends on auth-api 04. todo
 
 ## workspace-api (workflow backend)
 - 01 sales-order-gateway: an interface to create and list sales orders, with an implementation that calls butterfly. done (tag `workspace-api-phase-01-done`, 2026-10-27)
