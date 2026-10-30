@@ -72,6 +72,10 @@ All three phases use mock data (session, sales data and board store behind inter
 - 02 sales-order-entry: form to enter a sales order with clear validation messages. done (tag `workspace-web-phase-02-done`, 2026-10-27)
 - 03 sales-order-list: list and open the user's recent orders. todo
 
+## sami-agents (AI service for AI Mode)
+- 01 chat-graph: new FastAPI service (port 8005) with the cookie-checked `POST /v1/agents/chat` route that answers in OpenUI Lang, a LangGraph graph over `ChatModel` and `CatalogSource` ports with mocks, the Ollama adapter, and an evaluation tool (`sami-agents eval`) with 22 prompts; it found that small models alone are not good enough at choosing widgets. done (tag `sami-agents-phase-01-done`, 2026-10-30).
+- 02 relevance-check: keyword proposals with aliases, each checked by Laya (yes or no, a rejected widget is skipped and the next tried), the approved widgets sent as a widget stack, or as a board for `@builder`; a small model writes only the sentence. todo
+
 ## ai-dashboard (POC, later, local-first)
 - Not scheduled. Starts after synapse-web 03. See `notes.md` for the constraints. todo
 
