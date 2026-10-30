@@ -1,8 +1,9 @@
+import sqlite3
 import stat
 
 from auth_api.domain.entities.audit_event import AuditEvent
 from auth_api.domain.value_objects.email_id import EmailID
-from token_verification import Role
+from token_verification import Company, Role
 from auth_api.infrastructure.mock.mock_user_repo import MOCK_USER
 from auth_api.infrastructure.sqlite.sqlite_unit_of_work import SqliteAuthUnitOfWork
 
@@ -22,6 +23,47 @@ def test_committed_user_is_found_with_roles_intact(tmp_path):
     assert found.roles == [Role.QUALITY, Role.STORES]
     assert found.sap_username == "SAP_READONLY"
     MOCK_USER.roles = [Role.STORES]
+
+
+def test_committed_user_keeps_its_companies(tmp_path):
+    uow = SqliteAuthUnitOfWork(str(tmp_path / "auth.db"))
+    MOCK_USER.companies = [Company.ORGANICA, Company.SABINSA]
+
+    with uow:
+        uow.user_repo.add(MOCK_USER)
+        uow.commit()
+
+    with uow:
+        found = uow.user_repo.find_by_email(EmailID("test@email.com"))
+
+    assert found.companies == [Company.ORGANICA, Company.SABINSA]
+    MOCK_USER.companies = []
+
+
+def test_user_without_companies_is_found_with_an_empty_list(tmp_path):
+    uow = SqliteAuthUnitOfWork(str(tmp_path / "auth.db"))
+
+    with uow:
+        uow.user_repo.add(MOCK_USER)
+        uow.commit()
+
+    with uow:
+        assert uow.user_repo.find_by_email(EmailID("test@email.com")).companies == []
+
+
+def test_database_made_before_companies_gets_the_table_and_keeps_its_users(tmp_path):
+    path = str(tmp_path / "auth.db")
+    SqliteAuthUnitOfWork(path)
+
+    conn = sqlite3.connect(path)
+    conn.execute("DROP TABLE user_companies")
+    conn.commit()
+    conn.close()
+
+    uow = SqliteAuthUnitOfWork(path)
+
+    with uow:
+        assert uow.conn.execute("SELECT COUNT(*) FROM user_companies").fetchone()[0] == 0
 
 
 def test_uncommitted_user_is_rolled_back(tmp_path):
