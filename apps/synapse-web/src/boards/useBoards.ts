@@ -53,5 +53,13 @@ export function useBoards(store: BoardStore, firstId = '') {
     [store, active],
   )
 
-  return { boards, active, select: setActiveId, add, rename, remove, setWidgets }
+  const reload = useCallback(
+    async (selectId: string) => {
+      setBoards(await store.list())
+      setActiveId(selectId)
+    },
+    [store],
+  )
+
+  return { boards, active, select: setActiveId, reload, add, rename, remove, setWidgets }
 }

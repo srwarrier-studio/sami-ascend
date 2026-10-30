@@ -4,7 +4,9 @@ import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
 import { Button, EmptyBoard, Group, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, notifications, useColorScheme } from '@sami/ui'
 import { BoardGrid } from '../boards/BoardGrid'
 import { ExportFrame } from '../export/ExportFrame'
-import { MAX_WIDGETS, arrangeWidgets, insertWidget, removeWidget } from '../boards/layout'
+import { SaveBoardModal } from '../boards/SaveBoardModal'
+import { listPresets } from '../boards/presets'
+import { MAX_WIDGETS, arrangeWidgets, buildWidgets, insertWidget, removeWidget } from '../boards/layout'
 import { useBoards } from '../boards/useBoards'
 
 export function BoardsPage() {
@@ -12,15 +14,19 @@ export function BoardsPage() {
   const search = useSearch({ from: '/' })
   const { boardStore, catalog, catalogClient, boardExporter, session, company, ui, setUi } = useRouteContext({ from: '/' })
   const { colorScheme, setColorScheme } = useColorScheme()
-  const { boards, active, select, add, rename, remove, setWidgets } = useBoards(boardStore, search.board)
+  const { boards, active, select, reload, add, rename, remove, setWidgets } = useBoards(boardStore, search.board)
   const [editing, setEditing] = useState(false)
   const [picking, setPicking] = useState(false)
+  const [presetId, setPresetId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [generatedAt, setGeneratedAt] = useState(() => new Date())
   const frame = useRef<HTMLDivElement>(null)
 
   if (!boards || !active) return null
+
+  const presets = listPresets(catalog)
+  const chosenPreset = presets.find((preset) => preset.id === presetId)
 
   const insert = (catalogId: string, beforeId: string | null) => {
     if (active.widgets.some((widget) => widget.catalogId === catalogId)) return
@@ -110,8 +116,23 @@ export function BoardsPage() {
         items={catalog}
         limit={{ used: active.widgets.length, max: MAX_WIDGETS }}
         counts={active.widgets.reduce<Record<string, number>>((all, widget) => ({ ...all, [widget.catalogId]: (all[widget.catalogId] ?? 0) + 1 }), {})}
+        presets={presets.map((preset) => ({ id: preset.id, name: preset.name, description: preset.description, count: preset.catalogIds.length }))}
+        onUsePreset={setPresetId}
         onPick={(catalogId) => insert(catalogId, null)}
         onRemove={(catalogId) => setWidgets(removeWidget(active.widgets, active.widgets.find((widget) => widget.catalogId === catalogId)?.id ?? ''))}
+      />
+      <SaveBoardModal
+        opened={!!chosenPreset}
+        onClose={() => setPresetId(null)}
+        store={boardStore}
+        name={chosenPreset?.name ?? ''}
+        widgets={chosenPreset ? buildWidgets(chosenPreset.catalogIds, catalog) : []}
+        onSaved={async (boardId) => {
+          setPresetId(null)
+          setPicking(false)
+          setEditing(false)
+          await reload(boardId)
+        }}
       />
       <Modal opened={deleting} onClose={() => setDeleting(false)} title="Delete board">
         <Text>Delete {active.name} and its widgets?</Text>
