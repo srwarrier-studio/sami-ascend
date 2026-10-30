@@ -1,5 +1,6 @@
 import jwt
 
+from token_verification.company import Company
 from token_verification.errors import InvalidToken
 from token_verification.role import Role
 from token_verification.token_claims import TokenClaims
@@ -23,6 +24,7 @@ class TokenVerifier:
                 userid=payload["sub"],
                 sap_username=payload["sap_username"],
                 roles=[Role(role) for role in payload["roles"]],
+                companies=[Company(company) for company in payload.get("companies", [])],
             )
         except (jwt.InvalidTokenError, ValueError, TypeError):
             raise InvalidToken()

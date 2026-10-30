@@ -18,6 +18,7 @@ class JwtTokenService(TokenService):
             "sub": str(user.userid.value),
             "sap_username": user.sap_username,
             "roles": [role.value for role in user.roles],
+            "companies": [company.value for company in user.companies],
             "exp": expires_at,
         }
         return jwt.encode(payload, self.secret, algorithm=ALGORITHM)

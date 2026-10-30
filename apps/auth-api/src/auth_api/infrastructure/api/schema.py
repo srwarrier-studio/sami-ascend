@@ -12,6 +12,7 @@ class Me(BaseModel):
     userid: str
     sap_username: str
     roles: list[str]
+    companies: list[str]
 
 
 class UserInDB(User):
