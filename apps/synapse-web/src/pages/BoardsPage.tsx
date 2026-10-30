@@ -10,7 +10,7 @@ import { useBoards } from '../boards/useBoards'
 export function BoardsPage() {
   const navigate = useNavigate()
   const search = useSearch({ from: '/' })
-  const { boardStore, catalog, catalogClient, boardExporter, session, ui, setUi } = useRouteContext({ from: '/' })
+  const { boardStore, catalog, catalogClient, boardExporter, session, company, ui, setUi } = useRouteContext({ from: '/' })
   const { colorScheme, setColorScheme } = useColorScheme()
   const { boards, active, select, add, rename, remove, setWidgets } = useBoards(boardStore, search.board)
   const [editing, setEditing] = useState(false)
@@ -87,7 +87,7 @@ export function BoardsPage() {
           </Group>
         }
       />
-      <ExportFrame exporting={exporting} userName={session.status === 'signedIn' ? session.user.name : ''} generatedAt={generatedAt} frameRef={frame}>
+      <ExportFrame exporting={exporting} company={company} userName={session.status === 'signedIn' ? session.user.name : ''} generatedAt={generatedAt} frameRef={frame}>
         <BoardGrid widgets={active.widgets} catalog={catalog} client={catalogClient} editing={editing} onChange={setWidgets}
           empty={active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
         />

@@ -1,4 +1,4 @@
-export type User = { userid: string; name: string; email: string; roles: string[] }
+export type User = { userid: string; name: string; email: string; roles: string[]; companies: string[] }
 
 export type SessionClient = {
   me: () => Promise<User | null>
@@ -7,9 +7,9 @@ export type SessionClient = {
 }
 
 const mockUsers: User[] = [
-  { userid: 'u-manager', name: 'Mock Manager', email: 'manager@mock-sami.com', roles: ['management'] },
-  { userid: 'u-admin', name: 'Mock Admin', email: 'admin@mock-sami.com', roles: ['admin'] },
-  { userid: 'u-sales', name: 'Mock Sales', email: 'sales@mock-sami.com', roles: ['sales'] },
+  { userid: 'u-manager', name: 'Mock Manager', email: 'manager@mock-sami.com', roles: ['management'], companies: ['sabinsa', 'neutraceuticals'] },
+  { userid: 'u-admin', name: 'Mock Admin', email: 'admin@mock-sami.com', roles: ['admin'], companies: ['sabinsa', 'neutraceuticals', 'organica'] },
+  { userid: 'u-sales', name: 'Mock Sales', email: 'sales@mock-sami.com', roles: ['sales'], companies: ['organica'] },
 ]
 
 const MOCK_PASSWORD = 'mock'

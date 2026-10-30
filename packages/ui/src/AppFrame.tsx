@@ -42,6 +42,8 @@ export type AppFrameProps = {
   searchPlaceholder?: string
   layout?: 'top' | 'side'
   themeToggle?: boolean
+  headerExtra?: ReactNode
+  search?: boolean
   children: ReactNode
 }
 
@@ -141,9 +143,11 @@ export function AppFrame({
   searchPlaceholder = 'Search',
   layout = 'side',
   themeToggle = true,
+  headerExtra,
+  search: showSearch = true,
   children,
 }: AppFrameProps) {
-  const search = (
+  const search = showSearch && (
     <TextInput
       className={layout === 'top' ? classes.searchPill : classes.search}
       variant={layout === 'top' ? 'filled' : 'unstyled'}
@@ -168,6 +172,7 @@ export function AppFrame({
             ))}
           </nav>
           <div className={classes.topActions}>
+            {headerExtra}
             {search}
             <Actions notifications={notifications} />
             {themeToggle && <ThemeToggle />}
@@ -191,6 +196,7 @@ export function AppFrame({
       <div className={classes.top}>
         {search}
         <div className={classes.topActions}>
+          {headerExtra}
           <Actions notifications={notifications} />
           <span className={classes.divider} />
           <UserMenu user={user} onSignOut={onSignOut} />

@@ -1,17 +1,19 @@
 import type { ReactNode, Ref } from 'react'
 import { Group, Loader, Stack, Text, Title } from '@sami/ui'
-import { companyBrand } from './companyBrand'
+import { CompanyLogo } from '../session/CompanyLogo'
+import { findCompany } from '../session/companies'
 import classes from '../boards/Board.module.css'
 
 type ExportFrameProps = {
   exporting: boolean
   userName: string
+  company: string | null
   generatedAt: Date
   frameRef?: Ref<HTMLDivElement>
   children: ReactNode
 }
 
-export function ExportFrame({ exporting, userName, generatedAt, frameRef, children }: ExportFrameProps) {
+export function ExportFrame({ exporting, userName, company, generatedAt, frameRef, children }: ExportFrameProps) {
   return (
     <>
       {exporting && (
@@ -25,8 +27,8 @@ export function ExportFrame({ exporting, userName, generatedAt, frameRef, childr
       <div ref={frameRef} className={classes.sheet}>
         <div hidden={!exporting} className={classes.sheetHeader}>
           <Group>
-            <div className={classes.logo}>{companyBrand.logoLetter}</div>
-            <Title order={2}>{companyBrand.name}</Title>
+            {company && <CompanyLogo id={company} size={40} />}
+            <Title order={2}>{company ? findCompany(company)?.name : ''}</Title>
           </Group>
         </div>
         {children}

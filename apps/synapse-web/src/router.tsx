@@ -16,6 +16,8 @@ import type { ChatPlanner } from './ai/chatPlanner'
 import type { BoardExporter } from './export/boardExporter'
 import { canUseSynapse } from './access'
 import { AiPage } from './pages/AiPage'
+import { CompanyPage } from './pages/CompanyPage'
+import { NoCompanyPage } from './pages/NoCompanyPage'
 import { BoardsPage } from './pages/BoardsPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotAllowedPage } from './pages/NotAllowedPage'
@@ -34,16 +36,18 @@ export type RouterContext = {
   boardStore: BoardStore
   chatPlanner: ChatPlanner
   boardExporter: BoardExporter
+  company: string | null
+  setCompany: (id: string) => void
   ui: UiSettings
   setUi: (ui: UiSettings) => void
 }
 
 function RootLayout() {
-  const { session, logout } = useRouteContext({ from: '__root__' })
+  const { session, company, logout } = useRouteContext({ from: '__root__' })
   const path = useRouterState({ select: (state) => state.location.pathname })
-  if (session.status !== 'signedIn' || path === '/ai') return <Outlet />
+  if (session.status !== 'signedIn' || path === '/ai' || path === '/company' || path === '/no-company') return <Outlet />
   return (
-    <Shell user={session.user} onLogout={logout}>
+    <Shell user={session.user} company={company} onLogout={logout}>
       <Outlet />
     </Shell>
   )
@@ -65,6 +69,12 @@ const requireSynapseAccess = ({ context }: { context: RouterContext }) => {
   }
 }
 
+const requireCompany = ({ context }: { context: RouterContext }) => {
+  requireSynapseAccess({ context })
+  if (context.session.status !== 'signedIn' || context.company) return
+  throw redirect({ to: context.session.user.companies.length === 0 ? '/no-company' : '/company' })
+}
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
@@ -78,22 +88,42 @@ const boardsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   validateSearch: (search: Record<string, unknown>) => ({ board: typeof search.board === 'string' ? search.board : undefined }),
-  beforeLoad: requireSynapseAccess,
+  beforeLoad: requireCompany,
   component: BoardsPage,
 })
 
 const reportsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/reports',
-  beforeLoad: requireSynapseAccess,
+  beforeLoad: requireCompany,
   component: ReportsPage,
 })
 
 const aiRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/ai',
-  beforeLoad: requireSynapseAccess,
+  beforeLoad: requireCompany,
   component: AiPage,
+})
+
+const companyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/company',
+  beforeLoad: ({ context }) => {
+    requireSynapseAccess({ context })
+    if (context.session.status !== 'signedIn') return
+    const count = context.session.user.companies.length
+    if (count === 0) throw redirect({ to: '/no-company' })
+    if (count === 1) throw redirect({ to: '/', search: { board: undefined } })
+  },
+  component: CompanyPage,
+})
+
+const noCompanyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/no-company',
+  beforeLoad: requireSynapseAccess,
+  component: NoCompanyPage,
 })
 
 const notAllowedRoute = createRoute({
@@ -103,7 +133,7 @@ const notAllowedRoute = createRoute({
   component: NotAllowedPage,
 })
 
-const routeTree = rootRoute.addChildren([loginRoute, boardsRoute, aiRoute, reportsRoute, notAllowedRoute])
+const routeTree = rootRoute.addChildren([loginRoute, boardsRoute, aiRoute, reportsRoute, companyRoute, noCompanyRoute, notAllowedRoute])
 
 export const createAppRouter = (context: RouterContext, history?: RouterHistory) =>
   createRouter({ routeTree, context, history })
