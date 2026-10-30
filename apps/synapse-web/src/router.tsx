@@ -19,7 +19,7 @@ import { BoardsPage } from './pages/BoardsPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotAllowedPage } from './pages/NotAllowedPage'
 import { NotFoundPage } from './pages/NotFoundPage'
-import { WidgetsPage } from './pages/WidgetsPage'
+import { ReportsPage } from './pages/ReportsPage'
 import { Shell } from './Shell'
 
 export type UiSettings = { palette: PresetName; motion: MotionMode }
@@ -80,11 +80,11 @@ const boardsRoute = createRoute({
   component: BoardsPage,
 })
 
-const widgetsRoute = createRoute({
+const reportsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/widgets',
+  path: '/reports',
   beforeLoad: requireSynapseAccess,
-  component: WidgetsPage,
+  component: ReportsPage,
 })
 
 const aiRoute = createRoute({
@@ -101,7 +101,7 @@ const notAllowedRoute = createRoute({
   component: NotAllowedPage,
 })
 
-const routeTree = rootRoute.addChildren([loginRoute, boardsRoute, aiRoute, widgetsRoute, notAllowedRoute])
+const routeTree = rootRoute.addChildren([loginRoute, boardsRoute, aiRoute, reportsRoute, notAllowedRoute])
 
 export const createAppRouter = (context: RouterContext, history?: RouterHistory) =>
   createRouter({ routeTree, context, history })

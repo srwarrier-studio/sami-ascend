@@ -42,25 +42,23 @@ describe('CatalogWidget', () => {
   })
 })
 
-describe('Widgets page', () => {
-  it('lists every catalog title', async () => {
+describe('Reports page', () => {
+  it('shows a coming soon placeholder', async () => {
     render(
       <UiProvider palette={synapsePalette}>
-        <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={new MockCatalogClient()} history={createMemoryHistory({ initialEntries: ['/widgets'] })} />
+        <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={new MockCatalogClient()} history={createMemoryHistory({ initialEntries: ['/reports'] })} />
       </UiProvider>,
     )
-    expect(await screen.findByRole('heading', { name: 'Widgets' })).toBeInTheDocument()
-    for (const { title } of fixtureEntries) {
-      expect((await screen.findAllByText(title)).length).toBeGreaterThan(0)
-    }
+    expect(await screen.findByRole('heading', { name: 'Reports' })).toBeInTheDocument()
+    expect(screen.getByText('Coming soon')).toBeInTheDocument()
   })
 
-  it('shows one widget error while the others still draw', async () => {
+  it('shows one widget error on the board while the others still draw', async () => {
     const mock = new MockCatalogClient()
     const client = { list: () => mock.list(), data: (id: string) => (id === 'sales-today' ? Promise.reject(new Error('SAP is not reachable')) : mock.data(id)) }
     render(
       <UiProvider palette={synapsePalette}>
-        <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={client} history={createMemoryHistory({ initialEntries: ['/widgets'] })} />
+        <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={client} history={createMemoryHistory({ initialEntries: ['/'] })} />
       </UiProvider>,
     )
     expect(await screen.findByText('SAP is not reachable')).toBeInTheDocument()
@@ -70,7 +68,7 @@ describe('Widgets page', () => {
   it('sends a signed out user to login', async () => {
     render(
       <UiProvider palette={synapsePalette}>
-        <App client={new MockSessionClient()} catalogClient={new MockCatalogClient()} history={createMemoryHistory({ initialEntries: ['/widgets'] })} />
+        <App client={new MockSessionClient()} catalogClient={new MockCatalogClient()} history={createMemoryHistory({ initialEntries: ['/reports'] })} />
       </UiProvider>,
     )
     expect(await screen.findByText('Sign in to Synapse')).toBeInTheDocument()
