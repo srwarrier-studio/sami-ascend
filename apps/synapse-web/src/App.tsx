@@ -6,6 +6,8 @@ import { MockBoardStore } from './boards/boardStore'
 import type { BoardStore } from './boards/boardStore'
 import { MockChatPlanner } from './ai/chatPlanner'
 import type { ChatPlanner } from './ai/chatPlanner'
+import { MockBoardExporter } from './export/boardExporter'
+import type { BoardExporter } from './export/boardExporter'
 import { MockCatalogClient } from './catalog/mockCatalogClient'
 import type { CatalogClient } from './catalog/catalogClient'
 import { useCatalog } from './catalog/useCatalog'
@@ -19,6 +21,7 @@ type AppProps = {
   boardStore?: BoardStore
   chatPlanner?: ChatPlanner
   catalogClient?: CatalogClient
+  boardExporter?: BoardExporter
   ui?: UiSettings
   onUiChange?: (ui: UiSettings) => void
   history?: RouterHistory
@@ -39,10 +42,11 @@ function Routed({ context, history }: { context: RouterContext; history?: Router
 
 const defaultBoardStore = new MockBoardStore()
 const defaultCatalogClient = new MockCatalogClient()
+const defaultBoardExporter = new MockBoardExporter()
 const defaultChatPlanner = new MockChatPlanner()
 const defaultUi: UiSettings = { palette: 'teal', motion: 'full' }
 
-export default function App({ client, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, catalogClient = defaultCatalogClient, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
+export default function App({ client, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, catalogClient = defaultCatalogClient, boardExporter = defaultBoardExporter, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
   const { session, login, logout, retry } = useSession(client)
   const { state: catalog, retry: retryCatalog } = useCatalog(catalogClient, session.status === 'signedIn')
   if (session.status === 'loading' || (session.status === 'signedIn' && catalog.status !== 'ready' && catalog.status !== 'failed')) return <SplashScreen name="Synapse" tagline="Your sales, on one board" />
@@ -57,5 +61,5 @@ export default function App({ client, boardStore = defaultBoardStore, chatPlanne
         </Stack>
       </Container>
     )
-  return <Routed context={{ session, login, logout, catalogClient, catalog: catalog.status === 'ready' ? catalog.entries : [], boardStore, chatPlanner, ui, setUi: onUiChange }} history={history} />
+  return <Routed context={{ session, login, logout, catalogClient, catalog: catalog.status === 'ready' ? catalog.entries : [], boardStore, chatPlanner, boardExporter, ui, setUi: onUiChange }} history={history} />
 }

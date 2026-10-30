@@ -14,6 +14,11 @@ const frame = (exporting: boolean) =>
   )
 
 describe('while exporting', () => {
+  it('covers the page so the header and footer are not seen on screen', () => {
+    frame(true)
+    expect(screen.getByRole('status')).toHaveTextContent('Preparing PDF')
+  })
+
   it('shows the placeholder logo and company name above the board', () => {
     frame(true)
     expect(screen.getByRole('heading', { name: 'Company name' })).toBeVisible()
@@ -27,6 +32,11 @@ describe('while exporting', () => {
 })
 
 describe('when not exporting', () => {
+  it('has no cover over the page', () => {
+    frame(false)
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
   it('shows only the board', () => {
     frame(false)
     expect(screen.getByText('Board body')).toBeVisible()

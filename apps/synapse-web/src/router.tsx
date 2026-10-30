@@ -13,6 +13,7 @@ import type { PresetName, MotionMode } from '@sami/ui'
 import type { CatalogClient, CatalogEntry } from './catalog/catalogClient'
 import type { Session } from './session/useSession'
 import type { ChatPlanner } from './ai/chatPlanner'
+import type { BoardExporter } from './export/boardExporter'
 import { canUseSynapse } from './access'
 import { AiPage } from './pages/AiPage'
 import { BoardsPage } from './pages/BoardsPage'
@@ -32,6 +33,7 @@ export type RouterContext = {
   catalog: CatalogEntry[]
   boardStore: BoardStore
   chatPlanner: ChatPlanner
+  boardExporter: BoardExporter
   ui: UiSettings
   setUi: (ui: UiSettings) => void
 }

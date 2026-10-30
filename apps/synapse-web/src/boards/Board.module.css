@@ -116,3 +116,29 @@
   color: var(--mantine-color-white);
   font-weight: 700;
 }
+
+.exportCover {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mantine-color-body);
+}
+
+.exportPulse {
+  animation: exportPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes exportPulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exportPulse {
+    animation: none;
+  }
+}

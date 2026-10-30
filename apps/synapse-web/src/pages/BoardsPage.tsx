@@ -1,19 +1,24 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
-import { Button, EmptyBoard, Group, Modal, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, notifications, useColorScheme } from '@sami/ui'
+import { Button, EmptyBoard, Group, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, notifications, useColorScheme } from '@sami/ui'
 import { BoardGrid } from '../boards/BoardGrid'
+import { ExportFrame } from '../export/ExportFrame'
 import { MAX_WIDGETS, arrangeWidgets, insertWidget, removeWidget } from '../boards/layout'
 import { useBoards } from '../boards/useBoards'
 
 export function BoardsPage() {
   const navigate = useNavigate()
   const search = useSearch({ from: '/' })
-  const { boardStore, catalog, catalogClient, ui, setUi } = useRouteContext({ from: '/' })
+  const { boardStore, catalog, catalogClient, boardExporter, session, ui, setUi } = useRouteContext({ from: '/' })
   const { colorScheme, setColorScheme } = useColorScheme()
   const { boards, active, select, add, rename, remove, setWidgets } = useBoards(boardStore, search.board)
   const [editing, setEditing] = useState(false)
   const [picking, setPicking] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [generatedAt, setGeneratedAt] = useState(() => new Date())
+  const frame = useRef<HTMLDivElement>(null)
 
   if (!boards || !active) return null
 
@@ -26,6 +31,25 @@ export function BoardsPage() {
     setWidgets(insertWidget(active.widgets, catalogId, beforeId))
   }
 
+  const exportPdf = async () => {
+    const sheet = frame.current
+    if (!sheet || exporting) return
+    if (sheet.querySelector('[aria-label^="Loading"]')) {
+      notifications.show({ message: 'Widgets are still loading' })
+      return
+    }
+    flushSync(() => {
+      setGeneratedAt(new Date())
+      setExporting(true)
+    })
+    try {
+      const day = new Date().toLocaleDateString('en-CA')
+      await boardExporter.export(sheet, `${active.name.replace(/[\\/:*?"<>|]/g, '-')}-${day}.pdf`)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -35,6 +59,11 @@ export function BoardsPage() {
         onTitleChange={rename}
         actions={
           <Group>
+            {!editing && (
+              <Button variant="default" leftSection={<FilePdfIcon size={16} />} loading={exporting} onClick={exportPdf}>
+                Export PDF
+              </Button>
+            )}
             {editing && (
               <Button variant="subtle" color="red" leftSection={<TrashIcon size={16} />} disabled={boards.length < 2} onClick={() => setDeleting(true)}>
                 Delete board
@@ -58,9 +87,11 @@ export function BoardsPage() {
           </Group>
         }
       />
-      <BoardGrid widgets={active.widgets} catalog={catalog} client={catalogClient} editing={editing} onChange={setWidgets}
-        empty={active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
-      />
+      <ExportFrame exporting={exporting} userName={session.status === 'signedIn' ? session.user.name : ''} generatedAt={generatedAt} frameRef={frame}>
+        <BoardGrid widgets={active.widgets} catalog={catalog} client={catalogClient} editing={editing} onChange={setWidgets}
+          empty={active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
+        />
+      </ExportFrame>
       <PageBar
         tabs={boards}
         activeId={active.id}
