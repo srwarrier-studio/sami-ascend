@@ -5,6 +5,7 @@ The whole Synapse app feels as premium as the new login page: the same deep navy
 
 ## Behavior
 - Opt-in: `UiProvider` gets a `look` prop (`standard` default, `premium`) that sets `data-look` on the root. Only synapse-web passes `premium`; workspace-web and the kitchen sink stay `standard` and unchanged.
+- Built to be shared: the premium look lives in `@sami/ui` as generic tokens and styles (no Synapse names, no Synapse-only components), so workspace-web can adopt it later by passing `look="premium"` in its own phase. Nothing in this phase changes workspace-web.
 - Palette: a `midnight` palette (brand blue from the login `#3b6fe0`, a navy `dark` scale and a cool blue-grey `gray` scale) used by `look="premium"`. The `teal` preset and the others stay.
 - Surfaces:
   - dark mode canvas is a deep navy gradient, cards and bars are slightly lighter navy with a one-pixel light-blue hairline border and a soft shadow;
@@ -24,7 +25,7 @@ The whole Synapse app feels as premium as the new login page: the same deep navy
 - The owner walks through every Synapse screen in light and dark and approves, or the phase is abandoned.
 
 ## Out of scope
-New widgets or layout changes, a theme switcher for users, restyling workspace-web, animation beyond what exists, real logos.
+New widgets or layout changes, a theme switcher for users, restyling workspace-web (a later phase, if the owner likes the result), animation beyond what exists, real logos.
 
 ## Depends on
 synapse-web 10 (the login page sets the language), shared ui-soft-theme.
