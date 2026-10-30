@@ -92,3 +92,27 @@
   border-radius: var(--mantine-radius-sm);
   background: color-mix(in srgb, var(--mantine-color-white) 25%, transparent);
 }
+
+.sheet {
+  background: var(--mantine-color-body);
+}
+
+.sheetHeader {
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-md) 0;
+}
+
+.sheetFooter {
+  padding: 0 var(--mantine-spacing-md) var(--mantine-spacing-md);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-gray-5);
+  color: var(--mantine-color-white);
+  font-weight: 700;
+}
