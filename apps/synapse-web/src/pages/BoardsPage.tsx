@@ -3,6 +3,7 @@ import { flushSync } from 'react-dom'
 import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
 import { Button, EmptyBoard, Group, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, notifications, useColorScheme } from '@sami/ui'
 import { BoardGrid } from '../boards/BoardGrid'
+import { BoardsSkeleton } from '../boards/BoardsSkeleton'
 import { ExportFrame } from '../export/ExportFrame'
 import { SaveBoardModal } from '../boards/SaveBoardModal'
 import { listPresets } from '../boards/presets'
@@ -23,7 +24,8 @@ export function BoardsPage() {
   const [generatedAt, setGeneratedAt] = useState(() => new Date())
   const frame = useRef<HTMLDivElement>(null)
 
-  if (!boards || !active) return null
+  if (!boards) return <BoardsSkeleton />
+  if (!active) return null
 
   const presets = listPresets(catalog)
   const chosenPreset = presets.find((preset) => preset.id === presetId)

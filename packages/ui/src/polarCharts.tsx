@@ -21,6 +21,8 @@ const DONUT_HEIGHT = CHART_MIN_HEIGHT
 const GAUGE_HEIGHT = CHART_MIN_HEIGHT
 const PALETTE_SIZE = 6
 const SLICE_GAP = 0.03
+const FULL_TURN = Math.PI * 2
+const LABEL_RADIUS = 0.82
 const GAUGE_SWEEP = Math.PI * 0.75
 const tones: Record<Tone, string> = {
   positive: 'var(--sami-positive)',
@@ -47,6 +49,15 @@ function donutDefinition(slices: DonutSlice[]) {
         radiusRatio: 0.92,
         marks: [
           radialArc(arcs, { innerRadius: ({ radius }) => radius * 0.64, cornerRadius: 4, color: 'label', key: 'label' }),
+          radialText(arcs, {
+            angle: (arc) => arc.angle / FULL_TURN,
+            radius: LABEL_RADIUS,
+            text: (arc) => `${percent(arc.value, sum)}%`,
+            key: 'label',
+            fill: 'var(--mantine-color-white)',
+            fontSize: 12,
+            fontWeight: 600,
+          }),
           radialText([main], {
             angle: 0,
             radius: 0,

@@ -42,6 +42,12 @@
   overflow: auto;
 }
 
+.kpiBody {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .chartBody {
   position: relative;
   flex: 1;
@@ -55,4 +61,10 @@
 
 .spacer {
   visibility: hidden;
+}
+
+:global(:root[data-look='premium']) .card h2 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
 }
