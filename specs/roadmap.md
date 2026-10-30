@@ -57,6 +57,7 @@ All three phases use mock data (session, sales data and board store behind inter
 - 05 ai-chat: full-screen AI Mode chat with widgets inside answers, `@builder` board modal and save as board, on a mock planner. done (tag `synapse-web-phase-05-done`, 2026-10-30).
 - 06 backend-catalog: login through auth-api, catalog and every widget's data from synapse-api, local catalog removed; the Widgets tab became a Reports placeholder. done (tag `synapse-web-phase-06-done`, 2026-10-30).
 - 07 board-export: `Export PDF` on a board, one page sized to the board, raster capture at 3x with `html-to-image` and `jspdf`, placeholder logo and company name on top and a generated-by line below. done (tag `synapse-web-phase-07-done`, 2026-10-30).
+- 08 company-picker: after sign-in the user chooses one of their companies (automatic for one, picker page for several), switches it from the header, and the exported PDF header carries its name and logo; the choice is remembered per user in `localStorage`, data is not filtered by company yet. done (tag `synapse-web-phase-08-done`, 2026-10-30).
 - 08 company-picker: after login a screen of company cards (name and logo) to pick from, skipped for users with one company, a switch-company button in the header, and the chosen company's name and logo on the PDF. Depends on auth-api 04. todo
 
 ## workspace-api (workflow backend)
