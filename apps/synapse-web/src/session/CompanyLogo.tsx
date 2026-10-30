@@ -5,7 +5,7 @@ export function CompanyLogo({ id, size = 32 }: { id: string; size?: number }) {
   const company = findCompany(id)
   if (!company) return null
   return (
-    <Avatar aria-hidden color={company.color} variant="filled" radius={0} size={size}>
+    <Avatar aria-hidden color={company.color} variant="filled" radius="sm" size={size}>
       {company.logoLetter}
     </Avatar>
   )

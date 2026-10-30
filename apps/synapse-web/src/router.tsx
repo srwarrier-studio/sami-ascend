@@ -43,11 +43,11 @@ export type RouterContext = {
 }
 
 function RootLayout() {
-  const { session, logout } = useRouteContext({ from: '__root__' })
+  const { session, company, logout } = useRouteContext({ from: '__root__' })
   const path = useRouterState({ select: (state) => state.location.pathname })
   if (session.status !== 'signedIn' || path === '/ai' || path === '/company' || path === '/no-company') return <Outlet />
   return (
-    <Shell user={session.user} onLogout={logout}>
+    <Shell user={session.user} company={company} onLogout={logout}>
       <Outlet />
     </Shell>
   )

@@ -1,7 +1,8 @@
 import { useNavigate, useRouteContext } from '@tanstack/react-router'
-import { Card, Container, Group, Stack, Text, Title } from '@sami/ui'
+import { Card, SimpleGrid, Text, Title } from '@sami/ui'
 import { CompanyLogo } from '../session/CompanyLogo'
 import { findCompany } from '../session/companies'
+import classes from './Company.module.css'
 
 export function CompanyPage() {
   const { session, setCompany } = useRouteContext({ from: '/company' })
@@ -14,18 +15,16 @@ export function CompanyPage() {
   }
 
   return (
-    <Container size="xs" py="xl">
-      <Stack>
-        <Title order={2}>Choose a company</Title>
+    <div className={classes.page}>
+      <Title order={2}>Choose a company</Title>
+      <SimpleGrid className={classes.grid} cols={{ base: 1, sm: Math.min(session.user.companies.length, 3) }}>
         {session.user.companies.map((id) => (
-          <Card key={id} component="button" type="button" withBorder onClick={() => choose(id)}>
-            <Group>
-              <CompanyLogo id={id} size={40} />
-              <Text>{findCompany(id)?.name}</Text>
-            </Group>
+          <Card key={id} component="button" type="button" withBorder shadow="sm" padding="xl" className={classes.card} onClick={() => choose(id)}>
+            <CompanyLogo id={id} size={72} />
+            <Text fw={500}>{findCompany(id)?.name}</Text>
           </Card>
         ))}
-      </Stack>
-    </Container>
+      </SimpleGrid>
+    </div>
   )
 }

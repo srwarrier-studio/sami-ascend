@@ -83,6 +83,7 @@ export {
   EraserIcon,
   PaperPlaneRightIcon,
   SquaresFourIcon,
+  CaretUpDownIcon,
   ChartBarIcon,
   ClipboardTextIcon,
   FileTextIcon,

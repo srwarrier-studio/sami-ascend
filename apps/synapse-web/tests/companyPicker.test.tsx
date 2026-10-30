@@ -66,3 +66,20 @@ describe('no company', () => {
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
   })
 })
+
+describe('the header', () => {
+  it('shows the chosen company with no switch button for one company', async () => {
+    open('/', withCompanies(['organica']))
+    expect(await screen.findByText('Organica Aromatic')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Switch company' })).not.toBeInTheDocument()
+  })
+
+  it('switches company back through the picker', async () => {
+    localStorage.setItem('synapse.company.u-manager', 'sabinsa')
+    open('/', new MockSessionClient('manager@mock-sami.com'))
+    expect(await screen.findByText('Sami Sabinsa Group Company')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('link', { name: 'Switch company' }))
+    await userEvent.click(await screen.findByRole('button', { name: /Neutraceuticals/ }))
+    expect(await screen.findByText('Sami Neutraceuticals Private Limited')).toBeInTheDocument()
+  })
+})
