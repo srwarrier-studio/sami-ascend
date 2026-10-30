@@ -1,7 +1,7 @@
 import pytest
 from token_verification import InvalidToken, TokenVerifier
 
-from token_verification import Role
+from token_verification import Company, Role
 from auth_api.infrastructure.interface.jwt_token_service import JwtTokenService
 from auth_api.infrastructure.mock.mock_user_repo import MOCK_USER
 
@@ -14,6 +14,16 @@ def test_issued_token_verifies_back_to_the_same_claims():
     assert claims.userid == str(MOCK_USER.userid.value)
     assert claims.sap_username == "SAP_READONLY"
     assert claims.roles == [Role.STORES]
+
+
+def test_issued_token_carries_the_users_companies():
+    MOCK_USER.companies = [Company.NEUTRACEUTICALS]
+    service = JwtTokenService(secret="s" * 32, expire_minutes=5)
+
+    claims = TokenVerifier("s" * 32).verify(service.issue(MOCK_USER))
+
+    assert claims.companies == [Company.NEUTRACEUTICALS]
+    MOCK_USER.companies = []
 
 
 def test_expired_token_is_rejected():

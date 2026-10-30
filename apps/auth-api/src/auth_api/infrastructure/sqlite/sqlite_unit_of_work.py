@@ -19,6 +19,11 @@ CREATE TABLE IF NOT EXISTS user_roles (
     role TEXT NOT NULL,
     PRIMARY KEY (userid, role)
 );
+CREATE TABLE IF NOT EXISTS user_companies (
+    userid TEXT NOT NULL REFERENCES users (userid),
+    company TEXT NOT NULL,
+    PRIMARY KEY (userid, company)
+);
 CREATE TABLE IF NOT EXISTS audit_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     at TEXT NOT NULL,

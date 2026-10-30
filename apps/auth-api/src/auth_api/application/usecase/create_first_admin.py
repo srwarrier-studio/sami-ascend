@@ -24,5 +24,6 @@ class CreateFirstAdmin:
                 sap_username=data.sap_username,
                 roles=[Role.ADMIN.value],
                 actor=data.actor,
+                companies=data.companies,
             )
         )

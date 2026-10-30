@@ -1,7 +1,7 @@
 from auth_api.domain.value_objects.email_id import EmailID
-from token_verification import Role
+from token_verification import Company, Role
 from auth_api.domain.value_objects.user_id import UserID
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -13,6 +13,7 @@ class User:
     disabled: bool
     sap_username: str
     roles: list[Role]
+    companies: list[Company] = field(default_factory=list)
 
     def to_dict(self):
         return {
@@ -23,6 +24,7 @@ class User:
             "disabled": self.disabled,
             "sap_username": self.sap_username,
             "roles": [role.value for role in self.roles],
+            "companies": [company.value for company in self.companies],
         }
 
     def __eq__(self, other: object):

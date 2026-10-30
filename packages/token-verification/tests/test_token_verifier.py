@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 import pytest
 
-from token_verification import InvalidToken, Role, TokenVerifier
+from token_verification import Company, InvalidToken, Role, TokenVerifier
 
 SECRET = "s" * 32
 
@@ -26,6 +26,21 @@ def test_valid_token_returns_claims():
     assert claims.userid == "user-1"
     assert claims.sap_username == "SAP_READONLY"
     assert claims.roles == [Role.STORES]
+
+
+def test_companies_are_returned():
+    claims = TokenVerifier(SECRET).verify(make_token(companies=["organica", "sabinsa"]))
+
+    assert claims.companies == [Company.ORGANICA, Company.SABINSA]
+
+
+def test_token_without_companies_has_none():
+    assert TokenVerifier(SECRET).verify(make_token()).companies == []
+
+
+def test_unknown_company_is_rejected():
+    with pytest.raises(InvalidToken):
+        TokenVerifier(SECRET).verify(make_token(companies=["acme"]))
 
 
 def test_wrong_secret_is_rejected():

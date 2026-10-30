@@ -103,6 +103,7 @@ def me(claims: Annotated[TokenClaims, Depends(current_claims)]) -> Me:
         userid=claims.userid,
         sap_username=claims.sap_username,
         roles=[role.value for role in claims.roles],
+        companies=[company.value for company in claims.companies],
     )
 
 
