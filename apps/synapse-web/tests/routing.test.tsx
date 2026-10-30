@@ -30,7 +30,7 @@ describe('loading', () => {
 describe('signed out', () => {
   it('redirects the boards page to login', async () => {
     open('/', new MockSessionClient())
-    expect(await screen.findByText('Sign in to Synapse')).toBeInTheDocument()
+    expect(await screen.findByText('Sign in to Sami Synapse')).toBeInTheDocument()
   })
 
   it('shows an error on bad credentials and stays', async () => {
@@ -81,7 +81,7 @@ describe('signed in', () => {
     open('/', new MockSessionClient('manager@mock-sami.com'))
     await userEvent.click(await screen.findByText('Mock Manager'))
     await userEvent.click(await screen.findByText('Sign out'))
-    expect(await screen.findByText('Sign in to Synapse')).toBeInTheDocument()
+    expect(await screen.findByText('Sign in to Sami Synapse')).toBeInTheDocument()
   })
 })
 

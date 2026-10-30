@@ -24,3 +24,5 @@ beforeEach(() => {
   localStorage.setItem('synapse.company.u-manager', 'sabinsa')
   localStorage.setItem('synapse.company.u-admin', 'sabinsa')
 })
+
+HTMLCanvasElement.prototype.getContext = () => null
