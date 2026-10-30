@@ -34,6 +34,8 @@ export type RouterContext = {
   boardStore: BoardStore
   chatPlanner: ChatPlanner
   boardExporter: BoardExporter
+  company: string | null
+  setCompany: (id: string) => void
   ui: UiSettings
   setUi: (ui: UiSettings) => void
 }

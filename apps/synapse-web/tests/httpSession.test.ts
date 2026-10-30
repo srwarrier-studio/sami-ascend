@@ -32,8 +32,8 @@ describe('signing in', () => {
 
 describe('the current user', () => {
   it('maps /me to a user and sends credentials', async () => {
-    const fetchMock = stub(respond(200, { userid: 'u1', sap_username: 'SMITH', roles: ['management'] }))
-    expect(await new HttpSessionClient().me()).toEqual({ userid: 'u1', name: 'SMITH', email: '', roles: ['management'] })
+    const fetchMock = stub(respond(200, { userid: 'u1', sap_username: 'SMITH', roles: ['management'], companies: ['sabinsa', 'nope', 'organica'] }))
+    expect(await new HttpSessionClient().me()).toEqual({ userid: 'u1', name: 'SMITH', email: '', roles: ['management'], companies: ['sabinsa', 'organica'] })
     expect((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].credentials).toBe('include')
   })
 

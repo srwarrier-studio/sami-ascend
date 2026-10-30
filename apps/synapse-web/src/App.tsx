@@ -14,6 +14,7 @@ import { useCatalog } from './catalog/useCatalog'
 import { createAppRouter } from './router'
 import type { RouterContext, UiSettings } from './router'
 import type { SessionClient } from './session/sessionClient'
+import { useCompany } from './session/useCompany'
 import { useSession } from './session/useSession'
 
 type AppProps = {
@@ -48,6 +49,7 @@ const defaultUi: UiSettings = { palette: 'teal', motion: 'full' }
 
 export default function App({ client, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, catalogClient = defaultCatalogClient, boardExporter = defaultBoardExporter, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
   const { session, login, logout, retry } = useSession(client)
+  const { company, setCompany } = useCompany(session.status === 'signedIn' ? session.user : null)
   const { state: catalog, retry: retryCatalog } = useCatalog(catalogClient, session.status === 'signedIn')
   if (session.status === 'loading' || (session.status === 'signedIn' && catalog.status !== 'ready' && catalog.status !== 'failed')) return <SplashScreen name="Synapse" tagline="Your sales, on one board" />
   if (session.status === 'unreachable' || (session.status === 'signedIn' && catalog.status === 'failed'))
@@ -61,5 +63,5 @@ export default function App({ client, boardStore = defaultBoardStore, chatPlanne
         </Stack>
       </Container>
     )
-  return <Routed context={{ session, login, logout, catalogClient, catalog: catalog.status === 'ready' ? catalog.entries : [], boardStore, chatPlanner, boardExporter, ui, setUi: onUiChange }} history={history} />
+  return <Routed context={{ session, login, logout, catalogClient, catalog: catalog.status === 'ready' ? catalog.entries : [], boardStore, chatPlanner, boardExporter, company, setCompany, ui, setUi: onUiChange }} history={history} />
 }
