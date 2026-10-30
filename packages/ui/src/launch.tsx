@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { Button, Card, Group, PasswordInput, Stack, Text, TextInput } from '@mantine/core'
+import type { FormEvent, ReactNode } from 'react'
+import { Button, Card, Divider, Group, PasswordInput, Stack, Text, TextInput } from '@mantine/core'
 import { SparkleIcon } from '@phosphor-icons/react'
 import { Alert } from './Alert'
 import classes from './launch.module.css'
@@ -25,9 +25,10 @@ type SignInCardProps = {
   error?: string
   busy?: boolean
   onSubmit: (email: string, password: string) => void
+  footer?: ReactNode
 }
 
-export function SignInCard({ title, error, busy, onSubmit }: SignInCardProps) {
+export function SignInCard({ title, error, busy, onSubmit, footer }: SignInCardProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const submit = (event: FormEvent) => {
@@ -51,6 +52,12 @@ export function SignInCard({ title, error, busy, onSubmit }: SignInCardProps) {
         <Button type="submit" loading={busy}>
           Sign in
         </Button>
+        {footer && (
+          <>
+            <Divider label="or" labelPosition="center" />
+            {footer}
+          </>
+        )}
       </Stack>
     </Card>
   )

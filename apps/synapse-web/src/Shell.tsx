@@ -1,3 +1,4 @@
+import { APP_NAME } from './config'
 import type { ReactNode } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { AppFrame, Button, CaretUpDownIcon, Group, Text, SquaresFourIcon, ChartBarIcon } from '@sami/ui'
@@ -26,7 +27,7 @@ export function Shell({ user, company, onLogout, children }: ShellProps) {
     <AppFrame
       layout="top"
       themeToggle={false}
-      brand={{ name: 'Synapse', subtitle: 'Management' }}
+      brand={{ name: APP_NAME, subtitle: 'Management' }}
       user={{ name: user.name, email: user.email }}
       onSignOut={onLogout}
       search={false}

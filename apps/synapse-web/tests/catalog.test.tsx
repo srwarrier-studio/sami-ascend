@@ -71,6 +71,6 @@ describe('Reports page', () => {
         <App client={new MockSessionClient()} catalogClient={new MockCatalogClient()} history={createMemoryHistory({ initialEntries: ['/reports'] })} />
       </UiProvider>,
     )
-    expect(await screen.findByText('Sign in to Synapse')).toBeInTheDocument()
+    expect(await screen.findByText('Sign in to Sami Synapse')).toBeInTheDocument()
   })
 })

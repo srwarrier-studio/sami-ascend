@@ -1,0 +1,125 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem 1rem;
+  background: radial-gradient(ellipse at 30% 20%, #16306b 0%, #0a1733 55%, #050b1c 100%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 22rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.content > * {
+  width: 100%;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  color: #f4faff;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: #f4faff;
+  color: #16306b;
+  box-shadow: 0 0 2rem rgb(143 180 255 / 45%);
+}
+
+.name {
+  margin: 0.5rem 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.content form {
+  --mantine-color-text: #eaf2ff;
+  --mantine-color-dimmed: #9db6e6;
+  --mantine-color-error: #ff8a8a;
+  --input-bg: rgb(255 255 255 / 6%);
+  --input-bd: rgb(143 180 255 / 30%);
+  --input-bd-focus: #8fb4ff;
+  --input-color: #f4faff;
+  --input-placeholder-color: #7f97c8;
+  --button-bg: #3b6fe0;
+  --button-hover: #2f5fcc;
+  color: #eaf2ff;
+  background: rgb(10 23 51 / 82%);
+  border: 1px solid rgb(143 180 255 / 25%);
+  box-shadow: 0 0 3rem rgb(59 111 224 / 18%);
+}
+
+.content form span[aria-hidden='true'] {
+  display: none;
+}
+
+.content form input {
+  background: rgb(143 180 255 / 12%);
+  border: 1px solid rgb(143 180 255 / 35%);
+  color: #f4faff;
+}
+
+.content form input:focus {
+  border-color: #8fb4ff;
+  background: rgb(143 180 255 / 18%);
+}
+
+.content form input:-webkit-autofill {
+  -webkit-text-fill-color: #f4faff;
+  box-shadow: 0 0 0 100px #12306b inset;
+}
+
+.content form button[type='button'] {
+  color: #b9cdf5;
+}
+
+.content form [class*='mantine-PasswordInput-input'] {
+  background: rgb(143 180 255 / 12%);
+  border: 1px solid rgb(143 180 255 / 35%);
+  color: #f4faff;
+}
+
+.content form [class*='mantine-PasswordInput-input']:focus-within {
+  border-color: #8fb4ff;
+  background: rgb(143 180 255 / 18%);
+}
+
+.content form input[class*='mantine-PasswordInput-innerInput'] {
+  background: transparent;
+  border: 0;
+}
+
+.content form .microsoft {
+  background: rgb(143 180 255 / 10%);
+  border: 1px solid rgb(143 180 255 / 35%);
+  color: #f4faff;
+}
+
+.content form .microsoft:hover {
+  background: rgb(143 180 255 / 18%);
+}
+
+.content form [class*='mantine-Divider-label'] {
+  color: #9db6e6;
+}

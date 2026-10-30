@@ -59,6 +59,7 @@ All three phases use mock data (session, sales data and board store behind inter
 - 07 board-export: `Export PDF` on a board, one page sized to the board, raster capture at 3x with `html-to-image` and `jspdf`, placeholder logo and company name on top and a generated-by line below. done (tag `synapse-web-phase-07-done`, 2026-10-30).
 - 08 company-picker: after sign-in the user chooses one of their companies (automatic for one, picker page for several), switches it from the header, and the exported PDF header carries its name and logo; the choice is remembered per user in `localStorage`, data is not filtered by company yet. done (tag `synapse-web-phase-08-done`, 2026-10-30).
 - 09 preset-boards: a `Preset boards` tab in the Add widget drawer that creates a ready-made board in one click, with the replace flow at 3 boards. done (tag `synapse-web-phase-09-done`, 2026-10-30).
+- 10 login-page: full-screen login with the neuron and electric-pulse animation as the background, a centred navy sign-in card and a Sign in with Microsoft placeholder button. done (tag `synapse-web-phase-10-done`, 2026-10-30).
 - company-data (not numbered yet): filter synapse-api data by company and add the group view, an `All companies` choice in the picker for users with several companies that sums across them, plus widgets that split by company. All three companies are in one SAP system, so synapse-api filters and sums by company code in one query. Currency and intercompany rules still need an answer from finance. todo
 
 ## workspace-api (workflow backend)
