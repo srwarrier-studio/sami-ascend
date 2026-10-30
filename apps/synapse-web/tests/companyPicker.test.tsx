@@ -27,7 +27,7 @@ describe('several companies, none chosen', () => {
   it('lands on the picker with a card for each company', async () => {
     open('/', manager())
     expect(await screen.findByText('Choose a company')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Sami Sabinsa Group Company/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Sami Sabinsa Group Limited/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Sami Neutraceuticals Private Limited/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Organica/ })).not.toBeInTheDocument()
   })
@@ -77,7 +77,7 @@ describe('the header', () => {
   it('switches company back through the picker', async () => {
     localStorage.setItem('synapse.company.u-manager', 'sabinsa')
     open('/', new MockSessionClient('manager@mock-sami.com'))
-    expect(await screen.findByRole('link', { name: 'Switch company' })).toHaveTextContent('Sami Sabinsa Group Company')
+    expect(await screen.findByRole('link', { name: 'Switch company' })).toHaveTextContent('Sami Sabinsa Group Limited')
     await userEvent.click(screen.getByRole('link', { name: 'Switch company' }))
     await userEvent.click(await screen.findByRole('button', { name: /Neutraceuticals/ }))
     expect(await screen.findByRole('link', { name: 'Switch company' })).toHaveTextContent('Sami Neutraceuticals Private Limited')

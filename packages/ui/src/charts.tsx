@@ -8,7 +8,7 @@ import { useMemo } from 'react'
 import { ChartCard } from './ChartCard'
 import { CHART_MIN_HEIGHT } from './sizes'
 import { helpText } from './help'
-import { formatCompact } from './format'
+import { formatCompact, formatValue } from './format'
 import type { ValueFormat } from './format'
 
 export type ChartPointData = { label: string; value: number }
@@ -19,6 +19,8 @@ export type ChartProps = {
   info?: string
   measure?: string
   valueFormat?: ValueFormat
+  xLabel?: string
+  yLabel?: string
 }
 
 export type LineChartProps = ChartProps & {
@@ -36,12 +38,26 @@ export type StackedBarChartProps = {
   info?: string
   measure?: string
   valueFormat?: ValueFormat
+  xLabel?: string
+  yLabel?: string
 }
 
 const CHART_HEIGHT = CHART_MIN_HEIGHT
 const BAR_RADIUS = 6
 const LINE_WIDTH = 2.5
 const LATEST_RADIUS = 5
+
+export const tooltipFor = (xLabel = 'Period', yLabel = 'Value', valueFormat?: ValueFormat) => ({
+  use: tooltip,
+  items: [
+    { channel: 'x' as const, label: xLabel },
+    {
+      channel: 'y' as const,
+      label: yLabel,
+      text: (point: { yValue: unknown }) => (typeof point.yValue === 'number' ? formatValue(point.yValue, valueFormat) : String(point.yValue)),
+    },
+  ],
+})
 
 function scales(kind: 'line' | 'bar', valueFormat?: ValueFormat) {
   return {
@@ -55,7 +71,7 @@ function scales(kind: 'line' | 'bar', valueFormat?: ValueFormat) {
   }
 }
 
-function lineDefinition({ data, valueFormat, compare = [], label = 'This period', compareLabel = 'Previous period' }: LineChartProps) {
+function lineDefinition({ data, valueFormat, compare = [], label = 'This period', compareLabel = 'Previous period', xLabel, yLabel }: LineChartProps) {
   const main = data.map((point) => ({ ...point, series: label }))
   const previous = compare.map((point) => ({ ...point, series: compareLabel }))
   const options = { x: 'label', y: 'value', color: 'series' } as const
@@ -68,11 +84,11 @@ function lineDefinition({ data, valueFormat, compare = [], label = 'This period'
     ],
     scales: scales('line', valueFormat),
     ...(previous.length > 0 ? { color: legend } : {}),
-    tooltip,
+    tooltip: tooltipFor(xLabel, yLabel, valueFormat),
   })
 }
 
-function barDefinition({ data, valueFormat }: ChartProps) {
+function barDefinition({ data, valueFormat, xLabel, yLabel }: ChartProps) {
   const last = data[data.length - 1]
   return defineChart({
     marks: [
@@ -84,23 +100,23 @@ function barDefinition({ data, valueFormat }: ChartProps) {
       }),
     ],
     scales: scales('bar', valueFormat),
-    tooltip,
+    tooltip: tooltipFor(xLabel, yLabel, valueFormat),
   })
 }
 
 const legend = { legend: colorLegend({ items: colorLegendItems({ justify: 'start' }) }) }
 
-function areaDefinition({ data, valueFormat }: ChartProps) {
+function areaDefinition({ data, valueFormat, xLabel, yLabel }: ChartProps) {
   const options = { x: 'label', y: 'value', color: 'series' } as const
   const rows = data.map((point) => ({ ...point, series: 'value' }))
   return defineChart({
     marks: [areaY(rows, { ...options, fillOpacity: 0.28 }), lineY(rows, { ...options, strokeWidth: 2 })],
     scales: scales('line', valueFormat),
-    tooltip,
+    tooltip: tooltipFor(xLabel, yLabel, valueFormat),
   })
 }
 
-function stackedDefinition({ series, layout = 'stacked', valueFormat }: StackedBarChartProps) {
+function stackedDefinition({ series, layout = 'stacked', valueFormat, xLabel, yLabel }: StackedBarChartProps) {
   const rows = series.flatMap((part) => part.data.map((point) => ({ label: point.label, series: part.name, value: point.value })))
   return defineChart({
     marks: [
@@ -115,30 +131,30 @@ function stackedDefinition({ series, layout = 'stacked', valueFormat }: StackedB
     ],
     scales: scales('bar', valueFormat),
     color: legend,
-    tooltip,
+    tooltip: tooltipFor(xLabel, yLabel, valueFormat),
   })
 }
 
-export function LineChart({ data, title, info, measure, valueFormat, compare, label, compareLabel }: LineChartProps) {
+export function LineChart({ data, title, info, measure, valueFormat, compare, label, compareLabel, xLabel, yLabel }: LineChartProps) {
   const definition = useMemo(
-    () => lineDefinition({ data, valueFormat, compare, label, compareLabel }),
-    [data, valueFormat, compare, label, compareLabel],
+    () => lineDefinition({ data, valueFormat, compare, label, compareLabel, xLabel, yLabel: yLabel ?? title }),
+    [data, valueFormat, compare, label, compareLabel, xLabel, yLabel, title],
   )
   return <ChartCard title={title} help={helpText('LineChart', measure)} info={info} empty={data.length === 0} definition={definition} label="line chart" height={CHART_HEIGHT} />
 }
 
-export function BarChart({ data, title, info, measure, valueFormat }: ChartProps) {
-  const definition = useMemo(() => barDefinition({ data, valueFormat }), [data, valueFormat])
+export function BarChart({ data, title, info, measure, valueFormat, xLabel, yLabel }: ChartProps) {
+  const definition = useMemo(() => barDefinition({ data, valueFormat, xLabel, yLabel: yLabel ?? title }), [data, valueFormat, xLabel, yLabel, title])
   return <ChartCard title={title} help={helpText('BarChart', measure)} info={info} empty={data.length === 0} definition={definition} label="bar chart" height={CHART_HEIGHT} />
 }
 
-export function AreaChart({ data, title, info, measure, valueFormat }: ChartProps) {
-  const definition = useMemo(() => areaDefinition({ data, valueFormat }), [data, valueFormat])
+export function AreaChart({ data, title, info, measure, valueFormat, xLabel, yLabel }: ChartProps) {
+  const definition = useMemo(() => areaDefinition({ data, valueFormat, xLabel, yLabel: yLabel ?? title }), [data, valueFormat, xLabel, yLabel, title])
   return <ChartCard title={title} help={helpText('AreaChart', measure)} info={info} empty={data.length === 0} definition={definition} label="area chart" height={CHART_HEIGHT} />
 }
 
-export function StackedBarChart({ series, layout, title, info, measure, valueFormat }: StackedBarChartProps) {
-  const definition = useMemo(() => stackedDefinition({ series, layout, valueFormat }), [series, layout, valueFormat])
+export function StackedBarChart({ series, layout, title, info, measure, valueFormat, xLabel, yLabel }: StackedBarChartProps) {
+  const definition = useMemo(() => stackedDefinition({ series, layout, valueFormat, xLabel, yLabel: yLabel ?? title }), [series, layout, valueFormat, xLabel, yLabel, title])
   return (
     <ChartCard
       title={title}

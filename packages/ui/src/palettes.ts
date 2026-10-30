@@ -6,7 +6,7 @@ export type Palette = {
   colors: Record<string, MantineColorsTuple>
 }
 
-export type PresetName = 'teal' | 'blue' | 'indigo' | 'graphite' | 'copper'
+export type PresetName = 'midnight' | 'teal' | 'blue' | 'indigo' | 'graphite' | 'copper'
 
 const slate: MantineColorsTuple = [
   '#f6f8fa',
@@ -99,11 +99,51 @@ const copper: MantineColorsTuple = [
   '#472305',
 ]
 
+const midnightBrand: MantineColorsTuple = [
+  '#eef3ff',
+  '#dbe6fe',
+  '#b8ccfb',
+  '#8fb0f6',
+  '#6a93ee',
+  '#4f7fe8',
+  '#3b6fe0',
+  '#2f5bc2',
+  '#254a9f',
+  '#1b3a80',
+]
+
+const midnightGray: MantineColorsTuple = [
+  '#f5f7fb',
+  '#eef1f7',
+  '#e4e9f1',
+  '#d6dde8',
+  '#b4bfd0',
+  '#8793ab',
+  '#5a6680',
+  '#3f4a63',
+  '#2a3350',
+  '#1b2340',
+]
+
+const midnightDark: MantineColorsTuple = [
+  '#e6ecf8',
+  '#c3cfe8',
+  '#97a8cc',
+  '#7284ad',
+  '#2a3a63',
+  '#1e2c50',
+  '#16223f',
+  '#0d1630',
+  '#091024',
+  '#050a1a',
+]
+
 function withBrand(brand: MantineColorsTuple): Palette {
   return { primaryColor: 'brand', primaryShade: 6, colors: { brand, gray: slate, dark: slateDark } }
 }
 
 export const presets: Record<PresetName, Palette> = {
+  midnight: { primaryColor: 'brand', primaryShade: 6, colors: { brand: midnightBrand, gray: midnightGray, dark: midnightDark } },
   teal: withBrand(teal),
   blue: withBrand(blue),
   indigo: withBrand(indigo),
@@ -111,6 +151,23 @@ export const presets: Record<PresetName, Palette> = {
   copper: withBrand(copper),
 }
 
+export type Surfaces = { canvas: string; surface: string; border: string; shadow: string }
+
+export const premiumSurfaces: { light: Surfaces; dark: Surfaces } = {
+  light: {
+    canvas: '#f3f5fa',
+    surface: '#ffffff',
+    border: 'rgb(20 35 80 / 9%)',
+    shadow: '0 1px 2px rgb(16 24 64 / 5%), 0 8px 24px rgb(16 24 64 / 6%)',
+  },
+  dark: {
+    canvas: '#0b1329',
+    surface: '#111b36',
+    border: 'rgb(143 180 255 / 14%)',
+    shadow: '0 0 0 1px rgb(143 180 255 / 4%), 0 10px 30px rgb(0 0 0 / 35%)',
+  },
+}
+
 export const workspacePalette: Palette = presets.blue
 
-export const synapsePalette: Palette = presets.teal
+export const synapsePalette: Palette = presets.midnight

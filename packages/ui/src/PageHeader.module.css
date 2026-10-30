@@ -32,3 +32,15 @@
   padding-inline: 0.5rem;
   margin-top: 0.125rem;
 }
+
+:global(:root[data-look='premium']) .crumbs {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:global(:root[data-look='premium']) .title,
+:global(:root[data-look='premium']) .titleInput {
+  letter-spacing: -0.02em;
+}

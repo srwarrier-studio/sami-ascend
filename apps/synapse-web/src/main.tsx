@@ -12,9 +12,9 @@ const catalogClient = new HttpCatalogClient()
 const boardExporter = new PdfBoardExporter()
 
 function Root() {
-  const [ui, setUi] = useState<UiSettings>({ palette: 'teal', motion: 'full' })
+  const [ui, setUi] = useState<UiSettings>({ palette: 'midnight', motion: 'full' })
   return (
-    <UiProvider palette={presets[ui.palette]} motion={ui.motion}>
+    <UiProvider palette={presets[ui.palette]} motion={ui.motion} look="premium">
       <App client={client} catalogClient={catalogClient} boardExporter={boardExporter} ui={ui} onUiChange={setUi} />
     </UiProvider>
   )

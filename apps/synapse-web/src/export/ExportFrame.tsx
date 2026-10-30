@@ -24,7 +24,7 @@ export function ExportFrame({ exporting, userName, company, generatedAt, frameRe
           </Stack>
         </div>
       )}
-      <div ref={frameRef} className={classes.sheet}>
+      <div ref={frameRef} className={classes.sheet} data-exporting={exporting || undefined}>
         <div hidden={!exporting} className={classes.sheetHeader}>
           <Group>
             {company && <CompanyLogo id={company} size={40} />}

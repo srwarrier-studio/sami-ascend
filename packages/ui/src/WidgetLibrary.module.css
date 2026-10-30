@@ -52,3 +52,20 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+:global(:root[data-look='premium']) .content {
+  background: var(--sami-surface);
+  border-left: thin solid var(--sami-border);
+  box-shadow: var(--sami-shadow);
+}
+
+:global(:root[data-look='premium']) .item {
+  background: var(--sami-surface);
+  border-color: var(--sami-border);
+}
+
+:global(:root[data-look='premium']) .item:hover,
+:global(:root[data-look='premium']) .item:focus-visible {
+  border-color: var(--mantine-primary-color-filled);
+  box-shadow: 0 0 1rem color-mix(in srgb, var(--mantine-primary-color-filled) 22%, transparent);
+}

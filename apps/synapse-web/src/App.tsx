@@ -1,4 +1,5 @@
-import { APP_NAME } from './config'
+import { APP_NAME, TAGLINE } from './config'
+import { SynapseLogo } from './brand/SynapseLogo'
 import { useEffect, useRef, useState } from 'react'
 import { RouterProvider } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
@@ -46,13 +47,13 @@ const defaultBoardStore = new MockBoardStore()
 const defaultCatalogClient = new MockCatalogClient()
 const defaultBoardExporter = new MockBoardExporter()
 const defaultChatPlanner = new MockChatPlanner()
-const defaultUi: UiSettings = { palette: 'teal', motion: 'full' }
+const defaultUi: UiSettings = { palette: 'midnight', motion: 'full' }
 
 export default function App({ client, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, catalogClient = defaultCatalogClient, boardExporter = defaultBoardExporter, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
   const { session, login, logout, retry } = useSession(client)
   const { company, setCompany } = useCompany(session.status === 'signedIn' ? session.user : null)
   const { state: catalog, retry: retryCatalog } = useCatalog(catalogClient, session.status === 'signedIn')
-  if (session.status === 'loading' || (session.status === 'signedIn' && catalog.status !== 'ready' && catalog.status !== 'failed')) return <SplashScreen name={APP_NAME} tagline="Your sales, on one board" />
+  if (session.status === 'loading' || (session.status === 'signedIn' && catalog.status !== 'ready' && catalog.status !== 'failed')) return <SplashScreen mark={<SynapseLogo size={72} />} name={APP_NAME} tagline={TAGLINE} />
   if (session.status === 'unreachable' || (session.status === 'signedIn' && catalog.status === 'failed'))
     return (
       <Container py="xl">

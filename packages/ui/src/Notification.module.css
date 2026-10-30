@@ -30,3 +30,24 @@
 .loader {
   --loader-color: var(--mantine-color-white);
 }
+
+:global(:root[data-look='premium']) .root {
+  background: var(--sami-surface);
+  border: thin solid var(--sami-border);
+  box-shadow: var(--sami-shadow);
+}
+
+:global(:root[data-look='premium']) .root::before {
+  display: block;
+  background-color: var(--notification-color, var(--mantine-primary-color-filled));
+}
+
+:global(:root[data-look='premium']) .title,
+:global(:root[data-look='premium']) .description,
+:global(:root[data-look='premium']) .closeButton {
+  color: var(--mantine-color-text);
+}
+
+:global(:root[data-look='premium']) .closeButton:hover {
+  background-color: var(--mantine-color-default-hover);
+}

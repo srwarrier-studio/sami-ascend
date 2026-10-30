@@ -25,7 +25,7 @@ export function KpiCard({ title, value, valueFormat, delta, caption, trend, info
   return (
     <Card className={classes.card}>
       <WidgetTitle title={title} help={helpText('KpiCard', measure)} info={info} label />
-      <Group className={classes.body} justify="space-between" align="flex-end" wrap="nowrap">
+      <Group className={classes.kpiBody} justify="space-between" align="flex-end" wrap="nowrap">
         <Stack gap={0}>
           <Title order={2}>{formatValue(value, valueFormat)}</Title>
           {delta === undefined ? (

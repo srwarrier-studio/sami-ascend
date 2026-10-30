@@ -30,3 +30,8 @@
   border-color: var(--mantine-primary-color-filled);
   transform: translateY(-2px);
 }
+
+:global(:root[data-look='premium']) .card:hover,
+:global(:root[data-look='premium']) .card:focus-visible {
+  box-shadow: 0 0 1.5rem color-mix(in srgb, var(--mantine-primary-color-filled) 30%, transparent);
+}

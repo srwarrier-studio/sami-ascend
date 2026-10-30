@@ -5,12 +5,14 @@ import { SparkleIcon } from '@phosphor-icons/react'
 import { Alert } from './Alert'
 import classes from './launch.module.css'
 
-export function SplashScreen({ name, tagline }: { name: string; tagline: string }) {
+export function SplashScreen({ name, tagline, mark }: { name: string; tagline: string; mark?: ReactNode }) {
   return (
     <div className={classes.splash}>
-      <span className={classes.mark}>
-        <SparkleIcon size={36} weight="fill" />
-      </span>
+      {mark ?? (
+        <span className={classes.mark}>
+          <SparkleIcon size={36} weight="fill" />
+        </span>
+      )}
       <h1 className={classes.name}>{name}</h1>
       <p className={classes.tagline}>{tagline}</p>
       <div className={classes.track} aria-hidden="true">
