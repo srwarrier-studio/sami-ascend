@@ -2,14 +2,13 @@ import { useState } from 'react'
 import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
 import { Button, EmptyBoard, Group, Modal, PageBar, PageHeader, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, notifications, useColorScheme } from '@sami/ui'
 import { BoardGrid } from '../boards/BoardGrid'
-import { catalog } from '../catalog/catalog'
 import { MAX_WIDGETS, arrangeWidgets, insertWidget, removeWidget } from '../boards/layout'
 import { useBoards } from '../boards/useBoards'
 
 export function BoardsPage() {
   const navigate = useNavigate()
   const search = useSearch({ from: '/' })
-  const { boardStore, salesData, ui, setUi } = useRouteContext({ from: '/' })
+  const { boardStore, catalog, catalogClient, ui, setUi } = useRouteContext({ from: '/' })
   const { colorScheme, setColorScheme } = useColorScheme()
   const { boards, active, select, add, rename, remove, setWidgets } = useBoards(boardStore, search.board)
   const [editing, setEditing] = useState(false)
@@ -59,7 +58,7 @@ export function BoardsPage() {
           </Group>
         }
       />
-      <BoardGrid widgets={active.widgets} data={salesData} editing={editing} onChange={setWidgets}
+      <BoardGrid widgets={active.widgets} catalog={catalog} client={catalogClient} editing={editing} onChange={setWidgets}
         empty={active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
       />
       <PageBar
@@ -68,7 +67,7 @@ export function BoardsPage() {
         config={{ ...ui, scheme: colorScheme === 'dark' ? 'dark' : 'light' }}
         onSelect={select}
         onAdd={add}
-        onArrange={editing ? () => setWidgets(arrangeWidgets(active.widgets)) : undefined}
+        onArrange={editing ? () => setWidgets(arrangeWidgets(active.widgets, catalog)) : undefined}
         onConfigChange={(config) => {
           setUi({ palette: config.palette, motion: config.motion })
           setColorScheme(config.scheme)

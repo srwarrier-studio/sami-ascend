@@ -99,3 +99,19 @@ describe('when the login service cannot be reached', () => {
     expect(await screen.findByRole('button', { name: 'Sign in' })).toBeInTheDocument()
   })
 })
+
+describe('when the catalog cannot be loaded after sign-in', () => {
+  it('shows a message with a retry, and loads the app once it works', async () => {
+    const entries = [{ id: 'sales-today', title: 'Sales today', description: 'd', category: 'Sales', widget: 'KpiCard' }]
+    const list = vi.fn().mockRejectedValueOnce(new Error('down')).mockResolvedValue(entries)
+    render(
+      <UiProvider palette={synapsePalette}>
+        <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={{ list, data: async () => ({}) }} history={createMemoryHistory({ initialEntries: ['/'] })} />
+      </UiProvider>,
+    )
+    expect(await screen.findByText('Cannot reach the server')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(await screen.findByText('Mock Manager')).toBeInTheDocument()
+    expect(list).toHaveBeenCalledTimes(2)
+  })
+})

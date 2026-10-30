@@ -1,6 +1,5 @@
 import { registry } from '@sami/ui'
 import { MockBoardStore } from '../src/boards/boardStore'
-import { catalog } from '../src/catalog/catalog'
 
 describe('MockBoardStore', () => {
   it('starts with the Sales overview board', async () => {
@@ -53,8 +52,13 @@ describe('MockBoardStore', () => {
 
 describe('seed board packing', () => {
   it('fills every row of 12 columns', async () => {
+    const widgets: Record<string, string> = {
+      'sales-today': 'KpiCard', 'sales-month': 'KpiCard', 'sales-year': 'KpiCard', 'orders-month': 'KpiCard',
+      'month-on-month': 'BarChart', 'day-sales': 'LineChart', 'status-split': 'DonutChart', 'month-target': 'GaugeChart',
+      'top-customers': 'RankedList', 'top-materials': 'RankedList', 'high-value-sales': 'DataTable',
+    }
     const width = (catalogId: string) => {
-      const widget = catalog.find((entry) => entry.id === catalogId)!.widget
+      const widget = widgets[catalogId]
       return registry.describe().find((entry) => entry.name === widget)!.size.defaultW
     }
     let filled = 0

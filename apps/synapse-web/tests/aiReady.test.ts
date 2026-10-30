@@ -1,10 +1,8 @@
 import { registry } from '@sami/ui'
 import { parseAiBoard } from '../src/ai/parseAiBoard'
-import { catalog } from '../src/catalog/catalog'
-import { MockSalesData } from '../src/data/mockSalesData'
+import { fixtures } from '../src/catalog/fixtures'
 
 const described = registry.describe()
-const data = new MockSalesData(new Date('2026-10-29T10:00:00Z'))
 
 describe('widget list for a model', () => {
   it('survives a JSON round trip', () => {
@@ -32,8 +30,8 @@ describe('widget list for a model', () => {
 })
 
 describe('catalog props against the widget schemas', () => {
-  it.each(catalog)('$id validates', async (entry) => {
-    expect(registry.validate(entry.widget, await entry.load(data))).toBe(true)
+  it.each(fixtures)('$entry.id validates', ({ entry, props }) => {
+    expect(registry.validate(entry.widget, props)).toBe(true)
   })
 })
 
@@ -58,8 +56,8 @@ describe('parseAiBoard', () => {
     expect(!result.ok && result.error).toContain(message)
   })
 
-  it('accepts every catalog entry as a widget', async () => {
-    const widgets = await Promise.all(catalog.map(async (entry) => ({ widget: entry.widget, props: await entry.load(data) })))
+  it('accepts every catalog entry as a widget', () => {
+    const widgets = fixtures.map(({ entry, props }) => ({ widget: entry.widget, props }))
     expect(parseAiBoard(good(widgets)).ok).toBe(true)
   })
 

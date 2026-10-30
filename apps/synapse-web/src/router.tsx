@@ -10,7 +10,7 @@ import {
 import type { RouterHistory } from '@tanstack/react-router'
 import type { BoardStore } from './boards/boardStore'
 import type { PresetName, MotionMode } from '@sami/ui'
-import type { SalesData } from './data/salesData'
+import type { CatalogClient, CatalogEntry } from './catalog/catalogClient'
 import type { Session } from './session/useSession'
 import type { ChatPlanner } from './ai/chatPlanner'
 import { canUseSynapse } from './access'
@@ -28,7 +28,8 @@ export type RouterContext = {
   session: Session
   login: (email: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
-  salesData: SalesData
+  catalogClient: CatalogClient
+  catalog: CatalogEntry[]
   boardStore: BoardStore
   chatPlanner: ChatPlanner
   ui: UiSettings

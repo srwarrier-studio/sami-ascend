@@ -4,12 +4,12 @@ import { createMemoryHistory } from '@tanstack/react-router'
 import { UiProvider, synapsePalette } from '@sami/ui'
 import App from '../src/App'
 import { CatalogWidget } from '../src/catalog/CatalogWidget'
-import { catalog, matchCatalog } from '../src/catalog/catalog'
+import { fixtureEntries } from '../src/catalog/fixtures'
+import { matchCatalog } from '../src/catalog/matchCatalog'
 import { MockBoardStore } from '../src/boards/boardStore'
-import { MockSalesData } from '../src/data/mockSalesData'
+import { MockCatalogClient } from '../src/catalog/mockCatalogClient'
 import { MockSessionClient } from '../src/session/sessionClient'
 
-const data = new MockSalesData(new Date('2026-10-29T10:00:00Z'))
 
 const small = () =>
   new MockBoardStore([
@@ -20,7 +20,7 @@ const small = () =>
 const open = (store = small()) => {
   render(
     <UiProvider palette={synapsePalette}>
-      <App client={new MockSessionClient('manager@mock-sami.com')} salesData={data} boardStore={store} history={createMemoryHistory({ initialEntries: ['/'] })} />
+      <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={new MockCatalogClient()} boardStore={store} history={createMemoryHistory({ initialEntries: ['/'] })} />
     </UiProvider>,
   )
   return store
@@ -166,23 +166,23 @@ describe('edit mode', () => {
 
 describe('AI matching', () => {
   it('matches title or description words and ignores filler', () => {
-    expect(matchCatalog('show me the customers').map((e) => e.id)).toEqual(['top-customers'])
-    expect(matchCatalog('please add the')).toEqual([])
-    expect(matchCatalog('zebra')).toEqual([])
+    expect(matchCatalog(fixtureEntries, 'show me the customers').map((e) => e.id)).toEqual(['top-customers'])
+    expect(matchCatalog(fixtureEntries, 'please add the')).toEqual([])
+    expect(matchCatalog(fixtureEntries, 'zebra')).toEqual([])
   })
 })
 
 describe('refresh', () => {
   it('reloads the data after refreshMs without showing a skeleton again', async () => {
-    const load = vi.fn().mockResolvedValue({ title: 'Ticker', value: 1 })
-    const entry = { ...catalog[0], load }
+    const dataCall = vi.fn().mockResolvedValue({ title: 'Ticker', value: 1 })
+    const client = { list: vi.fn(), data: dataCall }
     render(
       <UiProvider palette={synapsePalette}>
-        <CatalogWidget entry={entry} data={data} refreshMs={40} />
+        <CatalogWidget entry={fixtureEntries[0]} client={client} refreshMs={40} />
       </UiProvider>,
     )
     expect(await screen.findByText('Ticker')).toBeInTheDocument()
-    await waitFor(() => expect(load.mock.calls.length).toBeGreaterThan(2))
+    await waitFor(() => expect(dataCall.mock.calls.length).toBeGreaterThan(2))
     expect(screen.queryByLabelText(/Loading/)).toBeNull()
   })
 })
