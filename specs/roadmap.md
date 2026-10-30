@@ -58,7 +58,8 @@ All three phases use mock data (session, sales data and board store behind inter
 - 06 backend-catalog: login through auth-api, catalog and every widget's data from synapse-api, local catalog removed; the Widgets tab became a Reports placeholder. done (tag `synapse-web-phase-06-done`, 2026-10-30).
 - 07 board-export: `Export PDF` on a board, one page sized to the board, raster capture at 3x with `html-to-image` and `jspdf`, placeholder logo and company name on top and a generated-by line below. done (tag `synapse-web-phase-07-done`, 2026-10-30).
 - 08 company-picker: after sign-in the user chooses one of their companies (automatic for one, picker page for several), switches it from the header, and the exported PDF header carries its name and logo; the choice is remembered per user in `localStorage`, data is not filtered by company yet. done (tag `synapse-web-phase-08-done`, 2026-10-30).
-- 08 company-picker: after login a screen of company cards (name and logo) to pick from, skipped for users with one company, a switch-company button in the header, and the chosen company's name and logo on the PDF. Depends on auth-api 04. todo
+- 09 preset-boards: a `Preset boards` tab in the Add widget drawer that creates a ready-made board in one click. Depends on synapse-web 08. todo
+- company-data (not numbered yet): filter synapse-api data by company and add the group view, an `All companies` choice in the picker for users with several companies that sums across them, plus widgets that split by company. All three companies are in one SAP system, so synapse-api filters and sums by company code in one query. Currency and intercompany rules still need an answer from finance. todo
 
 ## workspace-api (workflow backend)
 - 01 sales-order-gateway: an interface to create and list sales orders, with an implementation that calls butterfly. done (tag `workspace-api-phase-01-done`, 2026-10-27)
