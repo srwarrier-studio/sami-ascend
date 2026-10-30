@@ -3,9 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { UiProvider, presets } from '@sami/ui'
 import App from './App.tsx'
 import type { UiSettings } from './router'
-import { MockSessionClient } from './session/sessionClient'
+import { HttpSessionClient } from './session/httpSessionClient'
 
-const client = new MockSessionClient()
+const client = new HttpSessionClient()
 
 function Root() {
   const [ui, setUi] = useState<UiSettings>({ palette: 'teal', motion: 'full' })

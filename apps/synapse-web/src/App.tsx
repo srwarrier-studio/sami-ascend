@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { RouterProvider } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
-import { SplashScreen } from '@sami/ui'
+import { Alert, Button, Container, SplashScreen, Stack } from '@sami/ui'
 import { MockSalesData } from './data/mockSalesData'
 import type { SalesData } from './data/salesData'
 import { MockBoardStore } from './boards/boardStore'
@@ -42,7 +42,18 @@ const defaultChatPlanner = new MockChatPlanner()
 const defaultUi: UiSettings = { palette: 'teal', motion: 'full' }
 
 export default function App({ client, salesData = defaultSalesData, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
-  const { session, login, logout } = useSession(client)
+  const { session, login, logout, retry } = useSession(client)
   if (session.status === 'loading') return <SplashScreen name="Synapse" tagline="Your sales, on one board" />
+  if (session.status === 'unreachable')
+    return (
+      <Container py="xl">
+        <Stack align="flex-start">
+          <Alert color="red" title="Cannot reach the server">
+            Check that the login service is running and try again.
+          </Alert>
+          <Button onClick={retry}>Try again</Button>
+        </Stack>
+      </Container>
+    )
   return <Routed context={{ session, login, logout, salesData, boardStore, chatPlanner, ui, setUi: onUiChange }} history={history} />
 }

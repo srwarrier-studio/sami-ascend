@@ -84,3 +84,18 @@ describe('signed in', () => {
     expect(await screen.findByText('Sign in to Synapse')).toBeInTheDocument()
   })
 })
+
+describe('when the login service cannot be reached', () => {
+  const unreachable = (): SessionClient => ({
+    me: vi.fn().mockRejectedValueOnce(new Error('network')).mockResolvedValue(null),
+    login: async () => false,
+    logout: async () => undefined,
+  })
+
+  it('shows a message with a retry instead of loading forever, and recovers', async () => {
+    open('/', unreachable())
+    expect(await screen.findByText('Cannot reach the server')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(await screen.findByRole('button', { name: 'Sign in' })).toBeInTheDocument()
+  })
+})
