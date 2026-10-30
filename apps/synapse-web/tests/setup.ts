@@ -19,3 +19,8 @@ globalThis.ResizeObserver = class {
 }
 
 window.scrollTo = () => {}
+
+beforeEach(() => {
+  localStorage.setItem('synapse.company.u-manager', 'sabinsa')
+  localStorage.setItem('synapse.company.u-admin', 'sabinsa')
+})

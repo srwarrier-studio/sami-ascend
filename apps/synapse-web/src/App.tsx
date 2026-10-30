@@ -30,13 +30,13 @@ type AppProps = {
 
 function Routed({ context, history }: { context: RouterContext; history?: RouterHistory }) {
   const [router] = useState(() => createAppRouter(context, history))
-  const loadedSession = useRef(context.session)
+  const loaded = useRef({ session: context.session, company: context.company })
 
   useEffect(() => {
-    if (loadedSession.current === context.session) return
-    loadedSession.current = context.session
+    if (loaded.current.session === context.session && loaded.current.company === context.company) return
+    loaded.current = { session: context.session, company: context.company }
     router.invalidate()
-  }, [router, context.session])
+  }, [router, context.session, context.company])
 
   return <RouterProvider router={router} context={context} />
 }
