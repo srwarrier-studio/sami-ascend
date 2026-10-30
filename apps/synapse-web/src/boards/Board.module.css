@@ -146,3 +146,24 @@
 :global(:root[data-look='premium']) .sheet:not([data-exporting]) {
   background: transparent;
 }
+
+:global(:root[data-look='premium']) .aiPage {
+  background: var(--sami-canvas);
+  background-attachment: fixed;
+}
+
+:global(:root[data-look='premium']) .aiPage .chat {
+  background: var(--sami-surface);
+  border-top: thin solid var(--sami-border);
+  box-shadow: var(--sami-shadow);
+}
+
+:global(:root[data-look='premium']) .bubble:not([data-wide]):not([data-from='you']) {
+  background: var(--sami-surface);
+  border: thin solid var(--sami-border);
+  box-shadow: var(--sami-shadow);
+}
+
+:global(:root[data-look='premium']) .bubble[data-from='you'] {
+  box-shadow: 0 0.25rem 0.75rem color-mix(in srgb, var(--mantine-primary-color-filled) 35%, transparent);
+}
