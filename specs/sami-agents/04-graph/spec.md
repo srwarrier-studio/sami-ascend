@@ -55,19 +55,19 @@ For `sum_changed` the rows are read over both periods padded by `pad_days` and p
 `sami-agents graph show [--mermaid]` prints the nodes (source, anomalies) and the edges (cause to effect, join, carries, lookback), or Mermaid source for a picture.
 
 ## Walking the graph
-A walk is given the mode, one or more starting `(node, key)` pairs, a window (`start`, `end`) and its previous period (`compare_start`, `compare_end`), and the user's access token. It reads through a `DataSource` port (a mock for tests; an adapter that calls synapse-api `/records` and `/metrics/.../compare` with the user's cookie, never anything else). Nothing is cached across walks.
+A walk is given the mode, one or more starting `(node, key)` pairs (for a record node also the `key_field`, default the first), a window (`start`, `end`) and its previous period (`compare_start`, `compare_end`), and the user's access token. It reads through a `DataSource` port (a mock for tests; an adapter that calls synapse-api `/records` and `/metrics/.../compare` with the user's cookie, never anything else). Nothing is cached across walks.
 
 | Mode | Starts at | Follows |
 |------|-----------|---------|
 | `root_cause` | a mover (an effect) | edges whose `effect` is the current node, towards causes |
 | `impact` | a node with an anomaly | edges whose `cause` is the current node, towards effects |
-| `dependency` | any node | edges either way, no anomaly test and no window: lists the related nodes and keys that exist |
+| `dependency` | any node | edges either way, no anomaly test: lists the related nodes and keys that exist, read over the widest window the API allows (400 days ending at the window's end) |
 
 Root cause and impact, at each step:
-1. Read the next node's rows for the key found by the join, over the window widened backwards by the edge's `lookback_days` (root cause) or forwards by it (impact); the previous period for change kinds is the same length directly before the widened window.
-2. A `passthrough` node is walked through without a test. Any other node is tested with its anomaly kinds that the edge `carries`; a node with no anomaly is **pruned**: it is not followed and not reported as a cause.
+1. Take the distinct join values of the rows reached so far (a metric member is the row `{key}`) and read the next node's rows for each value, over the window widened backwards by the edge's `lookback_days` (root cause) or forwards by it (impact); the previous period for change kinds is the same length directly before the widened window.
+2. A `passthrough` node is walked through without a test. Any other node is tested with its anomaly kinds that the edge `carries`; a node with no anomaly is **pruned**: it is not followed and not reported as a cause. `later_than` is judged per row, `coverage_gap` per looked-up key, `value_changed` per member, and `sum_changed` over all the rows reached by the step together (several orders that use one material are one group). The walk continues from the unusual rows (the rows dated in the window for `sum_changed`).
 3. The step is kept only if the dated anomalies keep the order: along a root-cause path the cause's `at` is not after its effect's `at`; along an impact path the effect's `at` is not before the cause's.
-4. A path ends where there is nothing further, and a walk stops (`truncated = true`) at depth 6, 100 visited `(node, key)` pairs or 200 data calls, whichever comes first. A `(node, key)` is visited once per walk.
+4. A path ends where there is nothing further, and a walk stops (`truncated = true`) at depth 6, 100 visited `(node, key)` pairs or 200 data calls, whichever comes first. A lookup (node, field, value) is made once per walk. A metric member is looked up in the top 50 changes of its dimension, so a member outside them is not found (recorded as a limit).
 - Result: a list of paths; each step has the node, key, the anomaly kind, `at`, the numbers behind it (days late, days uncovered, percent, volume and price effect) and the rows that show it (SAP fields as returned). An empty list is a valid result: "nothing unusual found behind this mover".
 - A failure of the data source raises one error for the whole walk; no partial result.
 
