@@ -7,6 +7,7 @@ class Question:
     metric: str
     direction: str
     month: date
+    intent: str = "why"
 
 
 @dataclass(frozen=True)

@@ -29,12 +29,15 @@ class QuestionReader:
 
     def read(self, text: str, today: date) -> ReadResult:
         lowered = " ".join(text.lower().split())
-        if first_position(lowered, self.words.why) is None:
+        asks_why = first_position(lowered, self.words.why) is not None
+        if not asks_why and first_position(lowered, self.words.figure) is None:
             return ReadResult(None, "unreadable")
         metric = self.metric(lowered)
         month = self.month(lowered, today)
         if metric is None or month is None:
             return ReadResult(None, "unreadable")
+        if not asks_why:
+            return ReadResult(Question(metric, "change", month, "figure"))
         if month >= today.replace(day=1):
             return ReadResult(None, "not_finished")
         return ReadResult(Question(metric, self.direction(lowered), month))
