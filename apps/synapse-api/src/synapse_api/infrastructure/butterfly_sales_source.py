@@ -29,31 +29,35 @@ class ButterflySalesSource(SalesSource):
         )
 
     def daily_sales(self, start: date, end: date) -> list[DailySales]:
-        return self.summary("SalesSummaryByDay", start, end, daily_from_json)
+        return self.summary("SalesSummaryByDay", "OrderDate,Currency", start, end, daily_from_json)
 
     def customer_sales(self, start: date, end: date) -> list[CustomerSales]:
-        return self.summary("SalesSummaryByCustomer", start, end, customer_from_json)
+        return self.summary("SalesSummaryByCustomer", "OrderDate,SoldToParty,Currency", start, end, customer_from_json)
 
     def material_sales(self, start: date, end: date) -> list[MaterialSales]:
-        return self.summary("SalesSummaryByMaterial", start, end, material_from_json)
+        return self.summary("SalesSummaryByMaterial", "OrderDate,Material,Currency", start, end, material_from_json)
 
     def order_statuses(self, start: date, end: date) -> list[OrderStatus]:
         filter_ = f"OrderDate%20ge%20{start.isoformat()}%20and%20OrderDate%20le%20{end.isoformat()}%20and%20OverallStatus%20ne%20'X'"
-        rows: list[dict] = []
-        while True:
-            page = self.get_rows(f"SalesOrder?$filter={filter_}&$select=OrderDate,OverallStatus&$orderby=OrderDate&$top={PAGE}&$skip={len(rows)}")
-            rows += page
-            if len(page) < PAGE:
-                return [status_from_json(row) for row in rows]
+        rows = self.all_rows(f"SalesOrder?$filter={filter_}&$select=OrderDate,OverallStatus&$orderby=OrderDate")
+        return [status_from_json(row) for row in rows]
 
     def high_value_orders(self, minimum: Decimal, top: int) -> list[HighValueOrder]:
         filter_ = f"TotalNetAmount%20ge%20{minimum}%20and%20OverallStatus%20ne%20'X'"
         path = f"SalesOrder?$filter={filter_}&$orderby=CreationDateTime%20desc&$top={top}"
         return [order_from_json(row) for row in self.get_rows(path)]
 
-    def summary(self, entity: str, start: date, end: date, to_row: Callable[[dict], object]) -> list:
+    def summary(self, entity: str, order: str, start: date, end: date, to_row: Callable[[dict], object]) -> list:
         filter_ = f"OrderDate%20ge%20{start.isoformat()}%20and%20OrderDate%20le%20{end.isoformat()}"
-        return [to_row(row) for row in self.get_rows(f"{entity}?$filter={filter_}&$orderby=OrderDate")]
+        return [to_row(row) for row in self.all_rows(f"{entity}?$filter={filter_}&$orderby={order}")]
+
+    def all_rows(self, path: str) -> list[dict]:
+        rows: list[dict] = []
+        while True:
+            page = self.get_rows(f"{path}&$top={PAGE}&$skip={len(rows)}")
+            rows += page
+            if len(page) < PAGE:
+                return rows
 
     def get_rows(self, path: str) -> list[dict]:
         headers = {"Accept": "application/json"}
