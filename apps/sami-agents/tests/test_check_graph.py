@@ -90,6 +90,18 @@ class TestEachProblemIsReportedByName:
         found = problems(tmp_path, text + 'shows = ["later_than"]\n')
         assert any("shows ['later_than'] but its effect 'Customer' is passthrough" in p for p in found)
 
+    def test_an_id_field_the_contract_does_not_list_and_an_id_on_a_metric_node(self, tmp_path):
+        assert any("id field 'Nope' is not in SalesContract" in p for p in problems(tmp_path, BASE.replace('source = "record:contract"', 'source = "record:contract"\nid = "Nope"')))
+        assert any("a metric node has no rows" in p for p in problems(tmp_path, BASE.replace('source = "metric:sales.customer"', 'source = "metric:sales.customer"\nid = "SoldToParty"')))
+
+    def test_the_new_kind_checks_its_fields_against_the_contract(self, tmp_path):
+        text = BASE.replace('anomaly = { kind = "coverage_gap", from = "ValidFrom", to = "ValidTo" }', 'anomaly = { kind = "set_changed", field = "Nope", date = "ValidFrom" }').replace('["coverage_gap"]', '["set_changed"]')
+        assert any("uses field 'Nope' that SalesContract does not have" in p for p in problems(tmp_path, text))
+
+    def test_the_reason_field_is_checked_too(self, tmp_path):
+        text = BASE.replace('anomaly = { kind = "coverage_gap", from = "ValidFrom", to = "ValidTo" }', 'anomaly = { kind = "later_than", due = "ValidFrom", done = "ValidTo", reason = "Nope" }').replace('["coverage_gap"]', '["later_than"]')
+        assert any("uses field 'Nope'" in p for p in problems(tmp_path, text))
+
     def test_a_record_kind_on_a_metric_node_and_the_reverse(self, tmp_path):
         on_metric = BASE.replace('source = "metric:sales.customer"', 'source = "metric:sales.customer"\nanomaly = { kind = "later_than", due = "a", done = "b" }')
         assert any("node 'Customer': anomaly 'later_than' needs rows" in p for p in problems(tmp_path, on_metric))

@@ -5,14 +5,20 @@ source = "metric:sales.customer"
 source = "metric:sales.material"
 anomaly = { kind = "value_changed", min_percent = 10 }
 
+[node.PurchasedMaterial]
+source = "metric:purchases.material"
+anomaly = { kind = "value_changed", min_percent = 10 }
+
 [node.Contract]
 source = "record:contract"
+id = "SalesContract"
 anomaly = { kind = "coverage_gap", from = "ValidFrom", to = "ValidTo" }
 
 [node.ProductionOrder]
 source = "record:production_order"
+id = "ProductionOrder"
 anomaly = [
-  { kind = "later_than", due = "PlannedEndDate", done = "ActualEndDate", min_days = 3 },
+  { kind = "later_than", due = "PlannedEndDate", done = "ActualEndDate", min_days = 3, reason = "DelayReason" },
   { kind = "sum_changed", field = "PlannedQuantity", date = "PlannedStartDate", min_percent = 10 },
 ]
 
@@ -22,9 +28,11 @@ passthrough = true
 
 [node.PurchaseDelivery]
 source = "record:purchase_delivery"
+id = "PurchaseOrder"
 anomaly = [
   { kind = "later_than", due = "PromisedDeliveryDate", done = "ActualDeliveryDate", min_days = 3 },
   { kind = "sum_changed", field = "OrderedQuantity", date = "OrderDate", min_percent = 10 },
+  { kind = "set_changed", field = "Supplier", date = "OrderDate" },
 ]
 
 [edge.customer_contracts]
@@ -70,3 +78,10 @@ cause = "Component"
 effect = "PurchaseDelivery"
 join = { cause = "Material", effect = "Material" }
 shows = ["sum_changed"]
+
+[edge.purchases_of_material]
+cause = "PurchaseDelivery"
+effect = "PurchasedMaterial"
+join = { cause = "Material", effect = "key" }
+carries = ["sum_changed", "set_changed"]
+shows = ["value_changed"]

@@ -300,3 +300,59 @@ class TestFailuresAndBadInput:
             walk(MockDataSource(), "root_cause", [Start("Nope", "X")])
         with pytest.raises(ValueError):
             walk(MockDataSource(), "root_cause", [Start("PurchaseDelivery", "X")])
+
+
+def month_row(order, ordered, quantity, supplier="S1"):
+    return delivery(order, "2026-12-01", "2026-12-02", ordered=ordered, quantity=quantity) | {"Supplier": supplier}
+
+
+class TestPurchasesStartingFromAPurchasedMaterial:
+    DELIVERIES = [month_row(f"P{n}", f"2026-0{n}-24", q) for n, q in ((3, "5000.000"), (4, "5000.000"), (5, "5000.000"), (6, "5000.000"), (7, "5000.000"), (8, "6750.000"))]
+    ORDERS = [production(f"O{n:02d}", "2026-01-20", "2026-01-20", planned_start=start, quantity=q) for n, (start, q) in enumerate(
+        [("2025-11-10", "4000.000"), ("2025-12-10", "4000.000"), ("2026-01-10", "4000.000"), ("2026-02-10", "4000.000"), ("2026-03-10", "4000.000"),
+         ("2026-04-10", "4000.000"), ("2026-05-10", "4000.000"), ("2026-06-10", "4000.000"), ("2026-07-10", "5400.000"), ("2026-08-10", "5400.000")])]
+    COMPONENTS = [component(o["ProductionOrder"]) for o in ORDERS]
+    CHANGE = MemberChange(Decimal("121000.00"), Decimal("90000.00"), Decimal("34.44"))
+
+    def source(self, deliveries=None, orders=None):
+        return MockDataSource(
+            {"purchase_delivery": deliveries or self.DELIVERIES, "production_order": orders or self.ORDERS, "production_component": self.COMPONENTS},
+            {("sales", "material", "RM-1002"): self.CHANGE},
+        )
+
+    def run(self, source):
+        return walk(source, "root_cause", [Start("PurchasedMaterial", "RAW-2002")])
+
+    def test_more_ordered_quantity_leads_to_production_plans_and_the_sales_behind_them(self):
+        [path] = self.run(self.source()).paths
+        assert names(path) == [("PurchaseDelivery", "sum_changed"), ("ProductionOrder", "sum_changed"), ("Product", "value_changed")]
+        assert path[0].keys == ("RAW-2002",) and path[2].keys == ("RM-1002",)
+
+    def test_a_bigger_order_with_nothing_upstream_stops_at_the_quantity(self):
+        flat = [production(o["ProductionOrder"], "2026-01-20", "2026-01-20", planned_start=o["PlannedStartDate"], quantity="4000.000") for o in self.ORDERS]
+        [path] = self.run(self.source(orders=flat)).paths
+        assert names(path) == [("PurchaseDelivery", "sum_changed")]
+
+    def test_a_new_supplier_is_found_and_is_not_followed_into_production(self):
+        switched = [month_row(f"P{n}", f"2026-0{n}-24", "5000.000", "S1" if n < 8 else "S2") for n in range(3, 9)]
+        [path] = self.run(self.source(deliveries=switched)).paths
+        assert names(path) == [("PurchaseDelivery", "set_changed")]
+        assert path[0].numbers["new"] == ["S2"]
+
+    def test_nothing_unusual_gives_no_paths(self):
+        steady = [month_row(f"P{n}", f"2026-0{n}-24", "5000.000") for n in range(3, 9)]
+        flat = [production(o["ProductionOrder"], "2026-01-20", "2026-01-20", planned_start=o["PlannedStartDate"], quantity="4000.000") for o in self.ORDERS]
+        assert self.run(self.source(deliveries=steady, orders=flat)).paths == []
+
+
+class TestTheShowsRuleInRootCause:
+    def test_a_late_production_order_does_not_look_for_extra_demand_behind_it(self):
+        source = MockDataSource(SUPPLY, {("sales", "material", "RM-1002"): MemberChange(Decimal("200"), Decimal("100"), Decimal("100.00"))})
+        [path] = walk(source, "root_cause", [Start("Product", "RM-1002")]).paths
+        assert [step.node for step in path] == ["ProductionOrder", "PurchaseDelivery"]
+        assert not [c for c in source.calls if c[0] == "member_change"]
+
+    def test_a_starting_mover_follows_every_edge_because_it_has_no_kind_yet(self):
+        source = MockDataSource(SUPPLY)
+        walk(source, "root_cause", [Start("Product", "RM-1002")])
+        assert any(c[1] == "production_order" for c in source.calls if c[0] == "records")

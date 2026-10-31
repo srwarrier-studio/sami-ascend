@@ -5,7 +5,7 @@ from typing import Any
 from sami_agents.domain.entities.graph import ANOMALY_KINDS, DEFAULT_LOOKBACK_DAYS, Anomaly, Edge, Graph, Node
 from sami_agents.domain.errors import GraphError
 
-NODE_KEYS = {"source", "anomaly", "passthrough"}
+NODE_KEYS = {"source", "anomaly", "passthrough", "id"}
 EDGE_KEYS = {"cause", "effect", "join", "carries", "shows", "lookback_days"}
 
 
@@ -48,13 +48,17 @@ def build_node(name: str, body: Any, problems: list[str]) -> Node:
     if not isinstance(passthrough, bool):
         problems.append(f"{where}: 'passthrough' must be true or false")
         passthrough = False
+    node_id = body.get("id")
+    if node_id is not None and not is_text(node_id):
+        problems.append(f"{where}: 'id' must be a field name as text")
+        node_id = None
     raw = body.get("anomaly", [])
     entries = [raw] if isinstance(raw, dict) else raw
     if not isinstance(entries, list):
         problems.append(f"{where}: 'anomaly' must be a table or a list of tables")
         entries = []
     anomalies = tuple(build_anomaly(entry, where, problems) for entry in entries)
-    return Node(name, source_kind, source, dimension, anomalies, passthrough)
+    return Node(name, source_kind, source, dimension, anomalies, passthrough, node_id)
 
 
 def parse_source(text: Any, where: str, problems: list[str]) -> tuple[str, str, str | None]:
@@ -79,12 +83,16 @@ def build_anomaly(entry: Any, where: str, problems: list[str]) -> Anomaly:
     spec = ANOMALY_KINDS[kind]
     here = f"{where} anomaly '{kind}'"
     params: dict[str, Any] = {}
-    allowed = {"kind", *spec["text"], *spec["numbers"]}
+    allowed = {"kind", *spec["text"], *spec["optional"], *spec["numbers"]}
     for key in set(entry) - allowed:
         problems.append(f"{here}: unknown parameter '{key}'")
     for name in spec["text"]:
         if not is_text(entry.get(name)):
             problems.append(f"{here}: needs '{name}' as text")
+        params[name] = entry.get(name)
+    for name in spec["optional"]:
+        if name in entry and not is_text(entry[name]):
+            problems.append(f"{here}: '{name}' must be text")
         params[name] = entry.get(name)
     for name, default in spec["numbers"].items():
         value = entry.get(name, default)

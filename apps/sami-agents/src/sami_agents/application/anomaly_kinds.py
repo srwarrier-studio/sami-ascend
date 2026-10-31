@@ -24,7 +24,8 @@ def later_than(rows: list[dict], params: dict, today: date) -> list[Hit]:
         due, done = day_of(row[params["due"]]), day_of(row[params["done"]])
         late = ((done or today) - due).days
         if late >= params["min_days"]:
-            hits.append(Hit("later_than", due, {"days_late": late, "open": done is None}, [row]))
+            numbers = {"days_late": late, "open": done is None, "due": due, "done": done, "reason": row.get(params["reason"]) if params.get("reason") else None}
+            hits.append(Hit("later_than", due, numbers, [row]))
     return hits
 
 
@@ -64,3 +65,14 @@ def value_changed(change: MemberChange | None, params: dict) -> list[Hit]:
         "price_effect": change.price_effect,
     }
     return [Hit("value_changed", None, numbers)]
+
+
+def set_changed(rows: list[dict], params: dict, window: Window) -> list[Hit]:
+    def values(first: date, last: date) -> set:
+        return {r[params["field"]] for r in rows if first <= day_of(r[params["date"]]) <= last and r[params["field"]] not in (None, "")}
+
+    now, before = values(window.start, window.end), values(window.compare_start, window.compare_end)
+    if now == before:
+        return []
+    inside = [r for r in rows if window.start <= day_of(r[params["date"]]) <= window.end]
+    return [Hit("set_changed", None, {"new": sorted(now - before), "gone": sorted(before - now)}, inside)]

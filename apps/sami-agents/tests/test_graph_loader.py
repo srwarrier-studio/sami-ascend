@@ -39,8 +39,8 @@ class TestTheShippedGraph:
     GRAPH = load_graph(SHIPPED)
 
     def test_it_has_the_nodes_and_edges_for_sales_production_and_supply(self):
-        assert list(self.GRAPH.nodes) == ["Customer", "Product", "Contract", "ProductionOrder", "Component", "PurchaseDelivery"]
-        assert len(self.GRAPH.edges) == 7
+        assert list(self.GRAPH.nodes) == ["Customer", "Product", "PurchasedMaterial", "Contract", "ProductionOrder", "Component", "PurchaseDelivery"]
+        assert len(self.GRAPH.edges) == 8
 
     def test_sources_dimensions_and_passthrough_are_read(self):
         nodes = self.GRAPH.nodes
@@ -59,6 +59,13 @@ class TestTheShippedGraph:
         assert pairs[("ProductionOrder", "Component")].carries == ("sum_changed",)
         assert pairs[("PurchaseDelivery", "Component")].carries == ("later_than",)
         assert pairs[("Component", "PurchaseDelivery")].carries == ()
+
+    def test_ids_and_reasons_and_the_new_kind_are_read(self):
+        nodes = self.GRAPH.nodes
+        assert (nodes["Contract"].id, nodes["ProductionOrder"].id, nodes["PurchaseDelivery"].id, nodes["Customer"].id) == ("SalesContract", "ProductionOrder", "PurchaseOrder", None)
+        assert nodes["ProductionOrder"].anomalies[0].params["reason"] == "DelayReason"
+        assert [a.kind for a in nodes["PurchaseDelivery"].anomalies] == ["later_than", "sum_changed", "set_changed"]
+        assert nodes["PurchaseDelivery"].anomalies[2].params["pad_days"] == 30
 
     def test_edges_say_what_they_show_at_the_effect(self):
         edges = self.GRAPH.edges
@@ -121,6 +128,14 @@ class TestEveryProblemNamesItself:
     def test_carries_must_be_a_list_and_lookback_a_whole_number(self, tmp_path):
         assert any("'carries' must be a list" in p for p in problems_of(tmp_path, GOOD.replace('["coverage_gap"]', '"coverage_gap"')))
         assert any("'lookback_days' must be a whole number" in p for p in problems_of(tmp_path, GOOD + "lookback_days = -1\n"))
+
+    def test_an_id_must_be_text_and_a_reason_must_be_text(self, tmp_path):
+        assert any("'id' must be a field name" in p for p in problems_of(tmp_path, GOOD.replace('source = "record:contract"', 'source = "record:contract"\nid = 5')))
+        assert any("'reason' must be text" in p for p in problems_of(tmp_path, GOOD.replace('anomaly = { kind = "coverage_gap", from = "ValidFrom", to = "ValidTo" }', 'anomaly = { kind = "later_than", due = "a", done = "b", reason = 3 }')))
+
+    def test_set_changed_needs_its_fields(self, tmp_path):
+        text = GOOD.replace('anomaly = { kind = "coverage_gap", from = "ValidFrom", to = "ValidTo" }', 'anomaly = { kind = "set_changed", field = "Supplier" }')
+        assert "node 'Contract' anomaly 'set_changed': needs 'date' as text" in problems_of(tmp_path, text)
 
     def test_shows_must_be_a_list(self, tmp_path):
         assert any("'shows' must be a list" in p for p in problems_of(tmp_path, GOOD + 'shows = "value_changed"\n'))

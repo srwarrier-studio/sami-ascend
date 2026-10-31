@@ -39,7 +39,7 @@ class TestTheShippedFile:
     REGISTRY = load_registry(REGISTRY_PATH)
 
     def test_it_holds_sales_and_the_four_record_types(self):
-        assert list(self.REGISTRY.metrics) == ["sales"]
+        assert list(self.REGISTRY.metrics) == ["sales", "purchases"]
         assert list(self.REGISTRY.records) == ["contract", "purchase_delivery", "production_order", "production_component"]
 
     def test_sales_has_day_customer_and_material_and_only_material_has_a_quantity(self):
