@@ -8,10 +8,10 @@ from sami_agents.application.case_reader import ONE_MONTH, RESTRICTED, CaseReade
 from sami_agents.application.question_reader import HELP, NOT_FINISHED, QuestionReader
 from sami_agents.application.state_figure import StateFigure
 from sami_agents.domain.entities.case import Case
-from sami_agents.domain.entities.question import Question
+from sami_agents.domain.entities.question import Context, Question
 from sami_agents.domain.errors import DataUnavailable
 from sami_agents.domain.gateways.data_source import DataSource
-from sami_agents.domain.gateways.question_model import HeadlineRewriter, QuestionModel
+from sami_agents.domain.gateways.question_model import LineRewriter, QuestionModel
 
 TREND_MONTHS = 6
 REFUSALS = {"not_finished": NOT_FINISHED, "restricted": RESTRICTED, "not_one_month": ONE_MONTH}
@@ -32,8 +32,9 @@ class AnswerQuestion:
         metrics: list[str],
         mock: bool = True,
         model: QuestionModel | None = None,
-        rewriter: HeadlineRewriter | None = None,
+        rewriter: LineRewriter | None = None,
         figurer: StateFigure | None = None,
+        tone: str = "plain",
     ):
         self.reader = reader
         self.analyser = analyser
@@ -43,9 +44,10 @@ class AnswerQuestion:
         self.model = model
         self.rewriter = rewriter
         self.figurer = figurer or StateFigure(source)
+        self.tone = tone
 
-    def execute(self, text: str, token: str, today: date) -> dict:
-        read = self.reader.read(text, today)
+    def execute(self, text: str, token: str, today: date, context: Context | None = None) -> dict:
+        read = self.reader.read(text, today, context)
         question = read.question
         if question is None and read.problem == "unreadable" and self.model is not None:
             question = accept_question(self.model.read(text, self.metrics), self.metrics, today)
@@ -56,8 +58,7 @@ class AnswerQuestion:
         analysis = self.analyser.execute(question, token, today)
         trend = self.trend_block(question, token, analysis.currency, analysis.limits, [previous_month_of(question.month), question.month])
         lines = wording.lines(analysis)
-        if self.rewriter is not None:
-            lines[0] = accept_rewrite(self.rewriter.rewrite(lines[0]), lines[0]) or lines[0]
+        lines = self.polished(lines)
         blocks = [{"type": "text", "lines": lines}, *trend, *self.table_blocks(analysis), *self.evidence_blocks(analysis)]
         return {
             "readable": True,
@@ -69,7 +70,7 @@ class AnswerQuestion:
 
     def figure_answer(self, question: Question, token: str, today: date, case: Case | None) -> dict:
         figure = self.figurer.execute(question, token, today)
-        lines = wording.figure_lines(figure)
+        lines = self.polished(wording.figure_lines(figure))
         marked = [question.month] if figure.so_far else [previous_month_of(question.month), question.month]
         trend = self.trend_block(question, token, figure.currency, lines, marked)
         compared = None if figure.so_far else previous_month_of(question.month).strftime("%Y-%m")
@@ -80,6 +81,11 @@ class AnswerQuestion:
             "blocks": [{"type": "text", "lines": lines}, *trend],
             "analysis": None,
         }
+
+    def polished(self, lines: list[str]) -> list[str]:
+        if self.rewriter is None or self.tone == "plain":
+            return lines
+        return [accept_rewrite(self.rewriter.rewrite(line, self.tone), line) or line for line in lines]
 
     def described(self, question: Question, compared_with: str | None, case: Case | None) -> dict:
         return {

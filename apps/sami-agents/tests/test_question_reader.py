@@ -61,6 +61,10 @@ class TestFigure:
     def test_the_figure_is_asked_for(self, text, expected):
         assert read(text).question == expected
 
+    def test_a_metric_and_a_month_alone_is_a_figure(self):
+        assert read("sales in August").question == Question("sales", "change", date(2026, 8, 1), "figure")
+        assert read("compare july and august sales").question is None
+
     def test_a_why_word_wins(self):
         assert read("what made sales fall in August").question.intent == "why"
 
@@ -69,7 +73,7 @@ class TestFigure:
 
 
 class TestUnreadable:
-    @pytest.mark.parametrize("text", ["show me sales", "why is the sky blue", "why did sales fall", "why did it fall in August", "", "sales in August"])
+    @pytest.mark.parametrize("text", ["show me sales", "why is the sky blue", "why did sales fall", "why did it fall in August", ""])
     def test_it_does_not_guess(self, text):
         result = read(text)
         assert (result.question, result.problem) == (None, "unreadable")

@@ -60,3 +60,19 @@ class TestTheAnswer:
         data = source()
         response = client(["management"], data).post(URL, json={"question": "Why did sales fall in August 2025?"})
         assert response.headers["x-request-id"] and len(set(data.tokens)) == 1 and data.tokens[0] != "tok"
+
+
+class TestFollowUpContext:
+    def post(self, question, context):
+        return client(["management"]).post(URL, json={"question": question, "context": context})
+
+    def test_the_context_fills_the_metric_and_month_a_follow_up_leaves_out(self):
+        body = self.post("give me the reason for the decline", {"metric": "sales", "month": "2025-08"}).json()
+        assert body["readable"] is True and body["question"]["metric"] == "sales" and body["question"]["month"] == "2025-08"
+
+    def test_without_it_the_same_question_is_unreadable(self):
+        assert client(["management"]).post(URL, json={"question": "give me the reason for the decline"}).json()["problem"] == "unreadable"
+
+    @pytest.mark.parametrize("context", [{"metric": "sales"}, {"metric": "sales", "month": "August"}, {"metric": "sales", "month": "2025-13"}, {"metric": "Sales; DROP", "month": "2025-08"}, "x"])
+    def test_a_bad_context_is_422(self, context):
+        assert self.post("why?", context).status_code == 422

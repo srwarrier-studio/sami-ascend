@@ -4,7 +4,7 @@ from sami_agents.application.case_reader import CaseReader
 from sami_agents.application.question_reader import QuestionReader
 from sami_agents.infrastructure.graph_loader import load_graph
 from sami_agents.infrastructure.laya_case_model import LayaCaseModel
-from sami_agents.infrastructure.ollama_question_model import OllamaHeadlineRewriter, OllamaQuestionModel
+from sami_agents.infrastructure.ollama_question_model import OllamaLineRewriter, OllamaQuestionModel
 from sami_agents.infrastructure.settings import GRAPH_FILE, Settings
 from sami_agents.infrastructure.synapse_data_source import SynapseDataSource
 from sami_agents.infrastructure.understanding_loader import load_understanding
@@ -24,5 +24,6 @@ def build_analyst(settings: Settings, source: SynapseDataSource | None = None) -
         list(understanding.metrics),
         settings.sap_is_mock,
         OllamaQuestionModel(settings) if use_model else None,
-        OllamaHeadlineRewriter(settings) if use_model else None,
+        OllamaLineRewriter(settings) if use_model else None,
+        tone=settings.tone,
     )

@@ -4,7 +4,7 @@ import pytest
 
 from sami_agents.application.case_reader import CaseReader
 from sami_agents.application.question_reader import QuestionReader, correct_months
-from sami_agents.domain.entities.question import Question
+from sami_agents.domain.entities.question import Context, Question
 from sami_agents.infrastructure.mock_case_model import MockCaseModel
 from sami_agents.infrastructure.understanding_loader import load_understanding
 
@@ -137,3 +137,71 @@ class TestScope:
     def test_a_whole_company_question_is_not_refused(self, text):
         result = reader({"intent": ("why", 0.9), "subject": ("sales", 0.9), "direction": ("fall", 0.9)})[0].read(text, TODAY)
         assert result.problem != "restricted", text
+
+
+class TestFollowUps:
+    SALES_AUGUST = Context("sales", date(2026, 8, 1))
+    PLAIN_WHY = {"intent": ("why", 0.9), "subject": ("none", 0.9), "direction": ("fall", 0.9)}
+
+    @pytest.mark.parametrize("text", ["why did it fall", "give me the reason for the decline", "why?"])
+    def test_a_why_without_a_metric_or_month_uses_the_previous_question(self, text):
+        result = reader(self.PLAIN_WHY)[0].read(text, TODAY, self.SALES_AUGUST)
+        assert (result.question.metric, result.question.month, result.question.intent) == ("sales", date(2026, 8, 1), "why")
+        assert "subject: from the previous question" in result.case.how_read and "month: from the previous question" in result.case.how_read
+
+    def test_what_the_user_typed_always_wins(self):
+        answers = {"intent": ("why", 0.9), "subject": ("purchases", 0.9), "direction": ("fall", 0.9)}
+        result = reader(answers)[0].read("why did purchases fall in june", TODAY, self.SALES_AUGUST)
+        assert (result.question.metric, result.question.month) == ("purchases", date(2026, 6, 1))
+
+    def test_only_the_missing_part_is_filled(self):
+        answers = {"intent": ("why", 0.9), "subject": ("purchases", 0.9), "direction": ("fall", 0.9)}
+        result = reader(answers)[0].read("why did purchases fall", TODAY, self.SALES_AUGUST)
+        assert (result.question.metric, result.question.month) == ("purchases", date(2026, 8, 1))
+        assert result.case.how_read[-1] == "month: from the previous question"
+
+    def test_without_context_it_is_unreadable_as_before(self):
+        assert reader(self.PLAIN_WHY)[0].read("give me the reason for the decline", TODAY).problem == "unreadable"
+
+    def test_a_metric_that_is_not_registered_is_ignored(self):
+        assert reader(self.PLAIN_WHY)[0].read("why?", TODAY, Context("weather", date(2026, 8, 1))).problem == "unreadable"
+
+    def test_a_chat_question_is_not_turned_into_an_analysis_by_the_context(self):
+        assert reader({"intent": ("other", 0.9)})[0].read("who are you", TODAY, self.SALES_AUGUST).problem == "unreadable"
+
+    def test_the_rules_alone_also_follow_up(self):
+        result = reader(failing=True)[0].read("give me the reason for the decline", TODAY, self.SALES_AUGUST)
+        assert (result.question.metric, result.question.month) == ("sales", date(2026, 8, 1))
+        assert reader(failing=True)[0].read("who are you", TODAY, self.SALES_AUGUST).question is None
+
+    @pytest.mark.parametrize("text", ["why are you here", "why is the sky blue", "explain yourself"])
+    def test_the_rules_do_not_treat_any_why_as_a_follow_up(self, text):
+        assert reader(failing=True)[0].read(text, TODAY, self.SALES_AUGUST).question is None
+
+    def test_a_follow_up_to_the_current_month_is_not_finished(self):
+        assert reader(self.PLAIN_WHY)[0].read("why did it fall", TODAY, Context("sales", date(2026, 10, 1))).problem == "not_finished"
+
+
+class TestCasualQuestions:
+    FIGURE = {"intent": ("figure", 0.9), "subject": ("sales", 0.9)}
+    CONTEXT = Context("sales", date(2026, 8, 1))
+
+    @pytest.mark.parametrize("text", [
+        "compare last three months sales", "sales this year", "sales yesterday", "sales in the last 3 months", "how were sales recently",
+    ])
+    def test_a_period_that_is_not_one_month_is_never_filled_from_the_context(self, text):
+        for context in (None, self.CONTEXT):
+            assert reader(self.FIGURE)[0].read(text, TODAY, context).problem == "not_one_month"
+
+    def test_two_months_are_a_comparison_and_are_refused(self):
+        assert reader(self.FIGURE)[0].read("compare july and august sales", TODAY).problem == "not_one_month"
+        assert reader(failing=True)[0].read("compare july and august sales", TODAY).question is None
+
+    @pytest.mark.parametrize("text,month", [("august sales", date(2026, 8, 1)), ("sales august", date(2026, 8, 1)), ("july revenue", date(2026, 7, 1))])
+    def test_a_metric_and_a_month_alone_is_a_figure(self, text, month):
+        for read in (reader({"intent": ("other", 0.3)})[0], reader(failing=True)[0]):
+            result = read.read(text, TODAY)
+            assert (result.question.intent, result.question.metric, result.question.month) == ("figure", "sales", month)
+
+    def test_a_month_alone_without_a_metric_is_not_a_figure(self):
+        assert reader({"intent": ("other", 0.3)})[0].read("august", TODAY).question is None

@@ -3,13 +3,12 @@ from datetime import date
 
 from sami_agents.application.question_reader import MONTHS, QuestionReader, correct_months
 from sami_agents.domain.entities.case import Case, Decision
-from sami_agents.domain.entities.question import Question, ReadResult
+from sami_agents.domain.entities.question import Context, Question, ReadResult
 from sami_agents.domain.errors import CaseModelUnavailable
 from sami_agents.domain.gateways.case_model import CaseModel
 
 RESTRICTED = "I can only explain the whole company's figure for now, not one customer, product or supplier."
-ONE_MONTH = "I answer one month at a time, for example: why did sales fall in August?"
-OTHER = "Ask why a metric rose or fell in a month, for example: why did sales fall in August?"
+ONE_MONTH = "I answer one month at a time, compared with the month before it, for example: what were sales for August?"
 
 INTENTS = {
     "why": "an explanation of why a business figure rose, fell or changed",
@@ -18,7 +17,7 @@ INTENTS = {
     "other": "something unrelated to the company's business figures",
 }
 DIRECTIONS = {"rise": "it went up or increased", "fall": "it went down, dropped or decreased", "change": "it changed or is unclear"}
-PERIOD_WORDS = {"quarter", "quarterly", "week", "weeks", "weekly", "year", "years", "yearly", "ytd", "today", "yesterday", "half", "q1", "q2", "q3", "q4", "fortnight", "decade"}
+PERIOD_WORDS = {"quarter", "quarterly", "week", "weeks", "weekly", "year", "years", "yearly", "ytd", "today", "yesterday", "half", "q1", "q2", "q3", "q4", "fortnight", "decade", "months", "recently", "lately"}
 SCOPE_PREPOSITION = re.compile(r"\b(?:to|from|of|for|by|at|in|with)\s+(?:(?:the|our|a|an)\s+)?([a-z][a-z0-9&'-]*)")
 NOT_A_NAME = {
     "month", "months", "last", "previous", "this", "current", "next", "all", "each", "every", "total", "overall", "company", "group", "business",
@@ -33,16 +32,19 @@ class CaseReader:
         self.model = model
         self.min_confidence = min_confidence
 
-    def read(self, text: str, today: date) -> ReadResult:
+    def read(self, text: str, today: date, context: Context | None = None) -> ReadResult:
         try:
-            return self.passes(text, today)
+            return self.passes(text, today, context)
         except CaseModelUnavailable:
-            return self.rules.read(text, today)
+            return self.rules.read(text, today, context)
 
-    def passes(self, text: str, today: date) -> ReadResult:
+    def passes(self, text: str, today: date, context: Context | None) -> ReadResult:
         lowered = correct_months(" ".join(text.lower().split()))
         case = Case()
         intent = self.sure("intent", text, "What does the manager want?", INTENTS, case) or self.rules.intent(lowered)
+        if intent is None and self.rules.metric(lowered) is not None and self.rules.month(lowered, today) is not None:
+            case.how_read.append("intent: a metric and a month, read as a figure")
+            intent = "figure"
         if intent is None or intent == "other":
             return ReadResult(None, "unreadable", case)
         if intent == "widgets":
@@ -56,6 +58,9 @@ class CaseReader:
         elif metric == "none" and named is not None:
             case.how_read.append(f"subject: the word for {named} overruled the model")
             metric = named
+        if metric in (None, "none") and (remembered := self.rules.remembered_metric(context)) is not None:
+            case.how_read.append("subject: from the previous question")
+            metric = remembered
         if metric is None or metric == "none":
             return ReadResult(None, "unreadable", case)
         case.metric = metric
@@ -66,7 +71,12 @@ class CaseReader:
             case.scope = "restricted"
             return ReadResult(None, "restricted", case)
         case.scope = "all"
+        if self.rules.names_two_months(lowered) or (self.names_a_period(lowered) and self.rules.month(lowered, today) is None):
+            return ReadResult(None, "not_one_month", case)
         month = self.rules.month(lowered, today)
+        if month is None and context is not None:
+            case.how_read.append("month: from the previous question")
+            month = context.month
         if month is None:
             return ReadResult(None, "not_one_month" if self.names_a_period(lowered) else "unreadable", case)
         case.month = month

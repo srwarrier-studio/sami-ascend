@@ -13,6 +13,12 @@ class Question:
 
 
 @dataclass(frozen=True)
+class Context:
+    metric: str
+    month: date
+
+
+@dataclass(frozen=True)
 class ReadResult:
     question: Question | None
     problem: str | None = None

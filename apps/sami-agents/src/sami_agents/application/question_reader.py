@@ -2,10 +2,13 @@ import difflib
 import re
 from datetime import date
 
-from sami_agents.domain.entities.question import Question, ReadResult
+from sami_agents.domain.entities.question import Context, Question, ReadResult
 from sami_agents.infrastructure.understanding_loader import Understanding
 
-HELP = "Ask why a metric rose or fell in a month, for example: why did sales fall in August?"
+HELP = (
+    "Ask why a metric rose or fell in a month, for example: why did sales fall in August? "
+    "I can also give a month's figure (what were sales for August?) or show widgets (show top customers)."
+)
 NOT_FINISHED = "That month is not over yet. Ask about a month that has finished."
 MONTHS = {
     "january": 1, "jan": 1, "february": 2, "feb": 2, "march": 3, "mar": 3, "april": 4, "apr": 4, "may": 5, "june": 6, "jun": 6,
@@ -40,20 +43,34 @@ class QuestionReader:
     def __init__(self, understanding: Understanding):
         self.words = understanding
 
-    def read(self, text: str, today: date) -> ReadResult:
+    def read(self, text: str, today: date, context: Context | None = None) -> ReadResult:
         lowered = " ".join(text.lower().split())
         asks_why = first_position(lowered, self.words.why) is not None
         if not asks_why and first_position(lowered, self.words.figure) is None:
+            if self.metric(lowered) is not None and self.month(lowered, today) is not None and not self.names_two_months(lowered):
+                return ReadResult(Question(self.metric(lowered), "change", self.month(lowered, today), "figure"))
             return ReadResult(None, "unreadable")
-        metric = self.metric(lowered)
-        month = self.month(lowered, today)
-        if metric is None or month is None:
+        named, dated = self.metric(lowered), self.month(lowered, today)
+        metric = named or self.remembered_metric(context)
+        month = dated or (context.month if context else None)
+        if metric is None or month is None or (named is None and dated is None and not self.follows_up(lowered)):
             return ReadResult(None, "unreadable")
         if not asks_why:
             return ReadResult(Question(metric, "change", month, "figure"))
         if month >= today.replace(day=1):
             return ReadResult(None, "not_finished")
         return ReadResult(Question(metric, self.direction(lowered), month))
+
+    def follows_up(self, text: str) -> bool:
+        bare = text.strip(" ?!.")
+        moved = any(first_position(text, getattr(self.words, name)) is not None for name in ("rise", "fall", "change"))
+        return moved or bare in self.words.why
+
+    def names_two_months(self, text: str) -> bool:
+        return len({MONTHS[m.group(1)] for m in MONTH_PATTERN.finditer(correct_months(text))}) > 1
+
+    def remembered_metric(self, context: Context | None) -> str | None:
+        return context.metric if context and context.metric in self.words.metrics else None
 
     def intent(self, text: str) -> str | None:
         if first_position(text, self.words.why) is not None:
