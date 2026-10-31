@@ -72,7 +72,9 @@ class WalkGraph:
         if mode == "root_cause":
             result.paths += self.walk(run, mode, Context(node.name, rows, (), window, visited=frozenset({node.name})))
             return
-        for key, hit, hit_rows in self.hits(run, node, start.key_field or "", [start.key], {start.key: rows}, window, list(node.anomalies)):
+        leaving = {kind for edge in self.graph.edges.values() if edge.cause == node.name for kind in edge.carries}
+        tested = [a for a in node.anomalies if a.kind in leaving]
+        for key, hit, hit_rows in self.hits(run, node, start.key_field or "", [start.key], {start.key: rows}, window, tested):
             step = Step(node.name, None, start.key_field or "key", key, hit.kind, hit.at, hit.numbers, hit.rows)
             context = Context(node.name, hit_rows, (step,), window, hit.kind, hit.at, frozenset({hit.kind}), frozenset({node.name}))
             deeper = self.walk(run, mode, context)
@@ -111,7 +113,7 @@ class WalkGraph:
         values = sorted({str(row[from_field]) for row in context.rows if row.get(from_field) not in (None, "")})
         window = context.window
         if not node.passthrough:
-            window = window.widened_back(edge.lookback_days) if root else window.widened_forward(edge.lookback_days)
+            window = window.widened_back(edge.lookback_days) if root else window.widened_forward(edge.lookback_days, run.today)
         tested = [] if node.passthrough else self.tested(node, root, carried, edge)
         rows_by_value = self.read(run, node, to_field, values, window, tested)
         visited = context.visited | {node.name}

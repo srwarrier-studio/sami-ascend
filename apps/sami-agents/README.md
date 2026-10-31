@@ -14,6 +14,9 @@ AI service for Sami apps. It answers Synapse AI Mode messages with the widgets t
 ## Evaluate
 `uv run --package sami-agents sami-agents eval [--parallel 4] [--no-check] [--aliases none] [--prompts apps/sami-agents/evals/heldout.json]` runs the prompts in `evals/` and prints how many the keyword search alone and the whole pipeline get right. Add real questions that failed to `evals/prompts.json`.
 
+## The graph
+`graph.toml` says what relates to what and what counts as unusual (see `docs/graph-maintenance.md`). `uv run --package sami-agents sami-agents graph check` validates it against `apps/synapse-api/registry.toml` and the contracts in `docs/sap/`; `graph show [--mermaid]` prints it. The walk (`WalkGraph`) follows it from a mover to what is unusual behind it (`root_cause`), after it (`impact`), or around it (`dependency`), reading only through synapse-api with the user's own cookie.
+
 ## Laya (optional, off by default)
 Laya is a small classification model (https://huggingface.co/convaiinnovations/laya, Apache 2.0). With the aliases in place it did not beat the keyword search in our tests, so it is off unless `LAYA_URL` is set. To try it, run it outside the workspace (it needs Python 3.13 and torch):
 

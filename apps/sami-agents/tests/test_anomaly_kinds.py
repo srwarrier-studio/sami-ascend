@@ -130,8 +130,18 @@ class TestWindow:
         assert (w.compare_end - w.compare_start).days + 1 == w.days
 
     def test_widening_forward_moves_the_end(self):
-        w = Window.before(date(2026, 8, 1), date(2026, 8, 31)).widened_forward(30)
+        w = Window.before(date(2026, 8, 1), date(2026, 8, 31)).widened_forward(30, TODAY)
         assert (w.start, w.end, w.compare_end) == (date(2026, 8, 1), date(2026, 9, 30), date(2026, 7, 31))
+
+    def test_widening_forward_stops_at_today(self):
+        w = Window.before(date(2026, 8, 1), date(2026, 8, 31)).widened_forward(90, date(2026, 9, 10))
+        assert w.end == date(2026, 9, 10)
+
+    def test_a_window_never_grows_past_170_days(self):
+        back = Window.before(date(2026, 8, 1), date(2026, 8, 31)).widened_back(400)
+        assert back.days == 170 and back.end == date(2026, 8, 31)
+        forward = Window.before(date(2026, 1, 1), date(2026, 1, 31)).widened_forward(400, TODAY)
+        assert forward.days == 170
 
     def test_the_span_covers_both_periods_with_padding(self):
         assert Window.before(date(2026, 8, 1), date(2026, 8, 31)).span(30) == (date(2026, 6, 1), date(2026, 9, 30))

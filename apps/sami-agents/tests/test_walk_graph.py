@@ -13,6 +13,7 @@ from sami_agents.infrastructure.settings import GRAPH_FILE
 
 TODAY = date(2026, 10, 31)
 AUGUST = Window.before(date(2026, 8, 1), date(2026, 8, 31))
+JULY = Window.before(date(2026, 7, 1), date(2026, 7, 31))
 SHIPPED = load_graph(GRAPH_FILE)
 
 
@@ -199,6 +200,10 @@ class TestImpact:
 
     def test_a_start_with_nothing_unusual_gives_no_paths(self):
         assert walk(self.source(), "impact", [Start("PurchaseDelivery", "4500001150", "PurchaseOrder")]).paths == []
+
+    def test_a_start_is_only_tested_for_the_kinds_its_edges_carry(self):
+        only_sum = {"purchase_delivery": [delivery("P1", "2026-07-14", "2026-07-15", ordered="2026-06-24", quantity="5000.000")]}
+        assert walk(MockDataSource(only_sum), "impact", [Start("PurchaseDelivery", "P1", "PurchaseOrder")], window=JULY).paths == []
 
     def test_the_first_step_is_the_start_with_its_evidence(self):
         [path] = walk(self.source(), "impact", [self.START]).paths

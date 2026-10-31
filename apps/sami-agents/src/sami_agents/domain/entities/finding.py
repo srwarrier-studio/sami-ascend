@@ -27,8 +27,9 @@ class Window:
     def widened_back(self, days: int) -> "Window":
         return Window.before(max(self.start - timedelta(days=days), self.end - timedelta(days=MAX_DAYS - 1)), self.end)
 
-    def widened_forward(self, days: int) -> "Window":
-        return Window.before(self.start, min(self.end + timedelta(days=days), self.start + timedelta(days=MAX_DAYS - 1)))
+    def widened_forward(self, days: int, today: date) -> "Window":
+        end = min(self.end + timedelta(days=days), self.start + timedelta(days=MAX_DAYS - 1), max(today, self.end))
+        return Window.before(self.start, end)
 
     def span(self, pad_days: int) -> tuple[date, date]:
         return min(self.start, self.compare_start) - timedelta(days=pad_days), self.end + timedelta(days=pad_days)
