@@ -82,10 +82,15 @@ class OrderRequestResponse(BaseModel):
     sales_order: str | None
     details: list[dict] | None
     message: str | None
+    order: dict
 
     @classmethod
     def from_domain(cls, request: OrderRequest) -> "OrderRequestResponse":
-        return cls.model_validate(request, from_attributes=True)
+        return cls(
+            id=request.id, status=request.status, attempts=request.attempts, created_at=request.created_at,
+            updated_at=request.updated_at, sales_order=request.sales_order, details=request.details,
+            message=request.message, order=request.body,
+        )
 
 
 class OrderRequestsResponse(BaseModel):

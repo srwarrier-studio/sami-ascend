@@ -103,6 +103,28 @@ class TestWhenSapCannotTakeIt:
         assert (response.status_code, response.json()) == (503, {"code": "STORE_UNAVAILABLE"})
 
 
+class TestTheSavedOrderIsShown:
+    def queued(self):
+        client, gateway, _ = make()
+        failing(gateway, SapNotReached("refused"))
+        return client, client.post(URL, json=VALID_BODY)
+
+    def test_the_202_the_status_and_the_list_all_carry_the_order_as_sent(self):
+        client, response = self.queued()
+        sent = {"sales_order_type": "OR", "sold_to_party": "0000100001", "transaction_currency": "INR", "requested_delivery_date": "2026-11-05",
+                "items": [{"material": "RM-1001", "quantity": "50.000", "quantity_unit": "KG"}]}
+        request_id = response.json()["id"]
+        assert response.json()["order"] == sent
+        assert client.get(f"{REQUESTS}/{request_id}").json()["order"] == sent
+        assert client.get(REQUESTS).json()["requests"][0]["order"] == sent
+
+    def test_it_is_only_shown_to_its_owner(self):
+        client, response = self.queued()
+        other = TestClient(create_app(MockSalesOrderGateway(), Settings(jwt_secret=SECRET), SqliteOrderRequestStore(":memory:")))
+        other.cookies.set(ACCESS_TOKEN_COOKIE, token("user-2"))
+        assert other.get(f"{REQUESTS}/{response.json()['id']}").status_code == 404
+
+
 class TestSeeingWhatHappened:
     def queued(self, client, gateway):
         failing(gateway, SapNotReached("refused"))
@@ -113,7 +135,7 @@ class TestSeeingWhatHappened:
         request_id = self.queued(client, gateway)
         body = client.get(f"{REQUESTS}/{request_id}").json()
         assert body["id"] == request_id and body["status"] == QUEUED
-        assert set(body) == {"id", "status", "attempts", "created_at", "updated_at", "sales_order", "details", "message"}
+        assert set(body) == {"id", "status", "attempts", "created_at", "updated_at", "sales_order", "details", "message", "order"}
 
     def test_someone_elses_order_and_an_unknown_id_are_404(self):
         client, gateway, store = make()
