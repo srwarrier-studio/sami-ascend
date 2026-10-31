@@ -35,7 +35,7 @@ def ask(text="Why did sales fall in August?", **kwargs):
 
 class TestAReadableQuestion:
     def test_it_says_how_it_understood_the_question(self):
-        assert ask()["question"] == {"metric": "sales", "direction": "fall", "month": "2026-08", "compared_with": "2026-07"}
+        assert ask()["question"] == {"metric": "sales", "intent": "why", "direction": "fall", "month": "2026-08", "compared_with": "2026-07"}
 
     def test_the_blocks_are_text_then_trend_then_the_tables_then_the_evidence(self):
         assert [b["type"] for b in ask()["blocks"]] == ["text", "trend", "table", "table", "evidence"]
@@ -93,6 +93,39 @@ class TestAReadableQuestion:
             ask(data=data)
 
 
+class TestAFigureQuestion:
+    def test_it_is_a_sentence_and_a_trend_with_no_analysis(self):
+        answer = ask("What are the sales for August?")
+        assert answer["question"] == {"metric": "sales", "intent": "figure", "direction": "change", "month": "2026-08", "compared_with": "2026-07"}
+        assert [b["type"] for b in answer["blocks"]] == ["text", "trend"] and answer["analysis"] is None
+        assert answer["blocks"][0]["lines"][0].startswith("Sales for August 2026 were INR 6,480,000, down 14.4%")
+        assert (len(answer["blocks"][1]["points"]), answer["blocks"][1]["marked"]) == (6, ["2026-07", "2026-08"])
+
+    def test_the_label_is_there_while_the_data_is_mock(self):
+        assert ask("What are the sales for August?")["label"] == MOCK_LABEL
+
+    def test_the_current_month_is_so_far_with_one_month_marked(self):
+        answer = ask("what are sales this month")
+        assert answer["question"]["compared_with"] is None and answer["blocks"][1]["marked"] == ["2026-10"]
+        assert "so far this month" in answer["blocks"][0]["lines"][0]
+
+    def test_a_month_with_no_data_is_one_sentence(self):
+        answer = ask("What are the sales for August?", data=source(comparisons={}))
+        assert answer["blocks"] == [{"type": "text", "lines": ["No sales were recorded in August 2026."]}]
+
+    def test_a_trend_that_cannot_be_loaded_is_said(self):
+        data = source()
+        data.trend = lambda *a, **k: (_ for _ in ()).throw(DataUnavailable("down"))
+        answer = ask("What are the sales for August?", data=data)
+        assert [b["type"] for b in answer["blocks"]] == ["text"] and "could not be loaded" in answer["blocks"][0]["lines"][-1]
+
+    def test_a_failing_source_is_unavailable(self):
+        data = source()
+        data.fail()
+        with pytest.raises(DataUnavailable):
+            ask("What are the sales for August?", data=data)
+
+
 class TestAQuestionItCannotAnswer:
     @pytest.mark.parametrize("text,message", [("show me sales", HELP), ("why did sales fall this month", NOT_FINISHED)])
     def test_the_reply_says_what_can_be_asked_and_nothing_else(self, text, message):
@@ -119,7 +152,7 @@ class TestTheOptionalReader:
     def test_a_checked_answer_from_the_model_is_used(self):
         model = FixedModel({"metric": "sales", "direction": "fall", "month": "2026-08"})
         answer = ask("what the heck happened to the money coming in last summer", model=model)
-        assert answer["readable"] is True and answer["question"] == {"metric": "sales", "direction": "fall", "month": "2026-08", "compared_with": "2026-07"}
+        assert answer["readable"] is True and answer["question"] == {"metric": "sales", "intent": "why", "direction": "fall", "month": "2026-08", "compared_with": "2026-07"}
 
     @pytest.mark.parametrize("bad", [None, {"metric": "weather", "direction": "fall", "month": "2026-08"}, {"metric": "sales", "direction": "fall", "month": "2027-05"}, "text"])
     def test_a_bad_answer_leaves_the_question_unreadable(self, bad):
