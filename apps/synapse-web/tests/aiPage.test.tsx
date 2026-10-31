@@ -4,13 +4,17 @@ import { createMemoryHistory } from '@tanstack/react-router'
 import { UiProvider, synapsePalette } from '@sami/ui'
 import App from '../src/App'
 import { MockBoardStore } from '../src/boards/boardStore'
+import { MockAgentsClient } from '../src/ai/agentsClient'
+import type { AgentAnswer } from '../src/ai/agentsClient'
 import { MockCatalogClient } from '../src/catalog/mockCatalogClient'
 import { MockSessionClient } from '../src/session/sessionClient'
 
-const open = (store = new MockBoardStore()) => {
+const UNREADABLE: AgentAnswer = { readable: false, problem: 'unreadable', label: null, blocks: [{ type: 'text', lines: ['Ask why a metric rose.'] }] }
+
+const open = (store = new MockBoardStore(), agents: MockAgentsClient = new MockAgentsClient(UNREADABLE)) => {
   render(
     <UiProvider palette={synapsePalette}>
-      <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={new MockCatalogClient()} boardStore={store} history={createMemoryHistory({ initialEntries: ['/ai'] })} />
+      <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={new MockCatalogClient()} agentsClient={agents} boardStore={store} history={createMemoryHistory({ initialEntries: ['/ai'] })} />
     </UiProvider>,
   )
   return store
@@ -130,5 +134,57 @@ describe('saving the built board', () => {
     expect(boards).toHaveLength(3)
     expect(boards[0].name).toBe('Inventory review')
     expect(boards[0].widgets.length).toBeGreaterThan(1)
+  })
+})
+
+const WHY: AgentAnswer = {
+  readable: true,
+  problem: null,
+  label: 'Mock data (butterfly)',
+  blocks: [
+    { type: 'text', lines: ['Sales fell 14.4% from July 2026 to August 2026.'] },
+    { type: 'trend', metric: 'sales', currency: 'INR', points: [{ month: '2026-08', value: '6480000' }], marked: ['2026-08'] },
+    { type: 'evidence', finding: 'Acme Industries', steps: [{ summary: 'no valid contract for 50 days', rows: [] }] },
+  ],
+}
+
+describe('answers from the agent', () => {
+  it('shows the text, the chart, the evidence and the label for a readable question', async () => {
+    open(new MockBoardStore(), new MockAgentsClient(WHY))
+    await ask('why did sales fall in August')
+    expect(await screen.findByText('Sales fell 14.4% from July 2026 to August 2026.')).toBeInTheDocument()
+    expect(screen.getByText('Evidence: Acme Industries')).toBeInTheDocument()
+    expect(screen.getByText('Mock data (butterfly)')).toBeInTheDocument()
+    expect(screen.queryByText(/^Here is/)).toBeNull()
+  })
+
+  it('falls back to the widgets when the agent cannot read the question', async () => {
+    open()
+    await ask('show me top customers')
+    expect(await screen.findByText(/^Here is Top customers/)).toBeInTheDocument()
+    expect(screen.queryByText('Ask why a metric rose.')).toBeNull()
+  })
+
+  it('shows the not-over text and no widgets', async () => {
+    const notOver: AgentAnswer = { readable: false, problem: 'not_finished', label: null, blocks: [{ type: 'text', lines: ['That month is not over yet.'] }] }
+    open(new MockBoardStore(), new MockAgentsClient(notOver))
+    await ask('why did sales fall this month')
+    expect(await screen.findByText('That month is not over yet.')).toBeInTheDocument()
+    expect(screen.queryByText(/^Here is/)).toBeNull()
+  })
+
+  it('never sends @builder messages to the agent', async () => {
+    open(new MockBoardStore(), new MockAgentsClient(WHY))
+    await ask('@builder build an inventory board')
+    expect(await screen.findByRole('dialog', { name: /Inventory review/ })).toBeInTheDocument()
+    expect(screen.queryByText('Sales fell 14.4% from July 2026 to August 2026.')).toBeNull()
+  })
+
+  it('says the service is unavailable and keeps the thread usable', async () => {
+    open(new MockBoardStore(), new MockAgentsClient(new Error('down')))
+    await ask('why did sales fall in August')
+    expect(await screen.findByText('The analysis service is not available right now.')).toBeInTheDocument()
+    expect(screen.queryByText(/^Here is/)).toBeNull()
+    expect(screen.getByLabelText('Message')).toBeEnabled()
   })
 })

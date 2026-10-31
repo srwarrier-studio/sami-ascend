@@ -47,7 +47,7 @@ class AnswerQuestion:
         if question is None and read.problem == "unreadable" and self.model is not None:
             question = accept_question(self.model.read(text, self.metrics), self.metrics, today)
         if question is None:
-            return self.refusal(NOT_FINISHED if read.problem == "not_finished" else HELP)
+            return self.refusal(NOT_FINISHED if read.problem == "not_finished" else HELP, read.problem)
         if question.intent == "figure":
             return self.figure_answer(question, token, today)
         analysis = self.analyser.execute(question, token, today)
@@ -78,8 +78,8 @@ class AnswerQuestion:
             "analysis": None,
         }
 
-    def refusal(self, message: str) -> dict:
-        return {"readable": False, "question": None, "label": None, "blocks": [{"type": "text", "lines": [message]}], "analysis": None}
+    def refusal(self, message: str, problem: str) -> dict:
+        return {"readable": False, "problem": problem, "question": None, "label": None, "blocks": [{"type": "text", "lines": [message]}], "analysis": None}
 
     def trend_block(self, question: Question, token: str, currency: str, limits: list[str], marked: list[date]) -> list[dict]:
         if not currency:

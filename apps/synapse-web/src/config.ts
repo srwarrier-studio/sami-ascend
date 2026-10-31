@@ -3,3 +3,4 @@ export const SYNAPSE_URL: string = import.meta.env.VITE_SYNAPSE_URL ?? 'http://l
 
 export const APP_NAME = 'Sami Synapse'
 export const TAGLINE = 'Sense. Connect. Lead.'
+export const AGENTS_URL: string = import.meta.env.VITE_AGENTS_URL ?? 'http://localhost:8005'
