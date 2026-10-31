@@ -2,6 +2,12 @@
 
 Status: design, revised 2026-10-31. Butterfly 08 (the first scenario) and synapse-api 07 are done; the rest is not built yet.
 
+## 0. Scope: any metric, nothing leaves the building
+
+The questions are "why did sales fall in a month" and "why did purchases rise in a month", and the same machinery serves any metric that is registered. The contract, supply and production flows below are examples of what the graph can hold, not flows the code knows. Nothing is written for one story: what is measured comes from the metric registry, what is related comes from the graph, and what counts as unusual comes from a short list of generic anomaly kinds.
+
+The research facility does not allow external or cloud AI, and nothing is sent to one. Every figure comes from code over data held in butterfly or SAP, inside our own services. A local model (Ollama) may help read the question and rephrase the answer, is checked against the findings, and is optional. Tracing or telemetry libraries pulled in by the agent framework (`langsmith` is installed with LangGraph) must be off, and a test checks that.
+
 ## 1. What management asks
 
 | Level | Example | What it needs | Status |
@@ -162,8 +168,9 @@ Every other delivery is within 2 days of its promise and every other production 
 | butterfly 08 driver-data (done) | the contract, the entities and the first scenario | this document |
 | synapse-api 07 summary-paging (done) | read every summary completely | butterfly 08 |
 | butterfly 09 scenarios | the scenario switch and the other scenarios with their ground truth, two held back | butterfly 08 |
-| synapse-api 08 compare | metric layer: compare two periods split by a dimension, volume against price, a month with its trend | butterfly 09 |
-| synapse-api 09 events | read the rows of a node type for a key and a time window, generically | butterfly 09 |
+| butterfly 10 purchases | purchase value, purchase events and scenarios, so "why did purchases rise" is testable | butterfly 09 |
+| synapse-api 08 compare (done) | compare two periods split by a dimension, volume against price, a month with its trend, for sales | butterfly 09 |
+| synapse-api 09 metrics-records | a registry of metrics and record types; generic compare, month and records reads, so a new metric or record type is configuration | butterfly 09 |
 | sami-agents 03 answer-questions | level 2: metric and period, sentence with figure, chart | synapse-api 08 |
 | sami-agents 04 graph | `graph.toml`, loader, `graph check` and `graph show`, the traversal engine, the maintenance how-to | synapse-api 09 |
 | sami-agents 05 analyst | question understanding, the three modes, ranking, validated answer, evaluation on the scenarios | sami-agents 03 and 04 |

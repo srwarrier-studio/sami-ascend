@@ -8,11 +8,14 @@ pytest.importorskip("butterfly")
 from fastapi.testclient import TestClient
 
 from butterfly.entrypoint.app import build_default_app
-from synapse_api.application.compare_sales import CompareSales
-from synapse_api.infrastructure.butterfly_sales_source import ButterflySalesSource
-from synapse_api.infrastructure.settings import Settings
+from synapse_api.application.compare_metric import CompareMetric
+from synapse_api.infrastructure.odata_reader import ODataReader
+from synapse_api.infrastructure.registry_loader import load_registry
+from synapse_api.infrastructure.registry_metric_source import RegistryMetricSource
+from synapse_api.infrastructure.settings import REGISTRY_PATH
 
 TODAY = date(2026, 10, 31)
+REGISTRY = load_registry(REGISTRY_PATH)
 JULY = (date(2026, 7, 1), date(2026, 7, 31))
 AUGUST = (date(2026, 8, 1), date(2026, 8, 31))
 ROOT = "http://testserver/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/0001/"
@@ -28,8 +31,8 @@ class InProcess(httpx.BaseTransport):
 
 
 def compare(scenario: str, by: str | None, current=AUGUST, previous=JULY, top: int = 10):
-    source = ButterflySalesSource(Settings(sap_base_url=ROOT, _env_file=None), InProcess(scenario))
-    [result] = CompareSales(source).execute(*current, *previous, by, top)
+    source = RegistryMetricSource({"sales": ODataReader(ROOT, 10, InProcess(scenario))})
+    [result] = CompareMetric(source, REGISTRY).execute("sales", *current, *previous, by, top)
     return result
 
 

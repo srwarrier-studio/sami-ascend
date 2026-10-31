@@ -3,25 +3,37 @@ from decimal import Decimal
 
 import pytest
 
-from synapse_api.application.compare_sales import CompareSales
-from synapse_api.domain.entities.sales import CustomerSales, DailySales, MaterialSales
-from synapse_api.domain.errors import InvalidQuery
-from synapse_api.infrastructure.mock_sales_source import MockSalesSource
+from synapse_api.application.compare_metric import CompareMetric
+from synapse_api.domain.entities.metric_row import MetricRow
+from synapse_api.domain.errors import InvalidQuery, MetricNotFound
+from synapse_api.infrastructure.mock_metric_source import MockMetricSource
+from synapse_api.infrastructure.registry_loader import load_registry
+from synapse_api.infrastructure.settings import REGISTRY_PATH
+
+REGISTRY = load_registry(REGISTRY_PATH)
 
 JULY = (date(2026, 7, 1), date(2026, 7, 31))
 AUGUST = (date(2026, 8, 1), date(2026, 8, 31))
 
 
-def customer(code: str, d: date, amount: str, currency: str = "INR") -> CustomerSales:
-    return CustomerSales(code, f"Name {code}", d, Decimal(amount), 1, currency)
+def customer(code: str, d: date, amount: str, currency: str = "INR") -> MetricRow:
+    return MetricRow(code, f"Name {code}", d, Decimal(amount), currency, count=1)
 
 
-def material(code: str, d: date, quantity: str, amount: str, currency: str = "INR") -> MaterialSales:
-    return MaterialSales(code, f"Desc {code}", d, Decimal(quantity), "EA", Decimal(amount), currency)
+def material(code: str, d: date, quantity: str, amount: str, currency: str = "INR") -> MetricRow:
+    return MetricRow(code, f"Desc {code}", d, Decimal(amount), currency, Decimal(quantity), "EA")
 
 
-def compare(source, by=None, top=10, current=AUGUST, previous=JULY):
-    return CompareSales(source).execute(*current, *previous, by, top)
+def day_row(d: date, amount: str, orders: int, currency: str = "INR") -> MetricRow:
+    return MetricRow(None, "", d, Decimal(amount), currency, count=orders)
+
+
+def MockSalesSource(daily=None, customers=None, materials=None) -> MockMetricSource:
+    return MockMetricSource({("sales", "day"): daily or [], ("sales", "customer"): customers or [], ("sales", "material"): materials or []})
+
+
+def compare(source, by=None, top=10, current=AUGUST, previous=JULY, metric="sales"):
+    return CompareMetric(source, REGISTRY).execute(metric, *current, *previous, by, top)
 
 
 JULY_DAY, AUGUST_DAY = date(2026, 7, 10), date(2026, 8, 10)
@@ -29,22 +41,22 @@ JULY_DAY, AUGUST_DAY = date(2026, 7, 10), date(2026, 8, 10)
 
 class TestTotals:
     def test_without_a_dimension_only_totals_come_back(self):
-        source = MockSalesSource(daily=[DailySales(JULY_DAY, Decimal("200.00"), 2, "INR"), DailySales(AUGUST_DAY, Decimal("170.00"), 1, "INR")])
+        source = MockSalesSource(daily=[day_row(JULY_DAY, "200.00", 2), day_row(AUGUST_DAY, "170.00", 1, "INR")])
         [result] = compare(source)
         assert (result.current, result.previous, result.change, result.change_percent) == (Decimal("170.00"), Decimal("200.00"), Decimal("-30.00"), Decimal("-15.00"))
         assert result.rows is None
 
     def test_percent_is_null_when_the_earlier_period_is_empty(self):
-        [result] = compare(MockSalesSource(daily=[DailySales(AUGUST_DAY, Decimal("50.00"), 1, "INR")]))
+        [result] = compare(MockSalesSource(daily=[day_row(AUGUST_DAY, "50.00", 1, "INR")]))
         assert result.change_percent is None
 
     def test_periods_may_differ_in_length(self):
-        source = MockSalesSource(daily=[DailySales(date(2026, 8, 3), Decimal("10.00"), 1, "INR"), DailySales(date(2026, 7, 3), Decimal("4.00"), 1, "INR")])
+        source = MockSalesSource(daily=[day_row(date(2026, 8, 3), "10.00", 1), day_row(date(2026, 7, 3), "4.00", 1)])
         [result] = compare(source, current=(date(2026, 8, 1), date(2026, 8, 7)), previous=(date(2026, 7, 1), date(2026, 7, 31)))
         assert result.change == Decimal("6.00")
 
     def test_two_currencies_are_two_results(self):
-        source = MockSalesSource(daily=[DailySales(AUGUST_DAY, Decimal("5.00"), 1, "EUR"), DailySales(AUGUST_DAY, Decimal("7.00"), 1, "INR")])
+        source = MockSalesSource(daily=[day_row(AUGUST_DAY, "5.00", 1, "EUR"), day_row(AUGUST_DAY, "7.00", 1, "INR")])
         assert [r.currency for r in compare(source)] == ["EUR", "INR"]
 
 
@@ -157,6 +169,47 @@ class TestInvalidQueries:
 
     def test_exactly_400_days_is_allowed(self):
         compare(self.SOURCE, current=(date(2025, 1, 2), date(2026, 2, 5)))
+
+
+class TestMetrics:
+    def test_an_unknown_metric_is_not_found(self):
+        with pytest.raises(MetricNotFound):
+            compare(MockMetricSource(), metric="weather")
+
+    def test_the_day_dimension_is_not_a_split(self):
+        with pytest.raises(InvalidQuery):
+            compare(MockMetricSource(), by="day")
+
+    def test_a_dimension_the_metric_does_not_have_is_invalid(self):
+        with pytest.raises(InvalidQuery):
+            compare(MockMetricSource(), by="supplier")
+
+
+class TestAnotherMetricNeedsNoCode:
+    def test_a_registered_purchases_metric_compares_by_supplier_and_material(self, tmp_path):
+        path = tmp_path / "r.toml"
+        path.write_text(
+            """
+[metric.purchases]
+label = "Purchases"
+service = "drivers"
+measure = "TotalNetAmount"
+date = "OrderDate"
+currency = "Currency"
+by.day = { entity = "PurchaseSummaryByDay", order = "OrderDate" }
+by.supplier = { entity = "PurchaseSummaryBySupplier", key = "Supplier", name = "SupplierName", order = "OrderDate" }
+by.material = { entity = "PurchaseSummaryByMaterial", key = "Material", name = "MaterialDescription", unit = "QuantityUnit", quantity = "TotalQuantity", order = "OrderDate" }
+"""
+        )
+        source = MockMetricSource({
+            ("purchases", "supplier"): [customer("S1", JULY_DAY, "100.00"), customer("S1", AUGUST_DAY, "120.00")],
+            ("purchases", "material"): [material("RAW-1", JULY_DAY, "10.000", "100.00"), material("RAW-1", AUGUST_DAY, "10.000", "120.00")],
+        })
+        registry = load_registry(path)
+        [by_supplier] = CompareMetric(source, registry).execute("purchases", *AUGUST, *JULY, "supplier")
+        [by_material] = CompareMetric(source, registry).execute("purchases", *AUGUST, *JULY, "material")
+        assert by_supplier.rows[0].change == Decimal("20.00") and by_supplier.rows[0].price_effect is None
+        assert (by_material.rows[0].price_effect, by_material.rows[0].volume_effect) == (Decimal("20.00"), Decimal("0.00"))
 
 
 class TestSapDown:

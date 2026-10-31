@@ -2,7 +2,8 @@ from datetime import date
 
 import httpx
 
-from synapse_api.infrastructure.butterfly_sales_source import PAGE, ButterflySalesSource
+from synapse_api.infrastructure.butterfly_sales_source import ButterflySalesSource
+from synapse_api.infrastructure.odata_reader import PAGE
 from synapse_api.infrastructure.settings import Settings
 
 ROOT = "http://sap/root/"

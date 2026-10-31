@@ -4,15 +4,23 @@ from decimal import Decimal
 import pytest
 
 from synapse_api.application.month_figure import GetMonthFigure
-from synapse_api.domain.entities.sales import DailySales
-from synapse_api.domain.errors import InvalidQuery
-from synapse_api.infrastructure.mock_sales_source import MockSalesSource
+from synapse_api.domain.entities.metric_row import MetricRow
+from synapse_api.domain.errors import InvalidQuery, MetricNotFound
+from synapse_api.infrastructure.mock_metric_source import MockMetricSource
+from synapse_api.infrastructure.registry_loader import load_registry
+from synapse_api.infrastructure.settings import REGISTRY_PATH
+
+REGISTRY = load_registry(REGISTRY_PATH)
 
 TODAY = date(2026, 10, 31)
 
 
-def day(d: date, amount: str, orders: int = 1, currency: str = "INR") -> DailySales:
-    return DailySales(d, Decimal(amount), orders, currency)
+def day(d: date, amount: str, orders: int = 1, currency: str = "INR") -> MetricRow:
+    return MetricRow(None, "", d, Decimal(amount), currency, count=orders)
+
+
+def MockSalesSource(daily=None) -> MockMetricSource:
+    return MockMetricSource({("sales", "day"): daily or []})
 
 
 SOURCE = MockSalesSource(
@@ -26,7 +34,7 @@ SOURCE = MockSalesSource(
 
 
 def figure(month="2026-08", trend=6, today=TODAY, source=SOURCE):
-    return GetMonthFigure(source).execute(today, month, trend)
+    return GetMonthFigure(source, REGISTRY).execute("sales", today, month, trend)
 
 
 class TestFigure:
@@ -55,7 +63,7 @@ class TestTrend:
         assert [(t.year, t.month) for t in result.trend] == [(2025, 12), (2026, 1), (2026, 2)]
 
     def test_default_is_six_months(self):
-        [result] = GetMonthFigure(SOURCE).execute(TODAY, "2026-08")
+        [result] = GetMonthFigure(SOURCE, REGISTRY).execute("sales", TODAY, "2026-08")
         assert len(result.trend) == 6
 
 
@@ -72,6 +80,21 @@ class TestComplete:
 class TestNoData:
     def test_a_window_without_rows_gives_an_empty_list(self):
         assert figure(source=MockSalesSource()) == []
+
+
+class TestMetrics:
+    def test_an_unknown_metric_is_not_found(self):
+        with pytest.raises(MetricNotFound):
+            GetMonthFigure(SOURCE, REGISTRY).execute("weather", TODAY, "2026-08")
+
+    def test_a_metric_without_a_count_has_a_null_order_count(self, tmp_path):
+        path = tmp_path / "r.toml"
+        path.write_text(
+            '[metric.p]\nlabel = "P"\nservice = "drivers"\nmeasure = "A"\ndate = "D"\ncurrency = "C"\nby.day = { entity = "E", order = "D" }\n'
+        )
+        source = MockMetricSource({("p", "day"): [day(date(2026, 8, 3), "5.00")]})
+        [result] = GetMonthFigure(source, load_registry(path)).execute("p", TODAY, "2026-08")
+        assert result.order_count is None and result.net_amount == Decimal("5.00")
 
 
 class TestInvalid:

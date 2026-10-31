@@ -11,12 +11,18 @@ from token_verification.fastapi_deps import AuthDependencies
 from synapse_api.application.combined_catalog import CombinedCatalog
 from synapse_api.application.sales_cache import SalesCache
 from synapse_api.application.sales_widgets import SalesWidgetCatalog
-from synapse_api.domain.errors import CatalogEntryNotFound, InvalidQuery, SapUnavailable
+from synapse_api.domain.entities.registry import Registry
+from synapse_api.domain.errors import CatalogEntryNotFound, InvalidQuery, MetricNotFound, RecordTypeNotFound, SapUnavailable
+from synapse_api.domain.gateways.metric_source import MetricSource
+from synapse_api.domain.gateways.record_source import RecordSource
 from synapse_api.domain.gateways.sales_source import SalesSource
 from synapse_api.domain.gateways.widget_catalog import WidgetCatalog
 from synapse_api.infrastructure.api.catalog.router import create_catalog_router
+from synapse_api.infrastructure.api.metrics.router import create_metrics_router
+from synapse_api.infrastructure.api.records.router import create_records_router
 from synapse_api.infrastructure.api.sales.router import create_sales_router
 from synapse_api.infrastructure.mock_library_catalog import MockLibraryCatalog
+from synapse_api.infrastructure.registry_loader import load_registry
 from synapse_api.infrastructure.settings import Settings
 
 
@@ -26,6 +32,9 @@ def create_app(
     today: Callable[[], date] = date.today,
     cache: SalesCache | None = None,
     catalog: WidgetCatalog | None = None,
+    metrics: MetricSource | None = None,
+    records: RecordSource | None = None,
+    registry: Registry | None = None,
 ) -> FastAPI:
     auth = AuthDependencies(TokenVerifier(settings.jwt_secret))
     app = FastAPI()
@@ -37,6 +46,14 @@ def create_app(
     @app.exception_handler(CatalogEntryNotFound)
     def catalog_entry_not_found(request: Request, error: CatalogEntryNotFound) -> JSONResponse:
         return JSONResponse({"code": "CATALOG_ENTRY_NOT_FOUND"}, status_code=404)
+
+    @app.exception_handler(MetricNotFound)
+    def metric_not_found(request: Request, error: MetricNotFound) -> JSONResponse:
+        return JSONResponse({"code": "METRIC_NOT_FOUND"}, status_code=404)
+
+    @app.exception_handler(RecordTypeNotFound)
+    def record_type_not_found(request: Request, error: RecordTypeNotFound) -> JSONResponse:
+        return JSONResponse({"code": "RECORD_TYPE_NOT_FOUND"}, status_code=404)
 
     @app.exception_handler(SapUnavailable)
     def unavailable(request: Request, error: SapUnavailable) -> JSONResponse:
@@ -54,4 +71,9 @@ def create_app(
     widgets = catalog or CombinedCatalog(SalesWidgetCatalog(source, settings.monthly_sales_target), MockLibraryCatalog())
     app.include_router(create_sales_router(source, auth, today, sales_cache), prefix="/v1/synapse", tags=["Sales"])
     app.include_router(create_catalog_router(widgets, auth, today, sales_cache), prefix="/v1/synapse", tags=["Catalog"])
+    known = (registry or load_registry(settings.registry_path)) if metrics is not None or records is not None else None
+    if records is not None:
+        app.include_router(create_records_router(records, known, auth, today, sales_cache), prefix="/v1/synapse", tags=["Records"])
+    if metrics is not None:
+        app.include_router(create_metrics_router(metrics, known, auth, today, sales_cache), prefix="/v1/synapse", tags=["Metrics"])
     return app
