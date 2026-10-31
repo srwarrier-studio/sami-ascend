@@ -1,10 +1,10 @@
-class ModelUnavailable(Exception):
-    pass
-
-
-class InvalidModelAnswer(Exception):
+class RelevanceUnavailable(Exception):
     pass
 
 
 class CatalogUnavailable(Exception):
+    pass
+
+
+class ReplyUnavailable(Exception):
     pass

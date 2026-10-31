@@ -1,30 +1,29 @@
 import pytest
 
 from sami_agents.domain.entities.catalog import CatalogEntry
-from sami_agents.domain.errors import CatalogUnavailable, ModelUnavailable
+from sami_agents.domain.errors import CatalogUnavailable, RelevanceUnavailable
 from sami_agents.infrastructure.mock_catalog_source import MockCatalogSource
-from sami_agents.infrastructure.mock_chat_model import MockChatModel
+from sami_agents.infrastructure.mock_relevance_checker import MockRelevanceChecker
 
 ENTRY = CatalogEntry("sales-today", "Sales today", "Net sales invoiced today.")
+OTHER = CatalogEntry("day-sales", "Day sales", "Net sales for each day.")
 
 
-class TestMockChatModel:
-    def test_returns_the_configured_ids_and_records_the_message(self):
-        model = MockChatModel(["sales-today", "top-customers"])
-        assert model.pick_widgets("show me sales", [ENTRY]) == ["sales-today", "top-customers"]
-        assert model.messages == ["show me sales"]
+class TestMockRelevanceChecker:
+    def test_scores_every_widget_as_relevant_by_default(self):
+        assert MockRelevanceChecker().check("sales", ENTRY) == 1.0
 
-    def test_picks_nothing_by_default(self):
-        assert MockChatModel().pick_widgets("hi", [ENTRY]) == []
+    def test_scores_the_given_widgets_and_records_the_calls(self):
+        checker = MockRelevanceChecker({"sales-today": 0.2}, default=0.9)
+        assert checker.check("sales", ENTRY) == 0.2
+        assert checker.check("sales", OTHER) == 0.9
+        assert checker.calls == [("sales", "sales-today"), ("sales", "day-sales")]
 
-    def test_raises_the_configured_error(self):
-        with pytest.raises(ModelUnavailable):
-            MockChatModel(error=ModelUnavailable()).pick_widgets("hi", [ENTRY])
-
-    def test_returned_list_is_a_copy(self):
-        model = MockChatModel(["a"])
-        model.pick_widgets("hi", [ENTRY]).append("b")
-        assert model.pick_widgets("hi", [ENTRY]) == ["a"]
+    def test_becomes_unavailable_from_the_given_call(self):
+        checker = MockRelevanceChecker(fail_from=1)
+        checker.check("sales", ENTRY)
+        with pytest.raises(RelevanceUnavailable):
+            checker.check("sales", OTHER)
 
 
 class TestMockCatalogSource:

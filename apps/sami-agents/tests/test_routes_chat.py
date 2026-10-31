@@ -5,10 +5,9 @@ import pytest
 from fastapi.testclient import TestClient
 from token_verification.fastapi_deps import ACCESS_TOKEN_COOKIE
 
-from sami_agents.domain.errors import ModelUnavailable
 from sami_agents.entrypoint.app import create_app
 from sami_agents.infrastructure.mock_catalog_source import MockCatalogSource
-from sami_agents.infrastructure.mock_chat_model import MockChatModel
+from sami_agents.infrastructure.mock_relevance_checker import MockRelevanceChecker
 from sami_agents.infrastructure.settings import Settings
 
 SECRET = "s" * 32
@@ -20,8 +19,8 @@ def token_with(roles: list[str]) -> str:
     return jwt.encode(payload, SECRET, algorithm="HS256")
 
 
-def make_client(roles=None, model=None, source=None) -> TestClient:
-    app = create_app(Settings(jwt_secret=SECRET, _env_file=None), model or MockChatModel(["sales-today"]), source or MockCatalogSource())
+def make_client(roles=None, checker=None, source=None) -> TestClient:
+    app = create_app(Settings(jwt_secret=SECRET, _env_file=None), checker or MockRelevanceChecker(), source or MockCatalogSource())
     client = TestClient(app)
     if roles is not None:
         client.cookies.set(ACCESS_TOKEN_COOKIE, token_with(roles))
@@ -60,28 +59,32 @@ class TestBody:
 
 class TestAnswer:
     def test_returns_an_open_ui_program_as_plain_text(self):
-        response = make_client(["management"]).post(URL, json={"message": "sales"})
+        response = make_client(["management"]).post(URL, json={"message": "top customers"})
         assert response.headers["content-type"] == "text/plain; charset=utf-8"
         assert response.text == "\n".join(
             [
-                "root = Stack([intro, w1])",
-                'intro = Text("Here is Sales today.")',
-                'w1 = Widget("sales-today")',
+                "root = Stack([intro, w1, w2])",
+                'intro = Text("Here is Top customers and Top materials.")',
+                'w1 = Widget("top-customers")',
+                'w2 = Widget("top-materials")',
             ]
         )
 
-    def test_the_message_is_trimmed_before_it_reaches_the_model(self):
-        model = MockChatModel(["sales-today"])
-        make_client(["management"], model).post(URL, json={"message": "  sales  "})
-        assert model.messages == ["sales"]
+    def test_the_message_is_trimmed_before_it_reaches_the_checker(self):
+        checker = MockRelevanceChecker()
+        make_client(["management"], checker).post(URL, json={"message": "  top customers  "})
+        assert {message for message, _ in checker.calls} == {"top customers"}
 
     def test_builder_returns_a_board(self):
-        response = make_client(["management"]).post(URL, json={"message": "@builder sales"})
-        assert 'board = Board("Sales", ["sales-today"])' in response.text
+        response = make_client(["management"]).post(URL, json={"message": "@builder top customers"})
+        assert 'board = Board("Top Customers", ["top-customers", "top-materials"])' in response.text
 
-    def test_a_model_failure_still_answers_from_keywords(self):
-        model = MockChatModel(error=ModelUnavailable())
-        response = make_client(["management"], model).post(URL, json={"message": "top customers"})
+    def test_a_widget_the_checker_rejects_is_left_out(self):
+        response = make_client(["management"], MockRelevanceChecker({"top-materials": 0.0})).post(URL, json={"message": "top customers"})
+        assert 'Widget("top-customers")' in response.text and "top-materials" not in response.text
+
+    def test_a_checker_that_is_down_still_answers_from_the_keywords(self):
+        response = make_client(["management"], MockRelevanceChecker(fail_from=0)).post(URL, json={"message": "top customers"})
         assert response.status_code == 200
         assert 'Widget("top-customers")' in response.text
 

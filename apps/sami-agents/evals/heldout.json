@@ -1,0 +1,17 @@
+[
+  {"message": "what are the biggest orders recently", "expected": ["high-value-sales"]},
+  {"message": "revenue so far this year", "expected": ["sales-year"]},
+  {"message": "how many invoices are paid or overdue", "expected": ["status-split", "fin-overdue"]},
+  {"message": "which customers owe us the most", "expected": ["fin-overdue", "fin-receivables"]},
+  {"message": "spending on raw materials by category", "expected": ["pur-categories", "pur-by-category-month"]},
+  {"message": "are suppliers delivering on time", "expected": ["pur-ontime"]},
+  {"message": "items running low in the warehouse", "expected": ["inv-low", "inv-reorder"]},
+  {"message": "slow moving stock", "expected": ["inv-slow"]},
+  {"message": "export revenue trend", "expected": ["exp-trend", "exp-revenue"]},
+  {"message": "how efficient are our machines", "expected": ["prod-oee"]},
+  {"message": "how much scrap are we producing", "expected": ["prod-scrap"]},
+  {"message": "what are our operating expenses", "expected": ["fin-expenses"]},
+  {"message": "tell me a joke", "expected": []},
+  {"message": "@builder export overview", "expected": ["exp-shipments", "exp-revenue", "exp-destinations", "exp-trend"], "minimum": 2},
+  {"message": "@builder cash and collections", "expected": ["fin-collections", "fin-cashflow", "fin-receivables", "fin-collection-target"], "minimum": 2}
+]

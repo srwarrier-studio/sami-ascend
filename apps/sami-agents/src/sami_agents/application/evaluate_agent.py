@@ -3,10 +3,10 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
-from sami_agents.application.plan_chat import PlanChat
+from sami_agents.application.keyword_matcher import KeywordMatcher
+from sami_agents.application.plan_chat import BOARD_LIMIT, BUILDER_TAG, DEFAULT_THRESHOLD, INLINE_LIMIT, PlanChat
 from sami_agents.domain.entities.catalog import CatalogEntry
-from sami_agents.domain.errors import InvalidModelAnswer, ModelUnavailable
-from sami_agents.domain.gateways.chat_model import ChatModel
+from sami_agents.domain.gateways.relevance_checker import RelevanceChecker
 
 
 @dataclass(frozen=True)
@@ -19,21 +19,23 @@ class EvalCase:
 @dataclass(frozen=True)
 class CaseResult:
     case: EvalCase
-    status: str
-    picks: list[str]
+    proposed: list[str]
     final: list[str]
+    rejected: list[str]
+    checks: int
+    unchecked: bool
     seconds: float
-    model_pass: bool
+    proposed_pass: bool
     final_pass: bool
 
 
 @dataclass(frozen=True)
 class Summary:
     cases: int
-    answered: int
-    model_pass: int
+    proposed_pass: int
     final_pass: int
-    fallback: int
+    unchecked: int
+    average_checks: float
     average_seconds: float
     slowest_seconds: float
 
@@ -44,30 +46,12 @@ def passes(case: EvalCase, ids: list[str]) -> bool:
     return len(set(ids) & set(case.expected)) >= case.minimum
 
 
-class RecordingModel(ChatModel):
-    def __init__(self, model: ChatModel):
-        self.model = model
-        self.status = "ok"
-        self.raw: list[str] = []
-        self.seconds = 0.0
-
-    def pick_widgets(self, message: str, catalog: list[CatalogEntry]) -> list[str]:
-        started = time.perf_counter()
-        try:
-            self.raw = self.model.pick_widgets(message, catalog)
-        except ModelUnavailable:
-            self.status = "unavailable"
-        except InvalidModelAnswer:
-            self.status = "invalid"
-        finally:
-            self.seconds = time.perf_counter() - started
-        return self.raw
-
-
 class EvaluateAgent:
-    def __init__(self, model: ChatModel, catalog: list[CatalogEntry]):
-        self.model = model
+    def __init__(self, checker: RelevanceChecker | None, catalog: list[CatalogEntry], matcher: KeywordMatcher | None = None, threshold: float = DEFAULT_THRESHOLD):
+        self.checker = checker
         self.catalog = catalog
+        self.matcher = matcher or KeywordMatcher()
+        self.threshold = threshold
 
     def execute(self, cases: list[EvalCase], parallel: int = 1, on_result: Callable[[CaseResult], None] | None = None) -> list[CaseResult]:
         size = -(-len(cases) // max(parallel, 1))
@@ -85,21 +69,24 @@ class EvaluateAgent:
         return [results[index] for index in range(len(cases))]
 
     def run(self, case: EvalCase) -> CaseResult:
-        recorder = RecordingModel(self.model)
-        final = PlanChat(recorder).choose(case.message, self.catalog)
-        known = {entry.id for entry in self.catalog}
-        picks = list(dict.fromkeys(entry_id for entry_id in recorder.raw if entry_id in known))
-        return CaseResult(case, recorder.status, picks, final, recorder.seconds, passes(case, picks), passes(case, final))
+        builder = case.message.strip().lower().startswith(BUILDER_TAG)
+        request = case.message.strip()[len(BUILDER_TAG):].strip() if builder else case.message
+        proposed = self.matcher.rank(request, self.catalog)[: BOARD_LIMIT if builder else INLINE_LIMIT]
+        started = time.perf_counter()
+        state = PlanChat(self.checker, self.matcher, self.threshold).run(case.message, self.catalog)
+        seconds = time.perf_counter() - started
+        return CaseResult(case, proposed, state["ids"], state["rejected"], state["checks"], state["unchecked"], seconds, passes(case, proposed), passes(case, state["ids"]))
 
     @staticmethod
     def summarise(results: list[CaseResult]) -> Summary:
+        count = len(results) or 1
         seconds = [result.seconds for result in results]
         return Summary(
             cases=len(results),
-            answered=sum(result.status == "ok" for result in results),
-            model_pass=sum(result.model_pass for result in results),
+            proposed_pass=sum(result.proposed_pass for result in results),
             final_pass=sum(result.final_pass for result in results),
-            fallback=sum(not result.picks for result in results),
-            average_seconds=sum(seconds) / len(seconds) if seconds else 0.0,
+            unchecked=sum(result.unchecked for result in results),
+            average_checks=sum(result.checks for result in results) / count,
+            average_seconds=sum(seconds) / count,
             slowest_seconds=max(seconds, default=0.0),
         )
