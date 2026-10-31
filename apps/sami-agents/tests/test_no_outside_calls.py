@@ -12,7 +12,7 @@ from sami_agents.infrastructure.settings import Settings
 SOURCE = Path(__file__).resolve().parents[1] / "src" / "sami_agents"
 ALLOWED_HTTP_FILES = {
     "infrastructure/synapse_data_source.py", "infrastructure/synapse_catalog_source.py",
-    "infrastructure/ollama_question_model.py", "infrastructure/ollama_reply_writer.py", "infrastructure/laya_relevance_checker.py",
+    "infrastructure/ollama_question_model.py", "infrastructure/ollama_reply_writer.py", "infrastructure/laya_relevance_checker.py", "infrastructure/laya_case_model.py",
     "infrastructure/in_process_stack.py",
 }
 

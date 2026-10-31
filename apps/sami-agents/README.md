@@ -25,7 +25,7 @@ No external AI: every figure comes from synapse-api, and the text is built from 
 `uv run --package sami-agents sami-agents analyst-eval [--final]` asks one question per scenario against butterfly in process and scores causes found, missed and invented against the ground truth in `apps/butterfly/scenarios/`. Without `--final` the held-back scenarios are never read.
 
 ## Laya (optional, off by default)
-Laya is a small classification model (https://huggingface.co/convaiinnovations/laya, Apache 2.0). With the aliases in place it did not beat the keyword search in our tests, so it is off unless `LAYA_URL` is set. To try it, run it outside the workspace (it needs Python 3.13 and torch):
+Laya is a small classification model (https://huggingface.co/convaiinnovations/laya, Apache 2.0). It did not beat the keyword search for picking widgets, but it reads the intent, subject and direction of a question well (held-out 25 of 29 against 19 with rules only, `sami-agents case-eval --final`), so the analyst uses it as a case reader when `LAYA_URL` is set: typos, loose wording and chat questions are handled, and it is off (rules only) otherwise. It cannot find names or scopes in text; those are rules. To try it, run it outside the workspace (it needs Python 3.13 and torch):
 
 ```
 uv venv --python 3.13 laya-env
@@ -35,8 +35,13 @@ LAYA_API_KEY=<secret> LAYA_HOST=127.0.0.1 LAYA_MODELS=typed-decisions laya-serve
 ```
 Install torch from the CPU index first so the CUDA libraries are not pulled in. Then set `LAYA_URL=http://localhost:8000`, `LAYA_API_KEY=<secret>` (and optionally `LAYA_THRESHOLD`, default 0.35) for `sami-agents`. If Laya is unreachable the service answers from the keyword search.
 
+## Tone rephrase (optional, off by default)
+`TONE` is `plain` (templates, no model), `executive` or `friendly`; with `OLLAMA_MODEL` set, each text line of an answer is sent alone to the model and used only if it keeps every number, date, name, negation and protected phrase (see `application/model_checks.py`). No small model we tried passed reliably and the output adds little variety, so leave it on `plain` unless you have measured a model on your own answers.
+
+`POST /v1/agents/analyse` also accepts an optional `context` (`{"metric": "sales", "month": "2026-08"}`, the last answered question) so a follow-up such as "give me the reason for the decline" is read against it. The page sends it.
+
 ## Sentence writer (optional, off by default)
 Set `OLLAMA_MODEL` (for example `LiquidAI/lfm2.5-1.2b-instruct`) to let a local Ollama model write the sentence. The text is only used if it passes strict checks (one line, under 200 characters, no markup, no digits, names a widget being shown and has at least two other words); otherwise the title-built sentence is used. In our test the model often failed these checks and added about 2 seconds, and larger models invented what widgets show, so it is off by default.
 
 ## Settings
-`JWT_SECRET`, `FRONTEND_URL`, `SYNAPSE_URL`, `SIGNIFICANT_PERCENT`, `MOVER_MIN_PERCENT`, `MOVER_MIN_SHARE`, `PRICE_MAJORITY_PERCENT`, `SAP_IS_MOCK`, `LAYA_URL`, `LAYA_API_KEY`, `LAYA_THRESHOLD`, `LAYA_TIMEOUT_SECONDS`, `OLLAMA_URL`, `OLLAMA_MODEL`, `MODEL_TIMEOUT_SECONDS`.
+`JWT_SECRET`, `FRONTEND_URL`, `SYNAPSE_URL`, `SIGNIFICANT_PERCENT`, `MOVER_MIN_PERCENT`, `MOVER_MIN_SHARE`, `PRICE_MAJORITY_PERCENT`, `SAP_IS_MOCK`, `LAYA_URL`, `LAYA_API_KEY`, `LAYA_THRESHOLD`, `PASS_MIN_CONFIDENCE`, `TONE`, `LAYA_TIMEOUT_SECONDS`, `OLLAMA_URL`, `OLLAMA_MODEL`, `MODEL_TIMEOUT_SECONDS`.

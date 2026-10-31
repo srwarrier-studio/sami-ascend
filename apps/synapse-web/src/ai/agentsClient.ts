@@ -7,15 +7,23 @@ export type EvidenceStep = { summary: string; rows: Record<string, unknown>[] }
 export type EvidenceBlock = { type: 'evidence'; finding: string; steps: EvidenceStep[] }
 export type AnswerBlock = TextBlock | TrendBlock | TableBlock | EvidenceBlock
 
+export type AgentProblem = 'unreadable' | 'widgets' | 'not_finished' | 'restricted' | 'not_one_month'
+
+export const SHOWN_PROBLEMS: AgentProblem[] = ['not_finished', 'restricted', 'not_one_month']
+const PROBLEMS: AgentProblem[] = ['unreadable', 'widgets', ...SHOWN_PROBLEMS]
+
+export type AgentContext = { metric: string; month: string }
+
 export type AgentAnswer = {
   readable: boolean
-  problem: 'unreadable' | 'not_finished' | null
+  problem: AgentProblem | null
   label: string | null
+  question: AgentContext | null
   blocks: AnswerBlock[]
 }
 
 export type AgentsClient = {
-  ask: (question: string) => Promise<AgentAnswer>
+  ask: (question: string, context?: AgentContext) => Promise<AgentAnswer>
 }
 
 export class AgentsUnavailable extends Error {}
@@ -45,20 +53,21 @@ function parseBlock(block: unknown): AnswerBlock | null {
 
 export function parseAnswer(body: unknown): AgentAnswer {
   if (!isRecord(body) || !Array.isArray(body.blocks)) throw new AgentsUnavailable('unreadable answer')
-  const problem = body.problem === 'unreadable' || body.problem === 'not_finished' ? body.problem : null
+  const problem = PROBLEMS.find((name) => name === body.problem) ?? null
   const blocks = body.blocks.map(parseBlock).filter((block): block is AnswerBlock => block !== null)
-  return { readable: body.readable === true, problem, label: typeof body.label === 'string' ? body.label : null, blocks }
+  const asked = isRecord(body.question) && typeof body.question.metric === 'string' && typeof body.question.month === 'string' ? { metric: body.question.metric, month: body.question.month } : null
+  return { readable: body.readable === true, problem, label: typeof body.label === 'string' ? body.label : null, question: asked, blocks }
 }
 
 export class HttpAgentsClient implements AgentsClient {
-  async ask(question: string) {
+  async ask(question: string, context?: AgentContext) {
     let response: Response
     try {
       response = await fetch(`${AGENTS_URL}/v1/agents/analyse`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify(context ? { question, context } : { question }),
         signal: AbortSignal.timeout(TIMEOUT_MS),
       })
     } catch {
@@ -71,12 +80,14 @@ export class HttpAgentsClient implements AgentsClient {
 
 export class MockAgentsClient implements AgentsClient {
   private answer: AgentAnswer | Error
+  calls: { question: string; context?: AgentContext }[] = []
 
   constructor(answer: AgentAnswer | Error) {
     this.answer = answer
   }
 
-  async ask() {
+  async ask(question: string, context?: AgentContext) {
+    this.calls.push({ question, context })
     if (this.answer instanceof Error) throw this.answer
     return this.answer
   }

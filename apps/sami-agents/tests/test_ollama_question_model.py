@@ -2,7 +2,7 @@ import json
 
 import httpx
 
-from sami_agents.infrastructure.ollama_question_model import OllamaHeadlineRewriter, OllamaQuestionModel
+from sami_agents.infrastructure.ollama_question_model import OllamaLineRewriter, OllamaQuestionModel
 from sami_agents.infrastructure.settings import Settings
 
 SETTINGS = Settings(ollama_url="http://ollama", ollama_model="tiny", _env_file=None)
@@ -39,10 +39,21 @@ class TestTheQuestionModel:
 class TestTheRewriter:
     def test_it_returns_the_text_and_tells_the_model_to_keep_every_figure(self):
         seen = []
-        rewriter = OllamaHeadlineRewriter(SETTINGS, transport("Sales dropped.", seen=seen))
-        assert rewriter.rewrite("Sales fell 14.4%.") == "Sales dropped."
-        assert "Keep every number, date and name" in seen[0]["messages"][0]["content"] and "format" not in seen[0]
+        rewriter = OllamaLineRewriter(SETTINGS, transport("Sales dropped.", seen=seen))
+        assert rewriter.rewrite("Sales fell 14.4%.", "executive") == "Sales dropped."
+        system = seen[0]["messages"][0]["content"]
+        assert "exactly as written" in system and "senior management" in system and "format" not in seen[0]
+        roles = [message["role"] for message in seen[0]["messages"]]
+        assert roles == ["system", "user", "assistant", "user", "assistant", "user", "assistant", "user"]
+        assert seen[0]["messages"][-1] == {"role": "user", "content": "Sales fell 14.4%."}
+
+    def test_each_tone_has_its_own_instruction_and_an_unknown_one_calls_nothing(self):
+        seen = []
+        rewriter = OllamaLineRewriter(SETTINGS, transport("x", seen=seen))
+        rewriter.rewrite("Sales fell.", "friendly")
+        assert "warm" in seen[0]["messages"][0]["content"]
+        assert rewriter.rewrite("Sales fell.", "plain") is None and len(seen) == 1
 
     def test_a_failure_is_none(self):
-        assert OllamaHeadlineRewriter(SETTINGS, transport(error=httpx.ReadTimeout("slow"))).rewrite("x") is None
-        assert OllamaHeadlineRewriter(SETTINGS, transport("x", status=503)).rewrite("x") is None
+        assert OllamaLineRewriter(SETTINGS, transport(error=httpx.ReadTimeout("slow"))).rewrite("x", "executive") is None
+        assert OllamaLineRewriter(SETTINGS, transport("x", status=503)).rewrite("x", "executive") is None

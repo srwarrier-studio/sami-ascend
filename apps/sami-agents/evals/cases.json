@@ -1,0 +1,256 @@
+[
+ {
+  "question": "why did the sales drop in august",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "sales",
+  "month": "2026-08",
+  "direction": "fall"
+ },
+ {
+  "question": "Why did sales drop in Augsut?",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "sales",
+  "month": "2026-08",
+  "direction": "fall"
+ },
+ {
+  "question": "wy did sales drop in august",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "sales",
+  "month": "2026-08",
+  "direction": "fall"
+ },
+ {
+  "question": "why are sales so low in september",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "sales",
+  "month": "2026-09",
+  "direction": "fall"
+ },
+ {
+  "question": "august sales dropped, what happened",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "sales",
+  "month": "2026-08",
+  "direction": "fall"
+ },
+ {
+  "question": "what pushed purchases up in july",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "purchases",
+  "month": "2026-07",
+  "direction": "rise"
+ },
+ {
+  "question": "why did we spend more in june",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "purchases",
+  "month": "2026-06",
+  "direction": "rise"
+ },
+ {
+  "question": "in march, why did revenue go down",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "sales",
+  "month": "2026-03",
+  "direction": "fall"
+ },
+ {
+  "question": "sales drop in august - why",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "sales",
+  "month": "2026-08",
+  "direction": "fall"
+ },
+ {
+  "question": "what made turnover increase in may",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "sales",
+  "month": "2026-05",
+  "direction": "rise"
+ },
+ {
+  "question": "explain the rise in procurement for april",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "purchases",
+  "month": "2026-04",
+  "direction": "rise"
+ },
+ {
+  "question": "why did purchases change in feb",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "purchases",
+  "month": "2026-02",
+  "direction": "change"
+ },
+ {
+  "question": "why is spending higher in september",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "purchases",
+  "month": "2026-09",
+  "direction": "rise"
+ },
+ {
+  "question": "why did revenue fall in august 2025",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "sales",
+  "month": "2025-08",
+  "direction": "fall"
+ },
+ {
+  "question": "what caused sales to dip last month",
+  "outcome": "answer",
+  "intent": "why",
+  "metric": "sales",
+  "month": "2026-09",
+  "direction": "fall"
+ },
+ {
+  "question": "what were sales for august",
+  "outcome": "answer",
+  "intent": "figure",
+  "metric": "sales",
+  "month": "2026-08"
+ },
+ {
+  "question": "how did sales do in august",
+  "outcome": "answer",
+  "intent": "figure",
+  "metric": "sales",
+  "month": "2026-08"
+ },
+ {
+  "question": "how much did we purchase in september",
+  "outcome": "answer",
+  "intent": "figure",
+  "metric": "purchases",
+  "month": "2026-09"
+ },
+ {
+  "question": "tell me the revenue for july",
+  "outcome": "answer",
+  "intent": "figure",
+  "metric": "sales",
+  "month": "2026-07"
+ },
+ {
+  "question": "what are sales this month",
+  "outcome": "answer",
+  "intent": "figure",
+  "metric": "sales",
+  "month": "2026-10"
+ },
+ {
+  "question": "show me the purchases for june 2026",
+  "outcome": "answer",
+  "intent": "figure",
+  "metric": "purchases",
+  "month": "2026-06"
+ },
+ {
+  "question": "show me top customers",
+  "outcome": "widgets"
+ },
+ {
+  "question": "show the sales dashboard",
+  "outcome": "widgets"
+ },
+ {
+  "question": "I want to see inventory charts",
+  "outcome": "widgets"
+ },
+ {
+  "question": "hi",
+  "outcome": "refuse",
+  "problem": "unreadable"
+ },
+ {
+  "question": "what is the weather",
+  "outcome": "refuse",
+  "problem": "unreadable"
+ },
+ {
+  "question": "tell me a joke",
+  "outcome": "refuse",
+  "problem": "unreadable"
+ },
+ {
+  "question": "who won the cricket match yesterday",
+  "outcome": "refuse",
+  "problem": "unreadable"
+ },
+ {
+  "question": "why did the moon change in august",
+  "outcome": "refuse",
+  "problem": "unreadable"
+ },
+ {
+  "question": "why did sales fall",
+  "outcome": "refuse",
+  "problem": "unreadable"
+ },
+ {
+  "question": "why did sales to Acme drop in august",
+  "outcome": "refuse",
+  "problem": "restricted"
+ },
+ {
+  "question": "why did sales of steel plate fall in august",
+  "outcome": "refuse",
+  "problem": "restricted"
+ },
+ {
+  "question": "why did purchases from Doosan rise in july",
+  "outcome": "refuse",
+  "problem": "restricted"
+ },
+ {
+  "question": "what were Acme sales for august",
+  "outcome": "refuse",
+  "problem": "restricted"
+ },
+ {
+  "question": "why did sales drop last quarter",
+  "outcome": "refuse",
+  "problem": "not_one_month"
+ },
+ {
+  "question": "why did sales fall this year",
+  "outcome": "refuse",
+  "problem": "not_one_month"
+ },
+ {
+  "question": "why did sales fall last week",
+  "outcome": "refuse",
+  "problem": "not_one_month"
+ },
+ {
+  "question": "why did purchases rise in Q3",
+  "outcome": "refuse",
+  "problem": "not_one_month"
+ },
+ {
+  "question": "why did sales fall this month",
+  "outcome": "refuse",
+  "problem": "not_finished"
+ },
+ {
+  "question": "why did sales fall in October",
+  "outcome": "refuse",
+  "problem": "not_finished"
+ }
+]

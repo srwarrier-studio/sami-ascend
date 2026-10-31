@@ -12,6 +12,7 @@ afterEach(() => vi.unstubAllGlobals())
 const answer = {
   readable: true,
   label: 'Mock data (butterfly)',
+  question: { metric: 'sales', month: '2026-08', direction: 'fall' },
   blocks: [
     { type: 'text', lines: ['Sales fell 14.4%.'] },
     { type: 'trend', metric: 'sales', currency: 'INR', points: [{ month: '2026-07', value: '7570000' }], marked: ['2026-07'] },
@@ -31,7 +32,16 @@ describe('asking the agent', () => {
     expect(JSON.parse(init.body as string)).toEqual({ question: 'why did sales fall in August' })
     expect(result.readable).toBe(true)
     expect(result.label).toBe('Mock data (butterfly)')
+    expect(result.question).toEqual({ metric: 'sales', month: '2026-08' })
     expect(result.blocks.map((block) => block.type)).toEqual(['text', 'trend', 'table', 'evidence'])
+  })
+
+  it('sends the context only when there is one', async () => {
+    const fetchMock = stub(respond(200, answer))
+    await new HttpAgentsClient().ask('why did it fall', { metric: 'sales', month: '2026-08' })
+    await new HttpAgentsClient().ask('why did it fall')
+    const bodies = fetchMock.mock.calls.map((call) => JSON.parse(((call as unknown as [string, RequestInit])[1]).body as string))
+    expect(bodies).toEqual([{ question: 'why did it fall', context: { metric: 'sales', month: '2026-08' } }, { question: 'why did it fall' }])
   })
 
   it.each([401, 403, 503])('treats status %i as unavailable', async (status) => {
@@ -52,13 +62,22 @@ describe('asking the agent', () => {
 
 describe('reading the answer', () => {
   it('keeps the problem of a refusal', () => {
-    const result = parseAnswer({ readable: false, problem: 'not_finished', label: null, blocks: [{ type: 'text', lines: ['Not over.'] }] })
-    expect(result).toEqual({ readable: false, problem: 'not_finished', label: null, blocks: [{ type: 'text', lines: ['Not over.'] }] })
+    const result = parseAnswer({ readable: false, problem: 'not_finished', label: null, question: null, blocks: [{ type: 'text', lines: ['Not over.'] }] })
+    expect(result).toEqual({ readable: false, problem: 'not_finished', label: null, question: null, blocks: [{ type: 'text', lines: ['Not over.'] }] })
+  })
+
+  it.each(['unreadable', 'widgets', 'not_finished', 'restricted', 'not_one_month'])('keeps the problem %s', (problem) => {
+    expect(parseAnswer({ readable: false, problem, blocks: [] }).problem).toBe(problem)
+  })
+
+  it('drops a problem it does not know', () => {
+    expect(parseAnswer({ readable: false, problem: 'something_new', blocks: [] }).problem).toBeNull()
   })
 
   it('has no problem or label when the answer carries none', () => {
     const result = parseAnswer({ readable: true, blocks: [] })
-    expect(result).toEqual({ readable: true, problem: null, label: null, blocks: [] })
+    expect(result).toEqual({ readable: true, problem: null, label: null, question: null, blocks: [] })
+    expect(parseAnswer({ readable: true, question: { metric: 5 }, blocks: [] }).question).toBeNull()
   })
 
   it('skips unknown and malformed blocks', () => {
@@ -74,8 +93,8 @@ describe('reading the answer', () => {
 
 describe('the mock client', () => {
   it('returns the answer it was given, or throws the error', async () => {
-    const given = { readable: false, problem: 'unreadable' as const, label: null, blocks: [] }
-    expect(await new MockAgentsClient(given).ask()).toBe(given)
-    await expect(new MockAgentsClient(new AgentsUnavailable('down')).ask()).rejects.toBeInstanceOf(AgentsUnavailable)
+    const given = { readable: false, problem: 'unreadable' as const, label: null, question: null, blocks: [] }
+    expect(await new MockAgentsClient(given).ask('x')).toBe(given)
+    await expect(new MockAgentsClient(new AgentsUnavailable('down')).ask('x')).rejects.toBeInstanceOf(AgentsUnavailable)
   })
 })

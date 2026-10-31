@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -18,6 +19,8 @@ class Settings(BaseSettings):
     laya_api_key: str = ""
     laya_threshold: float = 0.35
     laya_timeout_seconds: float = 5.0
+    pass_min_confidence: float = 0.5
+    tone: Literal["plain", "executive", "friendly"] = "plain"
     significant_percent: float = 5
     mover_min_percent: float = 10
     mover_min_share: float = 2

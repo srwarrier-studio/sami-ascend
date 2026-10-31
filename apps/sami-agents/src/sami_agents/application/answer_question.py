@@ -4,14 +4,17 @@ from sami_agents.application import wording
 from sami_agents.application.analyse_question import AnalyseQuestion
 from sami_agents.application.analysis_json import analysis_json, row_json, step_json
 from sami_agents.application.model_checks import accept_question, accept_rewrite
+from sami_agents.application.case_reader import ONE_MONTH, RESTRICTED, CaseReader
 from sami_agents.application.question_reader import HELP, NOT_FINISHED, QuestionReader
 from sami_agents.application.state_figure import StateFigure
-from sami_agents.domain.entities.question import Question
+from sami_agents.domain.entities.case import Case
+from sami_agents.domain.entities.question import Context, Question
 from sami_agents.domain.errors import DataUnavailable
 from sami_agents.domain.gateways.data_source import DataSource
-from sami_agents.domain.gateways.question_model import HeadlineRewriter, QuestionModel
+from sami_agents.domain.gateways.question_model import LineRewriter, QuestionModel
 
 TREND_MONTHS = 6
+REFUSALS = {"not_finished": NOT_FINISHED, "restricted": RESTRICTED, "not_one_month": ONE_MONTH}
 MOCK_LABEL = "Mock data (butterfly)"
 TABLE_COLUMNS = ["Name", "Current", "Previous", "Change", "Share of change", "Volume effect", "Price effect"]
 
@@ -23,14 +26,15 @@ def previous_month_of(month: date) -> date:
 class AnswerQuestion:
     def __init__(
         self,
-        reader: QuestionReader,
+        reader: QuestionReader | CaseReader,
         analyser: AnalyseQuestion,
         source: DataSource,
         metrics: list[str],
         mock: bool = True,
         model: QuestionModel | None = None,
-        rewriter: HeadlineRewriter | None = None,
+        rewriter: LineRewriter | None = None,
         figurer: StateFigure | None = None,
+        tone: str = "plain",
     ):
         self.reader = reader
         self.analyser = analyser
@@ -40,42 +44,53 @@ class AnswerQuestion:
         self.model = model
         self.rewriter = rewriter
         self.figurer = figurer or StateFigure(source)
+        self.tone = tone
 
-    def execute(self, text: str, token: str, today: date) -> dict:
-        read = self.reader.read(text, today)
+    def execute(self, text: str, token: str, today: date, context: Context | None = None) -> dict:
+        read = self.reader.read(text, today, context)
         question = read.question
         if question is None and read.problem == "unreadable" and self.model is not None:
             question = accept_question(self.model.read(text, self.metrics), self.metrics, today)
         if question is None:
-            return self.refusal(NOT_FINISHED if read.problem == "not_finished" else HELP, read.problem)
+            return self.refusal(REFUSALS.get(read.problem, HELP), read.problem)
         if question.intent == "figure":
-            return self.figure_answer(question, token, today)
+            return self.figure_answer(question, token, today, read.case)
         analysis = self.analyser.execute(question, token, today)
         trend = self.trend_block(question, token, analysis.currency, analysis.limits, [previous_month_of(question.month), question.month])
         lines = wording.lines(analysis)
-        if self.rewriter is not None:
-            lines[0] = accept_rewrite(self.rewriter.rewrite(lines[0]), lines[0]) or lines[0]
+        lines = self.polished(lines)
         blocks = [{"type": "text", "lines": lines}, *trend, *self.table_blocks(analysis), *self.evidence_blocks(analysis)]
         return {
             "readable": True,
-            "question": {"metric": question.metric, "intent": question.intent, "direction": question.direction, "month": question.month.strftime("%Y-%m"), "compared_with": previous_month_of(question.month).strftime("%Y-%m")},
+            "question": self.described(question, previous_month_of(question.month).strftime("%Y-%m"), read.case),
             "label": MOCK_LABEL if self.mock else None,
             "blocks": blocks,
             "analysis": analysis_json(analysis),
         }
 
-    def figure_answer(self, question: Question, token: str, today: date) -> dict:
+    def figure_answer(self, question: Question, token: str, today: date, case: Case | None) -> dict:
         figure = self.figurer.execute(question, token, today)
-        lines = wording.figure_lines(figure)
+        lines = self.polished(wording.figure_lines(figure))
         marked = [question.month] if figure.so_far else [previous_month_of(question.month), question.month]
         trend = self.trend_block(question, token, figure.currency, lines, marked)
         compared = None if figure.so_far else previous_month_of(question.month).strftime("%Y-%m")
         return {
             "readable": True,
-            "question": {"metric": question.metric, "intent": question.intent, "direction": question.direction, "month": question.month.strftime("%Y-%m"), "compared_with": compared},
+            "question": self.described(question, compared, case),
             "label": MOCK_LABEL if self.mock else None,
             "blocks": [{"type": "text", "lines": lines}, *trend],
             "analysis": None,
+        }
+
+    def polished(self, lines: list[str]) -> list[str]:
+        if self.rewriter is None or self.tone == "plain":
+            return lines
+        return [accept_rewrite(self.rewriter.rewrite(line, self.tone), line) or line for line in lines]
+
+    def described(self, question: Question, compared_with: str | None, case: Case | None) -> dict:
+        return {
+            "metric": question.metric, "intent": question.intent, "direction": question.direction, "month": question.month.strftime("%Y-%m"),
+            "compared_with": compared_with, "scope": case.scope if case else "all", "how_read": list(case.how_read) if case else [],
         }
 
     def refusal(self, message: str, problem: str) -> dict:

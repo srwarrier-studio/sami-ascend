@@ -12,6 +12,11 @@ def main() -> None:
 
         analyst_eval(sys.argv[2:])
         return
+    if sys.argv[1:2] == ["case-eval"]:
+        from sami_agents.entrypoint.case_eval import main as case_eval
+
+        case_eval(sys.argv[2:])
+        return
     if sys.argv[1:2] == ["graph"]:
         from sami_agents.entrypoint.graph import main as graph
 

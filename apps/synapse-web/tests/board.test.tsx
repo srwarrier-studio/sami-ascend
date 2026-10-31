@@ -169,6 +169,8 @@ describe('AI matching', () => {
     expect(matchCatalog(fixtureEntries, 'show me the customers').map((e) => e.id)).toEqual(['top-customers'])
     expect(matchCatalog(fixtureEntries, 'please add the')).toEqual([])
     expect(matchCatalog(fixtureEntries, 'zebra')).toEqual([])
+    expect(matchCatalog(fixtureEntries, 'who are you?')).toEqual([])
+    expect(matchCatalog(fixtureEntries, 'what are the customer rankings')).toEqual(['top-customers'].map((id) => fixtureEntries.find((e) => e.id === id)))
   })
 })
 
