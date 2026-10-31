@@ -4,7 +4,7 @@ import { useNavigate, useRouteContext } from '@tanstack/react-router'
 import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Modal, PageHeader, PaperPlaneRightIcon, SparkleIcon, Stack, Text, TextInput, Title, WidgetCell, WidgetGrid } from '@sami/ui'
 import { AnswerBlocks } from '../ai/AnswerBlocks'
 import { SHOWN_PROBLEMS } from '../ai/agentsClient'
-import type { AgentAnswer } from '../ai/agentsClient'
+import type { AgentAnswer, AgentContext } from '../ai/agentsClient'
 import { BUILDER } from '../ai/chatPlanner'
 import type { ChatBoard } from '../ai/chatPlanner'
 import { BoardGrid } from '../boards/BoardGrid'
@@ -26,6 +26,7 @@ export function AiPage() {
   const [text, setText] = useState('')
   const [building, setBuilding] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [remembered, setRemembered] = useState<AgentContext | null>(null)
   const [board, setBoard] = useState<ChatBoard | null>(null)
   const [saving, setSaving] = useState(false)
   const bottom = useRef<HTMLDivElement>(null)
@@ -40,18 +41,24 @@ export function AiPage() {
     setBusy(true)
     setText('')
     setMessages((all) => [...all, { from: 'you', text: asked }])
-    const agent = asked.toLowerCase().startsWith(BUILDER) ? null : await agentsClient.ask(asked).catch(() => undefined)
+    const agent = asked.toLowerCase().startsWith(BUILDER) ? null : await agentsClient.ask(asked, remembered ?? undefined).catch(() => undefined)
     if (agent === undefined) {
       setMessages((all) => [...all, { from: 'ai', text: UNAVAILABLE }])
       setBusy(false)
       return
     }
+    if (agent?.readable && agent.question) setRemembered(agent.question)
     if (agent && (agent.readable || (agent.problem !== null && SHOWN_PROBLEMS.includes(agent.problem)))) {
       setMessages((all) => [...all, { from: 'ai', text: '', agent }])
       setBusy(false)
       return
     }
     const answer = await chatPlanner.plan(asked, catalog)
+    if (agent && answer.catalogIds.length === 0 && !answer.board) {
+      setMessages((all) => [...all, { from: 'ai', text: '', agent }])
+      setBusy(false)
+      return
+    }
     setMessages((all) => [...all, { from: 'ai', text: answer.reply, catalogIds: answer.catalogIds, board: answer.board }])
     if (answer.board) setBoard(answer.board)
     setBusy(false)

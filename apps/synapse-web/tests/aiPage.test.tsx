@@ -9,7 +9,7 @@ import type { AgentAnswer } from '../src/ai/agentsClient'
 import { MockCatalogClient } from '../src/catalog/mockCatalogClient'
 import { MockSessionClient } from '../src/session/sessionClient'
 
-const UNREADABLE: AgentAnswer = { readable: false, problem: 'unreadable', label: null, blocks: [{ type: 'text', lines: ['Ask why a metric rose.'] }] }
+const UNREADABLE: AgentAnswer = { readable: false, problem: 'unreadable', label: null, question: null, blocks: [{ type: 'text', lines: ['Ask why a metric rose.'] }] }
 
 const open = (store = new MockBoardStore(), agents: MockAgentsClient = new MockAgentsClient(UNREADABLE)) => {
   render(
@@ -44,7 +44,8 @@ describe('AI chat', () => {
   it('says so when nothing matches', async () => {
     open()
     await ask('zebra')
-    expect(await screen.findByText(/could not match/)).toBeInTheDocument()
+    expect(await screen.findByText('Ask why a metric rose.')).toBeInTheDocument()
+    expect(screen.queryByText(/^Here is/)).toBeNull()
   })
 })
 
@@ -141,6 +142,7 @@ const WHY: AgentAnswer = {
   readable: true,
   problem: null,
   label: 'Mock data (butterfly)',
+  question: { metric: 'sales', month: '2026-08' },
   blocks: [
     { type: 'text', lines: ['Sales fell 14.4% from July 2026 to August 2026.'] },
     { type: 'trend', metric: 'sales', currency: 'INR', points: [{ month: '2026-08', value: '6480000' }], marked: ['2026-08'] },
@@ -166,7 +168,7 @@ describe('answers from the agent', () => {
   })
 
   it('shows the not-over text and no widgets', async () => {
-    const notOver: AgentAnswer = { readable: false, problem: 'not_finished', label: null, blocks: [{ type: 'text', lines: ['That month is not over yet.'] }] }
+    const notOver: AgentAnswer = { readable: false, problem: 'not_finished', label: null, question: null, blocks: [{ type: 'text', lines: ['That month is not over yet.'] }] }
     open(new MockBoardStore(), new MockAgentsClient(notOver))
     await ask('why did sales fall this month')
     expect(await screen.findByText('That month is not over yet.')).toBeInTheDocument()
@@ -177,7 +179,7 @@ describe('answers from the agent', () => {
     ['restricted', 'I can only explain the whole company figure for now.'],
     ['not_one_month', 'I answer one month at a time.'],
   ] as const)('shows the %s text and no widgets', async (problem, line) => {
-    const refusal: AgentAnswer = { readable: false, problem, label: null, blocks: [{ type: 'text', lines: [line] }] }
+    const refusal: AgentAnswer = { readable: false, problem, label: null, question: null, blocks: [{ type: 'text', lines: [line] }] }
     open(new MockBoardStore(), new MockAgentsClient(refusal))
     await ask('why did sales to Acme drop in august')
     expect(await screen.findByText(line)).toBeInTheDocument()
@@ -185,10 +187,38 @@ describe('answers from the agent', () => {
   })
 
   it('hands a widget request to the planner', async () => {
-    const widgets: AgentAnswer = { readable: false, problem: 'widgets', label: null, blocks: [{ type: 'text', lines: ['Ask why a metric rose.'] }] }
+    const widgets: AgentAnswer = { readable: false, problem: 'widgets', label: null, question: null, blocks: [{ type: 'text', lines: ['Ask why a metric rose.'] }] }
     open(new MockBoardStore(), new MockAgentsClient(widgets))
     await ask('show me top customers')
     expect(await screen.findByText(/^Here is Top customers/)).toBeInTheDocument()
+  })
+
+  it.each(['who are you?', 'what can you do', 'tell me about our company'])('shows the agent text and no widgets for the chat question %s', async (message) => {
+    open()
+    await ask(message)
+    expect(await screen.findByText('Ask why a metric rose.')).toBeInTheDocument()
+    expect(screen.queryByText(/^Here is/)).toBeNull()
+  })
+
+  it('sends the last answered question as context with the next message', async () => {
+    const agents = new MockAgentsClient(WHY)
+    open(new MockBoardStore(), agents)
+    await ask('what were sales for august')
+    await screen.findByText('Sales fell 14.4% from July 2026 to August 2026.')
+    await ask('give me the reason for the decline')
+    await waitFor(() => expect(agents.calls).toHaveLength(2))
+    expect(agents.calls[0].context).toBeUndefined()
+    expect(agents.calls[1].context).toEqual({ metric: 'sales', month: '2026-08' })
+  })
+
+  it('does not remember a question the agent could not read', async () => {
+    const agents = new MockAgentsClient(UNREADABLE)
+    open(new MockBoardStore(), agents)
+    await ask('zebra')
+    await screen.findByText('Ask why a metric rose.')
+    await ask('and again')
+    await waitFor(() => expect(agents.calls).toHaveLength(2))
+    expect(agents.calls[1].context).toBeUndefined()
   })
 
   it('never sends @builder messages to the agent', async () => {
