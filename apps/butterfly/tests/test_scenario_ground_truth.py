@@ -66,6 +66,16 @@ class TestTheDataHoldsTheGroundTruth:
         assert low <= change(volume(seed, before, product["material"]), volume(seed, month, product["material"])) <= high
 
     @pytest.mark.parametrize("name", sorted(TRUTHS))
+    def test_no_month_is_far_from_the_normal_level_when_the_truth_says_so(self, name):
+        truth, seed = TRUTHS[name], seed_of(name)
+        if "all_months_within_percent" not in truth:
+            pytest.skip("not a quiet scenario")
+        months = sorted({(o.order_date.year, o.order_date.month) for o in seed.orders})
+        totals = [value(seed, m) for m in months]
+        normal = sum(totals[:9]) / 9
+        assert all(abs(change(normal, t)) <= truth["all_months_within_percent"] for t in totals)
+
+    @pytest.mark.parametrize("name", sorted(TRUTHS))
     def test_the_biggest_mover_is_the_named_customer(self, name):
         truth, seed = TRUTHS[name], seed_of(name)
         if "biggest_mover" not in truth:
@@ -106,10 +116,12 @@ class TestTheDataHoldsTheGroundTruth:
             if item["type"] == "purchase_delivery":
                 row = next(d for d in seed.deliveries if d.purchase_order == item["key"])
                 material = MATERIAL_OF_RAW[row.material]
+                late = (row.actual_delivery_date - row.promised_delivery_date).days > 2
             else:
                 row = next(p for p in seed.production_orders if p.production_order == item["key"])
                 material = row.material
-            assert not any(isinstance(d, Drop) and d.material == material for d in drops)
+                late = row.delay_reason is not None
+            assert not late or not any(isinstance(d, Drop) and d.material == material for d in drops)
 
     @pytest.mark.parametrize("name", sorted(TRUTHS))
     def test_something_left_unexplained_has_no_event_behind_it(self, name):

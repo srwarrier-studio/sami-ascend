@@ -1,0 +1,15 @@
+{
+  "scenario": "two-causes",
+  "holdout": true,
+  "month": "2026-08",
+  "compare_with": "2026-07",
+  "total_change_percent": [-24, -15],
+  "biggest_mover": "0000100004",
+  "product": {"material": "RM-1003", "value_change_percent": [-38, -26], "volume_change_percent": [-38, -26]},
+  "causes": [
+    {"type": "contract", "key": "0040000152"},
+    {"type": "purchase_delivery", "key": "4500001208"}
+  ],
+  "not_blame": [],
+  "unexplained": false
+}

@@ -1,0 +1,11 @@
+{
+  "scenario": "breakdown-shortfall",
+  "holdout": false,
+  "month": "2026-07",
+  "compare_with": "2026-06",
+  "total_change_percent": [-3, 4],
+  "product": {"material": "RM-1005", "value_change_percent": [-35, -22], "volume_change_percent": [-35, -22]},
+  "causes": [{"type": "production_order", "key": "0001000420"}],
+  "not_blame": [{"type": "purchase_delivery", "key": "4500001210"}],
+  "unexplained": false
+}
