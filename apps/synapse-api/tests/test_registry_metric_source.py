@@ -127,3 +127,28 @@ class TestPagingAndFailures:
         finally:
             request_id_var.reset(token)
         assert seen == ["req-9"]
+
+
+class TestAServerThatCapsThePage:
+    def capped(self, cap, total, link=True):
+        def handler(request):
+            skip = int(request.url.params["$skip"])
+            rows = [DAY] * max(0, min(cap, total - skip))
+            body = {"value": rows}
+            if link and skip + len(rows) < total:
+                body["@odata.nextLink"] = "next"
+            return httpx.Response(200, json=body)
+
+        return handler
+
+    def test_a_short_page_with_a_next_link_is_not_the_last_one(self):
+        assert len(source(self.capped(300, 700)).rows(SALES, "day", START, END)) == 700
+
+    def test_a_page_without_a_next_link_that_is_short_is_the_last_one(self):
+        assert len(source(self.capped(300, 250)).rows(SALES, "day", START, END)) == 250
+
+    def test_an_empty_page_ends_the_read_even_if_a_link_is_sent(self):
+        def handler(request):
+            return httpx.Response(200, json={"value": [], "@odata.nextLink": "next"})
+
+        assert source(handler).rows(SALES, "day", START, END) == []
