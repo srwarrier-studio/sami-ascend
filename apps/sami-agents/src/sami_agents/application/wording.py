@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from sami_agents.domain.entities.analysis import Analysis, Finding
+from sami_agents.domain.entities.figure import Figure
 from sami_agents.domain.entities.finding import Step
 
 
@@ -95,3 +96,25 @@ def lines(analysis: Analysis) -> list[str]:
     out.append(unexplained_sentence(analysis))
     out += analysis.limits
     return out
+
+
+def figure_lines(figure: Figure) -> list[str]:
+    label, month = figure.question.metric.capitalize(), month_label(figure.window.start)
+    if not figure.currency:
+        return [f"No {figure.question.metric} were recorded in {month}."]
+    amount = f"{figure.currency} {number(figure.current)}"
+    if figure.so_far:
+        return [f"{label} so far this month ({month}) were {amount}."]
+    before = month_label(figure.window.compare_start)
+    if figure.change_percent is None:
+        return [f"{label} for {month} were {amount}, up from nothing in {before}."]
+    previous = f"{figure.currency} {number(figure.previous)}"
+    if figure.change == 0:
+        sentence = f"{label} for {month} were {amount}, unchanged from {before} ({previous})."
+    else:
+        direction = "up" if figure.change > 0 else "down"
+        sentence = f"{label} for {month} were {amount}, {direction} {percent_text(figure.change_percent)} from {before} ({previous})."
+    if not figure.significant:
+        return [sentence]
+    word = "rose" if figure.change > 0 else "fell"
+    return [sentence, f"Ask why {figure.question.metric} {word} in {figure.window.start.strftime('%B')} for the reasons."]
