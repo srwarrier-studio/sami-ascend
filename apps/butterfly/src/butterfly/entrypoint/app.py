@@ -20,6 +20,9 @@ from butterfly.application.filter.fields import (
     SALES_ORDER_ITEM_FIELDS,
     SALES_SUMMARY_BY_CUSTOMER_FIELDS,
     SALES_SUMMARY_BY_DAY_FIELDS,
+    PURCHASE_SUMMARY_BY_DAY_FIELDS,
+    PURCHASE_SUMMARY_BY_MATERIAL_FIELDS,
+    PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS,
     SALES_SUMMARY_BY_MATERIAL_FIELDS,
 )
 from butterfly.application.query_options import parse_expand
@@ -29,6 +32,9 @@ from butterfly.application.usecase.get_sales_order import GetSalesOrder
 from butterfly.application.usecase.list_sales_order_items import ListSalesOrderItems
 from butterfly.application.usecase.list_sales_orders import ListSalesOrders
 from butterfly.application.usecase.list_sales_summary import ListSalesSummary
+from butterfly.application.usecase.summarize_purchases_by_day import SummarizePurchasesByDay
+from butterfly.application.usecase.summarize_purchases_by_material import SummarizePurchasesByMaterial
+from butterfly.application.usecase.summarize_purchases_by_supplier import SummarizePurchasesBySupplier
 from butterfly.application.usecase.summarize_by_customer import SummarizeByCustomer
 from butterfly.application.usecase.summarize_by_day import SummarizeByDay
 from butterfly.application.usecase.summarize_by_material import SummarizeByMaterial
@@ -226,6 +232,9 @@ def create_app(
     add_list_route(drivers_router, "PurchaseDelivery", drivers.deliveries, PURCHASE_DELIVERY_FIELDS)
     add_list_route(drivers_router, "ProductionOrder", drivers.production_orders, PRODUCTION_ORDER_FIELDS)
     add_list_route(drivers_router, "ProductionOrderComponent", drivers.components, PRODUCTION_ORDER_COMPONENT_FIELDS)
+    add_list_route(drivers_router, "PurchaseSummaryByDay", lambda: SummarizePurchasesByDay(drivers).execute(), PURCHASE_SUMMARY_BY_DAY_FIELDS)
+    add_list_route(drivers_router, "PurchaseSummaryBySupplier", lambda: SummarizePurchasesBySupplier(drivers).execute(), PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS)
+    add_list_route(drivers_router, "PurchaseSummaryByMaterial", lambda: SummarizePurchasesByMaterial(drivers).execute(), PURCHASE_SUMMARY_BY_MATERIAL_FIELDS)
 
     @app.exception_handler(SalesOrderNotFound)
     def not_found(request: Request, error: SalesOrderNotFound):

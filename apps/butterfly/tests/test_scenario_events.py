@@ -24,20 +24,42 @@ def seed_with(*events):
     return build_story_seed(TODAY, Scenario("test", events))
 
 
-def fingerprint(day: date) -> str:
+def digest(rows) -> str:
+    return hashlib.sha256(repr(rows).encode()).hexdigest()[:16]
+
+
+def fingerprints(day: date) -> dict:
     seed = build_story_seed(day)
-    return hashlib.sha256(repr((seed.orders, seed.contracts, seed.deliveries, seed.production_orders, seed.components)).encode()).hexdigest()
+    return {name: digest(getattr(seed, name)) for name in ("orders", "contracts", "production_orders", "components", "deliveries")}
 
 
 def orders_of(seed, customer, start, end):
     return [o for o in seed.orders if o.sold_to_party == customer and start <= o.order_date <= end]
 
 
+BUTTERFLY_EIGHT = {
+    date(2026, 10, 31): {"orders": "be3dc0cf5d209f8a", "contracts": "77208a2c8362559d", "production_orders": "918f6fc80d8cf23d", "components": "4ee79d2ae772c724"},
+    date(2026, 8, 15): {"orders": "d16872b0cd0672f8", "contracts": "1f592dbcff450c37", "production_orders": "039f27b642636434", "components": "c57ee25e615e4775"},
+    date(2026, 9, 1): {"orders": "f8b1bf7c47ba5d5d", "contracts": "1f592dbcff450c37", "production_orders": "68b8b8dc219e118c", "components": "afac484cb3ddae0a"},
+}
+DELIVERIES_WITH_AMOUNTS = {date(2026, 10, 31): "0a3d86e25ebef67a", date(2026, 8, 15): "03790bf72890111e", date(2026, 9, 1): "0daa551b818585ac"}
+
+
 class TestAugustContractStaysAsButterflyEight:
-    def test_data_is_identical_to_butterfly_08_on_three_dates(self):
-        assert fingerprint(date(2026, 10, 31)) == "5ed6286a16b8bc9d854dc5c0878c032ad3d3a08848d2ebbe3b5cf72f42a7ce21"
-        assert fingerprint(date(2026, 8, 15)) == "6a71ca22c13a5878caac130e036fd70093336c4a272673e7ebabae870328f841"
-        assert fingerprint(date(2026, 9, 1)) == "5cbd36a2f58660389e2884024d0200533fec5f455c88c16461a09291a029ded6"
+    def test_orders_contracts_production_and_components_are_identical_on_three_dates(self):
+        for day, expected in BUTTERFLY_EIGHT.items():
+            actual = fingerprints(day)
+            assert {k: actual[k] for k in expected} == expected
+
+    def test_deliveries_changed_only_by_the_amount_fields_and_are_pinned_again(self):
+        for day, expected in DELIVERIES_WITH_AMOUNTS.items():
+            assert fingerprints(day)["deliveries"] == expected
+
+    def test_every_delivery_amount_is_the_ordered_quantity_times_the_price_of_its_raw_material(self):
+        prices = {"RAW-2001": "46.00", "RAW-2002": "52.00", "RAW-2003": "610.00", "RAW-2004": "190.00", "RAW-2005": "70.00", "RAW-2006": "48.00"}
+        for d in QUIET.deliveries:
+            assert d.net_amount == d.ordered_quantity * Decimal(prices[d.material])
+            assert d.transaction_currency == "INR"
 
 
 class TestContractEnd:

@@ -13,10 +13,14 @@ from butterfly.domain.entities.scenario import (
     Cancellations,
     ContractEnd,
     CustomerLoss,
+    DemandGrowth,
     Drop,
     PriceChange,
     ProductionDelay,
+    PurchasePriceChange,
+    PurchaseQuantityChange,
     Scenario,
+    SupplierSwitch,
     SupplyDelay,
 )
 from butterfly.infrastructure.memory.scenarios import AUGUST_CONTRACT
@@ -59,6 +63,7 @@ RAW_MATERIALS = [
 
 ORDERED_QUANTITY = [Decimal("4000.000"), Decimal("5000.000"), Decimal("2000.000"), Decimal("1500.000"), Decimal("1000.000"), Decimal("3000.000")]
 PLANNED_QUANTITY = [Decimal("3500.000"), Decimal("4000.000"), Decimal("1800.000"), Decimal("1400.000"), Decimal("900.000"), Decimal("2800.000")]
+RAW_PRICE = [Decimal("46.00"), Decimal("52.00"), Decimal("610.00"), Decimal("190.00"), Decimal("70.00"), Decimal("48.00")]
 COMPONENT_MARGIN = Decimal("1.1")
 
 PURCHASE_ORDER_BASE = 4500001146
@@ -172,6 +177,37 @@ def price_factor(material: str, day: date, scenario: Scenario) -> Decimal:
     return factor
 
 
+def growth_factor(material: str, day: date, scenario: Scenario) -> Decimal:
+    factor = Decimal(1)
+    for growth in events_of(scenario, DemandGrowth):
+        if growth.material == material and day >= growth.start:
+            factor *= Decimal(growth.factor)
+    return factor
+
+
+def months_after(day: date, count: int) -> date:
+    first = date(day.year, day.month, 1)
+    for _ in range(count):
+        first = next_month(first)
+    return first
+
+
+def production_growth(material: str, month: date, scenario: Scenario) -> Decimal:
+    factor = Decimal(1)
+    for growth in events_of(scenario, DemandGrowth):
+        if growth.material == material and month >= months_after(growth.start, 1):
+            factor *= Decimal(growth.factor)
+    return factor
+
+
+def purchase_growth(product: str, ordered_on: date, scenario: Scenario) -> Decimal:
+    factor = Decimal(1)
+    for growth in events_of(scenario, DemandGrowth):
+        if growth.material == product and ordered_on >= months_after(growth.start, 2):
+            factor *= Decimal(growth.factor)
+    return factor
+
+
 def is_cancelled(sequence: int, day: date, customer_index: int, scenario: Scenario) -> bool:
     return any(
         c.customer == customer_index and c.start <= day <= c.end and sequence % c.of < c.cancelled
@@ -189,7 +225,7 @@ def build_order(sequence: int, index: int, day: date, customer_index: int, copy:
         material = MATERIALS[(index * 3 + customer_index * 2 + copy + position) % len(MATERIALS)]
         if not keeps_item(material[0], index, customer_index, position, day, scenario):
             continue
-        items.append(build_item(number, len(items), material, index, customer_index, position, spot, month_factor(day), price_factor(material[0], day, scenario)))
+        items.append(build_item(number, len(items), material, index, customer_index, position, spot, month_factor(day), price_factor(material[0], day, scenario), growth_factor(material[0], day, scenario)))
     if not items:
         return None
     customer_id, customer_name = CUSTOMERS[customer_index]
@@ -211,10 +247,10 @@ def build_order(sequence: int, index: int, day: date, customer_index: int, copy:
     )
 
 
-def build_item(number: str, position: int, material: tuple, index: int, customer_index: int, step: int, spot: bool, factor: Decimal, price_change: Decimal) -> SalesOrderItem:
+def build_item(number: str, position: int, material: tuple, index: int, customer_index: int, step: int, spot: bool, factor: Decimal, price_change: Decimal, growth: Decimal) -> SalesOrderItem:
     material_id, description, unit, price = material
     steps = Decimal(10 * (1 + (index + customer_index + step) % 5))
-    quantity = (steps * QUANTITY_FACTOR[material_id] * factor * (Decimal("0.5") if spot else 1) * (ACME_WEIGHT if customer_index == 0 else OTHER_WEIGHT)).quantize(Decimal("0.001"))
+    quantity = (steps * QUANTITY_FACTOR[material_id] * factor * growth * (Decimal("0.5") if spot else 1) * (ACME_WEIGHT if customer_index == 0 else OTHER_WEIGHT)).quantize(Decimal("0.001"))
     return SalesOrderItem(
         sales_order=number,
         sales_order_item=f"{(position + 1) * 10:06d}",
@@ -269,6 +305,19 @@ def build_deliveries(months: list[date], today: date, scenario: Scenario) -> lis
             delay = late.get((month, material), (month_index + raw_index) % 3)
             actual = promised + timedelta(days=delay)
             delivered = actual <= today
+            quantity, price = ORDERED_QUANTITY[raw_index], RAW_PRICE[raw_index]
+            product = RAW_MATERIALS[raw_index][4]
+            quantity = (quantity * purchase_growth(product, ordered_on, scenario)).quantize(Decimal("0.001"))
+            for change in events_of(scenario, PurchaseQuantityChange):
+                if change.raw_material == material and change.start <= ordered_on <= change.end:
+                    quantity = (quantity * Decimal(change.factor)).quantize(Decimal("0.001"))
+            for change in events_of(scenario, PurchasePriceChange):
+                if change.raw_material == material and ordered_on >= change.start:
+                    price *= Decimal(change.factor)
+            for switch in events_of(scenario, SupplierSwitch):
+                if switch.raw_material == material and ordered_on >= switch.start:
+                    supplier_index = switch.supplier
+                    price *= Decimal(switch.price_factor)
             supplier_id, supplier_name = SUPPLIERS[supplier_index]
             deliveries.append(
                 PurchaseDelivery(
@@ -279,12 +328,13 @@ def build_deliveries(months: list[date], today: date, scenario: Scenario) -> lis
                     material=material,
                     material_description=description,
                     order_date=ordered_on,
-                    ordered_quantity=ORDERED_QUANTITY[raw_index],
-                    delivered_quantity=ORDERED_QUANTITY[raw_index] if delivered else Decimal("0.000"),
+                    ordered_quantity=quantity,
+                    delivered_quantity=quantity if delivered else Decimal("0.000"),
                     quantity_unit=unit,
                     promised_delivery_date=promised,
                     actual_delivery_date=actual if delivered else None,
                     delivery_status="D" if delivered else "O",
+                    net_amount=(quantity * price).quantize(Decimal("0.01")),
                 )
             )
     return deliveries
@@ -304,13 +354,14 @@ def build_production(months: list[date], today: date, scenario: Scenario) -> tup
             last_end[product] = actual_end
             completed = actual_end <= today
             number = f"{PRODUCTION_ORDER_BASE + month_index * len(MATERIALS) + product_index:010d}"
+            planned = (PLANNED_QUANTITY[product_index] * production_growth(product, month, scenario)).quantize(Decimal("0.001"))
             orders.append(
                 ProductionOrder(
                     production_order=number,
                     material=product,
                     material_description=description,
-                    planned_quantity=PLANNED_QUANTITY[product_index],
-                    confirmed_quantity=PLANNED_QUANTITY[product_index] if completed else Decimal("0.000"),
+                    planned_quantity=planned,
+                    confirmed_quantity=planned if completed else Decimal("0.000"),
                     quantity_unit=unit,
                     planned_start_date=planned_start,
                     planned_end_date=planned_end,
@@ -321,6 +372,6 @@ def build_production(months: list[date], today: date, scenario: Scenario) -> tup
             )
             raw = RAW_MATERIALS[product_index]
             components.append(
-                ProductionOrderComponent(number, raw[0], raw[1], (PLANNED_QUANTITY[product_index] * COMPONENT_MARGIN).quantize(Decimal("0.001")), raw[2])
+                ProductionOrderComponent(number, raw[0], raw[1], (planned * COMPONENT_MARGIN).quantize(Decimal("0.001")), raw[2])
             )
     return orders, components

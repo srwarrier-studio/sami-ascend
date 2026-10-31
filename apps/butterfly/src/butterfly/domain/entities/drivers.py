@@ -31,6 +31,8 @@ class PurchaseDelivery:
     promised_delivery_date: date
     actual_delivery_date: date | None
     delivery_status: str
+    net_amount: Decimal = Decimal("0.00")
+    transaction_currency: str = "INR"
 
 
 @dataclass(frozen=True)

@@ -42,7 +42,7 @@ replaces.
 
 ### PurchaseDelivery (key: `PurchaseOrder`, `PurchaseOrderItem`)
 
-One row per purchase order item with its delivery dates. `ActualDeliveryDate` is the date of
+One row per purchase order item with its delivery dates. `NetAmount` is the ordered quantity times the net price of the item. `ActualDeliveryDate` is the date of
 the first goods receipt that completed the item; it is empty while the item is open.
 
 | Field | Type | Nullable | Example |
@@ -57,6 +57,8 @@ the first goods receipt that completed the item; it is empty while the item is o
 | `OrderedQuantity` | `Edm.Decimal` (13,3) | No | `"5000.000"` |
 | `DeliveredQuantity` | `Edm.Decimal` (13,3) | No | `"5000.000"` |
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
+| `NetAmount` | `Edm.Decimal` (15,2) | No | `"260000.00"` |
+| `TransactionCurrency` | `Edm.String` (5) | No | `"INR"` |
 | `PromisedDeliveryDate` | `Edm.Date` | No | `"2026-07-14"` |
 | `ActualDeliveryDate` | `Edm.Date` | Yes | `"2026-07-26"` |
 | `DeliveryStatus` | `Edm.String` (1) | No | `"D"` |
@@ -92,6 +94,47 @@ The materials an order consumes.
 | `RequiredQuantity` | `Edm.Decimal` (13,3) | No | `"4400.000"` |
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
 
+### Purchase summaries (read-only, one row per day and key)
+
+Aggregated by SAP so a consumer never pages through purchase items to total them. Rows are the
+purchase items with `DeliveryStatus` other than `X`, grouped by `OrderDate` (a purchase counts on
+the day it was ordered), the key shown and `TransactionCurrency`. `TotalNetAmount` is the sum of
+`NetAmount`, `OrderCount` the number of purchase items, `TotalQuantity` the sum of
+`OrderedQuantity`. Same query options and order rules as the other entities; give the whole key
+in `$orderby` when paging.
+
+### PurchaseSummaryByDay (key: `OrderDate`, `Currency`)
+
+| Field | Type | Nullable | Example |
+|-------|------|----------|---------|
+| `OrderDate` | `Edm.Date` | No | `"2026-06-24"` |
+| `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"2163000.00"` |
+| `OrderCount` | `Edm.Int32` | No | `6` |
+| `Currency` | `Edm.String` (5) | No | `"INR"` |
+
+### PurchaseSummaryBySupplier (key: `OrderDate`, `Supplier`, `Currency`)
+
+| Field | Type | Nullable | Example |
+|-------|------|----------|---------|
+| `Supplier` | `Edm.String` (10) | No | `"0000200001"` |
+| `SupplierName` | `Edm.String` (80) | Yes | `"Doosan Metals Pvt Ltd"` |
+| `OrderDate` | `Edm.Date` | No | `"2026-06-24"` |
+| `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"444000.00"` |
+| `OrderCount` | `Edm.Int32` | No | `2` |
+| `Currency` | `Edm.String` (5) | No | `"INR"` |
+
+### PurchaseSummaryByMaterial (key: `OrderDate`, `Material`, `Currency`)
+
+| Field | Type | Nullable | Example |
+|-------|------|----------|---------|
+| `Material` | `Edm.String` (40) | No | `"RAW-2002"` |
+| `MaterialDescription` | `Edm.String` (40) | Yes | `"Steel coil"` |
+| `OrderDate` | `Edm.Date` | No | `"2026-06-24"` |
+| `TotalQuantity` | `Edm.Decimal` (13,3) | No | `"5000.000"` |
+| `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
+| `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"260000.00"` |
+| `Currency` | `Edm.String` (5) | No | `"INR"` |
+
 ## 3. Codes
 
 | Field | Value | Meaning |
@@ -101,6 +144,7 @@ The materials an order consumes.
 | | `C` | Cancelled before its end |
 | `DeliveryStatus` | `O` | Open (not fully received) |
 | | `D` | Delivered |
+| | `X` | Cancelled (left out of the purchase summaries) |
 | `ProductionStatus` | `R` | Released, running |
 | | `C` | Completed |
 | `DelayReason` | `MATERIAL_SHORTAGE` | A component was not available |
@@ -182,6 +226,8 @@ GET {root}PurchaseDelivery?$filter=Material eq 'RAW-2002' and PromisedDeliveryDa
       "OrderedQuantity": "5000.000",
       "DeliveredQuantity": "5000.000",
       "QuantityUnit": "KG",
+      "NetAmount": "260000.00",
+      "TransactionCurrency": "INR",
       "PromisedDeliveryDate": "2026-07-14",
       "ActualDeliveryDate": "2026-07-26",
       "DeliveryStatus": "D"
@@ -251,6 +297,44 @@ GET {root}ProductionOrderComponent?$filter=ProductionOrder eq '0001000417'
 }
 ```
 
+### Purchases by supplier in a month
+
+```
+GET {root}PurchaseSummaryBySupplier?$filter=OrderDate ge 2026-06-01 and OrderDate le 2026-06-30&$orderby=OrderDate,Supplier
+```
+
+```json
+{
+  "@odata.context": "$metadata#PurchaseSummaryBySupplier",
+  "value": [
+    {
+      "Supplier": "0000200001",
+      "SupplierName": "Doosan Metals Pvt Ltd",
+      "OrderDate": "2026-06-24",
+      "TotalNetAmount": "444000.00",
+      "OrderCount": 2,
+      "Currency": "INR"
+    },
+    {
+      "Supplier": "0000200002",
+      "SupplierName": "Kalyani Wire Industries",
+      "OrderDate": "2026-06-24",
+      "TotalNetAmount": "1505000.00",
+      "OrderCount": 2,
+      "Currency": "INR"
+    },
+    {
+      "Supplier": "0000200003",
+      "SupplierName": "Precision Bearings Co",
+      "OrderDate": "2026-06-24",
+      "TotalNetAmount": "214000.00",
+      "OrderCount": 2,
+      "Currency": "INR"
+    }
+  ]
+}
+```
+
 ## 6. Notes for the SAP consultant
 
 These are the usual SAP sources; confirm them and expose each entity as a read-only CDS view
@@ -262,6 +346,7 @@ entity with a projection, in the same service binding.
 | `PurchaseDelivery` | purchase order item and schedule line (`EKPO`, `EKET`) with goods receipt history (`EKBE`) |
 | `ProductionOrder` | production order header and item (`AFKO`, `AFPO`) with confirmations for the actual end and the variance reason |
 | `ProductionOrderComponent` | order reservations (`RESB`) |
+| `PurchaseSummaryByDay`, `BySupplier`, `ByMaterial` | aggregate CDS views over the `PurchaseDelivery` view (sum of `NetAmount`, count of items) grouped as above, so SAP does the totalling |
 
 The data is read with the shared management login, so the app limits who can ask for it (role
 `management` or `admin`). Large tables must be selective on the filter fields used above:

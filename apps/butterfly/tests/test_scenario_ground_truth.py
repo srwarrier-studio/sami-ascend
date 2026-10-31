@@ -5,7 +5,16 @@ from pathlib import Path
 
 import pytest
 
-from butterfly.domain.entities.scenario import Cancellations, Drop, PriceChange
+from butterfly.domain.entities.scenario import (
+    Cancellations,
+    ContractEnd,
+    DemandGrowth,
+    Drop,
+    PriceChange,
+    PurchasePriceChange,
+    PurchaseQuantityChange,
+    SupplierSwitch,
+)
 from butterfly.infrastructure.memory.scenarios import SCENARIOS
 from butterfly.infrastructure.memory.story_seed import RAW_MATERIALS, build_story_seed
 
@@ -13,6 +22,12 @@ TODAY = date(2026, 10, 31)
 FOLDER = Path(__file__).resolve().parent.parent / "scenarios"
 TRUTHS = {path.stem: json.loads(path.read_text()) for path in sorted(FOLDER.glob("*.json"))}
 BY_NAME = {s.name: s for s in SCENARIOS}
+EVENT_CAUSES = {
+    "purchase_price_change": (PurchasePriceChange, "raw_material"),
+    "purchase_quantity_change": (PurchaseQuantityChange, "raw_material"),
+    "demand_growth": (DemandGrowth, "material"),
+    "supplier_switch": (SupplierSwitch, "raw_material"),
+}
 MATERIAL_OF_RAW = {raw[0]: raw[4] for raw in RAW_MATERIALS}
 
 
@@ -21,7 +36,16 @@ def month_of(text: str) -> tuple[int, int]:
     return (int(year), int(month))
 
 
-def value(seed, month, material=None, customer=None) -> Decimal:
+def metric_of(truth) -> str:
+    return truth["metric"]
+
+
+def value(seed, month, material=None, customer=None, metric="sales") -> Decimal:
+    if metric == "purchases":
+        return sum(
+            (d.net_amount for d in seed.deliveries if d.delivery_status != "X" and (d.order_date.year, d.order_date.month) == month and material in (None, d.material)),
+            Decimal(0),
+        )
     return sum(
         (
             i.net_amount
@@ -35,8 +59,14 @@ def value(seed, month, material=None, customer=None) -> Decimal:
     )
 
 
-def volume(seed, month, material) -> Decimal:
+def volume(seed, month, material, metric="sales") -> Decimal:
+    if metric == "purchases":
+        return sum((d.ordered_quantity for d in seed.deliveries if d.delivery_status != "X" and (d.order_date.year, d.order_date.month) == month and d.material == material), Decimal(0))
     return sum((i.quantity for o in seed.orders if o.overall_status != "X" and (o.order_date.year, o.order_date.month) == month for i in o.items if i.material == material), Decimal(0))
+
+
+def products_of(truth) -> list[dict]:
+    return [*([truth["product"]] if "product" in truth else []), *truth.get("products", [])]
 
 
 def change(before: Decimal, after: Decimal) -> float:
@@ -52,18 +82,21 @@ class TestTheDataHoldsTheGroundTruth:
     def test_total_sales_change_is_in_the_stated_range(self, name):
         truth, seed = TRUTHS[name], seed_of(name)
         low, high = truth["total_change_percent"]
-        assert low <= change(value(seed, month_of(truth["compare_with"])), value(seed, month_of(truth["month"]))) <= high
+        metric = metric_of(truth)
+        assert low <= change(value(seed, month_of(truth["compare_with"]), metric=metric), value(seed, month_of(truth["month"]), metric=metric)) <= high
 
     @pytest.mark.parametrize("name", sorted(TRUTHS))
     def test_the_product_change_is_in_the_stated_ranges(self, name):
         truth, seed = TRUTHS[name], seed_of(name)
-        if "product" not in truth:
+        if not products_of(truth):
             pytest.skip("no product block")
-        product, month, before = truth["product"], month_of(truth["month"]), month_of(truth["compare_with"])
-        low, high = product["value_change_percent"]
-        assert low <= change(value(seed, before, product["material"]), value(seed, month, product["material"])) <= high
-        low, high = product["volume_change_percent"]
-        assert low <= change(volume(seed, before, product["material"]), volume(seed, month, product["material"])) <= high
+        metric, month, before = metric_of(truth), month_of(truth["month"]), month_of(truth["compare_with"])
+        for product in products_of(truth):
+            material = product["material"]
+            low, high = product["value_change_percent"]
+            assert low <= change(value(seed, before, material, metric=metric), value(seed, month, material, metric=metric)) <= high
+            low, high = product["volume_change_percent"]
+            assert low <= change(volume(seed, before, material, metric), volume(seed, month, material, metric)) <= high
 
     @pytest.mark.parametrize("name", sorted(TRUTHS))
     def test_no_month_is_far_from_the_normal_level_when_the_truth_says_so(self, name):
@@ -71,7 +104,9 @@ class TestTheDataHoldsTheGroundTruth:
         if "all_months_within_percent" not in truth:
             pytest.skip("not a quiet scenario")
         months = sorted({(o.order_date.year, o.order_date.month) for o in seed.orders})
-        totals = [value(seed, m) for m in months]
+        metric = metric_of(truth)
+        months = sorted({(d.order_date.year, d.order_date.month) for d in seed.deliveries}) if metric == "purchases" else months
+        totals = [value(seed, m, metric=metric) for m in months]
         normal = sum(totals[:9]) / 9
         assert all(abs(change(normal, t)) <= truth["all_months_within_percent"] for t in totals)
 
@@ -83,7 +118,7 @@ class TestTheDataHoldsTheGroundTruth:
         month, before = month_of(truth["month"]), month_of(truth["compare_with"])
         customers = {o.sold_to_party for o in seed.orders}
         moves = {c: value(seed, month, customer=c) - value(seed, before, customer=c) for c in customers}
-        assert min(moves, key=moves.get) == truth["biggest_mover"]
+        assert max(moves, key=lambda c: abs(moves[c])) == truth["biggest_mover"]
 
     @pytest.mark.parametrize("name", sorted(TRUTHS))
     def test_every_cause_exists_and_is_what_it_says(self, name):
@@ -101,6 +136,9 @@ class TestTheDataHoldsTheGroundTruth:
                 assert next(p for p in seed.production_orders if p.production_order == key).delay_reason
             elif cause["type"] == "price_change":
                 assert any(isinstance(e, PriceChange) and e.material == key for e in BY_NAME[name].events)
+            elif cause["type"] in EVENT_CAUSES:
+                event_type, field = EVENT_CAUSES[cause["type"]]
+                assert any(isinstance(e, event_type) and getattr(e, field) == key for e in BY_NAME[name].events)
             elif cause["type"] == "cancelled_orders":
                 orders = [o for o in seed.orders if o.sold_to_party == key and (o.order_date.year, o.order_date.month) == month]
                 assert sum(1 for o in orders if o.overall_status == "X") / len(orders) >= 0.3
@@ -128,8 +166,11 @@ class TestTheDataHoldsTheGroundTruth:
         truth, seed = TRUTHS[name], seed_of(name)
         if not truth["unexplained"]:
             pytest.skip("everything is explained")
+        if truth["causes"]:
+            upstream = (ContractEnd, DemandGrowth, Drop, SupplierSwitch, Cancellations)
+            assert not [e for e in BY_NAME[name].events if isinstance(e, upstream) or getattr(e, "drop", None)]
+            return
         month = month_of(truth["month"])
-        assert truth["causes"] == []
         end = date(month[0], month[1], 28)
         contracts = [c for c in seed.contracts if c.sold_to_party == truth["biggest_mover"]]
         assert any(c.valid_from <= end <= c.valid_to for c in contracts)

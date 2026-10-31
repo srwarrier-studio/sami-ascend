@@ -82,6 +82,8 @@ PURCHASE_DELIVERY_FIELDS = {
     "OrderedQuantity": ("ordered_quantity", FieldType.DECIMAL),
     "DeliveredQuantity": ("delivered_quantity", FieldType.DECIMAL),
     "QuantityUnit": ("quantity_unit", FieldType.STRING),
+    "NetAmount": ("net_amount", FieldType.DECIMAL),
+    "TransactionCurrency": ("transaction_currency", FieldType.STRING),
     "PromisedDeliveryDate": ("promised_delivery_date", FieldType.DATE),
     "ActualDeliveryDate": ("actual_delivery_date", FieldType.DATE),
     "DeliveryStatus": ("delivery_status", FieldType.STRING),
@@ -108,3 +110,16 @@ PRODUCTION_ORDER_COMPONENT_FIELDS = {
     "RequiredQuantity": ("required_quantity", FieldType.DECIMAL),
     "QuantityUnit": ("quantity_unit", FieldType.STRING),
 }
+
+PURCHASE_SUMMARY_BY_DAY_FIELDS = SALES_SUMMARY_BY_DAY_FIELDS
+
+PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {
+    "Supplier": ("supplier", FieldType.STRING),
+    "SupplierName": ("supplier_name", FieldType.STRING),
+    "OrderDate": ("order_date", FieldType.DATE),
+    "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
+    "OrderCount": ("order_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+}
+
+PURCHASE_SUMMARY_BY_MATERIAL_FIELDS = SALES_SUMMARY_BY_MATERIAL_FIELDS

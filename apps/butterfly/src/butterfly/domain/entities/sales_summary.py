@@ -30,3 +30,32 @@ class SalesSummaryByMaterial:
     quantity_unit: str
     total_net_amount: Decimal
     currency: str
+
+
+@dataclass(frozen=True)
+class PurchaseSummaryByDay:
+    order_date: date
+    total_net_amount: Decimal
+    order_count: int
+    currency: str
+
+
+@dataclass(frozen=True)
+class PurchaseSummaryBySupplier:
+    supplier: str
+    supplier_name: str | None
+    order_date: date
+    total_net_amount: Decimal
+    order_count: int
+    currency: str
+
+
+@dataclass(frozen=True)
+class PurchaseSummaryByMaterial:
+    material: str
+    material_description: str | None
+    order_date: date
+    total_quantity: Decimal
+    quantity_unit: str
+    total_net_amount: Decimal
+    currency: str

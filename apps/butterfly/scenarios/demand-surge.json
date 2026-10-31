@@ -1,0 +1,12 @@
+{
+  "scenario": "demand-surge",
+  "holdout": false,
+  "metric": "purchases",
+  "month": "2026-08",
+  "compare_with": "2026-07",
+  "total_change_percent": [2, 6],
+  "product": {"material": "RAW-2002", "value_change_percent": [33, 37], "volume_change_percent": [33, 37]},
+  "causes": [{"type": "demand_growth", "key": "RM-1002"}],
+  "not_blame": [],
+  "unexplained": false
+}

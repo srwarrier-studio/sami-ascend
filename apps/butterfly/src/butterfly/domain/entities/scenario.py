@@ -60,7 +60,37 @@ class Cancellations:
     end: date
 
 
-Event = ContractEnd | SupplyDelay | ProductionDelay | PriceChange | CustomerLoss | Cancellations
+@dataclass(frozen=True)
+class PurchasePriceChange:
+    raw_material: str
+    factor: str
+    start: date
+
+
+@dataclass(frozen=True)
+class PurchaseQuantityChange:
+    raw_material: str
+    factor: str
+    start: date
+    end: date
+
+
+@dataclass(frozen=True)
+class DemandGrowth:
+    material: str
+    factor: str
+    start: date
+
+
+@dataclass(frozen=True)
+class SupplierSwitch:
+    raw_material: str
+    supplier: int
+    price_factor: str
+    start: date
+
+
+Event = ContractEnd | SupplyDelay | ProductionDelay | PriceChange | CustomerLoss | Cancellations | PurchasePriceChange | PurchaseQuantityChange | DemandGrowth | SupplierSwitch
 
 
 @dataclass(frozen=True)

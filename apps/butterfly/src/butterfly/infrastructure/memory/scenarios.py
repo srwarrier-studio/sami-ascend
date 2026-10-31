@@ -4,10 +4,14 @@ from butterfly.domain.entities.scenario import (
     Cancellations,
     ContractEnd,
     CustomerLoss,
+    DemandGrowth,
     Drop,
     PriceChange,
     ProductionDelay,
+    PurchasePriceChange,
+    PurchaseQuantityChange,
     Scenario,
+    SupplierSwitch,
     SupplyDelay,
 )
 
@@ -19,6 +23,10 @@ COPPER_WIRE = "RM-1003"
 BEARING = "RM-1005"
 STEEL_COIL = "RAW-2002"
 COPPER_ROD = "RAW-2003"
+ALUMINIUM_INGOT = "RAW-2004"
+BEARING_STEEL = "RAW-2005"
+WIRE_ROD = "RAW-2006"
+KALYANI = 1
 
 JULY = date(2026, 7, 1)
 MAY = date(2026, 5, 1)
@@ -69,6 +77,19 @@ SCENARIOS = [
     Scenario(
         "cancellations",
         (Cancellations(CAUVERY, 2, 5, date(2026, 8, 1), date(2026, 8, 31)),),
+        holdout=True,
+    ),
+    Scenario("purchase-price-rise", (PurchasePriceChange(STEEL_COIL, "1.2", date(2026, 8, 1)),)),
+    Scenario("stock-up", (PurchaseQuantityChange(COPPER_ROD, "1.6", date(2026, 9, 1), date(2026, 9, 30)),)),
+    Scenario("demand-surge", (DemandGrowth(STEEL_PLATE, "1.35", date(2026, 6, 15)),)),
+    Scenario("quiet-purchases", ()),
+    Scenario("supplier-switch", (SupplierSwitch(BEARING_STEEL, KALYANI, "1.15", date(2026, 10, 1)),), holdout=True),
+    Scenario(
+        "double-cause",
+        (
+            PurchasePriceChange(ALUMINIUM_INGOT, "1.25", date(2026, 9, 1)),
+            PurchaseQuantityChange(WIRE_ROD, "1.5", date(2026, 9, 1), date(2026, 9, 30)),
+        ),
         holdout=True,
     ),
 ]

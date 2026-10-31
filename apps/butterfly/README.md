@@ -45,7 +45,20 @@ curl "http://localhost:8003/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdriv
 | `two-causes` (held back) | Deccan's contract ends 2026-07-20; Copper rod 10 days late with copper wire orders halved | contract `0040000152` and delivery `4500001208`, each tied to its own customer or product |
 | `cancellations` (held back) | Cauvery cancels 40% of its August orders | the cancelled orders, not a contract or supply event |
 
-Held-back scenarios are marked `"holdout": true`; tuning of the agent must not read them. Tests: `tests/test_scenario_events.py` (events), `test_scenario_ground_truth.py` (the data holds each truth), `test_scenario_service.py` (switch, contracts, agreement).
+Purchase scenarios (ground truth has `"metric": "purchases"`; a purchase counts in the month it was ordered, and orders are placed about the 24th of the month before delivery):
+
+| Name | What happens | Ground truth |
+|------|--------------|--------------|
+| `purchase-price-rise` | Steel coil price +20% on orders from 2026-08-01 | August value up on that material by price; quantity unchanged |
+| `stock-up` | Copper rod ordered 1.6 times in September | September value up by quantity on Copper rod; price unchanged; nothing in the data says why |
+| `demand-surge` | Steel plate sales +35% from 2026-06-15, flowing to production plans from July and to Steel coil orders from August | August purchases up through Steel coil quantity; the chain is sales, production order, component, purchase |
+| `quiet-purchases` | nothing | no month more than 5% from normal |
+| `supplier-switch` (held back) | Bearing steel moves from Precision Bearings Co to Kalyani Wire Industries at +15% from October | October: one supplier lost, one gained, price up on Bearing steel |
+| `double-cause` (held back) | Aluminium ingot price +25% and Wire rod quantity x1.5 in September | both found, each tied to its own material |
+
+Purchase summaries (drivers service): `PurchaseSummaryByDay`, `PurchaseSummaryBySupplier` and `PurchaseSummaryByMaterial`, one row per order date and key, cancelled (`X`) items left out; `PurchaseDelivery` has `NetAmount` and `TransactionCurrency`.
+
+Held-back scenarios are marked `"holdout": true`; tuning of the agent must not read them. Tests: `tests/test_scenario_events.py` and `test_purchase_events.py` (events), `test_purchase_summaries.py` (summaries), `test_scenario_ground_truth.py` (the data holds each truth), `test_scenario_service.py` (switch, contracts, agreement).
 
 Not yet: delays and failures (butterfly/04), `$metadata`.
 

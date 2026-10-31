@@ -26,7 +26,7 @@ def story_client() -> TestClient:
 
 class TestContractExamples:
     def test_every_entity_has_an_example(self):
-        assert len(EXAMPLES) == 4
+        assert len(EXAMPLES) == 5
 
     @pytest.mark.parametrize("request_text,response_text", EXAMPLES, ids=[e[0][:50] for e in EXAMPLES])
     def test_the_story_data_gives_exactly_the_example(self, request_text, response_text):
