@@ -3,6 +3,9 @@ from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = Path(__file__).resolve().parents[5] / ".env"
+GRAPH_FILE = Path(__file__).resolve().parents[3] / "graph.toml"
+REGISTRY_FILE = Path(__file__).resolve().parents[5] / "apps/synapse-api/registry.toml"
+CONTRACTS_FOLDER = Path(__file__).resolve().parents[5] / "docs/sap"
 
 
 class Settings(BaseSettings):
