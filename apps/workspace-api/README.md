@@ -25,3 +25,8 @@ Port 8002. `FRONTEND_URL` (default `http://localhost:5173`) is the allowed CORS 
 uv run --package workspace-api --with pytest pytest apps/workspace-api -v
 ```
 Tests never call the network; the butterfly gateway is tested with `httpx.MockTransport`.
+
+## Order queue
+`POST /v1/workspace/sales-orders` tries SAP at once. If SAP cannot take the order it is saved and a worker posts it later; if SAP may or may not have created it, it is saved as `unknown` and never sent again. See `specs/notes.md` (order queue) for the rules. Check an order with `GET /v1/workspace/sales-order-requests/{id}` or list your open ones with `?open=true`.
+
+Settings (defaults assume SAP takes one write at a time, raise them when the real limits are known): `SAP_WRITE_LIMIT` (1), `SAP_WRITE_WAIT_SECONDS` (2), `ORDER_WORKERS` (1, 0 turns the worker off), `ORDER_MAX_ATTEMPTS` (8), `ORDER_DB` (`orders.db` in the app folder).

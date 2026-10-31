@@ -126,3 +126,10 @@ class TestWriteLimit:
         assert throttled.list_recent(5, 0).total == 0
         gateway.release.set()
         thread.join()
+
+
+class TestBusyIsNotReached:
+    def test_a_busy_slot_is_its_own_kind_of_not_reached(self):
+        from workspace_api.domain.errors import SapBusy
+
+        assert issubclass(SapBusy, SapNotReached)

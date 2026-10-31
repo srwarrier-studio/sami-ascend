@@ -1,7 +1,7 @@
 import threading
 
 from workspace_api.domain.entities.sales_order import NewSalesOrder, SalesOrder, SalesOrderPage
-from workspace_api.domain.errors import SapNotReached
+from workspace_api.domain.errors import SapBusy
 from workspace_api.domain.gateways.sales_order_gateway import SalesOrderGateway
 
 
@@ -13,7 +13,7 @@ class ThrottledGateway(SalesOrderGateway):
 
     def create(self, order: NewSalesOrder) -> SalesOrder:
         if not self.slots.acquire(timeout=self.wait_seconds):
-            raise SapNotReached("no free write slot")
+            raise SapBusy("no free write slot")
         try:
             return self.gateway.create(order)
         finally:

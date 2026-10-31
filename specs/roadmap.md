@@ -75,7 +75,7 @@ All three phases use mock data (session, sales data and board store behind inter
 ## workspace-api (workflow backend)
 - 01 sales-order-gateway: an interface to create and list sales orders, with an implementation that calls butterfly. done (tag `workspace-api-phase-01-done`, 2026-10-27)
 - 02 sales-order-routes: role-checked routes for creating and listing orders. done (tag `workspace-api-phase-02-done`, 2026-10-27)
-- 03 order-queue (planned): an order that SAP cannot take is saved and posted later by one worker, never lost and never posted twice (an unclear result is shown as `unknown` and not retried); at most `SAP_WRITE_LIMIT` writes in flight (default 1, the worst case), every limit a setting. Queue and worker on SQLite, not a broker. todo
+- 03 order-queue: an order that SAP cannot take is saved and posted later by one worker, never lost and never posted twice (an unclear result is shown as `unknown` and not retried); at most `SAP_WRITE_LIMIT` writes in flight (default 1, the worst case), every limit a setting. Queue and worker on SQLite, not a broker. done (tag `workspace-api-phase-03-done`, 2026-10-31).
 
 ## workspace-web (department users)
 - 01 shell-and-login: app shell, login page, menu by role. done (tag `workspace-web-phase-01-done`, 2026-10-27)
