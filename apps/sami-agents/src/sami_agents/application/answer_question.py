@@ -5,7 +5,7 @@ from sami_agents.application.analyse_question import AnalyseQuestion
 from sami_agents.application.analysis_json import analysis_json, row_json, step_json
 from sami_agents.application.model_checks import accept_question, accept_rewrite
 from sami_agents.application.question_reader import HELP, NOT_FINISHED, QuestionReader
-from sami_agents.domain.entities.analysis import Analysis
+from sami_agents.application.state_figure import StateFigure
 from sami_agents.domain.entities.question import Question
 from sami_agents.domain.errors import DataUnavailable
 from sami_agents.domain.gateways.data_source import DataSource
@@ -30,6 +30,7 @@ class AnswerQuestion:
         mock: bool = True,
         model: QuestionModel | None = None,
         rewriter: HeadlineRewriter | None = None,
+        figurer: StateFigure | None = None,
     ):
         self.reader = reader
         self.analyser = analyser
@@ -38,6 +39,7 @@ class AnswerQuestion:
         self.mock = mock
         self.model = model
         self.rewriter = rewriter
+        self.figurer = figurer or StateFigure(source)
 
     def execute(self, text: str, token: str, today: date) -> dict:
         read = self.reader.read(text, today)
@@ -46,33 +48,48 @@ class AnswerQuestion:
             question = accept_question(self.model.read(text, self.metrics), self.metrics, today)
         if question is None:
             return self.refusal(NOT_FINISHED if read.problem == "not_finished" else HELP)
+        if question.intent == "figure":
+            return self.figure_answer(question, token, today)
         analysis = self.analyser.execute(question, token, today)
-        trend = self.trend_block(question, token, analysis)
+        trend = self.trend_block(question, token, analysis.currency, analysis.limits, [previous_month_of(question.month), question.month])
         lines = wording.lines(analysis)
         if self.rewriter is not None:
             lines[0] = accept_rewrite(self.rewriter.rewrite(lines[0]), lines[0]) or lines[0]
         blocks = [{"type": "text", "lines": lines}, *trend, *self.table_blocks(analysis), *self.evidence_blocks(analysis)]
         return {
             "readable": True,
-            "question": {"metric": question.metric, "direction": question.direction, "month": question.month.strftime("%Y-%m"), "compared_with": previous_month_of(question.month).strftime("%Y-%m")},
+            "question": {"metric": question.metric, "intent": question.intent, "direction": question.direction, "month": question.month.strftime("%Y-%m"), "compared_with": previous_month_of(question.month).strftime("%Y-%m")},
             "label": MOCK_LABEL if self.mock else None,
             "blocks": blocks,
             "analysis": analysis_json(analysis),
         }
 
+    def figure_answer(self, question: Question, token: str, today: date) -> dict:
+        figure = self.figurer.execute(question, token, today)
+        lines = wording.figure_lines(figure)
+        marked = [question.month] if figure.so_far else [previous_month_of(question.month), question.month]
+        trend = self.trend_block(question, token, figure.currency, lines, marked)
+        compared = None if figure.so_far else previous_month_of(question.month).strftime("%Y-%m")
+        return {
+            "readable": True,
+            "question": {"metric": question.metric, "intent": question.intent, "direction": question.direction, "month": question.month.strftime("%Y-%m"), "compared_with": compared},
+            "label": MOCK_LABEL if self.mock else None,
+            "blocks": [{"type": "text", "lines": lines}, *trend],
+            "analysis": None,
+        }
+
     def refusal(self, message: str) -> dict:
         return {"readable": False, "question": None, "label": None, "blocks": [{"type": "text", "lines": [message]}], "analysis": None}
 
-    def trend_block(self, question: Question, token: str, analysis: Analysis) -> list[dict]:
-        if not analysis.currency:
+    def trend_block(self, question: Question, token: str, currency: str, limits: list[str], marked: list[date]) -> list[dict]:
+        if not currency:
             return []
         try:
             points = self.source.trend(token, question.metric, question.month, TREND_MONTHS)
         except DataUnavailable:
-            analysis.limits.append("The trend of the last months could not be loaded.")
+            limits.append("The trend of the last months could not be loaded.")
             return []
-        marked = [previous_month_of(question.month).strftime("%Y-%m"), question.month.strftime("%Y-%m")]
-        return [{"type": "trend", "metric": question.metric, "currency": analysis.currency, "points": [{"month": p.month, "value": str(p.amount)} for p in points], "marked": marked}]
+        return [{"type": "trend", "metric": question.metric, "currency": currency, "points": [{"month": p.month, "value": str(p.amount)} for p in points], "marked": [m.strftime("%Y-%m") for m in marked]}]
 
     def table_blocks(self, analysis: Analysis) -> list[dict]:
         return [

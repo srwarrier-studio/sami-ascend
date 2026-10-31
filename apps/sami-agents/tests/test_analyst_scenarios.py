@@ -107,3 +107,28 @@ class TestTheEvaluationTool:
         held_back = {p.stem for p in SCENARIOS.glob("*.json") if json.loads(p.read_text())["holdout"]}
         assert not set(CASES) & held_back
         assert {c["scenario"] for c in FINAL} == held_back
+
+
+class TestFigureQuestions:
+    def figure(self, name, text):
+        from sami_agents.application.analyse_question import AnalyseQuestion
+        from sami_agents.application.answer_question import AnswerQuestion
+        from sami_agents.application.question_reader import QuestionReader
+        from sami_agents.entrypoint.analyst_eval import EVAL_TODAY, GRAPH_FILE, load_graph, load_understanding, stack_for
+
+        source, token = stack_for(name, EVAL_TODAY)
+        understanding = load_understanding()
+        analyser = AnalyseQuestion(source, load_graph(GRAPH_FILE))
+        return AnswerQuestion(QuestionReader(understanding), analyser, source, list(understanding.metrics)).execute(text, token, EVAL_TODAY)
+
+    def test_the_august_figure_is_the_same_total_the_why_answer_starts_from(self):
+        _, why, analysis = answer("august-contract")
+        figure = self.figure("august-contract", "What were the sales for August?")
+        assert figure["analysis"] is None and figure["question"]["intent"] == "figure"
+        text = figure["blocks"][0]["lines"][0]
+        assert f"{int(Decimal(analysis['current'])):,}" in text and f"{int(Decimal(analysis['previous'])):,}" in text
+        assert [b["type"] for b in figure["blocks"]] == ["text", "trend"]
+
+    def test_a_quiet_month_is_a_figure_with_no_pointer_to_the_reasons(self):
+        figure = self.figure("quiet-month", CASES["quiet-month"]["question"].replace("Why did", "What did").replace(" change", ""))
+        assert len(figure["blocks"][0]["lines"]) == 1

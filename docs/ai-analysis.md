@@ -1,6 +1,6 @@
 # AI analysis: answering "why" questions
 
-Status: built through the analyst (2026-10-31): metric layer and registry (synapse-api 08, 09), purchases and scenarios (butterfly 09, 10), the graph and its walk (sami-agents 04) and the analyst with its evaluation (sami-agents 05). Level 2 figure answers (sami-agents 03) and drawing the answers (synapse-web 12) are next.
+Status: built through the analyst (2026-10-31): metric layer and registry (synapse-api 08, 09), purchases and scenarios (butterfly 09, 10), the graph and its walk (sami-agents 04) and the analyst with its evaluation (sami-agents 05). Level 2 figure answers are done (sami-agents 03); drawing the answers (synapse-web 12) is next.
 
 ## 0. Scope: any metric, nothing leaves the building
 
@@ -13,7 +13,7 @@ The research facility does not allow external or cloud AI, and nothing is sent t
 | Level | Example | What it needs | Status |
 |-------|---------|---------------|--------|
 | 1. Show me | "show me sales and top customers" | pick widgets | done (`sami-agents` keyword search) |
-| 2. Tell me | "What are the sales for August?" | metric and period from the question, a real figure, a sentence, a trend chart | next |
+| 2. Tell me | "What are the sales for August?" | metric and period from the question, a real figure, a sentence, a trend chart | done (sami-agents 03) |
 | 3. Why | "Why did sales drop in August?" | find where the change is, traverse the related things for what happened there, rank by effect, explain with evidence | this document |
 
 A level 3 answer looks like: "Sales fell 14.5% from July to August (₹75.7 lakh to ₹64.8 lakh). About ₹8.8 lakh of the fall is Acme Industries, whose sales contract ended on 12 July and was not renewed until 14 September. About ₹4.1 lakh is Steel plate 5mm sold to other customers: Doosan Metals delivered Steel coil 12 days late (promised 14 July, delivered 26 July), which delayed production order 0001000417 by 14 days. The other customers together bought about ₹2.0 lakh more, which offsets part of it."

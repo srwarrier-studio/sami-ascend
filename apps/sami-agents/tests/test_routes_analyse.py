@@ -36,6 +36,10 @@ class TestTheAnswer:
         assert body["readable"] is True and body["question"]["month"] == "2025-08"
         assert [b["type"] for b in body["blocks"]][0] == "text"
 
+    def test_a_figure_question_returns_its_intent(self):
+        body = client(["management"]).post(URL, json={"question": "What were the sales for August 2025?"}).json()
+        assert body["question"]["intent"] == "figure" and [b["type"] for b in body["blocks"]] == ["text", "trend"]
+
     def test_an_unreadable_question_is_200_with_the_help_text(self):
         body = client(["management"]).post(URL, json={"question": "tell me a joke"}).json()
         assert (body["readable"], body["analysis"]) == (False, None)

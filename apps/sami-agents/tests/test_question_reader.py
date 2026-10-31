@@ -48,6 +48,26 @@ class TestReadable:
         assert read("why did purchases rise while sales fell in August").question.metric == "purchases"
 
 
+class TestFigure:
+    @pytest.mark.parametrize(
+        "text,expected",
+        [
+            ("What are the sales for August?", Question("sales", "change", date(2026, 8, 1), "figure")),
+            ("how much did we purchase in September 2026", Question("purchases", "change", date(2026, 9, 1), "figure")),
+            ("what were purchases last month", Question("purchases", "change", date(2026, 9, 1), "figure")),
+            ("what are sales this month", Question("sales", "change", date(2026, 10, 1), "figure")),
+        ],
+    )
+    def test_the_figure_is_asked_for(self, text, expected):
+        assert read(text).question == expected
+
+    def test_a_why_word_wins(self):
+        assert read("what made sales fall in August").question.intent == "why"
+
+    def test_a_figure_needs_a_metric_and_a_month(self):
+        assert read("what are the sales").question is None and read("what is in August").question is None
+
+
 class TestUnreadable:
     @pytest.mark.parametrize("text", ["show me sales", "why is the sky blue", "why did sales fall", "why did it fall in August", "", "sales in August"])
     def test_it_does_not_guess(self, text):
@@ -77,7 +97,7 @@ class TestTheWordFile:
 
     def test_a_badly_shaped_file_is_refused(self, tmp_path):
         path = tmp_path / "u.json"
-        path.write_text(json.dumps({"metrics": {"sales": "sales"}, "why": ["why"], "rise": ["up"], "fall": ["down"], "change": ["change"]}))
+        path.write_text(json.dumps({"metrics": {"sales": "sales"}, "why": ["why"], "figure": ["what"], "rise": ["up"], "fall": ["down"], "change": ["change"]}))
         with pytest.raises(ValueError):
             load_understanding(path)
         assert UNDERSTANDING_FILE.name == "understanding.json"
