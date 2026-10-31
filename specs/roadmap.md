@@ -81,7 +81,7 @@ All three phases use mock data (session, sales data and board store behind inter
 - 01 shell-and-login: app shell, login page, menu by role. done (tag `workspace-web-phase-01-done`, 2026-10-27)
 - 02 sales-order-entry: form to enter a sales order with clear validation messages. done (tag `workspace-web-phase-02-done`, 2026-10-27)
 - 03 sales-order-list: list and open the user's recent orders. todo
-- 04 order-status (planned): the new-order page understands the queue answers of workspace-api 03 (queued, unknown, order not saved), clears the form so nothing is entered twice, and shows a Waiting for SAP panel of the user's open orders. Depends on workspace-api 03. todo
+- 04 order-status: the new-order page understands the queue answers of workspace-api 03 (queued, unknown, order not saved), clears the form so nothing is entered twice, and shows a Waiting for SAP panel of the user's open orders. Depends on workspace-api 03. done (tag `workspace-web-phase-04-done`, 2026-10-31).
 
 ## sami-agents (AI service for AI Mode)
 - 01 chat-graph: new FastAPI service (port 8005) with the cookie-checked `POST /v1/agents/chat` route that answers in OpenUI Lang, a LangGraph graph over `ChatModel` and `CatalogSource` ports with mocks, the Ollama adapter, and an evaluation tool (`sami-agents eval`) with 22 prompts; it found that small models alone are not good enough at choosing widgets. done (tag `sami-agents-phase-01-done`, 2026-10-30).

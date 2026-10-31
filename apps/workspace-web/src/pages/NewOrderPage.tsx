@@ -11,8 +11,9 @@ import {
   toNewOrder,
 } from '../orderForm'
 import type { FieldErrors, ItemForm, OrderForm } from '../orderForm'
+import { WaitingOrders } from './WaitingOrders'
 
-type Notice = { color: 'green' | 'red'; text: string }
+type Notice = { color: 'green' | 'yellow' | 'red'; text: string }
 
 const noErrors: FieldErrors = { fields: {}, general: [] }
 
@@ -22,6 +23,7 @@ export function NewOrderPage() {
   const [errors, setErrors] = useState<FieldErrors>(noErrors)
   const [notice, setNotice] = useState<Notice | null>(null)
   const [pending, setPending] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
 
   const setHeader = (field: keyof Omit<OrderForm, 'items'>, value: string) =>
     setForm({ ...form, [field]: value })
@@ -42,8 +44,21 @@ export function NewOrderPage() {
     if (result.ok) {
       setForm(initialForm())
       setNotice({ color: 'green', text: `Sales order ${result.salesOrder} created` })
+    } else if (result.kind === 'queued' || result.kind === 'unknown') {
+      setForm(initialForm())
+      setReloadKey(reloadKey + 1)
+      setNotice(
+        result.kind === 'queued'
+          ? { color: 'yellow', text: 'Saved. SAP could not take the order right now; it will be sent automatically.' }
+          : {
+              color: 'red',
+              text: 'We could not confirm that SAP received the order. Do not enter it again; check with your SAP contact or the order list.',
+            },
+      )
     } else if (result.kind === 'validation') {
       setErrors(mapDetails(result.details, form.items.length))
+    } else if (result.kind === 'notSaved') {
+      setNotice({ color: 'red', text: 'The order could not be saved and nothing was sent. Try again.' })
     } else if (result.kind === 'unavailable') {
       setNotice({ color: 'red', text: 'SAP is not available. Try again in a moment.' })
     } else {
@@ -110,6 +125,7 @@ export function NewOrderPage() {
           </Group>
         </Stack>
       </form>
+      <WaitingOrders salesOrders={salesOrders} reloadKey={reloadKey} />
     </Container>
   )
 }

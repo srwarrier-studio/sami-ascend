@@ -16,6 +16,7 @@ const authFor = (u: User | null): AuthClient => ({
 
 const ordersReturning = (result: CreateResult): SalesOrderClient => ({
   create: vi.fn().mockResolvedValue(result),
+  openRequests: vi.fn().mockResolvedValue([]),
 })
 
 const open = (salesOrders: SalesOrderClient, u: User | null = user(['sales'])) =>
@@ -91,7 +92,7 @@ describe('submit', () => {
 
   it('disables the button while the request runs', async () => {
     let finish: (r: CreateResult) => void = () => {}
-    const orders: SalesOrderClient = { create: () => new Promise((resolve) => (finish = resolve)) }
+    const orders: SalesOrderClient = { create: () => new Promise((resolve) => (finish = resolve)), openRequests: async () => [] }
     open(orders)
     await screen.findByLabelText('Customer number')
     await submit()
