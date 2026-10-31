@@ -37,7 +37,7 @@ def month_of(text: str) -> tuple[int, int]:
 
 
 def metric_of(truth) -> str:
-    return truth.get("metric", "sales")
+    return truth["metric"]
 
 
 def value(seed, month, material=None, customer=None, metric="sales") -> Decimal:

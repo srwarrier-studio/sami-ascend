@@ -1,6 +1,7 @@
 {
   "scenario": "supplier-no-effect",
   "holdout": false,
+  "metric": "sales",
   "month": "2026-08",
   "compare_with": "2026-07",
   "total_change_percent": [-4, 2],

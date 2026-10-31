@@ -1,6 +1,7 @@
 {
   "scenario": "breakdown-shortfall",
   "holdout": false,
+  "metric": "sales",
   "month": "2026-07",
   "compare_with": "2026-06",
   "total_change_percent": [-3, 4],

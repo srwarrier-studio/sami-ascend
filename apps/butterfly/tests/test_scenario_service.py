@@ -90,6 +90,28 @@ class TestTheScenarioListAgrees:
         assert SCENARIOS[0] is AUGUST_CONTRACT
 
 
+class TestEveryTruthNamesItsMetric:
+    def test_the_metric_is_sales_or_purchases_and_matches_the_events(self):
+        for name, truth in TRUTHS.items():
+            assert truth["metric"] in ("sales", "purchases"), name
+        assert {n for n, t in TRUTHS.items() if t["metric"] == "purchases"} == {
+            "purchase-price-rise", "stock-up", "demand-surge", "quiet-purchases", "supplier-switch", "double-cause"
+        }
+
+
+class TestSalesScenariosLeavePurchasesNormal:
+    @pytest.mark.parametrize("name", [n for n in NAMES if TRUTHS[n]["metric"] == "sales"])
+    def test_no_month_of_purchases_is_far_from_the_normal_level(self, name):
+        seed = build_story_seed(TODAY, find_scenario(name))
+        by_month: dict[tuple[int, int], float] = {}
+        for d in seed.deliveries:
+            key = (d.order_date.year, d.order_date.month)
+            by_month[key] = by_month.get(key, 0) + float(d.net_amount)
+        totals = [by_month[k] for k in sorted(by_month)][1:-1]
+        normal = sum(totals) / len(totals)
+        assert all(abs(t - normal) / normal <= 0.05 for t in totals)
+
+
 class TestTheBaseHistoryIsTheSameEverywhere:
     QUIET = build_story_seed(TODAY, find_scenario("quiet-month"))
     FIRST_CHANGE = {
