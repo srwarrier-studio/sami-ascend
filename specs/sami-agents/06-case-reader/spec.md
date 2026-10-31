@@ -44,8 +44,16 @@ Unchanged: figures, movers, graph walk, explained share, blocks. The case only r
 ### Small change in synapse-web (added 2026-10-31, the spec allows it)
 `parseAnswer` keeps the problems `restricted` and `not_one_month`, and `AiPage` shows the agent's text for `not_finished`, `restricted` and `not_one_month` (never the widget planner). `widgets` and `unreadable` still go to the planner. The page does not show `how_read` yet.
 
+### Follow-up questions (added 2026-10-31 after the owner's try-out)
+"Give me the reason for the decline" right after "What were sales for August 2026?" has no metric and no month, so it could not be read and the page showed an unrelated widget.
+- `POST /v1/agents/analyse` accepts an optional `context`: `{metric, month}` (the metric name and `YYYY-MM` of the last answered question). The answer's `question` already carries both.
+- Context only fills gaps: a metric or month the user typed always wins. It is used only when the question has an intent (a why or figure word, or Laya's intent pass says why or figure) and a metric or month is missing. A registered metric and a valid month are required, otherwise the context is ignored.
+- `how_read` says when a part came from the previous question ("metric: from the previous question").
+- The page remembers the `question` of the last readable answer and sends it with the next message; a new complete question replaces it.
+- Acceptance: after a figure answer for sales in August, "why did it fall", "give me the reason for the decline" and "why?" each explain August sales; "why did purchases fall" uses purchases but August; "why did sales fall in June" uses June; with no context they are unreadable as before; a bad context is ignored.
+
 ## Out of scope
-Fine-tuning a model, scope filters that actually answer for one customer, periods other than one month, several metrics in one question, follow-up questions, a model writing figures or causes.
+Fine-tuning a model, scope filters that actually answer for one customer, periods other than one month, several metrics in one question, a model writing figures or causes.
 
 ## Depends on
 sami-agents 05 and 03 (merged), synapse-web 12 (merged: the page shows `question` and the answer unchanged; showing how the question was read is a later small web change).

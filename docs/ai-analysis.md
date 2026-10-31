@@ -1,6 +1,6 @@
 # AI analysis: answering "why" questions
 
-Status: built through the analyst (2026-10-31): metric layer and registry (synapse-api 08, 09), purchases and scenarios (butterfly 09, 10), the graph and its walk (sami-agents 04) and the analyst with its evaluation (sami-agents 05). Level 2 figure answers are done (sami-agents 03); drawing the answers (synapse-web 12) is next.
+Status: built through the analyst (2026-10-31): metric layer and registry (synapse-api 08, 09), purchases and scenarios (butterfly 09, 10), the graph and its walk (sami-agents 04) and the analyst with its evaluation (sami-agents 05). Level 2 figure answers (sami-agents 03), drawing them in AI Mode (synapse-web 12) and the Laya case reader (sami-agents 06) are done; the case tree (sami-agents 07) is next.
 
 ## 0. Scope: any metric, nothing leaves the building
 
