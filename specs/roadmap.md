@@ -29,7 +29,7 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 02 sales-write: create and change a sales order, with validation errors in the OData V4 error format. done (tag `butterfly-phase-02-done`, 2026-10-27)
 - 03 sales-summaries: read-only summary entities for dashboard totals (by day, customer, material). done (tag `butterfly-phase-03-done`, 2026-10-27)
 - 04 failure-modes: configurable delays, errors and timeouts so the apps handle SAP being slow or down. todo
-- 08 driver-data: a second read-only OData service (customer contracts, supplier deliveries, production orders and components, from `docs/sap/drivers-contract.md`) and a 14-month sales history with a built-in story that explains the August 2026 sales fall, so the AI analysis in `docs/ai-analysis.md` can be built before the SAP views exist. todo
+- 08 driver-data: a second read-only OData service (customer contracts, supplier deliveries, production orders and components, from `docs/sap/drivers-contract.md`) and a 14-month sales history with a built-in story that explains the August 2026 sales fall (`BUTTERFLY_SEED=story`, the default), so the AI analysis in `docs/ai-analysis.md` can be built before the SAP views exist. done (tag `butterfly-phase-08-done`, 2026-10-31).
 
 ## SAP consultant guide (`docs/sap/`, written from the contract, one phase each)
 - Phases belong to the `butterfly` section but produce documents: 05 rap-sales-read-guide (CDS view entity, projection, service definition and binding for OData V4), 06 rap-sales-write-guide (behavior definition, validations, determinations), 07 rap-summary-views-guide (summary CDS views for dashboards). todo
