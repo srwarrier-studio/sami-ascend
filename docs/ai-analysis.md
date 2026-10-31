@@ -10,7 +10,7 @@ Status: design, 2026-10-31. Mock data comes from butterfly phase 08. Nothing her
 | 2. Tell me | "What are the sales for August?" | metric and period from the question, a real figure, a sentence, a trend chart | next |
 | 3. Why | "Why did sales drop in August?" | decide which factors could explain it, check each against data, rank by effect, explain with evidence | this document |
 
-A level 3 answer looks like: "Sales fell 12% from July to August (₹X to ₹Y). 54% of the fall came from Acme Industries, whose sales contract ended on 12 July and had not been renewed. 31% came from Steel plate 5mm: Doosan Metals delivered Steel coil 12 days late (promised 14 July, delivered 26 July), which delayed production order 0001000417 by 14 days. The rest, 15%, is not explained by the data we hold."
+A level 3 answer looks like: "Sales fell 14.5% from July to August (₹75.7 lakh to ₹64.8 lakh). About ₹8.8 lakh of the fall is Acme Industries, whose sales contract ended on 12 July and was not renewed until 14 September. About ₹4.1 lakh is Steel plate 5mm sold to other customers: Doosan Metals delivered Steel coil 12 days late (promised 14 July, delivered 26 July), which delayed production order 0001000417 by 14 days. The other customers together bought about ₹2.0 lakh more, which offsets part of it."
 
 ## 2. Principles
 
@@ -94,17 +94,26 @@ The mock data has a known story (section 7) so every answer can be checked again
 
 ## 7. The mock story (butterfly 08)
 
-"Why did sales drop in August 2026?" The data is built so the correct answer is:
+"Why did sales drop in August 2026?" The data is built, with fixed arithmetic and no random numbers, so the correct answer is known. These figures are measured from the data and pinned by tests (`apps/butterfly/tests/test_story_ground_truth.py`).
 
 | Factor | What the data says |
 |--------|-------------------|
-| Customer contract | Acme Industries (the largest customer, about a quarter of sales) has contract `0040000127`, valid until 2026-07-12. It was not renewed until 2026-09-14, so its orders fall away from mid July to mid September |
-| Supplier delay | Doosan Metals delivered Steel coil on purchase order `4500001207` on 2026-07-26 against a promised 2026-07-14 (12 days late) |
-| Production delay | The production order for Steel plate 5mm (`0001000417`) planned to finish 2026-07-20 finished 2026-08-03, reason material shortage |
-| Effect | orders for Steel plate 5mm fall in late July and August |
-| Noise | other customers and materials move by normal amounts; one other delivery is a few days late and has no effect on sales; a machine breakdown on an unrelated product (Bearing 6204, production order `0001000388`) did not reduce its sales |
+| The fall | July ₹75.7 lakh, August ₹64.8 lakh: ₹11.0 lakh or 14.5% lower. Normal months are about ₹90 lakh, and July is already 13.6% below June |
+| Customer contract | Acme Industries (the biggest customer, about 21% of sales) has contract `0040000127`, valid to 2026-07-12, renewed only from 2026-09-14 by `0040000163`. Its orders stop on 12 July except a few small spot orders. Acme: ₹9.0 lakh in July, ₹0.2 lakh in August, which is **₹8.8 lakh, 80% of the fall** |
+| Supplier delay | Doosan Metals delivered Steel coil on purchase order `4500001207` on 2026-07-26, promised 2026-07-14: 12 days late |
+| Production delay | Production order `0001000417` for Steel plate 5mm (`RM-1002`) was planned 2026-07-06 to 2026-07-20 and finished 2026-08-03 (14 days late), reason `MATERIAL_SHORTAGE`, component Steel coil |
+| Effect on sales | From 2026-07-20 to 2026-08-31 the other customers order Steel plate 5mm about 40% less. Steel plate sales to them: ₹7.5 lakh in July, ₹3.4 lakh in August, which is **₹4.1 lakh, 38% of the fall** |
+| Offset | The other customers' remaining sales are about ₹2.0 lakh higher in August than in July: **-18%** of the fall. A good answer reports it |
+| Recovery | September is back to ₹79.9 lakh and October to ₹90.9 lakh |
 
-The last two rows are there so the agent is tested on not blaming everything it finds.
+The three parts are additive: Acme 80% + steel shortage 38% + offset (-18%) = 100%. They are not the same as "sales by customer" and "sales by material", which overlap (Acme's lost orders include steel plate).
+
+Two decoys test that the agent does not blame everything it finds:
+
+- Kalyani Wire Industries delivered Copper rod 4 days late in May (`4500001196`); copper wire sales in May are normal.
+- Production order `0001000408` for Bearing 6204 finished 6 days late in May for `MACHINE_BREAKDOWN`; bearing sales in May are normal.
+
+Every other delivery is within 2 days of its promise and every other production order finished on time. As of 2026-10-31 next month's purchase orders are open and next month's production orders are running.
 
 ## 8. Phases
 

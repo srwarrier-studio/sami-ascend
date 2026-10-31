@@ -22,7 +22,8 @@ SHORTAGE_END = date(2026, 8, 31)
 SHORTAGE_KEEP = 3
 SHORTAGE_OF = 5
 SPOT_EVERY = 10
-ACME_WEIGHT = Decimal("0.85")
+ACME_WEIGHT = Decimal("1")
+OTHER_WEIGHT = Decimal("0.95")
 CANCEL_EVERY = 16
 NORMAL_WORKING_DAYS = 22
 SETTLED_AFTER_DAYS = 30
@@ -182,7 +183,7 @@ def build_order(sequence: int, index: int, day: date, customer_index: int, copy:
 def build_item(number: str, position: int, material: tuple, index: int, customer_index: int, step: int, spot: bool, factor: Decimal) -> SalesOrderItem:
     material_id, description, unit, price = material
     steps = Decimal(10 * (1 + (index + customer_index + step) % 5))
-    quantity = (steps * QUANTITY_FACTOR[material_id] * factor * (Decimal("0.5") if spot else 1) * (ACME_WEIGHT if customer_index == ACME else 1)).quantize(Decimal("0.001"))
+    quantity = (steps * QUANTITY_FACTOR[material_id] * factor * (Decimal("0.5") if spot else 1) * (ACME_WEIGHT if customer_index == ACME else OTHER_WEIGHT)).quantize(Decimal("0.001"))
     return SalesOrderItem(
         sales_order=number,
         sales_order_item=f"{(position + 1) * 10:06d}",

@@ -128,7 +128,7 @@ All examples use the root path from section 1. `{root}` stands for it.
 ### Contracts of one customer
 
 ```
-GET {root}SalesContract?$filter=SoldToParty eq '0000100001'&$orderby=ValidFrom
+GET {root}SalesContract?$filter=SoldToParty eq '0000100001' and ValidTo ge 2026-01-01&$orderby=ValidFrom
 ```
 
 ```json
@@ -190,7 +190,7 @@ GET {root}PurchaseDelivery?$filter=Material eq 'RAW-2002' and PromisedDeliveryDa
 }
 ```
 
-### Production orders of a product that finished late
+### Production orders of one product
 
 ```
 GET {root}ProductionOrder?$filter=Material eq 'RM-1002' and PlannedEndDate ge 2026-07-01&$orderby=PlannedEndDate&$top=2
@@ -214,16 +214,16 @@ GET {root}ProductionOrder?$filter=Material eq 'RM-1002' and PlannedEndDate ge 20
       "DelayReason": "MATERIAL_SHORTAGE"
     },
     {
-      "ProductionOrder": "0001000431",
+      "ProductionOrder": "0001000423",
       "Material": "RM-1002",
       "MaterialDescription": "Steel plate 5mm",
       "PlannedQuantity": "4000.000",
-      "ConfirmedQuantity": "0.000",
+      "ConfirmedQuantity": "4000.000",
       "QuantityUnit": "KG",
-      "PlannedStartDate": "2026-08-04",
-      "PlannedEndDate": "2026-08-18",
-      "ActualEndDate": null,
-      "ProductionStatus": "R",
+      "PlannedStartDate": "2026-08-06",
+      "PlannedEndDate": "2026-08-20",
+      "ActualEndDate": "2026-08-20",
+      "ProductionStatus": "C",
       "DelayReason": null
     }
   ]
