@@ -1,5 +1,5 @@
 import './charts.css'
-import { areaY, barY, colorLegend, colorLegendItems, defineChart, dot, group, lineY, stack } from '@tanstack/charts'
+import { areaY, barY, colorLegend, colorLegendItems, defineChart, dot, group, lineY, stack, text } from '@tanstack/charts'
 import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scalePoint } from '@tanstack/charts/scales/point'
@@ -22,6 +22,8 @@ export type ChartProps = {
   xLabel?: string
   yLabel?: string
 }
+
+export type BarChartProps = ChartProps & { valueLabels?: boolean }
 
 export type LineChartProps = ChartProps & {
   compare?: ChartPointData[]
@@ -46,6 +48,9 @@ const CHART_HEIGHT = CHART_MIN_HEIGHT
 const BAR_RADIUS = 6
 const LINE_WIDTH = 2.5
 const LATEST_RADIUS = 5
+const LABEL_OFFSET = -8
+const LABEL_SIZE = 11
+const MAX_LABELLED_BARS = 16
 
 export const tooltipFor = (xLabel = 'Period', yLabel = 'Value', valueFormat?: ValueFormat) => ({
   use: tooltip,
@@ -88,8 +93,9 @@ function lineDefinition({ data, valueFormat, compare = [], label = 'This period'
   })
 }
 
-function barDefinition({ data, valueFormat, xLabel, yLabel }: ChartProps) {
+function barDefinition({ data, valueFormat, xLabel, yLabel, valueLabels = true }: BarChartProps) {
   const last = data[data.length - 1]
+  const labelled = valueLabels && data.length <= MAX_LABELLED_BARS
   return defineChart({
     marks: [
       barY(data, {
@@ -98,6 +104,7 @@ function barDefinition({ data, valueFormat, xLabel, yLabel }: ChartProps) {
         radius: { end: BAR_RADIUS },
         fill: (point) => (point === last ? 'var(--ts-chart-1)' : 'color-mix(in srgb, var(--ts-chart-1) 35%, transparent)'),
       }),
+      ...(labelled ? [text(data, { x: 'label', y: 'value', text: (point) => formatCompact(point.value, valueFormat === 'currency' ? 'number' : valueFormat, true), dy: LABEL_OFFSET, fontSize: LABEL_SIZE })] : []),
     ],
     scales: scales('bar', valueFormat),
     tooltip: tooltipFor(xLabel, yLabel, valueFormat),
@@ -143,8 +150,8 @@ export function LineChart({ data, title, info, measure, valueFormat, compare, la
   return <ChartCard title={title} help={helpText('LineChart', measure)} info={info} empty={data.length === 0} definition={definition} label="line chart" height={CHART_HEIGHT} />
 }
 
-export function BarChart({ data, title, info, measure, valueFormat, xLabel, yLabel }: ChartProps) {
-  const definition = useMemo(() => barDefinition({ data, valueFormat, xLabel, yLabel: yLabel ?? title }), [data, valueFormat, xLabel, yLabel, title])
+export function BarChart({ data, title, info, measure, valueFormat, xLabel, yLabel, valueLabels }: BarChartProps) {
+  const definition = useMemo(() => barDefinition({ data, valueFormat, xLabel, yLabel: yLabel ?? title, valueLabels }), [data, valueFormat, xLabel, yLabel, title, valueLabels])
   return <ChartCard title={title} help={helpText('BarChart', measure)} info={info} empty={data.length === 0} definition={definition} label="bar chart" height={CHART_HEIGHT} />
 }
 
