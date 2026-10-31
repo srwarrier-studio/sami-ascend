@@ -2,6 +2,10 @@ class RelevanceUnavailable(Exception):
     pass
 
 
+class CaseModelUnavailable(Exception):
+    pass
+
+
 class CatalogUnavailable(Exception):
     pass
 
