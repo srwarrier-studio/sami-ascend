@@ -6,7 +6,7 @@ from sami_agents.domain.entities.graph import ANOMALY_KINDS, DEFAULT_LOOKBACK_DA
 from sami_agents.domain.errors import GraphError
 
 NODE_KEYS = {"source", "anomaly", "passthrough"}
-EDGE_KEYS = {"cause", "effect", "join", "carries", "lookback_days"}
+EDGE_KEYS = {"cause", "effect", "join", "carries", "shows", "lookback_days"}
 
 
 def load_graph(path: Path) -> Graph:
@@ -110,12 +110,15 @@ def build_edge(name: str, body: Any, problems: list[str]) -> Edge:
     if not isinstance(join, dict) or set(join) != {"cause", "effect"} or not all(is_text(v) for v in join.values()):
         problems.append(f"{where}: 'join' needs 'cause' and 'effect' field names as text")
         join = {"cause": "", "effect": ""}
-    carries = body.get("carries", [])
-    if not isinstance(carries, list) or not all(is_text(k) for k in carries):
-        problems.append(f"{where}: 'carries' must be a list of anomaly kinds")
-        carries = []
+    lists = {}
+    for key in ("carries", "shows"):
+        value = body.get(key, [])
+        if not isinstance(value, list) or not all(is_text(k) for k in value):
+            problems.append(f"{where}: '{key}' must be a list of anomaly kinds")
+            value = []
+        lists[key] = tuple(value)
     lookback = body.get("lookback_days", DEFAULT_LOOKBACK_DAYS)
     if not isinstance(lookback, int) or isinstance(lookback, bool) or lookback < 0:
         problems.append(f"{where}: 'lookback_days' must be a whole number from 0 up")
         lookback = DEFAULT_LOOKBACK_DAYS
-    return Edge(name, body.get("cause") or "", body.get("effect") or "", join["cause"], join["effect"], tuple(carries), lookback)
+    return Edge(name, body.get("cause") or "", body.get("effect") or "", join["cause"], join["effect"], lists["carries"], lists["shows"], lookback)

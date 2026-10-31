@@ -67,6 +67,13 @@ class CheckGraph:
         for kind in edge.carries:
             if kind not in defined and not cause.passthrough:
                 problems.append(f"{where}: carries '{kind}' but its cause '{cause.name}' has no such anomaly")
+        effect = graph.nodes[edge.effect]
+        shown = {a.kind for a in effect.anomalies}
+        if effect.passthrough and edge.shows:
+            problems.append(f"{where}: shows {list(edge.shows)} but its effect '{effect.name}' is passthrough")
+        for kind in edge.shows:
+            if kind not in shown and not effect.passthrough:
+                problems.append(f"{where}: shows '{kind}' but its effect '{effect.name}' has no such anomaly")
 
     def check_join_field(self, node: Node, field: str, where: str, side: str, problems: list[str]) -> None:
         if node.source_kind == "metric":

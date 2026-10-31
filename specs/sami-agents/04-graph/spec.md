@@ -36,7 +36,7 @@ lookback_days = 60
 ```
 
 - A **node** names its `source`: `record:<type>` (rows from synapse-api's `/records`) or `metric:<metric>.<dimension>` (a member of a split from `/metrics/.../compare`; its only field is `key`). It has none, one or several `anomaly` entries, or `passthrough = true` (a link node that is walked through without being tested, such as a list of components).
-- An **edge** is directed, from a `cause` node to an `effect` node, with the `join` that ties their rows (`cause` and `effect` name the field on each side, `key` for a metric node), the anomaly `carries` kinds of the cause that this edge follows, and a `lookback_days` (default 60). The same two nodes may have an edge in each direction when different anomalies travel each way (late supply flows to production; extra demand flows from sales to production to purchases).
+- An **edge** is directed, from a `cause` node to an `effect` node, with the `join` that ties their rows (`cause` and `effect` name the field on each side, `key` for a metric node), the anomaly `carries` kinds of the cause that this edge follows, the kinds it `shows` at the effect (what the effect is tested for when the edge is followed from its cause), and a `lookback_days` (default 60). The same two nodes may have an edge in each direction when different anomalies travel each way (late supply flows to production; extra demand flows from sales to production to purchases).
 - The join field on a `record:` side must be one of that record type's `key_fields` in the synapse-api registry, because a lookup is a `/records` call by that field.
 
 ### Anomaly kinds (a fixed list the code understands; a new kind needs code, a new entry of a known kind does not)
@@ -55,7 +55,7 @@ For `sum_changed` the rows are read over both periods padded by `pad_days` and p
 `sami-agents graph show [--mermaid]` prints the nodes (source, anomalies) and the edges (cause to effect, join, carries, lookback), or Mermaid source for a picture.
 
 ## Walking the graph
-A walk is given the mode, one or more starting `(node, key)` pairs (for a record node also the `key_field`, default the first), a window (`start`, `end`) and its previous period (`compare_start`, `compare_end`), and the user's access token. It reads through a `DataSource` port (a mock for tests; an adapter that calls synapse-api `/records` and `/metrics/.../compare` with the user's cookie, never anything else). Nothing is cached across walks.
+A walk is given the mode, one or more starting `(node, key)` pairs (for a record node also its `key_field`), a window (`start`, `end`) and its previous period (`compare_start`, `compare_end`), and the user's access token. It reads through a `DataSource` port (a mock for tests; an adapter that calls synapse-api `/records` and `/metrics/.../compare` with the user's cookie, never anything else). Nothing is cached across walks.
 
 | Mode | Starts at | Follows |
 |------|-----------|---------|
@@ -64,10 +64,10 @@ A walk is given the mode, one or more starting `(node, key)` pairs (for a record
 | `dependency` | any node | edges either way, no anomaly test: lists the related nodes and keys that exist, read over the widest window the API allows (400 days ending at the window's end) |
 
 Root cause and impact, at each step:
-1. Take the distinct join values of the rows reached so far (a metric member is the row `{key}`) and read the next node's rows for each value, over the window widened backwards by the edge's `lookback_days` (root cause) or forwards by it (impact); the previous period for change kinds is the same length directly before the widened window.
-2. A `passthrough` node is walked through without a test. Any other node is tested with its anomaly kinds that the edge `carries`; a node with no anomaly is **pruned**: it is not followed and not reported as a cause. `later_than` is judged per row, `coverage_gap` per looked-up key, `value_changed` per member, and `sum_changed` over all the rows reached by the step together (several orders that use one material are one group). The walk continues from the unusual rows (the rows dated in the window for `sum_changed`).
+1. Take the distinct join values of the rows reached so far (a metric member is the row `{key}`) and read the next node's rows for each value, over the window widened backwards by the edge's `lookback_days` (root cause) or forwards by it (impact); the previous period for change kinds is the same length directly before the widened window. Moving into a `passthrough` node does not widen the window (a link has no time of its own).
+2. A `passthrough` node is walked through without a test. In root cause, any other node is tested with its anomaly kinds that the edge `carries`; in impact, the edge is followed only when the kind found at its cause is in `carries`, and the effect is then tested with its anomalies of the kinds the edge `shows`. An edge with no `carries` (its cause is a link node) uses the kinds carried before it. a node with no anomaly is **pruned**: it is not followed and not reported as a cause. `later_than` is judged per row, `coverage_gap` per looked-up key, `value_changed` per member, and `sum_changed` over all the rows reached by the step together (several orders that use one material are one group). The walk continues from the unusual rows (the rows dated in the window for `sum_changed`).
 3. The step is kept only if the dated anomalies keep the order: along a root-cause path the cause's `at` is not after its effect's `at`; along an impact path the effect's `at` is not before the cause's.
-4. A path ends where there is nothing further, and a walk stops (`truncated = true`) at depth 6, 100 visited `(node, key)` pairs or 200 data calls, whichever comes first. A lookup (node, field, value) is made once per walk. A metric member is looked up in the top 50 changes of its dimension, so a member outside them is not found (recorded as a limit).
+4. A path ends where there is nothing further, and a walk stops (`truncated = true`) at depth 6, 100 visited `(node, key)` pairs or 200 data calls, whichever comes first. A node appears at most once on a path, and a lookup (node, field, value) is made once per walk. A window never grows beyond 170 days, so the padded read stays inside the 400 days the API allows. A metric member is looked up in the top 50 changes of its dimension, so a member outside them is not found (recorded as a limit).
 - Result: a list of paths; each step has the node, key, the anomaly kind, `at`, the numbers behind it (days late, days uncovered, percent, volume and price effect) and the rows that show it (SAP fields as returned). An empty list is a valid result: "nothing unusual found behind this mover".
 - A failure of the data source raises one error for the whole walk; no partial result.
 
@@ -79,7 +79,7 @@ Checks and loader:
 
 Anomaly kinds (unit, on rows):
 - `later_than`: 12 days late is unusual; 2 days is not; an open item overdue by 11 days counts to today; an open item not yet due does not.
-- `coverage_gap`: a contract that ends 12 July leaves 31 uncovered days in August; a renewal that starts 14 September leaves the same; two contracts back to back leave none.
+- `coverage_gap`: a contract that ends 12 July leaves 31 uncovered days in an August window; a renewal that starts 14 September leaves the same; two contracts back to back leave none.
 - `sum_changed`: +23% over the padded periods is unusual at `min_percent = 10`; +5% is not; rows are placed by their own date.
 - `value_changed`: -15% at `min_percent = 10` is unusual and returns volume and price effects when the dimension has a quantity.
 
@@ -93,8 +93,8 @@ Walks (unit, with a mock source):
 - A failing source fails the whole walk.
 
 Against butterfly and synapse-api in process (as the earlier phases):
-- `august-contract`, window August 2026: from Customer `0000100001` root cause finds Contract `0040000127` with 31 uncovered days; from Product `RM-1002` it finds Production order `0001000417` (14 days late, reason `MATERIAL_SHORTAGE`), behind it Purchase delivery `4500001207` (12 days late); nothing is reported for the May decoys (they lie outside the lookback).
-- Impact from delivery `4500001207` reaches production order `0001000417` and then Product `RM-1002` in `august-contract`, and stops at production in `supplier-no-effect` (sales did not move).
+- `august-contract`, window August 2026: from Customer `0000100001` root cause finds Contract `0040000127` with 50 uncovered days from 13 July (the window widened back by the 60-day lookback); from Product `RM-1002` it finds Production order `0001000417` (14 days late, reason `MATERIAL_SHORTAGE`), behind it Purchase delivery `4500001207` (12 days late); nothing is reported for the May decoys (they lie outside the lookback).
+- Impact from delivery `4500001207` (start key field `PurchaseOrder`) reaches production order `0001000417` and then Product `RM-1002` in `august-contract`, and stops at production in `supplier-no-effect` (sales did not move).
 - `breakdown-shortfall`, window July to August: from Product `RM-1005` root cause finds Production order `0001000420` with `MACHINE_BREAKDOWN` and no delivery.
 - `customer-lost`: from Customer `0000100005` nothing is found (its contract covers the window).
 - `price-cut`: from Product `RM-1001` nothing is found behind it.

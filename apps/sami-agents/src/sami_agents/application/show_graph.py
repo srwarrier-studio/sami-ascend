@@ -17,7 +17,8 @@ def node_line(node) -> str:
 def edge_line(edge) -> str:
     join = f"{edge.cause}.{edge.cause_field} = {edge.effect}.{edge.effect_field}"
     carries = ", ".join(edge.carries) or "-"
-    return f"  {edge.name:<26} {edge.cause} -> {edge.effect}   join {join}   carries {carries}   lookback {edge.lookback_days}d"
+    shows = ", ".join(edge.shows) or "-"
+    return f"  {edge.name:<26} {edge.cause} -> {edge.effect}   join {join}   carries {carries}   shows {shows}   lookback {edge.lookback_days}d"
 
 
 def show_text(graph: Graph) -> str:

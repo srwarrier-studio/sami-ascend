@@ -82,6 +82,14 @@ class TestEachProblemIsReportedByName:
     def test_carries_a_kind_the_cause_does_not_define(self, tmp_path):
         assert "edge 'customer_contracts': carries 'later_than' but its cause 'Contract' has no such anomaly" in problems(tmp_path, BASE.replace('["coverage_gap"]', '["later_than"]'))
 
+    def test_shows_a_kind_the_effect_does_not_define(self, tmp_path):
+        assert "edge 'customer_contracts': shows 'value_changed' but its effect 'Customer' has no such anomaly" in problems(tmp_path, BASE + 'shows = ["value_changed"]\n')
+
+    def test_shows_on_a_passthrough_effect(self, tmp_path):
+        text = BASE.replace('source = "metric:sales.customer"', 'source = "record:production_component"\npassthrough = true').replace('effect = "key"', 'effect = "ProductionOrder"')
+        found = problems(tmp_path, text + 'shows = ["later_than"]\n')
+        assert any("shows ['later_than'] but its effect 'Customer' is passthrough" in p for p in found)
+
     def test_a_record_kind_on_a_metric_node_and_the_reverse(self, tmp_path):
         on_metric = BASE.replace('source = "metric:sales.customer"', 'source = "metric:sales.customer"\nanomaly = { kind = "later_than", due = "a", done = "b" }')
         assert any("node 'Customer': anomaly 'later_than' needs rows" in p for p in problems(tmp_path, on_metric))

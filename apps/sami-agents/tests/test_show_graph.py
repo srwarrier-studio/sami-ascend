@@ -19,7 +19,7 @@ class TestText:
         text = show_text(GRAPH)
         for name in GRAPH.edges:
             assert name in text
-        assert "Contract -> Customer   join Contract.SoldToParty = Customer.key   carries coverage_gap   lookback 60d" in text
+        assert "Contract -> Customer   join Contract.SoldToParty = Customer.key   carries coverage_gap   shows -   lookback 60d" in text
 
 
 class TestMermaid:

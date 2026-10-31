@@ -38,11 +38,13 @@ cause = "ProductionOrder"
 effect = "Product"
 join = { cause = "Material", effect = "key" }
 carries = ["later_than"]
+shows = ["value_changed"]
 
 [edge.components_of_production]
 cause = "Component"
 effect = "ProductionOrder"
 join = { cause = "ProductionOrder", effect = "ProductionOrder" }
+shows = ["later_than"]
 
 [edge.deliveries_of_component]
 cause = "PurchaseDelivery"
@@ -55,6 +57,7 @@ cause = "Product"
 effect = "ProductionOrder"
 join = { cause = "key", effect = "Material" }
 carries = ["value_changed"]
+shows = ["sum_changed"]
 
 [edge.production_drives_components]
 cause = "ProductionOrder"
@@ -66,3 +69,4 @@ carries = ["sum_changed"]
 cause = "Component"
 effect = "PurchaseDelivery"
 join = { cause = "Material", effect = "Material" }
+shows = ["sum_changed"]

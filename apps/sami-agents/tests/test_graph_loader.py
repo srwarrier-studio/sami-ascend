@@ -60,6 +60,12 @@ class TestTheShippedGraph:
         assert pairs[("PurchaseDelivery", "Component")].carries == ("later_than",)
         assert pairs[("Component", "PurchaseDelivery")].carries == ()
 
+    def test_edges_say_what_they_show_at_the_effect(self):
+        edges = self.GRAPH.edges
+        assert edges["production_for_product"].shows == ("value_changed",)
+        assert edges["sales_drive_production"].shows == ("sum_changed",)
+        assert edges["customer_contracts"].shows == ()
+
     def test_lookback_defaults_to_sixty_days(self):
         assert all(e.lookback_days == 60 for e in self.GRAPH.edges.values())
 
@@ -115,6 +121,9 @@ class TestEveryProblemNamesItself:
     def test_carries_must_be_a_list_and_lookback_a_whole_number(self, tmp_path):
         assert any("'carries' must be a list" in p for p in problems_of(tmp_path, GOOD.replace('["coverage_gap"]', '"coverage_gap"')))
         assert any("'lookback_days' must be a whole number" in p for p in problems_of(tmp_path, GOOD + "lookback_days = -1\n"))
+
+    def test_shows_must_be_a_list(self, tmp_path):
+        assert any("'shows' must be a list" in p for p in problems_of(tmp_path, GOOD + 'shows = "value_changed"\n'))
 
     def test_a_misspelt_key_is_not_ignored(self, tmp_path):
         assert any("unknown key 'pasthrough'" in p for p in problems_of(tmp_path, GOOD.replace('source = "metric:sales.customer"', 'source = "metric:sales.customer"\npasthrough = true')))

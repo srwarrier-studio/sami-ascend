@@ -34,6 +34,7 @@ class Edge:
     cause_field: str
     effect_field: str
     carries: tuple[str, ...] = ()
+    shows: tuple[str, ...] = ()
     lookback_days: int = DEFAULT_LOOKBACK_DAYS
 
 
