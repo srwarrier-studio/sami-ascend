@@ -1,6 +1,6 @@
 # butterfly
 
-Mock SAP. Serves the Sales OData V4 contract in `docs/sap/sales-contract.md` from seed data, so the apps can be built before the real RAP services exist. No auth, no database; data resets on restart.
+Mock SAP. Serves the Sales OData V4 contract in `docs/sap/sales-contract.md` and the drivers contract in `docs/sap/drivers-contract.md` from seed data, so the apps can be built before the real RAP services exist. No auth, no database; data resets on restart. All data is invented.
 
 ## Run
 ```
@@ -18,8 +18,18 @@ curl "http://localhost:8003/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/
 - Query options: `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$count`, `$expand=_Item`
 - Summaries: `SalesSummaryByDay`, `SalesSummaryByCustomer`, `SalesSummaryByMaterial`, read-only, computed from the orders on every request, cancelled (`X`) orders left out; same query options as `SalesOrder` except `$expand`
 - Writes: `POST SalesOrder` (deep insert, `201` + `Location`) and `PATCH SalesOrder('key')` (only `RequestedDeliveryDate`, needs `If-Match`)
-- Seed: 30 orders over the last 10 days, built from today's date. New orders continue from `0000012031`; they live in memory until restart.
+- Small seed (`BUTTERFLY_SEED=small`): 30 orders over the last 10 days, built from today's date. New orders continue from `0000012031`; they live in memory until restart.
 - Reference data: customers `0000100001` to `0000100005`; materials `RM-1001` to `RM-1004` in `KG`, `RM-1005` and `RM-1006` in `EA`; currency `INR`.
+
+## Drivers service
+Second read-only service on `/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/`: `SalesContract`, `PurchaseDelivery`, `ProductionOrder`, `ProductionOrderComponent` (fields in `docs/sap/drivers-contract.md`). Same query options as the summaries; `$expand` and writes are refused.
+
+```
+curl "http://localhost:8003/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/PurchaseDelivery?\$filter=Material%20eq%20'RAW-2002'&\$orderby=PromisedDeliveryDate%20desc&\$top=3"
+```
+
+## Seeds
+`BUTTERFLY_SEED=story` (the default) serves 14 months of sales (about 1,360 orders from 2025-09-01 to today) plus contracts, purchase deliveries, production orders and components, built so that sales fall in August 2026 for known reasons: Acme Industries' contract ended on 12 July and was not renewed until 14 September, and Doosan Metals delivered Steel coil 12 days late, which delayed Steel plate production. Two events (a late copper rod delivery and a bearing machine breakdown, both in May) did not affect sales. The story is described in `docs/ai-analysis.md` section 7 and pinned by `tests/test_story_ground_truth.py`. `BUTTERFLY_SEED=small` serves the old 30 orders and an empty drivers service; anything else stops the start with a message. New orders continue after the last seeded number.
 
 Not yet: delays and failures (butterfly/04), `$metadata`.
 

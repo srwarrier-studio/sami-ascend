@@ -29,6 +29,7 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 02 sales-write: create and change a sales order, with validation errors in the OData V4 error format. done (tag `butterfly-phase-02-done`, 2026-10-27)
 - 03 sales-summaries: read-only summary entities for dashboard totals (by day, customer, material). done (tag `butterfly-phase-03-done`, 2026-10-27)
 - 04 failure-modes: configurable delays, errors and timeouts so the apps handle SAP being slow or down. todo
+- 08 driver-data: a second read-only OData service (customer contracts, supplier deliveries, production orders and components, from `docs/sap/drivers-contract.md`) and a 14-month sales history with a built-in story that explains the August 2026 sales fall (`BUTTERFLY_SEED=story`, the default), so the AI analysis in `docs/ai-analysis.md` can be built before the SAP views exist. done (tag `butterfly-phase-08-done`, 2026-10-31).
 
 ## SAP consultant guide (`docs/sap/`, written from the contract, one phase each)
 - Phases belong to the `butterfly` section but produce documents: 05 rap-sales-read-guide (CDS view entity, projection, service definition and binding for OData V4), 06 rap-sales-write-guide (behavior definition, validations, determinations), 07 rap-summary-views-guide (summary CDS views for dashboards). todo
@@ -47,6 +48,8 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 03 dashboard-routes: role-checked routes that return the data each catalog widget needs (month-on-month sales, day sales, recent high-value sales, top customers and materials). done (tag `synapse-api-phase-03-done`, 2026-10-28).
 - 04 board-storage: each user's own boards (name, widgets with name, props and grid position), saved in SQLite behind a repo, with list, create, rename, delete and save-layout routes. Postponed: designed after synapse-web 03, from the board store the mock settles on. todo
 - 05 catalog: the widget catalog and each widget's ready-to-render props served from synapse-api (`/v1/synapse/catalog`), sales entries from the sales source and the other domains from a mock library. done (tag `synapse-api-phase-05-done`, 2026-10-30).
+- 07 sales-change (planned): a read endpoint that splits the change in sales between two periods by customer and by material, and a month's figure with its trend; the facts for answers to "what were sales for August" and the start of "why". todo
+- 08 driver-facts (planned): read endpoints for contracts, production orders with their components, and purchase deliveries, from butterfly 08 and later the SAP views. todo
 
 ## synapse-web (management dashboards)
 All three phases use mock data (session, sales data and board store behind interfaces); no synapse-api calls yet.
@@ -61,6 +64,7 @@ All three phases use mock data (session, sales data and board store behind inter
 - 09 preset-boards: a `Preset boards` tab in the Add widget drawer that creates a ready-made board in one click, with the replace flow at 3 boards. done (tag `synapse-web-phase-09-done`, 2026-10-30).
 - 10 login-page: full-screen login with the neuron and electric-pulse animation as the background, a centred navy sign-in card and a Sign in with Microsoft placeholder button. done (tag `synapse-web-phase-10-done`, 2026-10-30).
 - 11 premium-look: an opt-in premium look in `@sami/ui` (`look` prop, `midnight` palette, surface tokens, glass-like bars, refined widgets) applied to every Synapse screen, with the Synapse logo, name and tagline, and fixes to the donut labels and legend, chart tooltips, KPI fit and boards loading skeleton. done (tag `synapse-web-phase-11-done`, 2026-10-30).
+- 12 ai-answers (planned): AI Mode talks to sami-agents and shows the answer as text, a chart and an evidence table, as JSON blocks drawn with the existing widgets (OpenUI is not needed for this). Depends on sami-agents 03. todo
 - company-data (not numbered yet): filter synapse-api data by company and add the group view, an `All companies` choice in the picker for users with several companies that sums across them, plus widgets that split by company. All three companies are in one SAP system, so synapse-api filters and sums by company code in one query. Currency and intercompany rules still need an answer from finance. todo
 
 ## workspace-api (workflow backend)
@@ -75,6 +79,9 @@ All three phases use mock data (session, sales data and board store behind inter
 ## sami-agents (AI service for AI Mode)
 - 01 chat-graph: new FastAPI service (port 8005) with the cookie-checked `POST /v1/agents/chat` route that answers in OpenUI Lang, a LangGraph graph over `ChatModel` and `CatalogSource` ports with mocks, the Ollama adapter, and an evaluation tool (`sami-agents eval`) with 22 prompts; it found that small models alone are not good enough at choosing widgets. done (tag `sami-agents-phase-01-done`, 2026-10-30).
 - 02 relevance-check: keyword proposals with stemming and an alias file, an optional Laya relevance check in a propose and verify loop (off by default: it did not beat the keywords in our tests), an optional small-model sentence writer behind strict checks (off by default), widgets returned as OpenUI Lang pinned by a contract test, and an evaluation tool with a tuning set and a held-out set. done (tag `sami-agents-phase-02-done`, 2026-10-31).
+
+- 03 answer-questions (planned): level 2 answers: the metric and period from the question, a sentence with the real figure and a trend chart, as JSON. Depends on synapse-api 07. todo
+- 04 driver-graph (planned): level 3 "why" answers: the driver graph, the walk over the facts, ranking, a validated explanation with evidence. Depends on synapse-api 08, sami-agents 03 and `docs/ai-analysis.md`. todo
 
 ## ai-dashboard (POC, later, local-first)
 - Not scheduled. Starts after synapse-web 03. See `notes.md` for the constraints. todo

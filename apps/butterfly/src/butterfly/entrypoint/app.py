@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from datetime import date, datetime
 from typing import Callable
 
@@ -11,6 +12,10 @@ from structured_logging import RequestIdMiddleware, get_request_id, setup_loggin
 
 from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.filter.fields import (
+    PRODUCTION_ORDER_COMPONENT_FIELDS,
+    PRODUCTION_ORDER_FIELDS,
+    PURCHASE_DELIVERY_FIELDS,
+    SALES_CONTRACT_FIELDS,
     SALES_ORDER_FIELDS,
     SALES_ORDER_ITEM_FIELDS,
     SALES_SUMMARY_BY_CUSTOMER_FIELDS,
@@ -35,18 +40,22 @@ from butterfly.domain.errors import (
     UnsupportedQueryOption,
     ValidationFailed,
 )
+from butterfly.domain.repositories.driver_repo import DriverRepo
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.api.odata import (
+    DRIVERS_ROOT,
     ROOT,
     error_body,
     item_to_json,
     order_to_json,
     summary_to_json,
 )
+from butterfly.infrastructure.memory.in_memory_driver_repo import InMemoryDriverRepo
 from butterfly.infrastructure.memory.in_memory_master_data_repo import InMemoryMasterDataRepo
 from butterfly.infrastructure.memory.in_memory_sales_order_repo import InMemorySalesOrderRepo
 from butterfly.infrastructure.memory.seed import build_seed
+from butterfly.infrastructure.memory.story_seed import build_story_seed
 
 logger = logging.getLogger("butterfly")
 
@@ -84,9 +93,11 @@ HTTP_ERRORS = {
 def create_app(
     repo: SalesOrderRepo,
     master_data: MasterDataRepo | None = None,
+    drivers: DriverRepo | None = None,
     now: Callable[[], datetime] = utc_now,
 ) -> FastAPI:
     master_data = master_data or InMemoryMasterDataRepo()
+    drivers = drivers or InMemoryDriverRepo()
     app = FastAPI()
     router = APIRouter(prefix=ROOT.rstrip("/"))
 
@@ -182,9 +193,9 @@ def create_app(
         body["value"] = [item_to_json(item, result.select) for item in result.rows]
         return body
 
-    def add_summary_route(entity: str, summarize, fields: dict):
-        @router.get("/" + entity)
-        def list_summary(
+    def add_list_route(target: APIRouter, entity: str, rows: Callable[[], list], fields: dict):
+        @target.get("/" + entity)
+        def list_rows(
             request: Request,
             filter_text: str | None = Query(None, alias="$filter"),
             select: str | None = Query(None, alias="$select"),
@@ -195,16 +206,25 @@ def create_app(
         ):
             reject_unsupported(request, LIST_OPTIONS)
             query = ListQuery(filter_text, select, orderby, top, skip, count)
-            result = ListSalesSummary(summarize(repo).execute, fields).execute(query)
+            result = ListSalesSummary(rows, fields).execute(query)
             body = {"@odata.context": context_for(entity, result.select, fields, False)}
             if result.total is not None:
                 body["@odata.count"] = result.total
             body["value"] = [summary_to_json(row, fields, result.select) for row in result.rows]
             return body
 
+    def add_summary_route(entity: str, summarize, fields: dict):
+        add_list_route(router, entity, lambda: summarize(repo).execute(), fields)
+
     add_summary_route("SalesSummaryByDay", SummarizeByDay, SALES_SUMMARY_BY_DAY_FIELDS)
     add_summary_route("SalesSummaryByCustomer", SummarizeByCustomer, SALES_SUMMARY_BY_CUSTOMER_FIELDS)
     add_summary_route("SalesSummaryByMaterial", SummarizeByMaterial, SALES_SUMMARY_BY_MATERIAL_FIELDS)
+
+    drivers_router = APIRouter(prefix=DRIVERS_ROOT.rstrip("/"))
+    add_list_route(drivers_router, "SalesContract", drivers.contracts, SALES_CONTRACT_FIELDS)
+    add_list_route(drivers_router, "PurchaseDelivery", drivers.deliveries, PURCHASE_DELIVERY_FIELDS)
+    add_list_route(drivers_router, "ProductionOrder", drivers.production_orders, PRODUCTION_ORDER_FIELDS)
+    add_list_route(drivers_router, "ProductionOrderComponent", drivers.components, PRODUCTION_ORDER_COMPONENT_FIELDS)
 
     @app.exception_handler(SalesOrderNotFound)
     def not_found(request: Request, error: SalesOrderNotFound):
@@ -288,11 +308,23 @@ def create_app(
 
     app.add_middleware(RequestIdMiddleware)
     app.include_router(router)
+    app.include_router(drivers_router)
     return app
 
 
+def build_default_app(today: date, seed_name: str | None = None) -> FastAPI:
+    name = seed_name if seed_name is not None else os.environ.get("BUTTERFLY_SEED", "story")
+    if name == "small":
+        return create_app(InMemorySalesOrderRepo(build_seed(today)))
+    if name == "story":
+        story = build_story_seed(today)
+        drivers = InMemoryDriverRepo(story.contracts, story.deliveries, story.production_orders, story.components)
+        return create_app(InMemorySalesOrderRepo(story.orders), drivers=drivers)
+    raise SystemExit(f"BUTTERFLY_SEED must be 'story' or 'small', not '{name}'")
+
+
 setup_logging("butterfly")
-app = create_app(InMemorySalesOrderRepo(build_seed(date.today())))
+app = build_default_app(date.today())
 
 
 def main():
