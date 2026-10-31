@@ -38,7 +38,7 @@ def create_app(
         allow_credentials=True,
     )
     app.add_middleware(RequestIdMiddleware)
-    answer_chat = AnswerChat(catalog_source or SynapseCatalogSource(settings), PlanChat(checker, KeywordMatcher(load_aliases())))
+    answer_chat = AnswerChat(catalog_source or SynapseCatalogSource(settings), PlanChat(checker, KeywordMatcher(load_aliases()), settings.laya_threshold))
     app.include_router(create_health_router(), prefix="/v1/agents", tags=["Health"])
     app.include_router(create_chat_router(answer_chat, auth), prefix="/v1/agents", tags=["Chat"])
     return app

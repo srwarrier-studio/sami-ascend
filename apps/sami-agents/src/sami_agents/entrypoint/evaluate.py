@@ -7,7 +7,9 @@ from sami_agents.application.evaluate_agent import CaseResult, EvalCase, Evaluat
 from sami_agents.application.keyword_matcher import KeywordMatcher
 from sami_agents.application.plan_chat import DEFAULT_THRESHOLD
 from sami_agents.domain.entities.catalog import CatalogEntry
+from sami_agents.entrypoint.run import build_checker
 from sami_agents.infrastructure.alias_book import ALIASES_FILE, load_aliases
+from sami_agents.infrastructure.settings import Settings
 
 EVALS = Path(__file__).resolve().parents[3] / "evals"
 
@@ -32,13 +34,15 @@ def describe(result: CaseResult) -> str:
 def main(argv: list[str]) -> None:
     parser = argparse.ArgumentParser(prog="sami-agents eval")
     parser.add_argument("--parallel", type=int, default=1, help="run the prompts as this many batches at the same time")
+    parser.add_argument("--no-check", action="store_true", help="skip Laya and use the keyword search alone")
     parser.add_argument("--aliases", default=str(ALIASES_FILE), help="alias file, or none")
     parser.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD, help="smallest relevance score that approves a widget")
     parser.add_argument("--prompts", type=Path, default=EVALS / "prompts.json")
     parser.add_argument("--catalog", type=Path, default=EVALS / "catalog.json")
     args = parser.parse_args(argv)
     aliases = {} if args.aliases == "none" else load_aliases(Path(args.aliases))
-    agent = EvaluateAgent(None, load_catalog(args.catalog), KeywordMatcher(aliases), args.threshold)
+    checker = None if args.no_check else build_checker(Settings())
+    agent = EvaluateAgent(checker, load_catalog(args.catalog), KeywordMatcher(aliases), args.threshold)
     started = time.perf_counter()
     results = agent.execute(load_cases(args.prompts), args.parallel, lambda result: print(describe(result), flush=True))
     wall = time.perf_counter() - started

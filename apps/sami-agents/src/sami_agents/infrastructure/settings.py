@@ -11,5 +11,9 @@ class Settings(BaseSettings):
     ollama_model: str = "gemma3:270m"
     synapse_url: str = "http://localhost:8004"
     model_timeout_seconds: float = 20.0
+    laya_url: str = ""
+    laya_api_key: str = ""
+    laya_threshold: float = 0.35
+    laya_timeout_seconds: float = 5.0
     jwt_secret: str = ""
     frontend_url: str = "http://localhost:5173"
