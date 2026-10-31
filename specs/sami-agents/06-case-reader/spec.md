@@ -10,11 +10,11 @@ The current reader is rules only. It fails on typos and loose phrasing ("Augsut"
 ### The case
 `Case` holds what the passes found: `intent` (`why`, `figure`, `widgets`, `other`), `metric`, `direction`, `month` (and `compared_with`), `scope` (`all` or `restricted`, with the words that restrict it when known), and `confidence` for each pass. The case is returned in the answer as `question` (as today, plus `scope` and `how_read`: the passes that ran).
 
-### Passes (Laya, one decision each, in order, stopping early)
+### Passes (intent, subject and direction by Laya, one decision each, in order, stopping early)
 1. **Intent.** `other` stops here with the refusal text; `widgets` stops here and the page uses the widget planner as today.
 2. **Subject.** One of the registered metrics, or `none` (refused with the help text). The choices are built from the registry and `understanding.json` words, so a new metric needs no code.
 3. **Direction** (`why` only): rise, fall or change.
-4. **Scope.** Is the question limited to one customer, product, supplier or place? `restricted` is refused with a clear message ("I can only explain the total for now") and never answered as the total.
+4. **Scope** is read by a rule, not by Laya (changed on 2026-10-31: Laya caught none of 6 restricted questions in two wordings, 9 of 15 overall, all of them the unrestricted ones). A preposition (`to`, `from`, `of`, `for`, `by`, `at`, `in`, `with`) followed by a word that is not a metric, direction, month, period or generic word (`our`, `customers`, `end`) marks the question `restricted`. It is refused with a clear message ("I can only explain the whole company's figure for now") and never answered as the total. The rule can refuse a question that is really about the whole company; that is the safer mistake.
 5. **Period** is not a Laya pass: month names and phrases are read by rules with fuzzy matching (standard library `difflib`) so "Augsut" is August; "last month", a year, and "this month" as today. Anything that is not one month ("last quarter", "this year") is refused with a message that says so.
 A pass whose best choice is below `PASS_MIN_CONFIDENCE` (default 0.5) falls back to the rules for that pass; if the rules cannot decide either, the question is refused, never guessed. Laya off or unreachable (`LAYA_URL` blank or an error): the current rules-only reader runs unchanged.
 

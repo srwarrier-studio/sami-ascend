@@ -1,3 +1,4 @@
+import difflib
 import re
 from datetime import date
 
@@ -11,12 +12,24 @@ MONTHS = {
     "july": 7, "jul": 7, "august": 8, "aug": 8, "september": 9, "sep": 9, "sept": 9, "october": 10, "oct": 10,
     "november": 11, "nov": 11, "december": 12, "dec": 12,
 }
+FUZZY_MONTHS = [name for name in MONTHS if len(name) >= 6]
 MONTH_PATTERN = re.compile(r"\b(" + "|".join(sorted(MONTHS, key=len, reverse=True)) + r")\b(?:\s+(\d{4}))?")
 
 
 def first_position(text: str, phrases: list[str]) -> int | None:
     found = [m.start() for p in phrases if (m := re.search(rf"(?<![\w']){re.escape(p)}(?![\w'])", text))]
     return min(found) if found else None
+
+
+def correct_months(text: str) -> str:
+    def fix(match: re.Match) -> str:
+        word = match.group(0)
+        if len(word) < 5 or word in MONTHS:
+            return word
+        close = difflib.get_close_matches(word, FUZZY_MONTHS, n=1, cutoff=0.8)
+        return close[0] if close else word
+
+    return re.sub(r"[a-z]+", fix, text)
 
 
 def previous_month(day: date) -> date:
@@ -42,6 +55,11 @@ class QuestionReader:
             return ReadResult(None, "not_finished")
         return ReadResult(Question(metric, self.direction(lowered), month))
 
+    def intent(self, text: str) -> str | None:
+        if first_position(text, self.words.why) is not None:
+            return "why"
+        return "figure" if first_position(text, self.words.figure) is not None else None
+
     def metric(self, text: str) -> str | None:
         found = {name: pos for name, words in self.words.metrics.items() if (pos := first_position(text, words)) is not None}
         return min(found, key=lambda name: (found[name], name)) if found else None
@@ -51,6 +69,7 @@ class QuestionReader:
         return min(found, key=found.get) if found else "change"
 
     def month(self, text: str, today: date) -> date | None:
+        text = correct_months(text)
         if re.search(r"\b(last|previous) month\b", text):
             return previous_month(today.replace(day=1))
         if re.search(r"\b(this|current) month\b", text):
