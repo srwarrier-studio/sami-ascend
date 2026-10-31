@@ -13,10 +13,9 @@ This replaces the sales-only `/sales/compare` and `/sales/month` of phase 08. Re
 label = "Sales"
 service = "sales"
 measure = "TotalNetAmount"
-quantity = "TotalQuantity"
 date = "OrderDate"
 currency = "Currency"
-by.day = { entity = "SalesSummaryByDay", order = "OrderDate,Currency" }
+by.day = { entity = "SalesSummaryByDay", order = "OrderDate,Currency", count = "OrderCount" }
 by.customer = { entity = "SalesSummaryByCustomer", key = "SoldToParty", name = "CustomerName", order = "OrderDate,SoldToParty,Currency" }
 by.material = { entity = "SalesSummaryByMaterial", key = "Material", name = "MaterialDescription", unit = "QuantityUnit", quantity = "TotalQuantity", order = "OrderDate,Material,Currency" }
 
@@ -29,7 +28,7 @@ delay = { due = "PromisedDeliveryDate", done = "ActualDeliveryDate" }
 order = "PromisedDeliveryDate,PurchaseOrder"
 ```
 
-- A **metric** names a service, the field that holds the amount, the date and the currency, and one summary entity per dimension (plus `day` for totals). SAP does the summing (summary views), synapse-api never pages through raw documents. A dimension may also name a `quantity` and `unit`; only those dimensions can split volume from price.
+- A **metric** names a service, the field that holds the amount, the date and the currency, and one summary entity per dimension (plus `day` for totals). SAP does the summing (summary views), synapse-api never pages through raw documents. A dimension may also name a `quantity` and `unit` (only those dimensions can split volume from price) and a `count` of orders (the month figure shows it; without it `order_count` is null).
 - A **record type** names a service, an entity, the fields a caller may look up by (`key_fields`, the first is the default), an optional `interval` (the dates a row is "active" between, for the window), an optional `delay` and the order.
 - `service` is `sales` or `drivers`, mapped to the base URLs in settings (`sap_base_url`, the new `drivers_base_url`).
 - The three sales entries and the four drivers entries ship in the file; purchases are added when butterfly 10 exists.

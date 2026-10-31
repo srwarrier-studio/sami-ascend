@@ -1,0 +1,38 @@
+[metric.sales]
+label = "Sales"
+service = "sales"
+measure = "TotalNetAmount"
+date = "OrderDate"
+currency = "Currency"
+by.day = { entity = "SalesSummaryByDay", order = "OrderDate,Currency", count = "OrderCount" }
+by.customer = { entity = "SalesSummaryByCustomer", key = "SoldToParty", name = "CustomerName", order = "OrderDate,SoldToParty,Currency", count = "OrderCount" }
+by.material = { entity = "SalesSummaryByMaterial", key = "Material", name = "MaterialDescription", unit = "QuantityUnit", quantity = "TotalQuantity", order = "OrderDate,Material,Currency" }
+
+[record.contract]
+service = "drivers"
+entity = "SalesContract"
+key_fields = ["SoldToParty", "SalesContract"]
+interval = { from = "ValidFrom", to = "ValidTo" }
+order = "ValidFrom,SalesContract"
+
+[record.purchase_delivery]
+service = "drivers"
+entity = "PurchaseDelivery"
+key_fields = ["Material", "Supplier", "PurchaseOrder"]
+interval = { from = "PromisedDeliveryDate", to = "ActualDeliveryDate", fallback = "PromisedDeliveryDate", open_to_today = true }
+delay = { due = "PromisedDeliveryDate", done = "ActualDeliveryDate" }
+order = "PromisedDeliveryDate,PurchaseOrder"
+
+[record.production_order]
+service = "drivers"
+entity = "ProductionOrder"
+key_fields = ["Material", "ProductionOrder"]
+interval = { from = "PlannedStartDate", to = "ActualEndDate", fallback = "PlannedEndDate", open_to_today = true }
+delay = { due = "PlannedEndDate", done = "ActualEndDate" }
+order = "PlannedStartDate,ProductionOrder"
+
+[record.production_component]
+service = "drivers"
+entity = "ProductionOrderComponent"
+key_fields = ["ProductionOrder", "Material"]
+order = "ProductionOrder,Material"
