@@ -78,7 +78,7 @@ describe('BarChart', () => {
     ]
     const { container } = show(<BarChart data={big} valueFormat="currency" />)
     const ticks = [...container.querySelectorAll('text')].map((text) => text.textContent)
-    expect(ticks).toContain('₹2M')
+    expect(ticks).toContain('₹20L')
   })
 
   it('shows No data for an empty array', () => {
@@ -176,13 +176,31 @@ describe('HeatmapChart', () => {
 })
 
 describe('formatCompact', () => {
-  it('shortens thousands and millions', () => {
-    expect(formatCompact(450000)).toBe('450K')
-    expect(formatCompact(2000000)).toBe('2M')
+  it('shortens thousands, lakhs and crores the Indian way', () => {
+    expect(formatCompact(34000)).toBe('34K')
+    expect(formatCompact(450000)).toBe('4.5L')
+    expect(formatCompact(7570000)).toBe('75.7L')
+    expect(formatCompact(25000000)).toBe('2.5Cr')
     expect(formatCompact(950)).toBe('950')
   })
 
-  it('keeps the rupee sign for currency', () => expect(formatCompact(2000000, 'currency')).toBe('₹2M'))
+  it('keeps the rupee sign for currency', () => expect(formatCompact(2000000, 'currency')).toBe('₹20L'))
+
+  describe('without decimals', () => {
+    it('rounds thousands, lakhs and crores to whole numbers', () => {
+      expect(formatCompact(7570000, 'currency', true)).toBe('₹76L')
+      expect(formatCompact(6480000, 'currency', true)).toBe('₹65L')
+      expect(formatCompact(12500000, 'currency', true)).toBe('₹1Cr')
+      expect(formatCompact(34600, 'number', true)).toBe('35K')
+    })
+
+    it('keeps decimals on small values so they are not rounded wrongly', () => {
+      expect(formatCompact(2.5, 'number', true)).toBe('2.5')
+      expect(formatCompact(999.4, 'number', true)).toBe('999.4')
+    })
+
+    it('does not change percent', () => expect(formatCompact(0.125, 'percent', true)).toBe('12.5%'))
+  })
   it('keeps percent readable', () => expect(formatCompact(0.125, 'percent')).toBe('12.5%'))
 })
 

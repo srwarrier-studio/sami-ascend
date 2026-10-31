@@ -144,7 +144,7 @@ const entries: Record<string, Entry> = {
   },
   BarChart: {
     description: 'Bars per label, such as sales by customer or by material.',
-    schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat }),
+    schema: z.object({ data: z.array(point), title: z.string().optional(), info, measure, valueFormat, valueLabels: z.boolean().optional() }),
     sizes: ['medium', 'large'],
     component: BarChart,
   },
