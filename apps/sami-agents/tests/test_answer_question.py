@@ -132,6 +132,10 @@ class TestAQuestionItCannotAnswer:
         answer = ask(text)
         assert (answer["readable"], answer["question"], answer["analysis"], answer["blocks"]) == (False, None, None, [{"type": "text", "lines": [message]}])
 
+    def test_the_problem_says_which_kind_it_is(self):
+        assert ask("show me sales")["problem"] == "unreadable"
+        assert ask("why did sales fall this month")["problem"] == "not_finished"
+
 
 class FixedModel(QuestionModel):
     def __init__(self, answer):
