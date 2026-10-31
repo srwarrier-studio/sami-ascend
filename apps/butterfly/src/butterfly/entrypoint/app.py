@@ -55,6 +55,7 @@ from butterfly.infrastructure.memory.in_memory_driver_repo import InMemoryDriver
 from butterfly.infrastructure.memory.in_memory_master_data_repo import InMemoryMasterDataRepo
 from butterfly.infrastructure.memory.in_memory_sales_order_repo import InMemorySalesOrderRepo
 from butterfly.infrastructure.memory.seed import build_seed
+from butterfly.infrastructure.memory.scenarios import find_scenario
 from butterfly.infrastructure.memory.story_seed import build_story_seed
 
 logger = logging.getLogger("butterfly")
@@ -312,12 +313,13 @@ def create_app(
     return app
 
 
-def build_default_app(today: date, seed_name: str | None = None) -> FastAPI:
+def build_default_app(today: date, seed_name: str | None = None, scenario_name: str | None = None) -> FastAPI:
     name = seed_name if seed_name is not None else os.environ.get("BUTTERFLY_SEED", "story")
+    scenario = scenario_name if scenario_name is not None else os.environ.get("BUTTERFLY_SCENARIO", "august-contract")
     if name == "small":
         return create_app(InMemorySalesOrderRepo(build_seed(today)))
     if name == "story":
-        story = build_story_seed(today)
+        story = build_story_seed(today, find_scenario(scenario))
         drivers = InMemoryDriverRepo(story.contracts, story.deliveries, story.production_orders, story.components)
         return create_app(InMemorySalesOrderRepo(story.orders), drivers=drivers)
     raise SystemExit(f"BUTTERFLY_SEED must be 'story' or 'small', not '{name}'")
