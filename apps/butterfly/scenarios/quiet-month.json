@@ -1,0 +1,11 @@
+{
+  "scenario": "quiet-month",
+  "holdout": false,
+  "month": "2026-08",
+  "compare_with": "2026-07",
+  "total_change_percent": [-5, 5],
+  "all_months_within_percent": 5,
+  "causes": [],
+  "not_blame": [],
+  "unexplained": false
+}

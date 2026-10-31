@@ -1,0 +1,11 @@
+{
+  "scenario": "cancellations",
+  "holdout": true,
+  "month": "2026-08",
+  "compare_with": "2026-07",
+  "total_change_percent": [-14, -6],
+  "biggest_mover": "0000100003",
+  "causes": [{"type": "cancelled_orders", "key": "0000100003"}],
+  "not_blame": [],
+  "unexplained": false
+}
