@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { SyntheticEvent } from 'react'
 import { useNavigate, useRouteContext } from '@tanstack/react-router'
 import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Modal, PageHeader, PaperPlaneRightIcon, SparkleIcon, Stack, Text, TextInput, Title, WidgetCell, WidgetGrid } from '@sami/ui'
+import { AnswerBlocks } from '../ai/AnswerBlocks'
+import type { AgentAnswer } from '../ai/agentsClient'
 import { BUILDER } from '../ai/chatPlanner'
 import type { ChatBoard } from '../ai/chatPlanner'
 import { BoardGrid } from '../boards/BoardGrid'
@@ -10,13 +12,15 @@ import { buildWidgets } from '../boards/layout'
 import { CatalogWidget } from '../catalog/CatalogWidget'
 import classes from '../boards/Board.module.css'
 
-type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard }
+type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard; agent?: AgentAnswer }
+
+const UNAVAILABLE = 'The analysis service is not available right now.'
 
 const examples = ['Show top customers and top materials', `${BUILDER} build me a sales board`, `${BUILDER} build an inventory board`]
 
 export function AiPage() {
   const navigate = useNavigate()
-  const { catalog, catalogClient, chatPlanner, boardStore } = useRouteContext({ from: '/ai' })
+  const { catalog, catalogClient, chatPlanner, agentsClient, boardStore } = useRouteContext({ from: '/ai' })
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [building, setBuilding] = useState(false)
@@ -35,6 +39,17 @@ export function AiPage() {
     setBusy(true)
     setText('')
     setMessages((all) => [...all, { from: 'you', text: asked }])
+    const agent = asked.toLowerCase().startsWith(BUILDER) ? null : await agentsClient.ask(asked).catch(() => undefined)
+    if (agent === undefined) {
+      setMessages((all) => [...all, { from: 'ai', text: UNAVAILABLE }])
+      setBusy(false)
+      return
+    }
+    if (agent && (agent.readable || agent.problem === 'not_finished')) {
+      setMessages((all) => [...all, { from: 'ai', text: '', agent }])
+      setBusy(false)
+      return
+    }
     const answer = await chatPlanner.plan(asked, catalog)
     setMessages((all) => [...all, { from: 'ai', text: answer.reply, catalogIds: answer.catalogIds, board: answer.board }])
     if (answer.board) setBoard(answer.board)
@@ -81,12 +96,14 @@ export function AiPage() {
             </Stack>
           )}
           {messages.map((message, index) => (
-            <div key={index} className={classes.bubble} data-from={message.from} data-wide={message.catalogIds?.length ? true : undefined}>
+            <div key={index} className={classes.bubble} data-from={message.from} data-wide={message.catalogIds?.length || message.agent?.blocks.length ? true : undefined}>
               {message.from === 'you' && message.text.toLowerCase().startsWith(BUILDER) ? (
                 <>
                   <span className={classes.mention}>{message.text.slice(0, BUILDER.length)}</span>
                   {message.text.slice(BUILDER.length)}
                 </>
+              ) : message.agent ? (
+                <AnswerBlocks blocks={message.agent.blocks} label={message.agent.label} />
               ) : (
                 message.text
               )}

@@ -12,6 +12,7 @@ import type { BoardStore } from './boards/boardStore'
 import type { PresetName, MotionMode } from '@sami/ui'
 import type { CatalogClient, CatalogEntry } from './catalog/catalogClient'
 import type { Session } from './session/useSession'
+import type { AgentsClient } from './ai/agentsClient'
 import type { ChatPlanner } from './ai/chatPlanner'
 import type { BoardExporter } from './export/boardExporter'
 import { canUseSynapse } from './access'
@@ -35,6 +36,7 @@ export type RouterContext = {
   catalog: CatalogEntry[]
   boardStore: BoardStore
   chatPlanner: ChatPlanner
+  agentsClient: AgentsClient
   boardExporter: BoardExporter
   company: string | null
   setCompany: (id: string) => void
