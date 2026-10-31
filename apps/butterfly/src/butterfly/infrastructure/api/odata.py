@@ -4,6 +4,7 @@ from decimal import Decimal
 from butterfly.domain.entities.sales_order import SalesOrder, SalesOrderItem
 
 ROOT = "/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/0001/"
+DRIVERS_ROOT = "/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/"
 
 
 def timestamp(value: datetime) -> str:
