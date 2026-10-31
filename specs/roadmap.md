@@ -52,7 +52,7 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 04 board-storage: each user's own boards (name, widgets with name, props and grid position), saved in SQLite behind a repo, with list, create, rename, delete and save-layout routes. Postponed: designed after synapse-web 03, from the board store the mock settles on. todo
 - 05 catalog: the widget catalog and each widget's ready-to-render props served from synapse-api (`/v1/synapse/catalog`), sales entries from the sales source and the other domains from a mock library. done (tag `synapse-api-phase-05-done`, 2026-10-30).
 - 07 summary-paging: read every sales summary completely with `$top` and `$skip`, so months after the first 100 days no longer show 0 against butterfly's story seed or the real SAP page size. done (tag `synapse-api-phase-07-done`, 2026-10-31).
-- 08 compare (planned): the metric layer: compare a metric between two periods split by a dimension (customer, material), volume against price, and a month's figure with its trend; generic, not one endpoint per question. Depends on butterfly 09. todo
+- 08 compare (planned): the metric layer: compare a metric between two periods split by a dimension (customer, material), volume against price, and a month's figure with its trend; generic, not one endpoint per question. Depends on butterfly 09. done (tag `synapse-api-phase-08-done`, 2026-10-31).
 - 09 events (planned): one generic read of the rows of a node type (contract, production order, purchase delivery) for a key and a time window, from butterfly and later the SAP views. Depends on butterfly 09. todo
 
 ## synapse-web (management dashboards)

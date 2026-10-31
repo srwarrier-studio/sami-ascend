@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends
 from token_verification import Role
 from token_verification.fastapi_deps import AuthDependencies
 
+from synapse_api.application.compare_sales import CompareSales
+from synapse_api.application.month_figure import GetMonthFigure
 from synapse_api.application.month_on_month_sales import GetMonthOnMonthSales
 from synapse_api.application.period_sales import GetMonthToDateSales, GetTodaySales, GetYearToDateSales
 from synapse_api.application.recent_high_value_orders import GetRecentHighValueOrders
@@ -13,7 +15,9 @@ from synapse_api.application.sales_cache import SalesCache
 from synapse_api.application.top_sales import GetTopCustomers, GetTopMaterials
 from synapse_api.domain.gateways.sales_source import SalesSource
 from synapse_api.infrastructure.api.sales.schemas import (
+    CompareResponse,
     HighValueOrdersResponse,
+    MonthResponse,
     MonthOnMonthResponse,
     SalesTotalsResponse,
     TopCustomersResponse,
@@ -73,6 +77,24 @@ def create_sales_router(
         return cache.get(
             ("high-value-orders", today(), minimum, top),
             lambda: HighValueOrdersResponse.from_domain(GetRecentHighValueOrders(source).execute(minimum, top)),
+        )
+
+    @router.get("/sales/compare")
+    def compare(
+        start: date, end: date, compare_start: date, compare_end: date, by: str | None = None, top: int = 10
+    ) -> CompareResponse:
+        return cache.get(
+            ("compare", start, end, compare_start, compare_end, by, top),
+            lambda: CompareResponse.from_domain(
+                CompareSales(source).execute(start, end, compare_start, compare_end, by, top)
+            ),
+        )
+
+    @router.get("/sales/month")
+    def month(month: str, trend: int = 6) -> MonthResponse:
+        return cache.get(
+            ("month", today(), month, trend),
+            lambda: MonthResponse.from_domain(GetMonthFigure(source).execute(today(), month, trend)),
         )
 
     return router
