@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel
 
+from workspace_api.domain.entities.order_request import OrderRequest
 from workspace_api.domain.entities.sales_order import (
     NewSalesOrder,
     NewSalesOrderItem,
@@ -70,3 +71,22 @@ class SalesOrderPageResponse(BaseModel):
     @classmethod
     def from_domain(cls, page: SalesOrderPage) -> "SalesOrderPageResponse":
         return cls.model_validate(page, from_attributes=True)
+
+
+class OrderRequestResponse(BaseModel):
+    id: str
+    status: str
+    attempts: int
+    created_at: datetime
+    updated_at: datetime
+    sales_order: str | None
+    details: list[dict] | None
+    message: str | None
+
+    @classmethod
+    def from_domain(cls, request: OrderRequest) -> "OrderRequestResponse":
+        return cls.model_validate(request, from_attributes=True)
+
+
+class OrderRequestsResponse(BaseModel):
+    requests: list[OrderRequestResponse]
