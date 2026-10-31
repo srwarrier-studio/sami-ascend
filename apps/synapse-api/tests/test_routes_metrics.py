@@ -56,16 +56,17 @@ def get(path: str, source=None, roles=("management",)):
 class TestListing:
     def test_metrics_with_their_dimensions_and_whether_they_split_price(self):
         body = get("metrics").json()
-        assert body == {
-            "metrics": [{
-                "name": "sales",
-                "label": "Sales",
-                "dimensions": [
-                    {"name": "customer", "splits_volume_and_price": False},
-                    {"name": "material", "splits_volume_and_price": True},
-                ],
-            }]
+        by_name = {m["name"]: m for m in body["metrics"]}
+        assert list(by_name) == ["sales", "purchases"]
+        assert by_name["sales"] == {
+            "name": "sales",
+            "label": "Sales",
+            "dimensions": [
+                {"name": "customer", "splits_volume_and_price": False},
+                {"name": "material", "splits_volume_and_price": True},
+            ],
         }
+        assert [d["name"] for d in by_name["purchases"]["dimensions"]] == ["supplier", "material"]
 
 
 class TestCompareRoute:

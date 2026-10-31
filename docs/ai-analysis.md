@@ -1,6 +1,6 @@
 # AI analysis: answering "why" questions
 
-Status: design, revised 2026-10-31. Butterfly 08 (the first scenario) and synapse-api 07 are done; the rest is not built yet.
+Status: built through the analyst (2026-10-31): metric layer and registry (synapse-api 08, 09), purchases and scenarios (butterfly 09, 10), the graph and its walk (sami-agents 04) and the analyst with its evaluation (sami-agents 05). Level 2 figure answers (sami-agents 03) and drawing the answers (synapse-web 12) are next.
 
 ## 0. Scope: any metric, nothing leaves the building
 

@@ -1,0 +1,10 @@
+{
+  "metrics": {
+    "sales": ["sales", "revenue", "turnover", "sold"],
+    "purchases": ["purchases", "purchase", "purchasing", "buying", "procurement", "spend", "spending", "bought"]
+  },
+  "why": ["why", "what made", "what caused", "what is behind", "what's behind", "reason", "how come", "explain"],
+  "rise": ["rise", "rose", "rising", "risen", "increase", "increased", "increasing", "up", "grew", "grow", "growth", "higher", "jump", "jumped", "go up", "went up"],
+  "fall": ["fall", "fell", "falling", "fallen", "drop", "dropped", "dropping", "down", "decrease", "decreased", "decline", "declined", "lower", "dip", "dipped", "slump", "go down", "went down"],
+  "change": ["change", "changed", "move", "moved", "different", "differ", "differs"]
+}

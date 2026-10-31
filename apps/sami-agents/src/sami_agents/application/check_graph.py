@@ -1,8 +1,8 @@
 from sami_agents.domain.entities.graph import Graph, Node
 from sami_agents.domain.entities.registry_info import RegistryInfo
 
-FIELD_PARAMS = ("due", "done", "from", "to", "field", "date")
-RECORD_KINDS = {"later_than", "coverage_gap", "sum_changed"}
+FIELD_PARAMS = ("due", "done", "from", "to", "field", "date", "reason")
+RECORD_KINDS = {"later_than", "coverage_gap", "sum_changed", "set_changed"}
 METRIC_KINDS = {"value_changed"}
 
 
@@ -31,6 +31,8 @@ class CheckGraph:
             self.check_record_node(node, where, problems)
 
     def check_metric_node(self, node: Node, where: str, problems: list[str]) -> None:
+        if node.id:
+            problems.append(f"{where}: a metric node has no rows, so it cannot name an id field")
         if node.source not in self.registry.metrics:
             problems.append(f"{where}: metric '{node.source}' is not in the registry")
         elif node.dimension not in self.registry.metrics[node.source] or node.dimension == "day":
@@ -47,6 +49,8 @@ class CheckGraph:
         listed = self.contracts.get(record.entity)
         if listed is None:
             problems.append(f"{where}: entity '{record.entity}' is in no contract under docs/sap")
+        elif node.id and node.id not in listed:
+            problems.append(f"{where}: id field '{node.id}' is not in {record.entity} in the contract")
         for anomaly in node.anomalies:
             if anomaly.kind not in RECORD_KINDS:
                 problems.append(f"{where}: anomaly '{anomaly.kind}' needs a metric, a record node can only use {', '.join(sorted(RECORD_KINDS))}")

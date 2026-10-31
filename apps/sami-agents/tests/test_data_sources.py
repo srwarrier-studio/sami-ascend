@@ -6,6 +6,7 @@ import pytest
 from structured_logging.request_id import request_id_var
 
 from sami_agents.domain.entities.finding import MemberChange, Window
+from sami_agents.domain.entities.measure import Comparison, DimensionInfo, MetricInfo, MoverRow, TrendPoint
 from sami_agents.domain.errors import DataUnavailable
 from sami_agents.infrastructure.mock_data_source import MockDataSource
 from sami_agents.infrastructure.settings import Settings
@@ -22,9 +23,15 @@ def answer(body):
     return lambda request: httpx.Response(200, json=body)
 
 
-COMPARE = {"comparisons": [{"currency": "INR", "rows": [
-    {"key": "A", "current": "10.00", "previous": "100.00", "volume_effect": None, "price_effect": None},
-    {"key": "M", "current": "85.00", "previous": "100.00", "volume_effect": "0.00", "price_effect": "-15.00"},
+def compare_row(key, current, previous, volume=None, price=None, name=None, share="100.00"):
+    change = f"{float(current) - float(previous):.2f}"
+    return {"key": key, "name": name or f"Name {key}", "current": current, "previous": previous, "change": change,
+            "share_of_change_percent": share, "unit": "KG" if volume is not None else None, "volume_effect": volume, "price_effect": price}
+
+
+COMPARE = {"comparisons": [{"currency": "INR", "current": "98.00", "previous": "200.00", "change": "-102.00", "change_percent": "-51.00", "rows": [
+    compare_row("A", "10.00", "100.00"),
+    compare_row("M", "85.00", "100.00", "0.00", "-15.00"),
 ]}]}
 
 
@@ -89,8 +96,72 @@ class TestMemberChange:
         assert source(answer(COMPARE)).member_change("tok", "sales", "customer", "Z", WINDOW) is None
 
     def test_a_member_with_no_previous_value_has_no_percent(self):
-        body = {"comparisons": [{"currency": "INR", "rows": [{"key": "N", "current": "5.00", "previous": "0.00"}]}]}
+        body = {"comparisons": [{"currency": "INR", "current": "5.00", "previous": "0.00", "change": "5.00", "change_percent": None, "rows": [compare_row("N", "5.00", "0.00")]}]}
         assert source(answer(body)).member_change("tok", "sales", "customer", "N", WINDOW).change_percent is None
+
+
+class TestMetrics:
+    def test_the_registered_metrics_and_their_dimensions(self):
+        body = {"metrics": [{"name": "sales", "label": "Sales", "dimensions": [{"name": "customer", "splits_volume_and_price": False}, {"name": "material", "splits_volume_and_price": True}]}]}
+        seen = []
+
+        def handler(request):
+            seen.append(request)
+            return httpx.Response(200, json=body)
+
+        assert source(handler).metrics("tok") == [MetricInfo("sales", "Sales", (DimensionInfo("customer", False), DimensionInfo("material", True)))]
+        assert seen[0].url.path == "/v1/synapse/metrics" and seen[0].headers["cookie"] == "access_token=tok"
+
+
+class TestCompare:
+    def test_totals_and_rows_with_their_effects(self):
+        seen = []
+
+        def handler(request):
+            seen.append(request)
+            return httpx.Response(200, json=COMPARE)
+
+        [comparison] = source(handler).compare("tok", "sales", WINDOW, "material", 10)
+        assert (comparison.currency, comparison.current, comparison.previous, comparison.change, comparison.change_percent) == ("INR", Decimal("98.00"), Decimal("200.00"), Decimal("-102.00"), Decimal("-51.00"))
+        assert comparison.rows[1] == MoverRow("M", "Name M", Decimal("85.00"), Decimal("100.00"), Decimal("-15.00"), Decimal("100.00"), "KG", Decimal("0.00"), Decimal("-15.00"))
+        assert dict(seen[0].url.params)["by"] == "material" and dict(seen[0].url.params)["top"] == "10"
+
+    def test_without_a_dimension_there_are_no_rows_and_no_by(self):
+        seen = []
+        body = {"comparisons": [{"currency": "INR", "current": "1.00", "previous": "2.00", "change": "-1.00", "change_percent": "-50.00", "rows": None}]}
+
+        def handler(request):
+            seen.append(request)
+            return httpx.Response(200, json=body)
+
+        [comparison] = source(handler).compare("tok", "sales", WINDOW, None, 10)
+        assert comparison.rows is None and "by" not in dict(seen[0].url.params)
+
+    def test_the_comparison_uses_the_given_previous_period(self):
+        seen = []
+
+        def handler(request):
+            seen.append(dict(request.url.params))
+            return httpx.Response(200, json={"comparisons": []})
+
+        source(handler).compare("tok", "sales", Window(date(2026, 9, 1), date(2026, 9, 30), date(2026, 8, 1), date(2026, 8, 31)), None, 10)
+        assert seen[0]["compare_start"] == "2026-08-01" and seen[0]["compare_end"] == "2026-08-31"
+
+
+class TestTrend:
+    def test_the_months_of_the_first_currency_oldest_first(self):
+        body = {"figures": [{"currency": "INR", "trend": [{"year": 2026, "month": 7, "net_amount": "100.00"}, {"year": 2026, "month": 8, "net_amount": "80.00"}]}]}
+        seen = []
+
+        def handler(request):
+            seen.append(dict(request.url.params))
+            return httpx.Response(200, json=body)
+
+        assert source(handler).trend("tok", "sales", date(2026, 8, 1), 2) == [TrendPoint("2026-07", Decimal("100.00")), TrendPoint("2026-08", Decimal("80.00"))]
+        assert seen[0] == {"month": "2026-08", "trend": "2"}
+
+    def test_no_data_is_an_empty_trend(self):
+        assert source(answer({"figures": []})).trend("tok", "sales", date(2026, 8, 1), 6) == []
 
 
 class TestFailures:
@@ -122,6 +193,17 @@ class TestMock:
         mock = MockDataSource(changes={("sales", "material", "M"): change})
         assert mock.member_change("t", "sales", "material", "M", WINDOW) is change
         assert mock.member_change("t", "sales", "material", "Z", WINDOW) is None
+
+    def test_it_serves_the_new_reads_and_records_them(self):
+        info = MetricInfo("sales", "Sales", ())
+        comparison = Comparison("INR", Decimal(1), Decimal(2), Decimal(-1), Decimal("-50.00"))
+        point = TrendPoint("2026-08", Decimal(5))
+        mock = MockDataSource(infos=[info], comparisons={("sales", "customer"): [comparison]}, trends={"sales": [point]})
+        assert mock.metrics("t") == [info]
+        assert mock.compare("t", "sales", WINDOW, "customer", 10) == [comparison]
+        assert mock.compare("t", "sales", WINDOW, "material", 10) == []
+        assert mock.trend("t", "sales", date(2026, 8, 1), 6) == [point]
+        assert [c[0] for c in mock.calls] == ["metrics", "compare", "compare", "trend"]
 
     def test_it_can_fail(self):
         mock = MockDataSource()

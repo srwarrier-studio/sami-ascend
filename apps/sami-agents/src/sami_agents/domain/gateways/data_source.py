@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import date
 
 from sami_agents.domain.entities.finding import MemberChange, Window
+from sami_agents.domain.entities.measure import Comparison, MetricInfo, TrendPoint
 
 
 class DataSource(ABC):
@@ -10,3 +11,12 @@ class DataSource(ABC):
 
     @abstractmethod
     def member_change(self, token: str, metric: str, dimension: str, key: str, window: Window) -> MemberChange | None: ...
+
+    @abstractmethod
+    def metrics(self, token: str) -> list[MetricInfo]: ...
+
+    @abstractmethod
+    def compare(self, token: str, metric: str, window: Window, by: str | None, top: int) -> list[Comparison]: ...
+
+    @abstractmethod
+    def trend(self, token: str, metric: str, month: date, months: int) -> list[TrendPoint]: ...

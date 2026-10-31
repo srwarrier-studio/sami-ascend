@@ -8,6 +8,16 @@ by.day = { entity = "SalesSummaryByDay", order = "OrderDate,Currency", count = "
 by.customer = { entity = "SalesSummaryByCustomer", key = "SoldToParty", name = "CustomerName", order = "OrderDate,SoldToParty,Currency", count = "OrderCount" }
 by.material = { entity = "SalesSummaryByMaterial", key = "Material", name = "MaterialDescription", unit = "QuantityUnit", quantity = "TotalQuantity", order = "OrderDate,Material,Currency" }
 
+[metric.purchases]
+label = "Purchases"
+service = "drivers"
+measure = "TotalNetAmount"
+date = "OrderDate"
+currency = "Currency"
+by.day = { entity = "PurchaseSummaryByDay", order = "OrderDate,Currency", count = "OrderCount" }
+by.supplier = { entity = "PurchaseSummaryBySupplier", key = "Supplier", name = "SupplierName", order = "OrderDate,Supplier,Currency", count = "OrderCount" }
+by.material = { entity = "PurchaseSummaryByMaterial", key = "Material", name = "MaterialDescription", unit = "QuantityUnit", quantity = "TotalQuantity", order = "OrderDate,Material,Currency" }
+
 [record.contract]
 service = "drivers"
 entity = "SalesContract"

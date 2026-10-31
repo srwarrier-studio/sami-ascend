@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 from sami_agents.application import anomaly_kinds
 from sami_agents.domain.entities.finding import Hit, Related, Start, Step, Window, WalkResult
-from sami_agents.domain.entities.graph import Anomaly, Edge, Graph, Node
+from sami_agents.domain.entities.graph import ANOMALY_KINDS, Anomaly, Edge, Graph, Node
 from sami_agents.domain.errors import DataUnavailable
 from sami_agents.domain.gateways.data_source import DataSource
 
@@ -74,8 +74,10 @@ class WalkGraph:
             return
         leaving = {kind for edge in self.graph.edges.values() if edge.cause == node.name for kind in edge.carries}
         tested = [a for a in node.anomalies if a.kind in leaving]
+        if node.id and start.key_field == node.id:
+            tested = [a for a in tested if ANOMALY_KINDS[a.kind]["per_row"]]
         for key, hit, hit_rows in self.hits(run, node, start.key_field or "", [start.key], {start.key: rows}, window, tested):
-            step = Step(node.name, None, start.key_field or "key", key, hit.kind, hit.at, hit.numbers, hit.rows)
+            step = Step(node.name, None, start.key_field or "key", key, hit.kind, hit.at, hit.numbers, hit.rows, node.label or node.name)
             context = Context(node.name, hit_rows, (step,), window, hit.kind, hit.at, frozenset({hit.kind}), frozenset({node.name}))
             deeper = self.walk(run, mode, context)
             result.paths += deeper or [(step,)]
@@ -104,6 +106,8 @@ class WalkGraph:
             carried = frozenset(edge.carries) or context.carried
             if not root and carried is not None and context.kind not in carried:
                 continue
+            if root and edge.shows and context.kind is not None and context.kind not in edge.shows:
+                continue
             found += self.hop(run, mode, context, edge, node, carried)
         return found
 
@@ -124,7 +128,7 @@ class WalkGraph:
         for keys, hit, hit_rows in self.hits(run, node, to_field, values, rows_by_value, window, tested):
             if not self.in_order(root, hit.at, context.last_at):
                 continue
-            step = Step(node.name, edge.name, to_field, keys, hit.kind, hit.at, hit.numbers, hit.rows)
+            step = Step(node.name, edge.name, to_field, keys, hit.kind, hit.at, hit.numbers, hit.rows, node.label or node.name)
             deeper = self.walk(run, mode, Context(node.name, hit_rows, (*context.path, step), window, hit.kind, hit.at or context.last_at, frozenset({hit.kind}), visited))
             found += deeper or [(*context.path, step)]
         return found
@@ -152,7 +156,7 @@ class WalkGraph:
         return rows
 
     def read_range(self, window: Window, tested: list[Anomaly]) -> tuple[date, date]:
-        pads = [a.params["pad_days"] for a in tested if a.kind == "sum_changed"]
+        pads = [a.params["pad_days"] for a in tested if a.kind in ("sum_changed", "set_changed")]
         start, end = window.span(max(pads)) if pads else (window.start, window.end)
         return max(start, end - timedelta(days=MAX_READ_DAYS - 1)), end
 
@@ -166,9 +170,10 @@ class WalkGraph:
                         continue
                     change = run.source.member_change(run.token, node.source, node.dimension, value, window)
                     found += [((value,), hit, [{"key": value}]) for hit in anomaly_kinds.value_changed(change, params)]
-            elif anomaly.kind == "sum_changed":
+            elif anomaly.kind in ("sum_changed", "set_changed"):
                 every = [row for value in values for row in rows_by_value.get(value, [])]
-                found += [(tuple(values), hit, hit.rows) for hit in anomaly_kinds.sum_changed(every, params, window)]
+                grouped = getattr(anomaly_kinds, anomaly.kind)(every, params, window)
+                found += [(tuple(values), hit, hit.rows) for hit in grouped]
             else:
                 for value in values:
                     if value not in rows_by_value:

@@ -1,0 +1,6 @@
+[
+  {"scenario": "two-causes", "question": "Why did sales fall in August?"},
+  {"scenario": "cancellations", "question": "Why did sales fall in August?"},
+  {"scenario": "supplier-switch", "question": "Why did purchases change in October?"},
+  {"scenario": "double-cause", "question": "Why did purchases rise in September?"}
+]

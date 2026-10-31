@@ -2,10 +2,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 ANOMALY_KINDS: dict[str, dict[str, Any]] = {
-    "later_than": {"text": ("due", "done"), "numbers": {"min_days": 3}},
-    "coverage_gap": {"text": ("from", "to"), "numbers": {}},
-    "sum_changed": {"text": ("field", "date"), "numbers": {"min_percent": None, "pad_days": 30}},
-    "value_changed": {"text": (), "numbers": {"min_percent": None}},
+    "later_than": {"text": ("due", "done"), "optional": ("reason",), "numbers": {"min_days": 3}, "explains": True, "per_row": True},
+    "coverage_gap": {"text": ("from", "to"), "optional": (), "numbers": {}, "explains": True, "per_row": True},
+    "sum_changed": {"text": ("field", "date"), "optional": (), "numbers": {"min_percent": None, "pad_days": 30}, "explains": False, "per_row": False},
+    "value_changed": {"text": (), "optional": (), "numbers": {"min_percent": None}, "explains": False, "per_row": False},
+    "set_changed": {"text": ("field", "date"), "optional": (), "numbers": {"pad_days": 30}, "explains": True, "per_row": False},
 }
 DEFAULT_LOOKBACK_DAYS = 60
 
@@ -24,6 +25,8 @@ class Node:
     dimension: str | None = None
     anomalies: tuple[Anomaly, ...] = ()
     passthrough: bool = False
+    id: str | None = None
+    label: str | None = None
 
 
 @dataclass(frozen=True)

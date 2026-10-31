@@ -69,6 +69,7 @@ class Step:
     at: date | None
     numbers: dict[str, Any]
     rows: list[dict]
+    label: str = ""
 
 
 @dataclass(frozen=True)

@@ -1,6 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
+from sami_agents.application import anomaly_kinds
 from sami_agents.application.anomaly_kinds import coverage_gap, later_than, sum_changed, value_changed
 from sami_agents.domain.entities.finding import MemberChange, Window
 
@@ -16,7 +17,8 @@ def delivery(promised, actual):
 class TestLaterThan:
     def test_twelve_days_late_is_unusual_and_dated_by_its_due_date(self):
         [hit] = later_than([delivery("2026-07-14", "2026-07-26")], LATE, TODAY)
-        assert (hit.kind, hit.at, hit.numbers) == ("later_than", date(2026, 7, 14), {"days_late": 12, "open": False})
+        assert (hit.kind, hit.at) == ("later_than", date(2026, 7, 14))
+        assert hit.numbers == {"days_late": 12, "open": False, "due": date(2026, 7, 14), "done": date(2026, 7, 26), "reason": None}
 
     def test_two_days_late_and_early_are_not(self):
         assert later_than([delivery("2026-07-14", "2026-07-16"), delivery("2026-07-14", "2026-07-10")], LATE, TODAY) == []
@@ -26,7 +28,7 @@ class TestLaterThan:
 
     def test_an_open_item_overdue_counts_to_today(self):
         [hit] = later_than([delivery("2026-10-20", None)], LATE, TODAY)
-        assert hit.numbers == {"days_late": 11, "open": True}
+        assert (hit.numbers["days_late"], hit.numbers["open"], hit.numbers["done"]) == (11, True, None)
 
     def test_an_open_item_not_yet_due_is_not_late(self):
         assert later_than([delivery("2026-11-20", None)], LATE, TODAY) == []
@@ -145,3 +147,37 @@ class TestWindow:
 
     def test_the_span_covers_both_periods_with_padding(self):
         assert Window.before(date(2026, 8, 1), date(2026, 8, 31)).span(30) == (date(2026, 6, 1), date(2026, 9, 30))
+
+
+class TestSetChanged:
+    PARAMS = {"field": "Supplier", "date": "OrderDate", "pad_days": 30}
+    WINDOW = Window.before(date(2026, 10, 1), date(2026, 10, 31))
+
+    def row(self, supplier, ordered):
+        return {"Supplier": supplier, "OrderDate": ordered}
+
+    def test_a_new_supplier_is_reported_with_the_old_one_still_there(self):
+        rows = [self.row("S1", "2026-09-10"), self.row("S1", "2026-10-10"), self.row("S2", "2026-10-12")]
+        [hit] = anomaly_kinds.set_changed(rows, self.PARAMS, self.WINDOW)
+        assert (hit.kind, hit.at, hit.numbers) == ("set_changed", None, {"field": "Supplier", "new": ["S2"], "gone": []})
+        assert {r["Supplier"] for r in hit.rows} == {"S1", "S2"}
+
+    def test_a_supplier_that_stopped_is_gone(self):
+        rows = [self.row("S1", "2026-09-10"), self.row("S2", "2026-09-12"), self.row("S2", "2026-10-12")]
+        [hit] = anomaly_kinds.set_changed(rows, self.PARAMS, self.WINDOW)
+        assert hit.numbers == {"field": "Supplier", "new": [], "gone": ["S1"]}
+
+    def test_the_same_suppliers_in_both_periods_is_nothing(self):
+        rows = [self.row("S1", "2026-09-10"), self.row("S1", "2026-10-10")]
+        assert anomaly_kinds.set_changed(rows, self.PARAMS, self.WINDOW) == []
+
+    def test_rows_outside_both_periods_and_empty_values_are_ignored(self):
+        rows = [self.row("S1", "2026-09-10"), self.row("S1", "2026-10-10"), self.row("S9", "2025-01-01"), self.row(None, "2026-10-11"), self.row("", "2026-10-11")]
+        assert anomaly_kinds.set_changed(rows, self.PARAMS, self.WINDOW) == []
+
+
+class TestLaterThanReason:
+    def test_the_reason_is_carried_when_the_parameter_names_a_field(self):
+        params = {**LATE, "reason": "DelayReason"}
+        [hit] = later_than([{**delivery("2026-07-14", "2026-07-26"), "DelayReason": "MATERIAL_SHORTAGE"}], params, TODAY)
+        assert hit.numbers["reason"] == "MATERIAL_SHORTAGE"

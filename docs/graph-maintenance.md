@@ -9,12 +9,16 @@
 
 | Kind | Use it when | Parameters |
 |------|-------------|------------|
-| `later_than` | a date should not be later than another (delivery, production end) | `due`, `done`, `min_days` (default 3) |
+| `later_than` | a date should not be later than another (delivery, production end) | `due`, `done`, `min_days` (default 3), optional `reason` (a field that says why, kept as evidence) |
 | `coverage_gap` | rows give validity periods and a gap matters (contracts, price lists) | `from`, `to` |
 | `sum_changed` | a quantity added up over the period moved a lot (planned quantity, ordered quantity) | `field`, `date`, `min_percent`, `pad_days` (default 30) |
 | `value_changed` | a member of a metric split moved a lot (a customer's sales, a material's purchases) | `min_percent` |
+| `set_changed` | the set of values of a field changed between periods: a new or a vanished supplier or customer | `field`, `date`, `pad_days` (default 30) |
 
+- A record node may name an `id` field (`id = "PurchaseOrder"`): the field that identifies one row, so an answer can say which document it found.
 - A **passthrough** node is a link that is walked through without a test, such as the list of components of a production order.
+
+Going back from an effect (root cause), an edge that lists `shows` is only followed when the kind found at that effect is one of them, so a change of supplier is not "explained" by production plans. A starting mover has no kind and follows every edge.
 
 Supply delay and extra demand travel opposite ways through the same nodes, so a pair of nodes can have two edges, one each way, carrying different kinds. Look at the existing ones with `sami-agents graph show`.
 
