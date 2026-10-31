@@ -8,7 +8,10 @@ from token_verification.fastapi_deps import AuthDependencies
 from sami_agents.application.answer_chat import AnswerChat
 from sami_agents.application.keyword_matcher import KeywordMatcher
 from sami_agents.application.plan_chat import PlanChat
-from sami_agents.domain.errors import CatalogUnavailable
+from sami_agents.application.answer_question import AnswerQuestion
+from sami_agents.domain.errors import CatalogUnavailable, DataUnavailable
+from sami_agents.entrypoint.analyst import build_analyst
+from sami_agents.infrastructure.api.analyse.router import create_analyse_router
 from sami_agents.domain.gateways.catalog_source import CatalogSource
 from sami_agents.domain.gateways.relevance_checker import RelevanceChecker
 from sami_agents.domain.gateways.reply_writer import ReplyWriter
@@ -24,6 +27,7 @@ def create_app(
     checker: RelevanceChecker | None = None,
     catalog_source: CatalogSource | None = None,
     reply_writer: ReplyWriter | None = None,
+    analyst: AnswerQuestion | None = None,
 ) -> FastAPI:
     auth = AuthDependencies(TokenVerifier(settings.jwt_secret))
     app = FastAPI()
@@ -31,6 +35,10 @@ def create_app(
     @app.exception_handler(CatalogUnavailable)
     def catalog_unavailable(request: Request, error: CatalogUnavailable) -> JSONResponse:
         return JSONResponse({"code": "CATALOG_UNAVAILABLE"}, status_code=503)
+
+    @app.exception_handler(DataUnavailable)
+    def data_unavailable(request: Request, error: DataUnavailable) -> JSONResponse:
+        return JSONResponse({"code": "DATA_UNAVAILABLE"}, status_code=503)
 
     app.add_middleware(
         CORSMiddleware,
@@ -43,4 +51,5 @@ def create_app(
     answer_chat = AnswerChat(catalog_source or SynapseCatalogSource(settings), PlanChat(checker, KeywordMatcher(load_aliases()), settings.laya_threshold, reply_writer))
     app.include_router(create_health_router(), prefix="/v1/agents", tags=["Health"])
     app.include_router(create_chat_router(answer_chat, auth), prefix="/v1/agents", tags=["Chat"])
+    app.include_router(create_analyse_router(analyst or build_analyst(settings), auth), prefix="/v1/agents", tags=["Analyse"])
     return app

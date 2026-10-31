@@ -159,13 +159,13 @@ class TestSetChanged:
     def test_a_new_supplier_is_reported_with_the_old_one_still_there(self):
         rows = [self.row("S1", "2026-09-10"), self.row("S1", "2026-10-10"), self.row("S2", "2026-10-12")]
         [hit] = anomaly_kinds.set_changed(rows, self.PARAMS, self.WINDOW)
-        assert (hit.kind, hit.at, hit.numbers) == ("set_changed", None, {"new": ["S2"], "gone": []})
+        assert (hit.kind, hit.at, hit.numbers) == ("set_changed", None, {"field": "Supplier", "new": ["S2"], "gone": []})
         assert {r["Supplier"] for r in hit.rows} == {"S1", "S2"}
 
     def test_a_supplier_that_stopped_is_gone(self):
         rows = [self.row("S1", "2026-09-10"), self.row("S2", "2026-09-12"), self.row("S2", "2026-10-12")]
         [hit] = anomaly_kinds.set_changed(rows, self.PARAMS, self.WINDOW)
-        assert hit.numbers == {"new": [], "gone": ["S1"]}
+        assert hit.numbers == {"field": "Supplier", "new": [], "gone": ["S1"]}
 
     def test_the_same_suppliers_in_both_periods_is_nothing(self):
         rows = [self.row("S1", "2026-09-10"), self.row("S1", "2026-10-10")]

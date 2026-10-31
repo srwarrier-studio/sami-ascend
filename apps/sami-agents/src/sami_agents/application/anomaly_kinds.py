@@ -75,4 +75,4 @@ def set_changed(rows: list[dict], params: dict, window: Window) -> list[Hit]:
     if now == before:
         return []
     inside = [r for r in rows if window.start <= day_of(r[params["date"]]) <= window.end]
-    return [Hit("set_changed", None, {"new": sorted(now - before), "gone": sorted(before - now)}, inside)]
+    return [Hit("set_changed", None, {"field": params["field"], "new": sorted(now - before), "gone": sorted(before - now)}, inside)]

@@ -18,5 +18,10 @@ class Settings(BaseSettings):
     laya_api_key: str = ""
     laya_threshold: float = 0.35
     laya_timeout_seconds: float = 5.0
+    significant_percent: float = 5
+    mover_min_percent: float = 10
+    mover_min_share: float = 2
+    price_majority_percent: float = 50
+    sap_is_mock: bool = True
     jwt_secret: str = ""
     frontend_url: str = "http://localhost:5173"
