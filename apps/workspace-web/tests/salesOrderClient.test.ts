@@ -44,3 +44,50 @@ describe('create', () => {
     expect(await salesOrderClient.create(order)).toEqual({ ok: false, kind: 'failed' })
   })
 })
+
+const request = (status: string) => ({
+  id: 'abc', status, attempts: 0, created_at: '2026-10-31T09:00:00Z', message: 'm',
+  order: { sold_to_party: '0000100001', items: [{ material: 'RM-1001', quantity: '5', quantity_unit: 'KG' }] },
+})
+
+describe('create when SAP cannot take it', () => {
+  it.each(['queued', 'unknown'] as const)('maps a 202 %s to its kind with the request', async (status) => {
+    respond(202, request(status))
+    expect(await salesOrderClient.create(order)).toEqual({ ok: false, kind: status, request: request(status) })
+  })
+
+  it('treats a 202 with another status as failed', async () => {
+    respond(202, request('posted'))
+    expect(await salesOrderClient.create(order)).toEqual({ ok: false, kind: 'failed' })
+  })
+
+  it('returns notSaved when the order could not even be saved', async () => {
+    respond(503, { code: 'STORE_UNAVAILABLE' })
+    expect(await salesOrderClient.create(order)).toEqual({ ok: false, kind: 'notSaved' })
+  })
+
+  it('returns unavailable for a 503 without a readable body', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('down', { status: 503 })))
+    expect(await salesOrderClient.create(order)).toEqual({ ok: false, kind: 'unavailable' })
+  })
+})
+
+describe('openRequests', () => {
+  it('returns the list and sends the cookie', async () => {
+    respond(200, { requests: [request('queued')] })
+    expect(await salesOrderClient.openRequests()).toEqual([request('queued')])
+    const [url, init] = vi.mocked(fetch).mock.calls[0]
+    expect(url).toBe('http://localhost:8002/v1/workspace/sales-order-requests?open=true')
+    expect(init).toMatchObject({ credentials: 'include' })
+  })
+
+  it('throws on an error answer instead of returning an empty list', async () => {
+    respond(503, { code: 'STORE_UNAVAILABLE' })
+    await expect(salesOrderClient.openRequests()).rejects.toThrow()
+  })
+
+  it('throws on a network error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('network')))
+    await expect(salesOrderClient.openRequests()).rejects.toThrow()
+  })
+})
