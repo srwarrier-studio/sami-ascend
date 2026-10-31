@@ -49,7 +49,13 @@ class CaseReader:
             return ReadResult(None, "widgets", case)
         case.intent = intent
         subjects = {name: ", ".join(words) for name, words in self.rules.words.metrics.items()} | {"none": "neither of these"}
-        metric = self.sure("subject", text, "Which business figure is the question about?", subjects, case) or self.rules.metric(lowered)
+        metric = self.sure("subject", text, "Which business figure is the question about?", subjects, case)
+        named = self.rules.metric(lowered)
+        if metric is None:
+            metric = named
+        elif metric == "none" and named is not None:
+            case.how_read.append(f"subject: the word for {named} overruled the model")
+            metric = named
         if metric is None or metric == "none":
             return ReadResult(None, "unreadable", case)
         case.metric = metric

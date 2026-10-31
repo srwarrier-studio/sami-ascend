@@ -73,6 +73,13 @@ class TestUnsureMeansTheRules:
         assert result.question == Question("sales", "fall", date(2026, 8, 1), "why")
         assert result.case.how_read[:3] == ["intent: unsure, read by rules", "subject: unsure, read by rules", "direction: unsure, read by rules"]
 
+    def test_a_sure_none_is_overruled_by_a_word_that_names_a_metric(self):
+        answers = why()
+        answers["subject"] = ("none", 0.9)
+        result = reader(answers)[0].read("what made turnover increase in may", TODAY)
+        assert result.question == Question("sales", "fall", date(2026, 5, 1), "why")
+        assert "subject: the word for sales overruled the model" in result.case.how_read
+
     def test_unsure_and_the_rules_cannot_read_it_either_is_refused_not_guessed(self):
         result = reader({"intent": ("other", 0.3)})[0].read("sales are weird lately", TODAY)
         assert (result.question, result.problem) == (None, "unreadable")
