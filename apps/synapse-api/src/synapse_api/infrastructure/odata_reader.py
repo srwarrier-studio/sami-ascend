@@ -13,12 +13,15 @@ class ODataReader:
     def all_rows(self, path: str) -> list[dict]:
         rows: list[dict] = []
         while True:
-            page = self.get_rows(f"{path}&$top={PAGE}&$skip={len(rows)}")
+            page, more = self.read_page(f"{path}&$top={PAGE}&$skip={len(rows)}")
             rows += page
-            if len(page) < PAGE:
+            if not page or (len(page) < PAGE and not more):
                 return rows
 
     def get_rows(self, path: str) -> list[dict]:
+        return self.read_page(path)[0]
+
+    def read_page(self, path: str) -> tuple[list[dict], bool]:
         headers = {"Accept": "application/json"}
         if request_id := get_request_id():
             headers["X-Request-ID"] = request_id
@@ -29,6 +32,7 @@ class ODataReader:
         if response.status_code != 200:
             raise SapUnavailable(f"unexpected status {response.status_code}")
         try:
-            return response.json()["value"]
+            body = response.json()
+            return body["value"], "@odata.nextLink" in body
         except (ValueError, KeyError, TypeError) as error:
             raise SapUnavailable("unreadable body") from error
