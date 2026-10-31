@@ -4,7 +4,13 @@ from pathlib import Path
 import pytest
 
 from butterfly.infrastructure.api.odata import DRIVERS_ROOT, ROOT
+from butterfly.application.usecase.summarize_purchases_by_day import SummarizePurchasesByDay
+from butterfly.application.usecase.summarize_purchases_by_material import SummarizePurchasesByMaterial
+from butterfly.application.usecase.summarize_purchases_by_supplier import SummarizePurchasesBySupplier
+from butterfly.infrastructure.memory.in_memory_driver_repo import InMemoryDriverRepo
 from driver_data import COMPONENTS, CONTRACTS, DELIVERIES, PRODUCTION_ORDERS, make_driver_client
+
+DRIVERS = InMemoryDriverRepo(deliveries=DELIVERIES)
 
 CONTRACT = (Path(__file__).resolve().parents[3] / "docs/sap/drivers-contract.md").read_text()
 FIELD_ROW = re.compile(r"^\| `(\w+)` \| `Edm\.\w+`", re.MULTILINE)
@@ -14,6 +20,9 @@ ENTITIES = {
     "PurchaseDelivery": (DELIVERIES, "PurchaseOrder"),
     "ProductionOrder": (PRODUCTION_ORDERS, "ProductionOrder"),
     "ProductionOrderComponent": (COMPONENTS, "ProductionOrder"),
+    "PurchaseSummaryByDay": (SummarizePurchasesByDay(DRIVERS).execute(), "OrderDate"),
+    "PurchaseSummaryBySupplier": (SummarizePurchasesBySupplier(DRIVERS).execute(), "Supplier"),
+    "PurchaseSummaryByMaterial": (SummarizePurchasesByMaterial(DRIVERS).execute(), "Material"),
 }
 
 
