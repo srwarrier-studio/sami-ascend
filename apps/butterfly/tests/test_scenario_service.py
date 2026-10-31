@@ -83,8 +83,8 @@ class TestTheScenarioListAgrees:
             assert TRUTHS[scenario.name]["scenario"] == scenario.name
             assert TRUTHS[scenario.name]["holdout"] == scenario.holdout
 
-    def test_exactly_two_scenarios_are_held_back(self):
-        assert sorted(s.name for s in SCENARIOS if s.holdout) == ["cancellations", "two-causes"]
+    def test_exactly_four_scenarios_are_held_back(self):
+        assert sorted(s.name for s in SCENARIOS if s.holdout) == ["cancellations", "double-cause", "supplier-switch", "two-causes"]
 
     def test_august_contract_is_the_default_scenario(self):
         assert SCENARIOS[0] is AUGUST_CONTRACT
@@ -101,6 +101,12 @@ class TestTheBaseHistoryIsTheSameEverywhere:
         "quiet-month": date(2026, 12, 31),
         "two-causes": date(2026, 7, 20),
         "cancellations": date(2026, 8, 1),
+        "purchase-price-rise": date(2026, 12, 31),
+        "stock-up": date(2026, 12, 31),
+        "demand-surge": date(2026, 6, 15),
+        "quiet-purchases": date(2026, 12, 31),
+        "supplier-switch": date(2026, 12, 31),
+        "double-cause": date(2026, 12, 31),
     }
 
     @pytest.mark.parametrize("name", NAMES)

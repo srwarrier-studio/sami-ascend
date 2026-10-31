@@ -1,0 +1,12 @@
+{
+  "scenario": "stock-up",
+  "holdout": false,
+  "metric": "purchases",
+  "month": "2026-09",
+  "compare_with": "2026-08",
+  "total_change_percent": [30, 38],
+  "product": {"material": "RAW-2003", "value_change_percent": [58, 62], "volume_change_percent": [58, 62]},
+  "causes": [{"type": "purchase_quantity_change", "key": "RAW-2003"}],
+  "not_blame": [],
+  "unexplained": true
+}

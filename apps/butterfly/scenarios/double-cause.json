@@ -1,0 +1,18 @@
+{
+  "scenario": "double-cause",
+  "holdout": true,
+  "metric": "purchases",
+  "month": "2026-09",
+  "compare_with": "2026-08",
+  "total_change_percent": [5, 8],
+  "products": [
+    {"material": "RAW-2004", "value_change_percent": [23, 27], "volume_change_percent": [-1, 1]},
+    {"material": "RAW-2006", "value_change_percent": [48, 52], "volume_change_percent": [48, 52]}
+  ],
+  "causes": [
+    {"type": "purchase_price_change", "key": "RAW-2004"},
+    {"type": "purchase_quantity_change", "key": "RAW-2006"}
+  ],
+  "not_blame": [],
+  "unexplained": true
+}

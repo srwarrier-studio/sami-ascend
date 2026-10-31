@@ -1,0 +1,12 @@
+{
+  "scenario": "supplier-switch",
+  "holdout": true,
+  "metric": "purchases",
+  "month": "2026-10",
+  "compare_with": "2026-09",
+  "total_change_percent": [-2, 3],
+  "product": {"material": "RAW-2005", "value_change_percent": [13, 17], "volume_change_percent": [-1, 1]},
+  "causes": [{"type": "supplier_switch", "key": "RAW-2005"}],
+  "not_blame": [],
+  "unexplained": false
+}

@@ -1,0 +1,12 @@
+{
+  "scenario": "purchase-price-rise",
+  "holdout": false,
+  "metric": "purchases",
+  "month": "2026-08",
+  "compare_with": "2026-07",
+  "total_change_percent": [1, 4],
+  "product": {"material": "RAW-2002", "value_change_percent": [18, 22], "volume_change_percent": [-1, 1]},
+  "causes": [{"type": "purchase_price_change", "key": "RAW-2002"}],
+  "not_blame": [],
+  "unexplained": false
+}
