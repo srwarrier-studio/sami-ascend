@@ -1,0 +1,13 @@
+{
+  "scenario": "supplier-no-effect",
+  "holdout": false,
+  "month": "2026-08",
+  "compare_with": "2026-07",
+  "total_change_percent": [-4, 2],
+  "causes": [],
+  "not_blame": [
+    {"type": "purchase_delivery", "key": "4500001207"},
+    {"type": "production_order", "key": "0001000417"}
+  ],
+  "unexplained": false
+}

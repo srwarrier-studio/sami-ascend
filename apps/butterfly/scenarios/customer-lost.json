@@ -1,0 +1,11 @@
+{
+  "scenario": "customer-lost",
+  "holdout": false,
+  "month": "2026-08",
+  "compare_with": "2026-07",
+  "total_change_percent": [-20, -12],
+  "biggest_mover": "0000100005",
+  "causes": [],
+  "not_blame": [],
+  "unexplained": true
+}

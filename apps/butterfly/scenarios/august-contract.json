@@ -1,0 +1,17 @@
+{
+  "scenario": "august-contract",
+  "holdout": false,
+  "month": "2026-08",
+  "compare_with": "2026-07",
+  "total_change_percent": [-16, -13],
+  "causes": [
+    {"type": "contract", "key": "0040000127"},
+    {"type": "purchase_delivery", "key": "4500001207"},
+    {"type": "production_order", "key": "0001000417"}
+  ],
+  "not_blame": [
+    {"type": "purchase_delivery", "key": "4500001196"},
+    {"type": "production_order", "key": "0001000408"}
+  ],
+  "unexplained": false
+}
