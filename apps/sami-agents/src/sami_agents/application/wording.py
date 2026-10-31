@@ -29,13 +29,14 @@ def headline(analysis: Analysis) -> str:
     amounts = f"{analysis.currency} {number(analysis.previous)} to {analysis.currency} {number(analysis.current)}"
     if analysis.change_percent is None:
         return f"{label} were {analysis.currency} {number(analysis.current)} in {month} and nothing in {before}."
-    lead = f"{label} {verb(analysis.change)} {percent_text(analysis.change_percent)}" if analysis.significant else f"{label} were steady: they {verb(analysis.change)} {percent_text(analysis.change_percent)}"
+    size = f" {percent_text(analysis.change_percent)}" if analysis.change != 0 else ""
+    lead = f"{label} {verb(analysis.change)}{size}" if analysis.significant else f"{label} were steady: they {verb(analysis.change)}{size}"
     return f"{lead} from {before} to {month} ({amounts})."
 
 
 def finding_sentence(analysis: Analysis, finding: Finding) -> str:
     text = f"{finding.name} {verb(finding.change)} {percent_text(finding.change_percent) or 'from nothing'} ({analysis.currency} {number(abs(finding.change))})"
-    text += f", {finding.share_percent:.1f}% of the change." if finding.share_percent is not None else "."
+    text += f", {finding.share_percent:.1f}% of the change." if analysis.significant and finding.share_percent is not None else "."
     if finding.kind == "price":
         text += f" Mostly price: the price effect is {analysis.currency} {number(abs(finding.price_effect))} and the volume effect {analysis.currency} {number(abs(finding.volume_effect))}."
     return text
@@ -46,20 +47,21 @@ def offset_sentence(analysis: Analysis, finding: Finding) -> str:
 
 
 def step_sentence(step: Step, cause_key: str) -> str:
-    n = step.numbers
+    n, label = step.numbers, step.label or step.node
     if step.kind == "coverage_gap":
-        return f"no valid {step.node} for {n['days_uncovered']} days from {n['first_uncovered']} ({step.node} {cause_key})"
+        return f"no valid {label} for {n['days_uncovered']} days from {n['first_uncovered']} ({label} {cause_key})"
     if step.kind == "later_than":
         done = "still open" if n["open"] else f"done {n['done']}"
         reason = f", reason {n['reason']}" if n.get("reason") else ""
-        return f"{step.node} {cause_key} was {n['days_late']} days late (due {n['due']}, {done}{reason})"
+        return f"{label} {cause_key} being {n['days_late']} days late (due {n['due']}, {done}{reason})"
     if step.kind == "sum_changed":
         change = percent_text(n["change_percent"]) or "from nothing"
-        return f"{step.node} totals went from {number(n['previous'])} to {number(n['current'])} ({change})"
+        return f"{label} totals going from {number(n['previous'])} to {number(n['current'])} ({change}) over the months leading up to it"
     if step.kind == "set_changed":
         parts = ([f"new {', '.join(n['new'])}"] if n["new"] else []) + ([f"gone {', '.join(n['gone'])}"] if n["gone"] else [])
-        return f"the {n['field']} values of {step.node} changed: {'; '.join(parts)}"
-    return f"{step.node} {cause_key} {verb(n['current'] - n['previous'])} {percent_text(n['change_percent']) or 'from nothing'}"
+        return f"the {n['field']} values of {label} changing: {'; '.join(parts)}"
+    rising = n["current"] > n["previous"]
+    return f"{label} {cause_key} {'rising' if rising else 'falling'} {percent_text(n['change_percent']) or 'from nothing'} over the months leading up to it"
 
 
 def path_sentence(finding: Finding, path_index: int) -> str:
@@ -73,7 +75,9 @@ def path_sentence(finding: Finding, path_index: int) -> str:
 
 
 def unexplained_sentence(analysis: Analysis) -> str:
-    if not analysis.findings and not analysis.significant:
+    if not analysis.significant:
+        if analysis.findings:
+            return "Overall the month was steady; the movements above are the ones with something behind them in the data we hold."
         return "Nothing unusual was found behind this month."
     if analysis.explained_percent == 0:
         return "No cause was found in the data we hold."

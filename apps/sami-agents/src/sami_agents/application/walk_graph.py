@@ -77,7 +77,7 @@ class WalkGraph:
         if node.id and start.key_field == node.id:
             tested = [a for a in tested if ANOMALY_KINDS[a.kind]["per_row"]]
         for key, hit, hit_rows in self.hits(run, node, start.key_field or "", [start.key], {start.key: rows}, window, tested):
-            step = Step(node.name, None, start.key_field or "key", key, hit.kind, hit.at, hit.numbers, hit.rows)
+            step = Step(node.name, None, start.key_field or "key", key, hit.kind, hit.at, hit.numbers, hit.rows, node.label or node.name)
             context = Context(node.name, hit_rows, (step,), window, hit.kind, hit.at, frozenset({hit.kind}), frozenset({node.name}))
             deeper = self.walk(run, mode, context)
             result.paths += deeper or [(step,)]
@@ -128,7 +128,7 @@ class WalkGraph:
         for keys, hit, hit_rows in self.hits(run, node, to_field, values, rows_by_value, window, tested):
             if not self.in_order(root, hit.at, context.last_at):
                 continue
-            step = Step(node.name, edge.name, to_field, keys, hit.kind, hit.at, hit.numbers, hit.rows)
+            step = Step(node.name, edge.name, to_field, keys, hit.kind, hit.at, hit.numbers, hit.rows, node.label or node.name)
             deeper = self.walk(run, mode, Context(node.name, hit_rows, (*context.path, step), window, hit.kind, hit.at or context.last_at, frozenset({hit.kind}), visited))
             found += deeper or [(*context.path, step)]
         return found

@@ -68,22 +68,42 @@ class TestSteps:
 
     def test_a_late_step_with_and_without_a_reason_and_when_still_open(self):
         numbers = dict(days_late=14, open=False, due=date(2026, 7, 20), done=date(2026, 8, 3), reason="MATERIAL_SHORTAGE")
-        assert wording.step_sentence(step("later_than", **numbers), "0001000417") == "Contract 0001000417 was 14 days late (due 2026-07-20, done 2026-08-03, reason MATERIAL_SHORTAGE)"
+        assert wording.step_sentence(step("later_than", **numbers), "0001000417") == "Contract 0001000417 being 14 days late (due 2026-07-20, done 2026-08-03, reason MATERIAL_SHORTAGE)"
         assert "reason" not in wording.step_sentence(step("later_than", **{**numbers, "reason": None}), "X")
         assert "still open" in wording.step_sentence(step("later_than", **{**numbers, "open": True, "done": None}), "X")
 
     def test_a_sum_and_a_set_and_a_value_step(self):
-        assert wording.step_sentence(step("sum_changed", previous=Decimal("15000"), current=Decimal("16750"), change_percent=Decimal("11.67")), "k") == "Contract totals went from 15,000 to 16,750 (11.7%)"
-        assert wording.step_sentence(step("set_changed", field="Supplier", new=["S2"], gone=["S1"]), "k") == "the Supplier values of Contract changed: new S2; gone S1"
-        assert wording.step_sentence(step("value_changed", previous=Decimal(100), current=Decimal(120), change_percent=Decimal("20.00")), "RM-1002") == "Contract RM-1002 rose 20.0%"
+        assert wording.step_sentence(step("sum_changed", previous=Decimal("15000"), current=Decimal("16750"), change_percent=Decimal("11.67")), "k") == "Contract totals going from 15,000 to 16,750 (11.7%) over the months leading up to it"
+        assert wording.step_sentence(step("set_changed", field="Supplier", new=["S2"], gone=["S1"]), "k") == "the Supplier values of Contract changing: new S2; gone S1"
+        assert wording.step_sentence(step("value_changed", previous=Decimal(100), current=Decimal(120), change_percent=Decimal("20.00")), "RM-1002") == "Contract RM-1002 rising 20.0% over the months leading up to it"
 
     def test_a_chain_is_told_with_behind_that_and_never_with_caused(self):
         causes = [Cause("record:production_order", "later_than", "O1"), Cause("record:purchase_delivery", "later_than", "P1")]
         late = dict(days_late=14, open=False, due=date(2026, 7, 20), done=date(2026, 8, 3), reason=None)
         f = finding(causes=causes, paths=[(step("later_than", **late), step("later_than", **{**late, "days_late": 12}))])
         text = wording.path_sentence(f, 0)
-        assert text.startswith("This coincided with Contract O1 was 14 days late") and ", and behind that Contract P1 was 12 days late" in text
+        assert text.startswith("This coincided with Contract O1 being 14 days late") and ", and behind that Contract P1 being 12 days late" in text
         assert "caused" not in text
+
+
+class TestASteadyMonth:
+    def test_a_zero_change_has_no_percent(self):
+        text = wording.headline(analysis(significant=False, change=Decimal(0), change_percent=Decimal("0.00"), current=Decimal(5), previous=Decimal(5)))
+        assert text == "Sales were steady: they did not change from July 2026 to August 2026 (INR 5 to INR 5)."
+
+    def test_a_finding_on_a_steady_month_has_no_share_of_the_change(self):
+        a = analysis(significant=False, change=Decimal(1000), change_percent=Decimal("1.00"))
+        assert wording.finding_sentence(a, finding(share_percent=Decimal("-435.4"))) == "Acme Industries fell 88.9% (INR 800,000)."
+
+    def test_the_closing_line_does_not_pretend_to_a_share(self):
+        a = analysis(significant=False, findings=[finding()])
+        assert wording.unexplained_sentence(a) == "Overall the month was steady; the movements above are the ones with something behind them in the data we hold."
+
+
+class TestLabels:
+    def test_the_node_label_is_used_when_the_step_has_one(self):
+        labelled = Step("ProductionOrder", None, "k", ("O1",), "later_than", None, dict(days_late=3, open=True, due=date(2026, 7, 1), done=None, reason=None), [], "production order")
+        assert wording.step_sentence(labelled, "O1") == "production order O1 being 3 days late (due 2026-07-01, still open)"
 
 
 class TestTheClosingLines:
@@ -173,5 +193,5 @@ class TestEveryFigureComesFromTheAnalysis:
                     else:
                         assert Decimal(token.replace(",", "")) in allowed, (token, sentence)
                 for word in re.findall(r"\b[A-Z][\w-]*\b", sentence):
-                    known = names | {"Sales", "July", "August", "INR", "Contract", "At", "No", "Nothing", "This", "Mostly", "Supplier", "MACHINE_BREAKDOWN", "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"}
+                    known = names | {"Sales", "July", "August", "INR", "Contract", "At", "No", "Nothing", "Overall", "This", "Mostly", "Supplier", "MACHINE_BREAKDOWN", "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"}
                     assert word in known or word in " ".join(names), (word, sentence)

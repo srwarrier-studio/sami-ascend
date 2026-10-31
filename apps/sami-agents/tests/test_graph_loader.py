@@ -67,6 +67,10 @@ class TestTheShippedGraph:
         assert [a.kind for a in nodes["PurchaseDelivery"].anomalies] == ["later_than", "sum_changed", "set_changed"]
         assert nodes["PurchaseDelivery"].anomalies[2].params["pad_days"] == 30
 
+    def test_nodes_have_readable_labels(self):
+        nodes = self.GRAPH.nodes
+        assert (nodes["ProductionOrder"].label, nodes["PurchasedMaterial"].label, nodes["Contract"].label) == ("production order", "purchased material", "contract")
+
     def test_edges_say_what_they_show_at_the_effect(self):
         edges = self.GRAPH.edges
         assert edges["production_for_product"].shows == ("value_changed",)
@@ -132,6 +136,9 @@ class TestEveryProblemNamesItself:
     def test_an_id_must_be_text_and_a_reason_must_be_text(self, tmp_path):
         assert any("'id' must be a field name" in p for p in problems_of(tmp_path, GOOD.replace('source = "record:contract"', 'source = "record:contract"\nid = 5')))
         assert any("'reason' must be text" in p for p in problems_of(tmp_path, GOOD.replace('anomaly = { kind = "coverage_gap", from = "ValidFrom", to = "ValidTo" }', 'anomaly = { kind = "later_than", due = "a", done = "b", reason = 3 }')))
+
+    def test_a_label_must_be_text(self, tmp_path):
+        assert any("'label' must be text" in p for p in problems_of(tmp_path, GOOD.replace('source = "record:contract"', 'source = "record:contract"\nlabel = 4')))
 
     def test_set_changed_needs_its_fields(self, tmp_path):
         text = GOOD.replace('anomaly = { kind = "coverage_gap", from = "ValidFrom", to = "ValidTo" }', 'anomaly = { kind = "set_changed", field = "Supplier" }')

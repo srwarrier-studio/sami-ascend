@@ -52,6 +52,9 @@ class TestRootCauseThroughSupply:
         [path] = self.result().paths
         assert names(path) == [("ProductionOrder", "later_than"), ("PurchaseDelivery", "later_than")]
 
+    def test_each_step_carries_the_readable_label_of_its_node(self):
+        assert [s.label for s in self.result().paths[0]] == ["production order", "purchase delivery"]
+
     def test_each_step_carries_its_numbers_dates_and_the_rows_that_show_it(self):
         [order, late_delivery] = self.result().paths[0]
         assert (order.keys, order.numbers["days_late"], order.at, order.rows[0]["DelayReason"]) == (("RM-1002",), 14, date(2026, 7, 20), "MATERIAL_SHORTAGE")

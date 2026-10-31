@@ -26,6 +26,7 @@ class Node:
     anomalies: tuple[Anomaly, ...] = ()
     passthrough: bool = False
     id: str | None = None
+    label: str | None = None
 
 
 @dataclass(frozen=True)

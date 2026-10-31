@@ -44,7 +44,7 @@ class TestAReadableQuestion:
         lines = ask()["blocks"][0]["lines"]
         assert lines[0].startswith("Sales fell 14.4% from July 2026 to August 2026")
         assert lines[1].startswith("Acme Industries fell")
-        assert "no valid Contract" in lines[2] and "0040000127" in lines[2]
+        assert "no valid contract" in lines[2] and "0040000127" in lines[2]
 
     def test_the_trend_block_has_six_months_and_marks_the_two_compared(self):
         trend = ask()["blocks"][1]

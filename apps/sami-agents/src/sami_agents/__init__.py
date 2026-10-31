@@ -7,6 +7,11 @@ def main() -> None:
 
         evaluate(sys.argv[2:])
         return
+    if sys.argv[1:2] == ["analyst-eval"]:
+        from sami_agents.entrypoint.analyst_eval import main as analyst_eval
+
+        analyst_eval(sys.argv[2:])
+        return
     if sys.argv[1:2] == ["graph"]:
         from sami_agents.entrypoint.graph import main as graph
 

@@ -1,20 +1,25 @@
 [node.Customer]
+label = "customer"
 source = "metric:sales.customer"
 
 [node.Product]
+label = "product"
 source = "metric:sales.material"
 anomaly = { kind = "value_changed", min_percent = 10 }
 
 [node.PurchasedMaterial]
+label = "purchased material"
 source = "metric:purchases.material"
 anomaly = { kind = "value_changed", min_percent = 10 }
 
 [node.Contract]
+label = "contract"
 source = "record:contract"
 id = "SalesContract"
 anomaly = { kind = "coverage_gap", from = "ValidFrom", to = "ValidTo" }
 
 [node.ProductionOrder]
+label = "production order"
 source = "record:production_order"
 id = "ProductionOrder"
 anomaly = [
@@ -23,10 +28,12 @@ anomaly = [
 ]
 
 [node.Component]
+label = "component"
 source = "record:production_component"
 passthrough = true
 
 [node.PurchaseDelivery]
+label = "purchase delivery"
 source = "record:purchase_delivery"
 id = "PurchaseOrder"
 anomaly = [
