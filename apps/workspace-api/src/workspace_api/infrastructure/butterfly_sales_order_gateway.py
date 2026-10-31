@@ -2,7 +2,7 @@ import httpx
 from structured_logging import get_request_id
 
 from workspace_api.domain.entities.sales_order import NewSalesOrder, SalesOrder, SalesOrderPage
-from workspace_api.domain.errors import SalesOrderRejected, SapUnavailable, ValidationDetail
+from workspace_api.domain.errors import SalesOrderRejected, SapNotReached, SapOutcomeUnknown, SapUnavailable, ValidationDetail
 from workspace_api.domain.gateways.sales_order_gateway import SalesOrderGateway
 from workspace_api.infrastructure.butterfly_order_mapper import new_order_to_json, order_from_json
 from workspace_api.infrastructure.settings import Settings
@@ -38,10 +38,14 @@ class ButterflySalesOrderGateway(SalesOrderGateway):
             headers["X-Request-ID"] = request_id
         try:
             response = self.client.request(method, path, headers=headers, **kwargs)
+        except (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout) as error:
+            raise SapNotReached(type(error).__name__) from error
         except httpx.TransportError as error:
-            raise SapUnavailable(type(error).__name__) from error
+            raise SapOutcomeUnknown(type(error).__name__) from error
+        if response.status_code in (429, 503):
+            raise SapNotReached(f"status {response.status_code}")
         if response.status_code >= 500:
-            raise SapUnavailable(f"status {response.status_code}")
+            raise SapOutcomeUnknown(f"status {response.status_code}")
         return response
 
 
