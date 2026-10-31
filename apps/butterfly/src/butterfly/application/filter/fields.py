@@ -82,6 +82,8 @@ PURCHASE_DELIVERY_FIELDS = {
     "OrderedQuantity": ("ordered_quantity", FieldType.DECIMAL),
     "DeliveredQuantity": ("delivered_quantity", FieldType.DECIMAL),
     "QuantityUnit": ("quantity_unit", FieldType.STRING),
+    "NetAmount": ("net_amount", FieldType.DECIMAL),
+    "TransactionCurrency": ("transaction_currency", FieldType.STRING),
     "PromisedDeliveryDate": ("promised_delivery_date", FieldType.DATE),
     "ActualDeliveryDate": ("actual_delivery_date", FieldType.DATE),
     "DeliveryStatus": ("delivery_status", FieldType.STRING),

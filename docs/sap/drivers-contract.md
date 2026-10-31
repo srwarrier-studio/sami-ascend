@@ -42,7 +42,7 @@ replaces.
 
 ### PurchaseDelivery (key: `PurchaseOrder`, `PurchaseOrderItem`)
 
-One row per purchase order item with its delivery dates. `ActualDeliveryDate` is the date of
+One row per purchase order item with its delivery dates. `NetAmount` is the ordered quantity times the net price of the item. `ActualDeliveryDate` is the date of
 the first goods receipt that completed the item; it is empty while the item is open.
 
 | Field | Type | Nullable | Example |
@@ -57,6 +57,8 @@ the first goods receipt that completed the item; it is empty while the item is o
 | `OrderedQuantity` | `Edm.Decimal` (13,3) | No | `"5000.000"` |
 | `DeliveredQuantity` | `Edm.Decimal` (13,3) | No | `"5000.000"` |
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
+| `NetAmount` | `Edm.Decimal` (15,2) | No | `"260000.00"` |
+| `TransactionCurrency` | `Edm.String` (5) | No | `"INR"` |
 | `PromisedDeliveryDate` | `Edm.Date` | No | `"2026-07-14"` |
 | `ActualDeliveryDate` | `Edm.Date` | Yes | `"2026-07-26"` |
 | `DeliveryStatus` | `Edm.String` (1) | No | `"D"` |
@@ -101,6 +103,7 @@ The materials an order consumes.
 | | `C` | Cancelled before its end |
 | `DeliveryStatus` | `O` | Open (not fully received) |
 | | `D` | Delivered |
+| | `X` | Cancelled (left out of the purchase summaries) |
 | `ProductionStatus` | `R` | Released, running |
 | | `C` | Completed |
 | `DelayReason` | `MATERIAL_SHORTAGE` | A component was not available |
@@ -182,6 +185,8 @@ GET {root}PurchaseDelivery?$filter=Material eq 'RAW-2002' and PromisedDeliveryDa
       "OrderedQuantity": "5000.000",
       "DeliveredQuantity": "5000.000",
       "QuantityUnit": "KG",
+      "NetAmount": "260000.00",
+      "TransactionCurrency": "INR",
       "PromisedDeliveryDate": "2026-07-14",
       "ActualDeliveryDate": "2026-07-26",
       "DeliveryStatus": "D"

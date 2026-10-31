@@ -7,7 +7,7 @@ Butterfly serves purchase values and several purchase stories with a written gro
 ### Contract (`docs/sap/drivers-contract.md`, changed first)
 - `PurchaseDelivery` gains `NetAmount` (`Edm.Decimal` 15,2, ordered quantity times the net price) and `TransactionCurrency` (`Edm.String` 5, `INR`), after `OrderedQuantity`'s neighbours in the field table; the contract examples are updated.
 - Three read-only summary entities in the drivers service, like the sales summaries, excluding cancelled purchase items, with the same query options and the whole key in the order: `PurchaseSummaryByDay` (`OrderDate`, `TotalNetAmount`, `OrderCount`, `Currency`), `PurchaseSummaryBySupplier` (adds `Supplier`, `SupplierName`), `PurchaseSummaryByMaterial` (adds `Material`, `MaterialDescription`, `TotalQuantity`, `QuantityUnit`). The date is the purchase `OrderDate`: a purchase counts in the month it was ordered.
-- A `DeliveryStatus` `X` (cancelled) is added to the codes, used by one scenario.
+- A `DeliveryStatus` `X` (cancelled) is added to the codes so the summaries can leave such rows out; no scenario uses it, the summary tests use a hand-made row.
 
 ### Data
 - Each raw material has a net price per unit (fixed arithmetic) and one monthly purchase order per raw material as today; the amount is ordered quantity times price. Quantities, dates and statuses of every scenario that existed before this phase do not change.

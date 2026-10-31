@@ -59,6 +59,7 @@ RAW_MATERIALS = [
 
 ORDERED_QUANTITY = [Decimal("4000.000"), Decimal("5000.000"), Decimal("2000.000"), Decimal("1500.000"), Decimal("1000.000"), Decimal("3000.000")]
 PLANNED_QUANTITY = [Decimal("3500.000"), Decimal("4000.000"), Decimal("1800.000"), Decimal("1400.000"), Decimal("900.000"), Decimal("2800.000")]
+RAW_PRICE = [Decimal("46.00"), Decimal("52.00"), Decimal("610.00"), Decimal("190.00"), Decimal("70.00"), Decimal("48.00")]
 COMPONENT_MARGIN = Decimal("1.1")
 
 PURCHASE_ORDER_BASE = 4500001146
@@ -285,6 +286,7 @@ def build_deliveries(months: list[date], today: date, scenario: Scenario) -> lis
                     promised_delivery_date=promised,
                     actual_delivery_date=actual if delivered else None,
                     delivery_status="D" if delivered else "O",
+                    net_amount=(ORDERED_QUANTITY[raw_index] * RAW_PRICE[raw_index]).quantize(Decimal("0.01")),
                 )
             )
     return deliveries
