@@ -48,7 +48,6 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 03 dashboard-routes: role-checked routes that return the data each catalog widget needs (month-on-month sales, day sales, recent high-value sales, top customers and materials). done (tag `synapse-api-phase-03-done`, 2026-10-28).
 - 04 board-storage: each user's own boards (name, widgets with name, props and grid position), saved in SQLite behind a repo, with list, create, rename, delete and save-layout routes. Postponed: designed after synapse-web 03, from the board store the mock settles on. todo
 - 05 catalog: the widget catalog and each widget's ready-to-render props served from synapse-api (`/v1/synapse/catalog`), sales entries from the sales source and the other domains from a mock library. done (tag `synapse-api-phase-05-done`, 2026-10-30).
-
 - 07 sales-change (planned): a read endpoint that splits the change in sales between two periods by customer and by material, and a month's figure with its trend; the facts for answers to "what were sales for August" and the start of "why". todo
 - 08 driver-facts (planned): read endpoints for contracts, production orders with their components, and purchase deliveries, from butterfly 08 and later the SAP views. todo
 
