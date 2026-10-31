@@ -40,7 +40,7 @@ class TrendMonth:
 class MonthFigure:
     currency: str
     net_amount: Decimal
-    order_count: int
+    order_count: int | None
     previous_change_percent: Decimal | None
     complete: bool
     trend: list[TrendMonth]

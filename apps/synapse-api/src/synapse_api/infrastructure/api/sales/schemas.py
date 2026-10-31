@@ -3,7 +3,6 @@ from decimal import Decimal
 
 from pydantic import BaseModel
 
-from synapse_api.domain.entities.compare import Comparison, MonthFigure
 from synapse_api.domain.entities.kpis import MonthSales, RankedCustomer, RankedMaterial, SalesTotal
 from synapse_api.domain.entities.sales import HighValueOrder
 
@@ -87,59 +86,3 @@ class HighValueOrdersResponse(BaseModel):
     @classmethod
     def from_domain(cls, orders: list[HighValueOrder]) -> "HighValueOrdersResponse":
         return cls.model_validate({"orders": orders}, from_attributes=True)
-
-
-class ChangeRowResponse(BaseModel):
-    key: str
-    name: str
-    current: Decimal
-    previous: Decimal
-    change: Decimal
-    share_of_change_percent: Decimal | None
-    unit: str | None = None
-    quantity_current: Decimal | None = None
-    quantity_previous: Decimal | None = None
-    price_current: Decimal | None = None
-    price_previous: Decimal | None = None
-    volume_effect: Decimal | None = None
-    price_effect: Decimal | None = None
-
-
-class ComparisonResponse(BaseModel):
-    currency: str
-    current: Decimal
-    previous: Decimal
-    change: Decimal
-    change_percent: Decimal | None
-    rows: list[ChangeRowResponse] | None
-
-
-class CompareResponse(BaseModel):
-    comparisons: list[ComparisonResponse]
-
-    @classmethod
-    def from_domain(cls, comparisons: list[Comparison]) -> "CompareResponse":
-        return cls.model_validate({"comparisons": comparisons}, from_attributes=True)
-
-
-class TrendMonthResponse(BaseModel):
-    year: int
-    month: int
-    net_amount: Decimal
-
-
-class MonthFigureResponse(BaseModel):
-    currency: str
-    net_amount: Decimal
-    order_count: int
-    previous_change_percent: Decimal | None
-    complete: bool
-    trend: list[TrendMonthResponse]
-
-
-class MonthResponse(BaseModel):
-    figures: list[MonthFigureResponse]
-
-    @classmethod
-    def from_domain(cls, figures: list[MonthFigure]) -> "MonthResponse":
-        return cls.model_validate({"figures": figures}, from_attributes=True)
