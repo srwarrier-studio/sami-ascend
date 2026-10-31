@@ -74,7 +74,7 @@ All three phases use mock data (session, sales data and board store behind inter
 
 ## sami-agents (AI service for AI Mode)
 - 01 chat-graph: new FastAPI service (port 8005) with the cookie-checked `POST /v1/agents/chat` route that answers in OpenUI Lang, a LangGraph graph over `ChatModel` and `CatalogSource` ports with mocks, the Ollama adapter, and an evaluation tool (`sami-agents eval`) with 22 prompts; it found that small models alone are not good enough at choosing widgets. done (tag `sami-agents-phase-01-done`, 2026-10-30).
-- 02 relevance-check: keyword proposals with aliases, each checked by Laya (yes or no, a rejected widget is skipped and the next tried), the approved widgets sent as a widget stack, or as a board for `@builder`; a small model writes only the sentence. todo
+- 02 relevance-check: keyword proposals with stemming and an alias file, an optional Laya relevance check in a propose and verify loop (off by default: it did not beat the keywords in our tests), an optional small-model sentence writer behind strict checks (off by default), widgets returned as OpenUI Lang pinned by a contract test, and an evaluation tool with a tuning set and a held-out set. done (tag `sami-agents-phase-02-done`, 2026-10-31).
 
 ## ai-dashboard (POC, later, local-first)
 - Not scheduled. Starts after synapse-web 03. See `notes.md` for the constraints. todo
