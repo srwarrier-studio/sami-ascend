@@ -120,10 +120,11 @@ Every other delivery is within 2 days of its promise and every other production 
 | Phase | What | Needs |
 |-------|------|-------|
 | butterfly 08 driver-data | the contract, the entities and the story data | this document |
-| synapse-api 07 sales-change | decompose a change by customer and material; level 2 facts for one month | butterfly 08 |
-| synapse-api 08 driver-facts | contracts, production orders, components and deliveries as read endpoints | butterfly 08 |
-| sami-agents 03 answer-questions | level 2: metric and period, sentence with figure, chart | synapse-api 07 |
-| sami-agents 04 driver-graph | level 3: the graph, the walk, ranking, validated answer | synapse-api 08, sami-agents 03 |
+| synapse-api 07 summary-paging | read every summary completely (a bug the story data exposed) | butterfly 08 |
+| synapse-api 08 sales-change | decompose a change by customer and material; level 2 facts for one month | butterfly 08 |
+| synapse-api 09 driver-facts | contracts, production orders, components and deliveries as read endpoints | butterfly 08 |
+| sami-agents 03 answer-questions | level 2: metric and period, sentence with figure, chart | synapse-api 08 |
+| sami-agents 04 driver-graph | level 3: the graph, the walk, ranking, validated answer | synapse-api 09, sami-agents 03 |
 | synapse-web 12 ai-answers | AI Mode shows text, chart and evidence | sami-agents 03 |
 | SAP team | RAP views for the four entities (see the contract) | `docs/sap/drivers-contract.md` |
 

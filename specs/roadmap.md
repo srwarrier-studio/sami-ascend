@@ -48,8 +48,9 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 03 dashboard-routes: role-checked routes that return the data each catalog widget needs (month-on-month sales, day sales, recent high-value sales, top customers and materials). done (tag `synapse-api-phase-03-done`, 2026-10-28).
 - 04 board-storage: each user's own boards (name, widgets with name, props and grid position), saved in SQLite behind a repo, with list, create, rename, delete and save-layout routes. Postponed: designed after synapse-web 03, from the board store the mock settles on. todo
 - 05 catalog: the widget catalog and each widget's ready-to-render props served from synapse-api (`/v1/synapse/catalog`), sales entries from the sales source and the other domains from a mock library. done (tag `synapse-api-phase-05-done`, 2026-10-30).
-- 07 sales-change (planned): a read endpoint that splits the change in sales between two periods by customer and by material, and a month's figure with its trend; the facts for answers to "what were sales for August" and the start of "why". todo
-- 08 driver-facts (planned): read endpoints for contracts, production orders with their components, and purchase deliveries, from butterfly 08 and later the SAP views. todo
+- 07 summary-paging: read every sales summary completely with `$top` and `$skip`, so months after the first 100 days no longer show 0 against butterfly's story seed or the real SAP page size. done (tag `synapse-api-phase-07-done`, 2026-10-31).
+- 08 sales-change (planned): a read endpoint that splits the change in sales between two periods by customer and by material, and a month's figure with its trend; the facts for answers to "what were sales for August" and the start of "why". todo
+- 09 driver-facts (planned): read endpoints for contracts, production orders with their components, and purchase deliveries, from butterfly 08 and later the SAP views. todo
 
 ## synapse-web (management dashboards)
 All three phases use mock data (session, sales data and board store behind interfaces); no synapse-api calls yet.
@@ -80,8 +81,8 @@ All three phases use mock data (session, sales data and board store behind inter
 - 01 chat-graph: new FastAPI service (port 8005) with the cookie-checked `POST /v1/agents/chat` route that answers in OpenUI Lang, a LangGraph graph over `ChatModel` and `CatalogSource` ports with mocks, the Ollama adapter, and an evaluation tool (`sami-agents eval`) with 22 prompts; it found that small models alone are not good enough at choosing widgets. done (tag `sami-agents-phase-01-done`, 2026-10-30).
 - 02 relevance-check: keyword proposals with stemming and an alias file, an optional Laya relevance check in a propose and verify loop (off by default: it did not beat the keywords in our tests), an optional small-model sentence writer behind strict checks (off by default), widgets returned as OpenUI Lang pinned by a contract test, and an evaluation tool with a tuning set and a held-out set. done (tag `sami-agents-phase-02-done`, 2026-10-31).
 
-- 03 answer-questions (planned): level 2 answers: the metric and period from the question, a sentence with the real figure and a trend chart, as JSON. Depends on synapse-api 07. todo
-- 04 driver-graph (planned): level 3 "why" answers: the driver graph, the walk over the facts, ranking, a validated explanation with evidence. Depends on synapse-api 08, sami-agents 03 and `docs/ai-analysis.md`. todo
+- 03 answer-questions (planned): level 2 answers: the metric and period from the question, a sentence with the real figure and a trend chart, as JSON. Depends on synapse-api 08. todo
+- 04 driver-graph (planned): level 3 "why" answers: the driver graph, the walk over the facts, ranking, a validated explanation with evidence. Depends on synapse-api 09, sami-agents 03 and `docs/ai-analysis.md`. todo
 
 ## ai-dashboard (POC, later, local-first)
 - Not scheduled. Starts after synapse-web 03. See `notes.md` for the constraints. todo

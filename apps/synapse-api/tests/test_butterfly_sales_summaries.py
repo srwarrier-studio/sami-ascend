@@ -32,12 +32,12 @@ def ok(*rows):
 
 
 class TestQuery:
-    @pytest.mark.parametrize("method,entity", [
-        ("daily_sales", "SalesSummaryByDay"),
-        ("customer_sales", "SalesSummaryByCustomer"),
-        ("material_sales", "SalesSummaryByMaterial"),
+    @pytest.mark.parametrize("method,entity,order", [
+        ("daily_sales", "SalesSummaryByDay", "OrderDate,Currency"),
+        ("customer_sales", "SalesSummaryByCustomer", "OrderDate,SoldToParty,Currency"),
+        ("material_sales", "SalesSummaryByMaterial", "OrderDate,Material,Currency"),
     ])
-    def test_builds_the_odata_query(self, method, entity):
+    def test_builds_the_odata_query(self, method, entity, order):
         seen = []
 
         def handler(request):
@@ -46,7 +46,7 @@ class TestQuery:
 
         getattr(source(handler), method)(START, END)
         assert seen == [
-            f"{ROOT}{entity}?$filter=OrderDate%20ge%202026-10-26%20and%20OrderDate%20le%202026-10-27&$orderby=OrderDate"
+            f"{ROOT}{entity}?$filter=OrderDate%20ge%202026-10-26%20and%20OrderDate%20le%202026-10-27&$orderby={order}&$top=1000&$skip=0"
         ]
 
 
