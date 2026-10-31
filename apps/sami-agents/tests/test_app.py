@@ -41,10 +41,10 @@ class TestCors:
 
 
 class TestSettings:
-    def test_defaults_point_at_local_ollama_and_synapse_api(self):
+    def test_defaults_point_at_local_ollama_and_synapse_api_with_the_sentence_writer_off(self):
         settings = Settings(_env_file=None)
         assert settings.ollama_url == "http://localhost:11434"
-        assert settings.ollama_model == "gemma3:270m"
+        assert settings.ollama_model == ""
         assert settings.synapse_url == "http://localhost:8004"
         assert settings.model_timeout_seconds == 20
 

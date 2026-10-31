@@ -4,3 +4,7 @@ class RelevanceUnavailable(Exception):
 
 class CatalogUnavailable(Exception):
     pass
+
+
+class ReplyUnavailable(Exception):
+    pass

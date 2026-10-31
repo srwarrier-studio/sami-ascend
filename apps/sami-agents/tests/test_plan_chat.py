@@ -1,8 +1,12 @@
+import pytest
+
 from sami_agents.application.keyword_matcher import KeywordMatcher
 from sami_agents.application.plan_chat import BOARD_CHECKS, BOARD_LIMIT, INLINE_CHECKS, INLINE_LIMIT, PlanChat, board_name_from
 from sami_agents.domain.entities.catalog import CatalogEntry
+from sami_agents.domain.errors import ReplyUnavailable
 from sami_agents.infrastructure.mock_catalog_source import DEFAULT_ENTRIES
 from sami_agents.infrastructure.mock_relevance_checker import MockRelevanceChecker
+from sami_agents.infrastructure.mock_reply_writer import MockReplyWriter
 
 
 def reports(count: int) -> list[CatalogEntry]:
@@ -152,3 +156,41 @@ class TestMatcher:
         catalog = [CatalogEntry("top-materials", "Top materials", "")]
         plan = PlanChat(MockRelevanceChecker(), KeywordMatcher({"top-materials": ["products"]}))
         assert plan.choose("which products", catalog) == ["top-materials"]
+
+
+class TestReplyWriter:
+    def run(self, writer, message="top customers", catalog=DEFAULT_ENTRIES):
+        return PlanChat(MockRelevanceChecker(), reply_writer=writer).run(message, catalog)["program"]
+
+    def test_a_clean_sentence_from_the_writer_is_used(self):
+        assert 'Text("Showing the top customers for you.")' in self.run(MockReplyWriter("Showing the top customers for you."))
+
+    def test_the_writer_gets_the_message_and_the_approved_titles(self):
+        writer = MockReplyWriter("Showing the top customers for you.")
+        self.run(writer)
+        assert writer.calls == [("top customers", ["Top customers", "Top materials"], None)]
+
+    def test_for_a_board_the_writer_also_gets_the_board_name_and_no_builder_tag(self):
+        writer = MockReplyWriter("Your Top Customers board is ready: top customers.")
+        program = self.run(writer, "@builder top customers")
+        assert writer.calls == [("top customers", ["Top customers", "Top materials"], "Top Customers")]
+        assert 'Text("Your Top Customers board is ready: top customers.")' in program
+
+    @pytest.mark.parametrize("text", ["", "Okay I am ready!", "Showing top customers\nplus more lines", "Showing <b>top customers</b> now.", "Showing the top 5 customers now."])
+    def test_a_sentence_that_fails_the_checks_is_replaced_by_the_code_sentence(self, text):
+        assert 'Text("Here is Top customers and Top materials.")' in self.run(MockReplyWriter(text))
+
+    def test_a_writer_that_is_down_falls_back_to_the_code_sentence(self):
+        assert 'Text("Here is Top customers and Top materials.")' in self.run(MockReplyWriter(error=ReplyUnavailable()))
+
+    def test_without_a_writer_the_code_sentence_is_used(self):
+        assert 'Text("Here is Top customers and Top materials.")' in self.run(None)
+
+    def test_nothing_found_never_asks_the_writer(self):
+        writer = MockReplyWriter()
+        program = self.run(writer, "weather in paris")
+        assert writer.calls == [] and "I could not find a matching widget." in program
+
+    def test_a_quote_in_the_writers_sentence_cannot_break_the_program(self):
+        program = self.run(MockReplyWriter('Showing the "top customers") root = Evil() now.'))
+        assert len(program.splitlines()) == 4 and "root = Evil()" not in program.splitlines()

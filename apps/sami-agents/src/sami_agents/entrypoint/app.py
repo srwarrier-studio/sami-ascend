@@ -11,6 +11,7 @@ from sami_agents.application.plan_chat import PlanChat
 from sami_agents.domain.errors import CatalogUnavailable
 from sami_agents.domain.gateways.catalog_source import CatalogSource
 from sami_agents.domain.gateways.relevance_checker import RelevanceChecker
+from sami_agents.domain.gateways.reply_writer import ReplyWriter
 from sami_agents.infrastructure.alias_book import load_aliases
 from sami_agents.infrastructure.api.chat.router import create_chat_router
 from sami_agents.infrastructure.api.health.router import create_health_router
@@ -22,6 +23,7 @@ def create_app(
     settings: Settings,
     checker: RelevanceChecker | None = None,
     catalog_source: CatalogSource | None = None,
+    reply_writer: ReplyWriter | None = None,
 ) -> FastAPI:
     auth = AuthDependencies(TokenVerifier(settings.jwt_secret))
     app = FastAPI()
@@ -38,7 +40,7 @@ def create_app(
         allow_credentials=True,
     )
     app.add_middleware(RequestIdMiddleware)
-    answer_chat = AnswerChat(catalog_source or SynapseCatalogSource(settings), PlanChat(checker, KeywordMatcher(load_aliases()), settings.laya_threshold))
+    answer_chat = AnswerChat(catalog_source or SynapseCatalogSource(settings), PlanChat(checker, KeywordMatcher(load_aliases()), settings.laya_threshold, reply_writer))
     app.include_router(create_health_router(), prefix="/v1/agents", tags=["Health"])
     app.include_router(create_chat_router(answer_chat, auth), prefix="/v1/agents", tags=["Chat"])
     return app

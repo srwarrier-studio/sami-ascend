@@ -114,3 +114,12 @@ class TestSettings:
 
     def test_the_check_is_off_unless_laya_is_configured(self):
         assert build_checker(Settings(_env_file=None)) is None
+
+
+class TestBuilders:
+    def test_the_sentence_writer_is_off_unless_a_model_is_named(self):
+        from sami_agents.entrypoint.run import build_reply_writer
+        from sami_agents.infrastructure.ollama_reply_writer import OllamaReplyWriter
+
+        assert build_reply_writer(Settings(_env_file=None)) is None
+        assert isinstance(build_reply_writer(Settings(_env_file=None, ollama_model="lfm2.5-1.2b")), OllamaReplyWriter)

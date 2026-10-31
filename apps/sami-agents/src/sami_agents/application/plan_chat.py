@@ -4,9 +4,11 @@ from langgraph.graph import END, START, StateGraph
 
 from sami_agents.application.keyword_matcher import KeywordMatcher
 from sami_agents.application.open_ui_writer import OpenUiWriter
+from sami_agents.application.reply_sentence import accept_sentence
 from sami_agents.domain.entities.catalog import CatalogEntry
-from sami_agents.domain.errors import RelevanceUnavailable
+from sami_agents.domain.errors import RelevanceUnavailable, ReplyUnavailable
 from sami_agents.domain.gateways.relevance_checker import RelevanceChecker
+from sami_agents.domain.gateways.reply_writer import ReplyWriter
 
 BUILDER_TAG = "@builder"
 INLINE_LIMIT = 4
@@ -43,8 +45,9 @@ def join_titles(titles: list[str]) -> str:
 
 
 class PlanChat:
-    def __init__(self, checker: RelevanceChecker | None = None, matcher: KeywordMatcher | None = None, threshold: float = DEFAULT_THRESHOLD):
+    def __init__(self, checker: RelevanceChecker | None = None, matcher: KeywordMatcher | None = None, threshold: float = DEFAULT_THRESHOLD, reply_writer: ReplyWriter | None = None):
         self.checker = checker
+        self.reply_writer = reply_writer
         self.matcher = matcher or KeywordMatcher()
         self.threshold = threshold
         self.writer = OpenUiWriter()
@@ -110,13 +113,23 @@ class PlanChat:
             return {**approved, "checks": state["checks"] + 1}
         return {"rejected": [*state["rejected"], candidate], "checks": state["checks"] + 1}
 
+    def _sentence(self, state: ChatState, titles: list[str], fallback: str) -> str:
+        if self.reply_writer is None:
+            return fallback
+        try:
+            written = self.reply_writer.write(state["message"], titles, state.get("board_name") if state["builder"] else None)
+        except ReplyUnavailable:
+            return fallback
+        return accept_sentence(written, titles) or fallback
+
     def _reply(self, state: ChatState) -> ChatState:
         ids = state["ids"]
         titles_by_id = {entry.id: entry.title for entry in state["catalog"]}
         if not ids:
             return {"program": self.writer.answer(NOT_FOUND, [])}
+        titles = [titles_by_id[entry_id] for entry_id in ids]
         if state["builder"]:
             name = state["board_name"]
-            sentence = f"I built {name} with {len(ids)} widget{'s' if len(ids) != 1 else ''}."
-            return {"program": self.writer.board(sentence, name, ids)}
-        return {"program": self.writer.answer(f"Here is {join_titles([titles_by_id[entry_id] for entry_id in ids])}.", ids)}
+            fallback = f"I built {name} with {len(ids)} widget{'s' if len(ids) != 1 else ''}."
+            return {"program": self.writer.board(self._sentence(state, titles, fallback), name, ids)}
+        return {"program": self.writer.answer(self._sentence(state, titles, f"Here is {join_titles(titles)}."), ids)}
