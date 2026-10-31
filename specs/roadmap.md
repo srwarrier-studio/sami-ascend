@@ -32,6 +32,7 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 03 sales-summaries: read-only summary entities for dashboard totals (by day, customer, material). done (tag `butterfly-phase-03-done`, 2026-10-27)
 - 04 failure-modes: configurable delays, errors and timeouts so the apps handle SAP being slow or down. todo
 - 08 driver-data: a second read-only OData service (customer contracts, supplier deliveries, production orders and components, from `docs/sap/drivers-contract.md`) and a 14-month sales history with a built-in story that explains the August 2026 sales fall (`BUTTERFLY_SEED=story`, the default), so the AI analysis in `docs/ai-analysis.md` can be built before the SAP views exist. done (tag `butterfly-phase-08-done`, 2026-10-31).
+- 09 scenarios: several mock sales stories chosen with `BUTTERFLY_SCENARIO` (price cut, a late supplier with no sales effect, a customer lost with no contract event, a machine breakdown, a quiet month), each with a written ground truth, and two held back for the final test, so the AI analysis is tested on more than one story. todo
 
 ## SAP consultant guide (`docs/sap/`, written from the contract, one phase each)
 - Phases belong to the `butterfly` section but produce documents: 05 rap-sales-read-guide (CDS view entity, projection, service definition and binding for OData V4), 06 rap-sales-write-guide (behavior definition, validations, determinations), 07 rap-summary-views-guide (summary CDS views for dashboards). todo
@@ -51,8 +52,8 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 - 04 board-storage: each user's own boards (name, widgets with name, props and grid position), saved in SQLite behind a repo, with list, create, rename, delete and save-layout routes. Postponed: designed after synapse-web 03, from the board store the mock settles on. todo
 - 05 catalog: the widget catalog and each widget's ready-to-render props served from synapse-api (`/v1/synapse/catalog`), sales entries from the sales source and the other domains from a mock library. done (tag `synapse-api-phase-05-done`, 2026-10-30).
 - 07 summary-paging: read every sales summary completely with `$top` and `$skip`, so months after the first 100 days no longer show 0 against butterfly's story seed or the real SAP page size. done (tag `synapse-api-phase-07-done`, 2026-10-31).
-- 08 sales-change (planned): a read endpoint that splits the change in sales between two periods by customer and by material, and a month's figure with its trend; the facts for answers to "what were sales for August" and the start of "why". todo
-- 09 driver-facts (planned): read endpoints for contracts, production orders with their components, and purchase deliveries, from butterfly 08 and later the SAP views. todo
+- 08 compare (planned): the metric layer: compare a metric between two periods split by a dimension (customer, material), volume against price, and a month's figure with its trend; generic, not one endpoint per question. Depends on butterfly 09. todo
+- 09 events (planned): one generic read of the rows of a node type (contract, production order, purchase delivery) for a key and a time window, from butterfly and later the SAP views. Depends on butterfly 09. todo
 
 ## synapse-web (management dashboards)
 All three phases use mock data (session, sales data and board store behind interfaces); no synapse-api calls yet.
@@ -84,7 +85,8 @@ All three phases use mock data (session, sales data and board store behind inter
 - 02 relevance-check: keyword proposals with stemming and an alias file, an optional Laya relevance check in a propose and verify loop (off by default: it did not beat the keywords in our tests), an optional small-model sentence writer behind strict checks (off by default), widgets returned as OpenUI Lang pinned by a contract test, and an evaluation tool with a tuning set and a held-out set. done (tag `sami-agents-phase-02-done`, 2026-10-31).
 
 - 03 answer-questions (planned): level 2 answers: the metric and period from the question, a sentence with the real figure and a trend chart, as JSON. Depends on synapse-api 08. todo
-- 04 driver-graph (planned): level 3 "why" answers: the driver graph, the walk over the facts, ranking, a validated explanation with evidence. Depends on synapse-api 09, sami-agents 03 and `docs/ai-analysis.md`. todo
+- 04 graph (planned): the entity graph as a file the owner maintains (`graph.toml`), its loader, `graph check` and `graph show`, the traversal engine in three modes (root cause, impact, dependency), and a how-to (`docs/graph-maintenance.md`). Depends on synapse-api 09 and `docs/ai-analysis.md`. todo
+- 05 analyst (planned): question understanding, ranking, the validated answer, and evaluation on the butterfly scenarios including the held-back ones. Depends on sami-agents 03 and 04. todo
 
 ## ai-dashboard (POC, later, local-first)
 - Not scheduled. Starts after synapse-web 03. See `notes.md` for the constraints. todo

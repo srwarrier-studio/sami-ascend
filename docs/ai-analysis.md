@@ -1,6 +1,6 @@
 # AI analysis: answering "why" questions
 
-Status: design, 2026-10-31. Mock data comes from butterfly phase 08. Nothing here is built in synapse-api or sami-agents yet.
+Status: design, revised 2026-10-31. Butterfly 08 (the first scenario) and synapse-api 07 are done; the rest is not built yet.
 
 ## 1. What management asks
 
@@ -8,91 +8,131 @@ Status: design, 2026-10-31. Mock data comes from butterfly phase 08. Nothing her
 |-------|---------|---------------|--------|
 | 1. Show me | "show me sales and top customers" | pick widgets | done (`sami-agents` keyword search) |
 | 2. Tell me | "What are the sales for August?" | metric and period from the question, a real figure, a sentence, a trend chart | next |
-| 3. Why | "Why did sales drop in August?" | decide which factors could explain it, check each against data, rank by effect, explain with evidence | this document |
+| 3. Why | "Why did sales drop in August?" | find where the change is, traverse the related things for what happened there, rank by effect, explain with evidence | this document |
 
 A level 3 answer looks like: "Sales fell 14.5% from July to August (₹75.7 lakh to ₹64.8 lakh). About ₹8.8 lakh of the fall is Acme Industries, whose sales contract ended on 12 July and was not renewed until 14 September. About ₹4.1 lakh is Steel plate 5mm sold to other customers: Doosan Metals delivered Steel coil 12 days late (promised 14 July, delivered 26 July), which delayed production order 0001000417 by 14 days. The other customers together bought about ₹2.0 lakh more, which offsets part of it."
 
 ## 2. Principles
 
-1. **Code finds facts, a model never invents them.** Every figure, date and name in an answer comes from a query result. A model may help choose which checks to run and may polish wording, but a check rejects any name, number or date that is not in the findings.
-2. **Say what the data shows.** Findings are "coincided with" and "contributed to", not proof of cause. Each finding lists its evidence (document numbers, dates, amounts), and the answer ends with how much of the change is explained and how much is not.
+1. **Code finds facts, a model never invents them.** Every figure, date and name in an answer comes from a query result. A model may help understand the question, and may polish wording, but a check rejects any name, number or date that is not in the findings.
+2. **Say what the data shows.** Findings are "coincided with" and "contributed to", not proof of cause. Each finding lists its evidence (document numbers, dates, amounts). The answer says how much of the change is explained and how much is not, and "no cause found in the data we hold" is a valid answer.
 3. **Use the user's own access.** Every check runs with the signed-in user's session, so the answer only contains what that person may see.
-4. **Mock data is labelled.** While the data comes from butterfly the answer says so.
+4. **Mock data is labelled** while the data comes from butterfly.
+5. **No flow is written for one question.** What is checked and in what order comes from a description of the data (the graph below), not from code written for a particular question. Adding a data source means editing that description.
 
-## 3. The driver graph
+## 3. Two parts: a metric layer and an entity graph
 
-The agent needs to know, for a subject such as sales, which other things can move it and how to check each one. That knowledge is a graph, kept as data in `sami-agents` (not in a prompt), so it can be read, tested and extended one factor at a time.
+A graph suits questions about *relationships* and does nothing for questions about *numbers*. So the work is split.
 
-- A **node** is a metric or a factor ("Sales", "Customer contract", "Production delay", "Supplier delivery delay").
-- An **edge** says "this factor can move that one". It names the **check** that tests it (a synapse-api call), the **evidence** the check returns, and the **condition** that makes it relevant (for example "only for customers whose sales fell").
+| Part | Answers | How |
+|------|---------|-----|
+| **Metric layer** | "sales for August", "top five customers", "this month against last", "where did the change come from" (split by customer, material, month; volume against price) | grouping and comparing over the sales data, in synapse-api; no graph |
+| **Entity graph** | "why did it happen", "what does X affect", "what depends on what" | traversal over related things across systems |
 
-```mermaid
-flowchart LR
-    Sales((Sales))
-    Volume[Order volume] --> Sales
-    Price[Average price] --> Sales
-    Cancel[Cancelled orders] --> Sales
-    Contract[Customer contract expired or not renewed] --> Volume
-    LostCust[Lost or reduced customers] --> Volume
-    Season[Same month last year] --> Volume
-    Fulfil[Cannot fulfil: product short] --> Volume
-    Prod[Production order delayed] --> Fulfil
-    Stock[Stock-out of finished product] --> Fulfil
-    Supply[Raw material delivered late] --> Prod
-    Breakdown[Machine breakdown] --> Prod
+The metric layer finds *where* a change is (Acme fell, Steel plate fell). The graph explains *why it happened there*.
+
+### The entity graph
+
+A typed graph kept as a file in `sami-agents` that the owner maintains.
+
+- A **node type** is a kind of thing: Customer, Contract, Product, ProductionOrder, RawMaterial, PurchaseDelivery, Supplier. It names where its rows come from (a synapse-api source) and its key.
+- An **edge** says how two node types relate, and the fields that join them: "a Customer has Contracts, joined on `SoldToParty`".
+- An **anomaly** says what "something happened" means for a node type, as a choice from a fixed list of kinds that the code understands (`ended_in_window`, `later_than_promised`, `finished_after_plan`, `value_fell`), plus the fields to look at. The owner picks a kind and fields; a new *kind* needs code, a new anomaly of an existing kind does not.
+
+```
+Customer ──has──> Contract                      anomaly: ended_in_window (ValidTo)
+Customer ──buys──> Product
+Product ──made by──> ProductionOrder            anomaly: finished_after_plan (PlannedEndDate, ActualEndDate, DelayReason)
+ProductionOrder ──uses──> RawMaterial
+RawMaterial ──bought on──> PurchaseDelivery     anomaly: later_than_promised (PromisedDeliveryDate, ActualDeliveryDate)
+PurchaseDelivery ──from──> Supplier
 ```
 
-How a "why did sales drop" question walks it:
+The file is TOML (readable with the standard library, comments allowed). An abbreviated sketch:
 
-1. **Resolve** metric (sales), period (August 2026) and comparison (previous month by default; "year on year" if asked).
-2. **Measure and split** the change: total, then by customer and by material. This uses data we already have and decides where to look.
-3. **Follow the graph** from the biggest contributors:
-   - a customer whose sales fell: check its **contract** (ended in the window? renewed? gap?);
-   - a material whose sales fell: check **production orders** for it (delayed? reason?), then the **components** of those orders, then the **purchase deliveries** of those components (late? which supplier? how many days?);
-   - cancelled orders and price changes are checked from the sales data itself.
-4. **Rank** findings by the amount of the change each explains; the rest is "not explained".
-5. **Write** the answer from the findings with a template (a model may rephrase), with a chart of the monthly trend and a table of the evidence.
-6. **Validate** that nothing in the text is missing from the findings.
+```toml
+[node.Customer]
+source = "sales-by-customer"
+key = "SoldToParty"
 
-A factor is only added to the graph when its data exists. Today we have the first three rows below; the others need SAP views.
+[node.Contract]
+source = "SalesContract"
+key = "SalesContract"
+anomaly = { kind = "ended_in_window", field = "ValidTo" }
 
-| Factor | How it moves sales | Check | Source (SAP) | Status |
-|--------|-------------------|-------|--------------|--------|
-| Customer change | fewer or smaller orders from one customer | sales by customer, period against comparison | sales summaries | have |
-| Material change | less of one product sold | sales by material | sales summaries | have |
-| Cancelled orders | sales taken back | orders with status `X` | sales orders | have |
-| Customer contract | contract ended or not renewed, orders stop | contracts for the falling customers, validity against the window | sales contracts (`VBAK`, `VBAP`, `VEDA`) | butterfly 08 mock, SAP view needed |
-| Production delay | product not made in time, orders not taken | production orders for the falling materials, planned against actual end, delay reason | production orders (`AFKO`, `AFPO`) | butterfly 08 mock, SAP view needed |
-| Component shortage | production waits for material | components of the delayed orders | reservations (`RESB`) | butterfly 08 mock, SAP view needed |
-| Supplier delay | raw material arrives late | deliveries of those components, promised against actual date | purchase orders and goods receipt history (`EKKO`, `EKPO`, `EKET`, `EKBE`) | butterfly 08 mock, SAP view needed |
-| Price change | same volume, lower value | average price per unit by material | sales items | possible later |
-| Stock-out, quality, credit blocks, seasonality | various | later | later | not scheduled |
+[edge.customer_contracts]
+from = "Customer"
+to = "Contract"
+join = { Customer = "SoldToParty", Contract = "SoldToParty" }
+```
 
-The SAP table names are the usual sources and must be confirmed by the SAP consultant.
+### Three ways to traverse the same graph
+
+| Mode | Question | Start | Direction |
+|------|----------|-------|-----------|
+| Root cause | "why did sales fall in August" | the biggest movers from the metric layer | upstream, through anomalous nodes only |
+| Impact | "what did Doosan's late delivery affect" | a node with an anomaly | downstream |
+| Dependency | "which suppliers feed what Acme buys" | any node | either way, no time window |
+
+How the root-cause walk goes:
+
+1. **Measure and split** the change with the metric layer, by every dimension available, and keep the top movers.
+2. **Expand** each mover along its edges. At every node fetch its rows for the time window and test its anomaly.
+3. **Prune.** Continue only through nodes that show an anomaly. A normal delivery is never followed or explained.
+4. **Check order.** Along a path the cause must come before its effect (late delivery, then late production, then the sales dip).
+5. **Rank** paths by how much of the change their mover explains, and show the unexplained rest.
+6. **Write** the answer from the paths with a template (a model may rephrase), and **validate** every name, date and number against them.
+
+Graph traversal is breadth-first with a limit on depth, nodes and calls, so a question always stops.
 
 ## 4. Where each part lives
 
 | Part | App | Notes |
 |------|-----|-------|
 | Contract for the new data | `docs/sap/drivers-contract.md` | source of truth for butterfly, synapse-api and the SAP consultant |
-| Mock SAP data with a built-in story | `butterfly` phase 08 | 14 months of sales plus contracts, deliveries, production orders |
-| Fact tools (decompose a change, contracts, deliveries, production) | `synapse-api` | read-only endpoints on the user's session; cached 5 minutes like the others |
-| The driver graph, the walk, ranking, the answer text, validation | `sami-agents` | LangGraph is the walker: plan, run checks in parallel, rank, write, validate |
-| Question understanding (metric, period) | `sami-agents` | rules first; a model only if it measures better |
-| Showing the answer (text, chart, evidence table) | `synapse-web` | JSON blocks drawn with the existing widgets |
-| SAP views for the new entities | SAP team | from the contract; new work for them |
+| Mock SAP data with several scenarios | `butterfly` | `BUTTERFLY_SCENARIO`, each with a ground truth |
+| Metric layer: compare periods, split by a dimension, top N | `synapse-api` | read endpoints, generic, cached 5 minutes like the others |
+| Event reads: rows of a node type for a key and a window | `synapse-api` | one generic read, not one endpoint per story |
+| The graph file, its loader and checker, the traversal | `sami-agents` | the owner edits `graph.toml`; `sami-agents graph check` validates it |
+| Question understanding (metric, period, mode, start) | `sami-agents` | rules first; a model only if it measures better |
+| Showing the answer (text, chart, evidence) | `synapse-web` | JSON blocks drawn with the existing widgets |
+| SAP views for the new entities | SAP team | from the contract |
 
-## 5. The model's role and its limits
+## 5. Maintaining the graph
 
-- Understanding a question ("sales", "August", "why") and choosing checks is a small job. Rules cover most of it; a small model can be tested against the evaluation set.
-- Turning a ranked findings list into a good paragraph is easy with a template and a better paragraph needs a stronger model. The small models in our Ollama (up to 3B) invent details when asked to write freely, so they must only rephrase and be validated.
-- A local-only deployment limits quality. Using a hosted model sends business data off the machine; that is a management and security decision, not a technical one. The design works without a model at all.
+The owner maintains `graph.toml`. A short how-to (`docs/graph-maintenance.md`) is written when the loader exists. The workflow it will describe:
 
-## 6. How we will know it works
+1. Add a node type (name, source, key) and the edge that connects it.
+2. Optionally add an anomaly of an existing kind.
+3. Run `sami-agents graph check`: it reports unknown node names in edges, unknown fields, missing sources, orphan nodes, edge loops without a limit, and anomaly kinds that do not exist. It also checks every source and field against the contracts in `docs/sap/`.
+4. Run `sami-agents graph show` to see the graph as a picture or table.
+5. Add a scenario to butterfly (or a real past case) with the expected findings and run the evaluation.
 
-The mock data has a known story (section 7) so every answer can be checked against the truth: which factors must appear, which must not, and the order. The evaluation set holds "why" questions with expected findings; a run reports found, missed and invented factors. Real past drops with known causes, from management, replace the mock story when the SAP views exist.
+Where possible edges come from SAP master data (bills of material, supplier lists), which exists even when no recent order does, and not only from recent transactions.
 
-## 7. The mock story (butterfly 08)
+## 6. The model's role and its limits
+
+- Understanding a question (metric, period, why, what is affected) is a small job. Rules cover most of it; a small model can be tested on phrasing from other people.
+- Turning findings into a good paragraph is easy with a template, and a better paragraph needs a stronger model. Small models (up to 3B) invent details when writing freely, so they may only rephrase and are validated.
+- A local-only deployment limits quality. Using a hosted model sends business data off the machine, a management and security decision. The design works without a model.
+
+## 6a. How we will know it works, and that it generalises
+
+Butterfly serves several scenarios, each with a written ground truth (the causes that must be found, what must not be blamed, and what must be reported as unexplained):
+
+| Scenario | What happened | Right answer |
+|----------|--------------|--------------|
+| `august-contract` (the first story, section 7) | contract expired, supplier late, production late | Acme's contract; steel shortage through production and supplier; offset by growth elsewhere |
+| `price-cut` | a product's price is cut, volume unchanged | the metric layer shows price, not volume; no event explains it |
+| `supplier-no-effect` | late delivery and late production, but sales do not move | no sales drop; if asked about impact, production was delayed and no sales effect is found |
+| `customer-lost` | a customer stops ordering with its contract still valid | the customer is the biggest mover; no cause found in the data |
+| `breakdown-shortfall` | a machine breakdown delays a product and its sales fall | production order with the breakdown reason, no supplier involved |
+| `quiet-month` | normal variation only | no significant change |
+| two held back until the final test | contract and supplier on different customers and products; a cancellation spike | as written in each |
+
+An evaluation run reports causes found, causes invented and causes missed, and refuses to count a confident wrong answer as a pass. Questions are tested with phrasing written by other people, and real past drops with known causes replace the mock scenarios when the SAP views exist.
+
+## 7. The first scenario, `august-contract` (butterfly 08)
 
 "Why did sales drop in August 2026?" The data is built, with fixed arithmetic and no random numbers, so the correct answer is known. These figures are measured from the data and pinned by tests (`apps/butterfly/tests/test_story_ground_truth.py`).
 
@@ -119,12 +159,14 @@ Every other delivery is within 2 days of its promise and every other production 
 
 | Phase | What | Needs |
 |-------|------|-------|
-| butterfly 08 driver-data | the contract, the entities and the story data | this document |
-| synapse-api 07 summary-paging | read every summary completely (a bug the story data exposed) | butterfly 08 |
-| synapse-api 08 sales-change | decompose a change by customer and material; level 2 facts for one month | butterfly 08 |
-| synapse-api 09 driver-facts | contracts, production orders, components and deliveries as read endpoints | butterfly 08 |
+| butterfly 08 driver-data (done) | the contract, the entities and the first scenario | this document |
+| synapse-api 07 summary-paging (done) | read every summary completely | butterfly 08 |
+| butterfly 09 scenarios | the scenario switch and the other scenarios with their ground truth, two held back | butterfly 08 |
+| synapse-api 08 compare | metric layer: compare two periods split by a dimension, volume against price, a month with its trend | butterfly 09 |
+| synapse-api 09 events | read the rows of a node type for a key and a time window, generically | butterfly 09 |
 | sami-agents 03 answer-questions | level 2: metric and period, sentence with figure, chart | synapse-api 08 |
-| sami-agents 04 driver-graph | level 3: the graph, the walk, ranking, validated answer | synapse-api 09, sami-agents 03 |
+| sami-agents 04 graph | `graph.toml`, loader, `graph check` and `graph show`, the traversal engine, the maintenance how-to | synapse-api 09 |
+| sami-agents 05 analyst | question understanding, the three modes, ranking, validated answer, evaluation on the scenarios | sami-agents 03 and 04 |
 | synapse-web 12 ai-answers | AI Mode shows text, chart and evidence | sami-agents 03 |
 | SAP team | RAP views for the four entities (see the contract) | `docs/sap/drivers-contract.md` |
 
@@ -132,6 +174,8 @@ Every other delivery is within 2 days of its promise and every other production 
 
 - **Correlation is not cause.** A contract that ended on the day a customer stopped ordering is a strong hint, not proof. The wording and the evidence list say so.
 - **Data quality.** Delivery dates, production confirmations and contract validity in the real system may be incomplete or entered late. The agent reports what it cannot check.
+- **The graph only knows what it is told.** A cause with no node or edge (a competitor, a quality complaint, a holiday) cannot be found; the answer then says nothing was found. Coverage grows by adding nodes and edges, and every addition is tested on a scenario.
+- **Wrong or missing edges.** A wrong relationship gives a confident wrong path; `graph check` and the scenarios are the defence, and the answer always shows its evidence so a wrong path is visible.
 - **Too many findings.** Every real month has late deliveries. Findings are ranked by the amount of the change they explain and anything below a small share is left out.
 - **Performance.** A "why" question makes several calls; they run in parallel and use the 5-minute cache, and the answer has a time limit with a partial result.
 - **Authorisation.** SAP sees one shared login for management users, so the app, not SAP, must keep a user to the data their role allows.
