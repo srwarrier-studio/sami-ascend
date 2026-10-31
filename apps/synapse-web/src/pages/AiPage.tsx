@@ -3,6 +3,7 @@ import type { SyntheticEvent } from 'react'
 import { useNavigate, useRouteContext } from '@tanstack/react-router'
 import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Modal, PageHeader, PaperPlaneRightIcon, SparkleIcon, Stack, Text, TextInput, Title, WidgetCell, WidgetGrid } from '@sami/ui'
 import { AnswerBlocks } from '../ai/AnswerBlocks'
+import { SHOWN_PROBLEMS } from '../ai/agentsClient'
 import type { AgentAnswer } from '../ai/agentsClient'
 import { BUILDER } from '../ai/chatPlanner'
 import type { ChatBoard } from '../ai/chatPlanner'
@@ -45,7 +46,7 @@ export function AiPage() {
       setBusy(false)
       return
     }
-    if (agent && (agent.readable || agent.problem === 'not_finished')) {
+    if (agent && (agent.readable || (agent.problem !== null && SHOWN_PROBLEMS.includes(agent.problem)))) {
       setMessages((all) => [...all, { from: 'ai', text: '', agent }])
       setBusy(false)
       return

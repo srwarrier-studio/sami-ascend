@@ -56,6 +56,14 @@ describe('reading the answer', () => {
     expect(result).toEqual({ readable: false, problem: 'not_finished', label: null, blocks: [{ type: 'text', lines: ['Not over.'] }] })
   })
 
+  it.each(['unreadable', 'widgets', 'not_finished', 'restricted', 'not_one_month'])('keeps the problem %s', (problem) => {
+    expect(parseAnswer({ readable: false, problem, blocks: [] }).problem).toBe(problem)
+  })
+
+  it('drops a problem it does not know', () => {
+    expect(parseAnswer({ readable: false, problem: 'something_new', blocks: [] }).problem).toBeNull()
+  })
+
   it('has no problem or label when the answer carries none', () => {
     const result = parseAnswer({ readable: true, blocks: [] })
     expect(result).toEqual({ readable: true, problem: null, label: null, blocks: [] })

@@ -173,6 +173,24 @@ describe('answers from the agent', () => {
     expect(screen.queryByText(/^Here is/)).toBeNull()
   })
 
+  it.each([
+    ['restricted', 'I can only explain the whole company figure for now.'],
+    ['not_one_month', 'I answer one month at a time.'],
+  ] as const)('shows the %s text and no widgets', async (problem, line) => {
+    const refusal: AgentAnswer = { readable: false, problem, label: null, blocks: [{ type: 'text', lines: [line] }] }
+    open(new MockBoardStore(), new MockAgentsClient(refusal))
+    await ask('why did sales to Acme drop in august')
+    expect(await screen.findByText(line)).toBeInTheDocument()
+    expect(screen.queryByText(/^Here is/)).toBeNull()
+  })
+
+  it('hands a widget request to the planner', async () => {
+    const widgets: AgentAnswer = { readable: false, problem: 'widgets', label: null, blocks: [{ type: 'text', lines: ['Ask why a metric rose.'] }] }
+    open(new MockBoardStore(), new MockAgentsClient(widgets))
+    await ask('show me top customers')
+    expect(await screen.findByText(/^Here is Top customers/)).toBeInTheDocument()
+  })
+
   it('never sends @builder messages to the agent', async () => {
     open(new MockBoardStore(), new MockAgentsClient(WHY))
     await ask('@builder build an inventory board')

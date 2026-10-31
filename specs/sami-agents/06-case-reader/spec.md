@@ -41,6 +41,9 @@ Unchanged: figures, movers, graph walk, explained share, blocks. The case only r
 - No outside calls: Laya and Ollama are the only added hosts, both from settings, and `test_no_outside_calls` lists them.
 - Held-out accuracy is reported with its limits, as for the keyword evaluation.
 
+### Small change in synapse-web (added 2026-10-31, the spec allows it)
+`parseAnswer` keeps the problems `restricted` and `not_one_month`, and `AiPage` shows the agent's text for `not_finished`, `restricted` and `not_one_month` (never the widget planner). `widgets` and `unreadable` still go to the planner. The page does not show `how_read` yet.
+
 ## Out of scope
 Fine-tuning a model, scope filters that actually answer for one customer, periods other than one month, several metrics in one question, follow-up questions, a model writing figures or causes.
 

@@ -7,9 +7,14 @@ export type EvidenceStep = { summary: string; rows: Record<string, unknown>[] }
 export type EvidenceBlock = { type: 'evidence'; finding: string; steps: EvidenceStep[] }
 export type AnswerBlock = TextBlock | TrendBlock | TableBlock | EvidenceBlock
 
+export type AgentProblem = 'unreadable' | 'widgets' | 'not_finished' | 'restricted' | 'not_one_month'
+
+export const SHOWN_PROBLEMS: AgentProblem[] = ['not_finished', 'restricted', 'not_one_month']
+const PROBLEMS: AgentProblem[] = ['unreadable', 'widgets', ...SHOWN_PROBLEMS]
+
 export type AgentAnswer = {
   readable: boolean
-  problem: 'unreadable' | 'not_finished' | null
+  problem: AgentProblem | null
   label: string | null
   blocks: AnswerBlock[]
 }
@@ -45,7 +50,7 @@ function parseBlock(block: unknown): AnswerBlock | null {
 
 export function parseAnswer(body: unknown): AgentAnswer {
   if (!isRecord(body) || !Array.isArray(body.blocks)) throw new AgentsUnavailable('unreadable answer')
-  const problem = body.problem === 'unreadable' || body.problem === 'not_finished' ? body.problem : null
+  const problem = PROBLEMS.find((name) => name === body.problem) ?? null
   const blocks = body.blocks.map(parseBlock).filter((block): block is AnswerBlock => block !== null)
   return { readable: body.readable === true, problem, label: typeof body.label === 'string' ? body.label : null, blocks }
 }
