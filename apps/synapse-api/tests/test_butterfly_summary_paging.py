@@ -5,7 +5,8 @@ import pytest
 from structured_logging.request_id import request_id_var
 
 from synapse_api.domain.errors import SapUnavailable
-from synapse_api.infrastructure.butterfly_sales_source import PAGE, ButterflySalesSource
+from synapse_api.infrastructure.butterfly_sales_source import ButterflySalesSource
+from synapse_api.infrastructure.odata_reader import PAGE
 from synapse_api.infrastructure.settings import Settings
 
 START, END = date(2025, 9, 1), date(2026, 10, 31)
