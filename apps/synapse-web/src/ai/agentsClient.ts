@@ -70,7 +70,11 @@ export class HttpAgentsClient implements AgentsClient {
 }
 
 export class MockAgentsClient implements AgentsClient {
-  constructor(private answer: AgentAnswer | Error) {}
+  private answer: AgentAnswer | Error
+
+  constructor(answer: AgentAnswer | Error) {
+    this.answer = answer
+  }
 
   async ask() {
     if (this.answer instanceof Error) throw this.answer
