@@ -163,7 +163,7 @@ Every other delivery is within 2 days of its promise and every other production 
 | synapse-api 07 summary-paging (done) | read every summary completely | butterfly 08 |
 | butterfly 09 scenarios | the scenario switch and the other scenarios with their ground truth, two held back | butterfly 08 |
 | synapse-api 08 compare | metric layer: compare two periods split by a dimension, volume against price, a month with its trend | butterfly 09 |
-| synapse-api 09 events | read the rows of a node type for a key and a time window, generically | butterfly 09 |
+| synapse-api 09 records | read the rows of a node type for a key and a time window, generically | butterfly 09 |
 | sami-agents 03 answer-questions | level 2: metric and period, sentence with figure, chart | synapse-api 08 |
 | sami-agents 04 graph | `graph.toml`, loader, `graph check` and `graph show`, the traversal engine, the maintenance how-to | synapse-api 09 |
 | sami-agents 05 analyst | question understanding, the three modes, ranking, validated answer, evaluation on the scenarios | sami-agents 03 and 04 |
