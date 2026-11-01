@@ -5,6 +5,7 @@ from intent_api.domain.entities.selection import Selected
 from intent_api.domain.gateways.choice_classifier import ChoiceClassifier
 
 NOTHING = "nothing"
+NOTHING_DESCRIPTION = "nothing about figures is asked"
 QUESTION = "What does the manager want to know?"
 CLAUSE_BREAKS = re.compile(r"\s+and\s+|,\s*|;\s*|\s+then\s+")
 
@@ -22,7 +23,7 @@ class ChooseScenarios:
 
     def execute(self, text: str, domain: str) -> list[Selected]:
         choices = {scenario.id: scenario.description for scenario in self.library.scenarios.values() if scenario.domain == domain}
-        choices[NOTHING] = "nothing about figures is asked"
+        choices[NOTHING] = NOTHING_DESCRIPTION
         best: dict[str, Selected] = {}
         for clause in split_clauses(text):
             decision = self.classifier.choose(clause, QUESTION, choices)

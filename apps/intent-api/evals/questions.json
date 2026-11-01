@@ -1177,5 +1177,89 @@
   "source": "written",
   "id": "q113",
   "heldout": false
+ },
+ {
+  "question": "how much did we spend in october 2025?",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "written",
+  "id": "q114",
+  "heldout": false
+ },
+ {
+  "question": "how much did we spend last month",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "written",
+  "id": "q115",
+  "heldout": false
+ },
+ {
+  "question": "what did we spend in june",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "written",
+  "id": "q116",
+  "heldout": false
+ },
+ {
+  "question": "total spend this year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "written",
+  "id": "q117",
+  "heldout": false
+ },
+ {
+  "question": "how much did we earn in october 2025?",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "q118",
+  "heldout": false
+ },
+ {
+  "question": "how much did we make in june",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "q119",
+  "heldout": false
+ },
+ {
+  "question": "which suppliers have had late deliveries this month",
+  "part": "refuse",
+  "domain": "Purchase",
+  "scenarios": [],
+  "source": "written",
+  "id": "q120",
+  "heldout": false
+ },
+ {
+  "question": "what was our highest-margin product last quarter",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "written",
+  "id": "q121",
+  "heldout": false
  }
 ]

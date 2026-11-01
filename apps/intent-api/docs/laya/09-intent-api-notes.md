@@ -203,6 +203,65 @@ Floors chosen with the owner (their go-ahead on the recommendation): `DOMAIN_MIN
 - Tuning questions at the same floors: exact 36 of 50, harmful 11 of 79. Held-out is not worse than tuning, so the floors did not overfit; both say the same: about four in five answerable questions come out exactly right and about one in seven questions gets a wrong answer where a refusal was right.
 - This held-out set is now spent for threshold choices; a new one is needed before the floors are changed again.
 
+## Run 12: the spend question and the domain floor (2026-11-01, phase 02 task 1)
+A manager's real try in AI Mode: "how much did we spend in october 2025?" was read as Sales at 0.26 (Purchase 0.22, Other 0.18), answered with `sales_value`. Adding "money we earn" and "money we pay out" to the domain descriptions did not help (0.31), so wording alone is not the fix. Six spend and earn questions and two questions taken from the SAP article ("which suppliers have had late deliveries this month", "what was our highest-margin product last quarter") were added to the tuning questions (87 now; held-out untouched). `typed-decisions`, scenario floor 0.3:
+
+| Domain floor | Exact (of 56 answerable) | Wrong or extra | Wrongly refused | Must refuse, correct | Harmful (wrong or extra + wrongly answered) |
+|---|---|---|---|---|---|
+| 0 | 41 | 9 | 1 | 27 of 31 | 13 |
+| 0.4 | 37 | 5 | 9 | 27 of 31 | 9 |
+
+At 0.4 the generic spend questions (0.25 to 0.34) are refused as `not_sure` with Sales and Purchase suggested, four fewer wrong answers for four more exact answers lost. "Highest-margin product last quarter" is still answered as `sales_top_materials` (domain 0.40, scenario 0.31), the margin question the owner assigned to Finance (no scenario). `DOMAIN_MIN_PROBABILITY` default is now 0.4; the demo in AI Mode runs with it.
+
+## The SAP article (read 2026-11-01, `docs/sap-genai.html`, "How GenAI can make ERP insights more accessible", Timo Elliott, 21 July 2025)
+Relevant points: small language models fine-tuned on the company's own data, with retrieval, so users ask in natural language instead of dashboards (our direction, with Laya as the small model); ERP data is tables with relationships, so knowledge graphs help (sami-agents `graph.toml` is that idea); a toolset needs grounding, data masking, prompt management and lifecycle management (our answers will be grounded in synapse-api, data stays local); start by mapping what the ERP covers (our domains), train users and let them practise in low-risk settings (the "Reading preview" card). Its example questions, "highest-margin product last quarter" and "which suppliers have had late deliveries this month", are the kind of question we do not have scenarios for yet and are in the tuning set as must-refuse questions.
+
+## Run 13: the fine-tuned checkpoint (2026-11-01, phase 02 task 4)
+Trained by the owner on a remote GPU (`Training/intent-training.ipynb`): base `typed-decisions`, 1,862 training items (206 held out by Laya for calibration), 10 epochs, soft cross-entropy, options shuffled. The training loss was about 0 from epoch 3. Notebook table on the 921 held-out family items: accuracy 0.767 to 0.953, ECE 0.170 to 0.040, mean confidence 0.597 to 0.993. The calibration slice came from the training families (accuracy 1.0, temperature 0.998), so confidence is not corrected for unseen wording.
+
+Served on the host as an extra checkpoint (`LAYA_EXTRA_MODELS={"intent-tuned": "<folder>"}`, `LAYA_MODELS=intent-tuned`, `LAYA_MODEL=intent-tuned`), then `intent-api eval` (floors 0.4 / 0.3):
+
+| | Zero-shot `typed-decisions` | Tuned |
+|---|---|---|
+| Tuning questions (87): exact of 56 answerable | 37 | 51 |
+| Wrong or extra scenario | 5 | 2 |
+| Wrongly refused | 9 | 2 |
+| Must refuse, correct (of 31) | 27 | 29 |
+| Harmful (wrong or extra + wrongly answered) | 9 | 4 |
+| Held-out questions (34): exact of 24 | 19 (at 0 / 0.3) | 23 |
+| Held-out harmful | 5 | 0 |
+| Seconds per question | 1.2 to 1.3 | 1.2 |
+
+Remaining tuning failures: "is turnover up or down against the previous month" and "how much did we invoice customers in June" read as Finance (0.95 and 0.99), "what was spending in december last year" given compare-with-last-year, two multi-part questions with a wrong or missing second scenario, and two must-refuse questions answered ("slow moving raw materials" as purchases_top_materials, "which suppliers have had late deliveries this month" as top suppliers).
+
+Fresh probes written after training, with phrasing not in the families (24): 22 right; the two misses were "which vendor gets most of our money" (Sales, 0.72) and "what was the best month for sales this year" (refused; no such scenario, so the refusal is defensible).
+
+Limits:
+- Confidence is now about 1.0 for nearly everything, so the floors (`DOMAIN_MIN_PROBABILITY`, `SCENARIO_MIN_PROBABILITY`) no longer separate right from wrong; the sweep is flat. Refusals now come from `Other`, a domain without scenarios and "nothing is asked", all learned. Confident mistakes (domain 0.95 to 1.00) are the remaining risk.
+- The evaluation questions and the training families have the same author, and only exact repeats were removed, so these numbers measure our style. The owner's local set of real-sounding questions is the honest test; only totals are to be shared.
+- The held-out evaluation questions were already used once for the floors in phase 01, so they are a sanity check, not a clean test.
+- The checkpoint is large (840 MB model, 1.5 GB zip) and is not committed; it lives in `Training/intent-tuned/` (git-ignored) next to the zip.
+- The training warning "Conflicting schema detected for question 'choice'" came from the domain and scenario items sharing one question id; it did not stop training or change the results above.
+
+## Round 2 of the training data (2026-11-01)
+After the first tuned checkpoint (run 13) the failure patterns were rephrased into new invented families (no evaluation question is copied, and the 24 fresh probes of run 13 were kept out so they stay a clean test): invoiced, billed and turnover wording for Sales; "spending last December" style past periods as a plain value, not a comparison; comparison wording ("up or down against", "next to the previous month"); "{year} compared to {year}" as compare-with-last-year; clause fragments ("and how that compares to the month before", "and what was the total sales") that teach the scenario but not the domain (`domain_item = false`, new in the family loader); colloquial top customer and top supplier wording ("who do we pay the most"); raw-material ageing stock as Inventory; unsupported Purchase and Sales questions (late deliveries, open purchase orders, price per kg, average order value, orders received) as "nothing is asked". 131 families (was 87), 2,577 training and 1,067 held-out items (was 2,068 and 921); `training check` passes and both files pass Laya's `dry_run` with nothing skipped. The earlier files were kept as `train_round1.jsonl` and `heldout_round1.jsonl` next to the notebook. Run 14 will be the second checkpoint, compared with run 13 on the same evaluation questions and probes.
+
+## Run 14: the second checkpoint (2026-11-01, phase 02 task 4)
+Trained by the owner on a remote GPU from the round 2 files (2,577 training items, 1,067 held-out items, 131 families), run name `intent-tuned-2`. Laya's own held-out accuracy 0.7301 to 0.9185 (ECE 0.1487 to 0.0527); the held-out set is bigger and harder than in run 13 (1,067 items against 921), so it is not comparable with 0.953. The calibration slice (257 items) gave a temperature of 1.82, so confidence is spread again instead of about 1.0. Served on the host as `LAYA_EXTRA_MODELS={"intent-tuned-2": "<folder>"}`, `LAYA_MODEL=intent-tuned-2`, then `intent-api eval --final` (floors 0.4 / 0.3, about 1.3 s per question):
+
+| | Run 13 | Run 14 |
+|---|---|---|
+| Tuning questions (87): exact of 56 answerable | 51 | 51 |
+| Wrong or extra scenario | 2 | 1 |
+| Wrongly refused | 2 | 2 |
+| Must refuse, correct (of 31) | 29 | 31 |
+| Harmful | 4 | 1 |
+| Held-out questions (34): exact of 24 | 23 | 22 |
+| Held-out must refuse, correct (of 10) | 10 | 10 |
+| Held-out harmful | 0 | 0 |
+
+Together: 73 of 80 answerable exactly right (91.3%), 1 harmful answer in 121 (0.8%); the bar was 90% and 5%. Remaining misses: the second scenario of a combined question dropped ("in august and how that compares", "in 2026 compared to 2025"), "this year's revenue and the best month" also picked top customers, and four wrong refusals ("export sales to the USA in October", "revnue in agust", "sales for turmeric extract in march", "how come procurement fell in may", the last read as Other at 0.47). The 24 fresh probes of run 13 were not re-run. The sweep is still flat across the floors, so the floors stay 0.4 and 0.3. The owner decided to use `intent-tuned-2`. The questions and families still share an author: the owner's local set of real-sounding questions is the honest test.
+
 ## Next tests (not yet run)
 - Refusal alone: sales / purchases / other with narrow descriptions, plus the `noul` gate, on a larger off-topic and out-of-scope set (forecasts, weather, jokes, other departments, empty and gibberish input).
 - Isolate wording versus label set versus API form.

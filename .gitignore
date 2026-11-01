@@ -4,3 +4,6 @@
 node_modules
 __pycache__
 unanswered.jsonl
+Training/out/
+Training/intent-tuned/
+Training/*.zip
