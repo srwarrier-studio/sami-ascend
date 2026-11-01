@@ -27,7 +27,7 @@ Phase 02 made the reading good (`intent-tuned-2`: 73 of 80 answerable questions 
 - Each response kind has a test against a mock synapse-api: the sentence has the figure and the blocks are exactly those in the table (a `value` answer has no chart).
 - "to whom did we sell the most in June" returns a sentence naming the leader and a ranked table of customers for June (never receivables).
 - "how much did we sell in June" returns one sentence and no chart; "sales trend this year" returns a sentence and a trend.
-- A combined question ("sales in June and how that compares") returns both answers in order, one per scenario.
+- A combined question ("top customers in June and the trend") returns both answers in order, one per scenario. A scenario that another one `covers` is dropped as before ("sales in June and how that compares" is one compare answer, which already has the figure).
 - A scenario with no `answers.toml` entry, a period not supported, no data and synapse-api down each give the specified result, not a wrong figure.
 - `answers check` fails on an entry for an unknown scenario key, an unknown response kind or a ranking without `by`.
 - No answer text is produced by a model: sentences come from templates in the code.
