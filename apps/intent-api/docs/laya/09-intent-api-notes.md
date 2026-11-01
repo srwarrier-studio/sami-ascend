@@ -149,6 +149,29 @@ After the owner described the business (mostly exports, USD and INR, raw materia
 - Questions and names are invented (Lakeview Botanicals, Kaveri Growers, Medan Agro Traders); no real company data was used or shared. The reference question files in the spec folder were changed to these names.
 - Small and friendly set written by us: it says the descriptions work, not how real managers will phrase things. The evaluation task must keep a held-out part and take in the owner's real questions through a local run.
 
+## Run 9: scenarios inside a domain (2026-11-01)
+The domain is given (from the reference answers); the question is which of the domain's scenarios are asked. `typed-decisions`, reference questions that stay inside one domain (33 of 34; the one that mixes sales and purchases is out because a question is answered in one domain), 14 to 16 scenarios, expected sets with `covers` applied.
+
+| Design | Exact (of 33) | Median call |
+|---|---|---|
+| one yes/no per scenario, cut 0.3 | 2 | 2.8 s |
+| one yes/no per scenario, cut 0.5 | 9 | 2.5 s |
+| one choice over the whole question | 17 | 0.75 s |
+| + one example per option | 16 | 1.3 s |
+| iterative choice with a stop option | 8 to 12 | 2.3 to 3.0 s |
+| one choice per clause (split at and, commas, then) + "nothing" option | 23 | 1.1 s |
+| same, `entity_value` scenarios dropped (entity becomes a slot) | **27** | 0.8 s |
+| same, richer words in the descriptions | 26 | 1.3 s |
+| same on `convaiinnovations/laya` | 24 to 25 | 0.9 s |
+
+Through the real app code (`ChooseScenarios`, 14 scenarios): 27 of 33 exact (82%), median 995 ms. Probabilities help: the lowest probability among the selected scenarios is a median of 0.64 for right answers and 0.39 for wrong ones, so a floor of about 0.5 would catch most misses (to be set by the evaluation).
+
+Findings:
+- Yes/no per scenario is clearly the wrong design again; clauses plus one choice each is the best so far.
+- Whether a customer, supplier or material is named is not something Laya decides well (5 of the 10 misses in the first clause run); it belongs to name matching in phase 02, so the two `*_entity_value` scenarios were removed from the library and the plain value scenarios mention it in their description.
+- Remaining misses are about comparison words ("versus the month before", "up or down against") read as plain value or trend, "revenue by customer" read as value, and one compare-with-last-year mix-up.
+- 82% on questions we wrote ourselves is under the 90% bar floated for the evaluation; this is the step where fine-tuning would help most.
+
 ## Next tests (not yet run)
 - Refusal alone: sales / purchases / other with narrow descriptions, plus the `noul` gate, on a larger off-topic and out-of-scope set (forecasts, weather, jokes, other departments, empty and gibberish input).
 - Isolate wording versus label set versus API form.

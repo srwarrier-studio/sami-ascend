@@ -2,7 +2,7 @@ import argparse
 
 from intent_api.application.read_domain import OTHER, ReadDomain
 from intent_api.domain.errors import ClassifierUnavailable
-from intent_api.infrastructure.domain_loader import load_domains
+from intent_api.infrastructure.library_loader import load_domains
 from intent_api.infrastructure.laya_choice_classifier import LayaChoiceClassifier
 from intent_api.infrastructure.settings import Settings
 

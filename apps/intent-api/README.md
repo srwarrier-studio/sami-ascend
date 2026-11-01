@@ -23,3 +23,6 @@ Install torch from the CPU index first so the CUDA libraries are not pulled in. 
 uv run --package intent-api intent-api domain "What were sales for August?"
 ```
 It prints the domain and its probability, `refused (Other)` when Laya says the question is not about the business, or `cannot_classify_now` when Laya cannot be reached. Notes on Laya are in `docs/laya/`.
+
+## Scenario library
+`scenarios.toml` lists the domains (`[domain.<Name>]` with a short description) and the approved scenarios (`[[scenario]]` with `id`, `domain`, `description`, `examples`, `needs`, `covers`). `uv run --package intent-api intent-api scenarios check` validates it and `scenarios show` prints it by domain. A new kind of question is a new `[[scenario]]` entry; the code knows no flow.
