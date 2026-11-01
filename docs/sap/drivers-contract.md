@@ -171,6 +171,22 @@ in `$orderby` when paging.
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"260000.00"` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
 
+### Receivables summaries (read-only, measured on a day)
+
+Aggregated by SAP from `CustomerInvoice`, so a consumer never pages through invoices to total them. The day is the custom query
+parameter `AsOfDate` (`...ReceivablesAgeing?AsOfDate=2026-10-31`, default today; a value that is not a date is `400`). An invoice counts when
+`InvoiceDate` is on or before `AsOfDate`; its open amount is `NetAmount` minus `ClearedAmount` when `ClearingDate` is on or before `AsOfDate`.
+Invoices with nothing open are left out. An invoice is overdue when `DueDate` is before `AsOfDate` and it is still open. Rows are grouped by
+`TransactionCurrency` (returned as `Currency`), and `OpenCount` and `OverdueCount` are numbers of invoices. All three support the same query options as the other entities.
+
+| Entity | Key | Fields besides the key |
+|--------|-----|------------------------|
+| `ReceivablesSummary` | `AsOfDate`, `Currency` | `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount` |
+| `ReceivablesByCustomer` | `AsOfDate`, `SoldToParty`, `Currency` | `CustomerName`, `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount` |
+| `ReceivablesAgeing` | `AsOfDate`, `AgeBucket`, `Currency` | `OpenAmount`, `OpenCount` |
+
+`AgeBucket` is the days past `DueDate` on `AsOfDate`: `current` (not yet due), `1-30`, `31-60`, `61-90` or `90+`. Buckets with nothing open have no row.
+
 ## 3. Codes
 
 | Field | Value | Meaning |

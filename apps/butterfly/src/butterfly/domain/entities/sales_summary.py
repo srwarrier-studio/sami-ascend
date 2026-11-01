@@ -59,3 +59,34 @@ class PurchaseSummaryByMaterial:
     quantity_unit: str
     total_net_amount: Decimal
     currency: str
+
+
+@dataclass(frozen=True)
+class ReceivablesSummary:
+    as_of_date: date
+    open_amount: Decimal
+    overdue_amount: Decimal
+    open_count: int
+    overdue_count: int
+    currency: str
+
+
+@dataclass(frozen=True)
+class ReceivablesByCustomer:
+    sold_to_party: str
+    customer_name: str | None
+    as_of_date: date
+    open_amount: Decimal
+    overdue_amount: Decimal
+    open_count: int
+    overdue_count: int
+    currency: str
+
+
+@dataclass(frozen=True)
+class ReceivablesAgeing:
+    as_of_date: date
+    age_bucket: str
+    open_amount: Decimal
+    open_count: int
+    currency: str

@@ -101,6 +101,29 @@ CUSTOMER_INVOICE_FIELDS = {
     "ClearingDate": ("clearing_date", FieldType.DATE),
 }
 
+RECEIVABLES_SUMMARY_FIELDS = {
+    "AsOfDate": ("as_of_date", FieldType.DATE),
+    "OpenAmount": ("open_amount", FieldType.DECIMAL),
+    "OverdueAmount": ("overdue_amount", FieldType.DECIMAL),
+    "OpenCount": ("open_count", FieldType.DECIMAL),
+    "OverdueCount": ("overdue_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+}
+
+RECEIVABLES_BY_CUSTOMER_FIELDS = {
+    "SoldToParty": ("sold_to_party", FieldType.STRING),
+    "CustomerName": ("customer_name", FieldType.STRING),
+    **RECEIVABLES_SUMMARY_FIELDS,
+}
+
+RECEIVABLES_AGEING_FIELDS = {
+    "AsOfDate": ("as_of_date", FieldType.DATE),
+    "AgeBucket": ("age_bucket", FieldType.STRING),
+    "OpenAmount": ("open_amount", FieldType.DECIMAL),
+    "OpenCount": ("open_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+}
+
 PRODUCTION_ORDER_FIELDS = {
     "ProductionOrder": ("production_order", FieldType.STRING),
     "Material": ("material", FieldType.STRING),
