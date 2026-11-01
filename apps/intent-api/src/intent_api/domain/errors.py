@@ -13,3 +13,7 @@ class PeriodNotSupported(Exception):
         super().__init__(reason)
         self.periods = periods
         self.reason = reason
+
+
+class MetricsUnavailable(Exception):
+    pass
