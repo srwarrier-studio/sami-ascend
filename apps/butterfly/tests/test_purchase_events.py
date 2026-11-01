@@ -72,7 +72,7 @@ class TestSupplierSwitch:
     def test_orders_from_the_start_date_come_from_the_new_supplier_at_the_new_price(self):
         [(old, new)] = [(a, b) for a, b in deliveries_of(self.SEED, "RAW-2005") if a != b]
         assert old.order_date >= date(2026, 10, 1)
-        assert (old.supplier_name, new.supplier_name) == ("Precision Bearings Co", "Kalyani Wire Industries")
+        assert (old.supplier_name, new.supplier_name) == ("Pack-Rite Industries Pvt Ltd", "Malnad Botanicals Pvt Ltd")
         assert new.supplier == "0000200002"
         assert new.net_amount == (old.net_amount * Decimal("1.15")).quantize(Decimal("0.01"))
         assert new.ordered_quantity == old.ordered_quantity

@@ -69,3 +69,44 @@ class TestTheGroupData:
 def find_quiet():
     from butterfly.infrastructure.memory.scenarios import find_scenario
     return find_scenario("quiet-month")
+
+
+class TestEachCompanyBuysAndMakesItsOwn:
+    def test_deliveries_use_only_the_suppliers_and_raw_materials_of_their_company(self):
+        for company in COMPANIES:
+            suppliers = {s[0] for s in company.suppliers}
+            raws = {r[0] for r in company.raw_materials}
+            rows = [d for d in GROUP.deliveries if d.company_code == company.code]
+            assert rows and all(d.supplier in suppliers and d.material in raws for d in rows)
+
+    def test_no_supplier_or_raw_material_is_shared(self):
+        suppliers = [s[0] for company in COMPANIES for s in company.suppliers]
+        raws = [r[0] for company in COMPANIES for r in company.raw_materials]
+        assert len(set(suppliers)) == len(suppliers) and len(set(raws)) == len(raws)
+
+    def test_production_orders_and_components_follow_the_products_of_their_company(self):
+        for company in COMPANIES:
+            products = {m[0] for m in company.materials}
+            raws = {r[0] for r in company.raw_materials}
+            orders = [p for p in GROUP.production_orders if p.company_code == company.code]
+            components = [c for c in GROUP.components if c.company_code == company.code]
+            assert orders and all(p.material in products for p in orders)
+            assert components and all(c.material in raws for c in components)
+
+    def test_every_component_belongs_to_a_production_order_of_the_same_company(self):
+        company_of = {p.production_order: p.company_code for p in GROUP.production_orders}
+        assert all(company_of[c.production_order] == c.company_code for c in GROUP.components)
+
+    def test_numbers_do_not_overlap_between_companies(self):
+        purchase = [d.purchase_order for d in GROUP.deliveries]
+        production = [p.production_order for p in GROUP.production_orders]
+        assert len(set(purchase)) == len(purchase) and len(set(production)) == len(production)
+
+    def test_imported_raw_material_is_bought_in_dollars_and_local_in_rupees(self):
+        assert {d.transaction_currency for d in GROUP.deliveries} == {"INR", "USD"}
+        assert {d.transaction_currency for d in GROUP.deliveries if d.company_code == "INA1"} == {"INR"}
+
+    def test_the_story_events_touch_only_the_story_company(self):
+        quiet = build_story_seed(TODAY, find_quiet(), companies=[INA2, INA3])
+        story = build_story_seed(TODAY, companies=[INA2, INA3])
+        assert quiet.deliveries == story.deliveries and quiet.production_orders == story.production_orders

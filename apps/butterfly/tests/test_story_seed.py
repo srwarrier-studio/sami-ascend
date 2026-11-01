@@ -46,14 +46,14 @@ class TestContracts:
 class TestDeliveries:
     def test_doosan_delivered_steel_coil_twelve_days_late(self):
         row = DELIVERIES["4500001207"]
-        assert (row.supplier, row.supplier_name) == ("0000200001", "Doosan Metals Pvt Ltd")
-        assert (row.material, row.material_description) == ("RAW-2002", "Steel coil")
+        assert (row.supplier, row.supplier_name) == ("0000200001", "Deccan Agro Growers Cooperative")
+        assert (row.material, row.material_description) == ("RAW-2002", "Black pepper, whole")
         assert (row.order_date, row.promised_delivery_date, row.actual_delivery_date) == (date(2026, 6, 24), date(2026, 7, 14), date(2026, 7, 26))
         assert (row.ordered_quantity, row.delivered_quantity, row.delivery_status) == (Decimal("5000.000"), Decimal("5000.000"), "D")
 
     def test_a_copper_rod_delivery_in_may_was_four_days_late(self):
         row = DELIVERIES["4500001196"]
-        assert (row.supplier_name, row.material) == ("Kalyani Wire Industries", "RAW-2003")
+        assert (row.supplier_name, row.material) == ("Malnad Botanicals Pvt Ltd", "RAW-2003")
         assert (row.actual_delivery_date - row.promised_delivery_date).days == 4 and row.promised_delivery_date.month == 5
 
     def test_those_are_the_only_deliveries_more_than_two_days_late(self):
@@ -79,7 +79,7 @@ class TestDeliveries:
         by_supplier = defaultdict(set)
         for d in SEED.deliveries:
             by_supplier[d.supplier_name].add(d.material)
-        assert {name: len(materials) for name, materials in by_supplier.items()} == {"Doosan Metals Pvt Ltd": 2, "Kalyani Wire Industries": 2, "Precision Bearings Co": 2}
+        assert {name: len(materials) for name, materials in by_supplier.items()} == {"Deccan Agro Growers Cooperative": 2, "Malnad Botanicals Pvt Ltd": 2, "Pack-Rite Industries Pvt Ltd": 2}
 
 
 class TestProduction:
@@ -122,7 +122,7 @@ class TestProduction:
 
     def test_the_late_steel_plate_order_uses_the_late_steel_coil(self):
         component = next(c for c in SEED.components if c.production_order == "0001000417")
-        assert (component.material, component.material_description, component.required_quantity) == ("RAW-2002", "Steel coil", Decimal("4400.000"))
+        assert (component.material, component.material_description, component.required_quantity) == ("RAW-2002", "Black pepper, whole", Decimal("4400.000"))
         delivery = DELIVERIES["4500001207"]
         assert delivery.material == component.material and delivery.promised_delivery_date <= PRODUCTION["0001000417"].planned_end_date < delivery.actual_delivery_date
 

@@ -24,6 +24,13 @@ class CompanyProfile:
     quantity_factor: list[Decimal]
     contracts: list[list[tuple]]
     first_order_number: int
+    suppliers: list[tuple]
+    raw_materials: list[tuple]
+    ordered_quantity: list[Decimal]
+    planned_quantity: list[Decimal]
+    raw_price: list[Decimal]
+    purchase_order_base: int
+    production_order_base: int
 
 
 def decimals(*values: str) -> list[Decimal]:
@@ -57,6 +64,24 @@ INA1 = CompanyProfile(
         [("0040000104", None, date(2025, 1, 15), date(2026, 1, 14), "5000000.00"), ("0040000153", "0040000104", date(2026, 1, 15), date(2027, 1, 14), "5200000.00")],
     ],
     first_order_number=20001,
+    suppliers=[
+        ("0000200001", "Deccan Agro Growers Cooperative"),
+        ("0000200002", "Malnad Botanicals Pvt Ltd"),
+        ("0000200003", "Pack-Rite Industries Pvt Ltd"),
+    ],
+    raw_materials=[
+        ("RAW-2001", "Turmeric rhizome, dried", "KG", 0, "RM-1001", "INR"),
+        ("RAW-2002", "Black pepper, whole", "KG", 0, "RM-1002", "INR"),
+        ("RAW-2003", "Frankincense resin", "KG", 1, "RM-1003", "INR"),
+        ("RAW-2004", "Withania root, dried", "KG", 1, "RM-1004", "INR"),
+        ("RAW-2005", "Gelatin capsule shells", "KG", 2, "RM-1005", "INR"),
+        ("RAW-2006", "Laminate film for sachets", "KG", 2, "RM-1006", "INR"),
+    ],
+    ordered_quantity=decimals("4000.000", "5000.000", "2000.000", "1500.000", "1000.000", "3000.000"),
+    planned_quantity=decimals("3500.000", "4000.000", "1800.000", "1400.000", "900.000", "2800.000"),
+    raw_price=decimals("46.00", "52.00", "610.00", "190.00", "70.00", "48.00"),
+    purchase_order_base=4500001146,
+    production_order_base=1000356,
 )
 
 INA2 = CompanyProfile(
@@ -86,6 +111,24 @@ INA2 = CompanyProfile(
         [("0050000015", None, date(2025, 4, 1), date(2026, 3, 31), "1500000.00"), ("0050000045", "0050000015", date(2026, 4, 1), date(2027, 3, 31), "1600000.00")],
     ],
     first_order_number=30001,
+    suppliers=[
+        ("0000210001", "Nordic Cultures ApS"),
+        ("0000210002", "Malnad Extracts Pvt Ltd"),
+        ("0000210003", "Qingdao Bioactives Co Ltd"),
+    ],
+    raw_materials=[
+        ("NRAW-2001", "Probiotic culture concentrate", "KG", 0, "NU-1001", "USD"),
+        ("NRAW-2002", "Lactobacillus culture, freeze-dried", "KG", 0, "NU-1002", "USD"),
+        ("NRAW-2003", "Bifidobacterium culture, freeze-dried", "KG", 0, "NU-1003", "USD"),
+        ("NRAW-2004", "Turmeric extract, bulk", "KG", 1, "NU-1004", "INR"),
+        ("NRAW-2005", "Vitamin C and zinc premix", "KG", 1, "NU-1005", "INR"),
+        ("NRAW-2006", "Glucosamine sulphate", "KG", 2, "NU-1006", "USD"),
+    ],
+    ordered_quantity=decimals("900.000", "700.000", "650.000", "3200.000", "2500.000", "2100.000"),
+    planned_quantity=decimals("800.000", "620.000", "600.000", "3000.000", "2300.000", "1900.000"),
+    raw_price=decimals("2600.00", "1700.00", "1900.00", "850.00", "420.00", "380.00"),
+    purchase_order_base=4600001000,
+    production_order_base=2000356,
 )
 
 INA3 = CompanyProfile(
@@ -115,6 +158,24 @@ INA3 = CompanyProfile(
         [("0060000025", None, date(2025, 10, 1), date(2026, 9, 30), "3000000.00"), ("0060000055", "0060000025", date(2026, 10, 1), date(2027, 9, 30), "3200000.00")],
     ],
     first_order_number=40001,
+    suppliers=[
+        ("0000220001", "Mysore Oils and Terpenes Pvt Ltd"),
+        ("0000220002", "Kannur Essential Oils Co"),
+        ("0000220003", "Jiangsu Aroma Intermediates Co Ltd"),
+    ],
+    raw_materials=[
+        ("ORAW-2001", "Guaiacol", "KG", 2, "OA-1001", "USD"),
+        ("ORAW-2002", "Mentha arvensis oil, crude", "KG", 0, "OA-1002", "INR"),
+        ("ORAW-2003", "Clove leaf oil", "KG", 1, "OA-1003", "INR"),
+        ("ORAW-2004", "Lemongrass oil", "KG", 1, "OA-1004", "INR"),
+        ("ORAW-2005", "Linalool, crude", "KG", 0, "OA-1005", "INR"),
+        ("ORAW-2006", "Maltol precursor", "KG", 2, "OA-1006", "USD"),
+    ],
+    ordered_quantity=decimals("3500.000", "4500.000", "2800.000", "2400.000", "2600.000", "1200.000"),
+    planned_quantity=decimals("3200.000", "4100.000", "2600.000", "2200.000", "2400.000", "1100.000"),
+    raw_price=decimals("900.00", "1400.00", "620.00", "700.00", "800.00", "1100.00"),
+    purchase_order_base=4700001000,
+    production_order_base=3000356,
 )
 
 COMPANIES = [INA1, INA2, INA3]

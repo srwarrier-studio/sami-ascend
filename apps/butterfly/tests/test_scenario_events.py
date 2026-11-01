@@ -39,11 +39,11 @@ def orders_of(seed, customer, start, end):
 
 
 BUTTERFLY_EIGHT = {
-    date(2026, 10, 31): {"orders": "24052640905a0f0f", "contracts": "eda98503c519f89f", "production_orders": "dd9589c4c911687e", "components": "795a51017bcff511"},
-    date(2026, 8, 15): {"orders": "2029c6e6da65851b", "contracts": "588ebcb61cf58ece", "production_orders": "7d951370c4d49f5d", "components": "115ab08ada6d8421"},
-    date(2026, 9, 1): {"orders": "5cbb98e7bc389bcc", "contracts": "588ebcb61cf58ece", "production_orders": "3bedaa1302a7d4f0", "components": "f752d6971669dbad"},
+    date(2026, 10, 31): {"orders": "24052640905a0f0f", "contracts": "eda98503c519f89f", "production_orders": "dd9589c4c911687e", "components": "edffbe93c44e6077"},
+    date(2026, 8, 15): {"orders": "2029c6e6da65851b", "contracts": "588ebcb61cf58ece", "production_orders": "7d951370c4d49f5d", "components": "0d6087a7c2205eee"},
+    date(2026, 9, 1): {"orders": "5cbb98e7bc389bcc", "contracts": "588ebcb61cf58ece", "production_orders": "3bedaa1302a7d4f0", "components": "1540dbe0758fecd4"},
 }
-DELIVERIES_WITH_AMOUNTS = {date(2026, 10, 31): "8e046277d738a6fb", date(2026, 8, 15): "bf8846bf1a3a65a5", date(2026, 9, 1): "c41c5535e0959ee4"}
+DELIVERIES_WITH_AMOUNTS = {date(2026, 10, 31): "7be524b8436c203c", date(2026, 8, 15): "d7f596b0455b151f", date(2026, 9, 1): "5c8f5e463d3ef320"}
 
 
 class TestAugustContractStaysAsButterflyEight:

@@ -39,28 +39,8 @@ CANCEL_EVERY = 16
 NORMAL_WORKING_DAYS = 22
 SETTLED_AFTER_DAYS = 30
 
-SUPPLIERS = [
-    ("0000200001", "Doosan Metals Pvt Ltd"),
-    ("0000200002", "Kalyani Wire Industries"),
-    ("0000200003", "Precision Bearings Co"),
-]
-
-RAW_MATERIALS = [
-    ("RAW-2001", "Steel billet", "KG", 0, "RM-1001"),
-    ("RAW-2002", "Steel coil", "KG", 0, "RM-1002"),
-    ("RAW-2003", "Copper rod", "KG", 1, "RM-1003"),
-    ("RAW-2004", "Aluminium ingot", "KG", 1, "RM-1004"),
-    ("RAW-2005", "Bearing steel", "KG", 2, "RM-1005"),
-    ("RAW-2006", "Wire rod", "KG", 2, "RM-1006"),
-]
-
-ORDERED_QUANTITY = [Decimal("4000.000"), Decimal("5000.000"), Decimal("2000.000"), Decimal("1500.000"), Decimal("1000.000"), Decimal("3000.000")]
-PLANNED_QUANTITY = [Decimal("3500.000"), Decimal("4000.000"), Decimal("1800.000"), Decimal("1400.000"), Decimal("900.000"), Decimal("2800.000")]
-RAW_PRICE = [Decimal("46.00"), Decimal("52.00"), Decimal("610.00"), Decimal("190.00"), Decimal("70.00"), Decimal("48.00")]
 COMPONENT_MARGIN = Decimal("1.1")
 
-PURCHASE_ORDER_BASE = 4500001146
-PRODUCTION_ORDER_BASE = 1000356
 BATCH_DAYS = 14
 PURCHASE_LEAD_DAYS = 20
 
@@ -78,14 +58,15 @@ class StorySeed:
 def build_story_seed(today: date, scenario: Scenario = AUGUST_CONTRACT, companies: list[CompanyProfile] | None = None) -> StorySeed:
     months = month_starts(today)
     planning_months = [*months, next_month(months[-1])]
-    orders = []
-    contracts = []
+    orders, contracts, deliveries, production_orders, components = [], [], [], [], []
     for company in companies or [INA1]:
         story = scenario if company is INA1 else replace(scenario, events=())
         orders += build_orders(today, story, company)
         contracts += build_contracts(today, story, company)
-    deliveries = build_deliveries(planning_months, today, scenario)
-    production_orders, components = build_production(planning_months, today, scenario)
+        deliveries += build_deliveries(planning_months, today, story, company)
+        company_orders, company_components = build_production(planning_months, today, story, company)
+        production_orders += company_orders
+        components += company_components
     return StorySeed(orders, contracts, deliveries, production_orders, components, build_invoices(orders, today))
 
 
@@ -289,18 +270,17 @@ def build_contracts(today: date, scenario: Scenario, company: CompanyProfile) ->
     return contracts
 
 
-def build_deliveries(months: list[date], today: date, scenario: Scenario) -> list[PurchaseDelivery]:
+def build_deliveries(months: list[date], today: date, scenario: Scenario, company: CompanyProfile) -> list[PurchaseDelivery]:
     late = {(delay.month, delay.raw_material): delay.days for delay in events_of(scenario, SupplyDelay)}
     deliveries = []
     for month_index, month in enumerate(months):
-        for raw_index, (material, description, unit, supplier_index, _) in enumerate(RAW_MATERIALS):
+        for raw_index, (material, description, unit, supplier_index, product, currency) in enumerate(company.raw_materials):
             promised = month + timedelta(days=13)
             ordered_on = promised - timedelta(days=PURCHASE_LEAD_DAYS)
             delay = late.get((month, material), (month_index + raw_index) % 3)
             actual = promised + timedelta(days=delay)
             delivered = actual <= today
-            quantity, price = ORDERED_QUANTITY[raw_index], RAW_PRICE[raw_index]
-            product = RAW_MATERIALS[raw_index][4]
+            quantity, price = company.ordered_quantity[raw_index], company.raw_price[raw_index]
             quantity = (quantity * purchase_growth(product, ordered_on, scenario)).quantize(Decimal("0.001"))
             for change in events_of(scenario, PurchaseQuantityChange):
                 if change.raw_material == material and change.start <= ordered_on <= change.end:
@@ -312,10 +292,10 @@ def build_deliveries(months: list[date], today: date, scenario: Scenario) -> lis
                 if switch.raw_material == material and ordered_on >= switch.start:
                     supplier_index = switch.supplier
                     price *= Decimal(switch.price_factor)
-            supplier_id, supplier_name = SUPPLIERS[supplier_index]
+            supplier_id, supplier_name = company.suppliers[supplier_index]
             deliveries.append(
                 PurchaseDelivery(
-                    purchase_order=str(PURCHASE_ORDER_BASE + month_index * len(RAW_MATERIALS) + raw_index),
+                    purchase_order=str(company.purchase_order_base + month_index * len(company.raw_materials) + raw_index),
                     purchase_order_item="00010",
                     supplier=supplier_id,
                     supplier_name=supplier_name,
@@ -328,27 +308,29 @@ def build_deliveries(months: list[date], today: date, scenario: Scenario) -> lis
                     promised_delivery_date=promised,
                     actual_delivery_date=actual if delivered else None,
                     delivery_status="D" if delivered else "O",
-                    net_amount=(quantity * price).quantize(Decimal("0.01")),
+                    net_amount=(quantity * in_currency(price, currency)).quantize(Decimal("0.01")),
+                    transaction_currency=currency,
+                    company_code=company.code,
                 )
             )
     return deliveries
 
 
-def build_production(months: list[date], today: date, scenario: Scenario) -> tuple[list[ProductionOrder], list[ProductionOrderComponent]]:
+def build_production(months: list[date], today: date, scenario: Scenario, company: CompanyProfile) -> tuple[list[ProductionOrder], list[ProductionOrderComponent]]:
     late = {(delay.month, delay.material): (delay.days, delay.reason) for delay in events_of(scenario, ProductionDelay)}
     orders = []
     components = []
     last_end: dict[str, date] = {}
     for month_index, month in enumerate(months):
-        for product_index, (product, description, unit, _) in enumerate(INA1.materials):
+        for product_index, (product, description, unit, _) in enumerate(company.materials):
             planned_start = max(month + timedelta(days=5), last_end.get(product, STORY_START) + timedelta(days=1))
             planned_end = planned_start + timedelta(days=BATCH_DAYS)
             late_days, reason = late.get((month, product), (0, None))
             actual_end = planned_end + timedelta(days=late_days)
             last_end[product] = actual_end
             completed = actual_end <= today
-            number = f"{PRODUCTION_ORDER_BASE + month_index * len(INA1.materials) + product_index:010d}"
-            planned = (PLANNED_QUANTITY[product_index] * production_growth(product, month, scenario)).quantize(Decimal("0.001"))
+            number = f"{company.production_order_base + month_index * len(company.materials) + product_index:010d}"
+            planned = (company.planned_quantity[product_index] * production_growth(product, month, scenario)).quantize(Decimal("0.001"))
             orders.append(
                 ProductionOrder(
                     production_order=number,
@@ -362,10 +344,11 @@ def build_production(months: list[date], today: date, scenario: Scenario) -> tup
                     actual_end_date=actual_end if completed else None,
                     production_status="C" if completed else "R",
                     delay_reason=reason if completed else None,
+                    company_code=company.code,
                 )
             )
-            raw = RAW_MATERIALS[product_index]
+            raw = company.raw_materials[product_index]
             components.append(
-                ProductionOrderComponent(number, raw[0], raw[1], (planned * COMPONENT_MARGIN).quantize(Decimal("0.001")), raw[2])
+                ProductionOrderComponent(number, raw[0], raw[1], (planned * COMPONENT_MARGIN).quantize(Decimal("0.001")), raw[2], company.code)
             )
     return orders, components

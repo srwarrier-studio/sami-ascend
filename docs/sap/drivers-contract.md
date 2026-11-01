@@ -51,9 +51,9 @@ the first goods receipt that completed the item; it is empty while the item is o
 | `PurchaseOrder` | `Edm.String` (10) | No | `"4500001207"` |
 | `PurchaseOrderItem` | `Edm.String` (5) | No | `"00010"` |
 | `Supplier` | `Edm.String` (10) | No | `"0000200001"` |
-| `SupplierName` | `Edm.String` (80) | Yes | `"Doosan Metals Pvt Ltd"` |
+| `SupplierName` | `Edm.String` (80) | Yes | `"Deccan Agro Growers Cooperative"` |
 | `Material` | `Edm.String` (40) | No | `"RAW-2002"` |
-| `MaterialDescription` | `Edm.String` (40) | Yes | `"Steel coil"` |
+| `MaterialDescription` | `Edm.String` (40) | Yes | `"Black pepper, whole"` |
 | `OrderDate` | `Edm.Date` | No | `"2026-06-24"` |
 | `OrderedQuantity` | `Edm.Decimal` (13,3) | No | `"5000.000"` |
 | `DeliveredQuantity` | `Edm.Decimal` (13,3) | No | `"5000.000"` |
@@ -131,7 +131,7 @@ The materials an order consumes.
 |-------|------|----------|---------|
 | `ProductionOrder` | `Edm.String` (10) | No | `"0001000417"` |
 | `Material` | `Edm.String` (40) | No | `"RAW-2002"` |
-| `MaterialDescription` | `Edm.String` (40) | Yes | `"Steel coil"` |
+| `MaterialDescription` | `Edm.String` (40) | Yes | `"Black pepper, whole"` |
 | `RequiredQuantity` | `Edm.Decimal` (13,3) | No | `"4400.000"` |
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
@@ -160,7 +160,7 @@ in `$orderby` when paging.
 | Field | Type | Nullable | Example |
 |-------|------|----------|---------|
 | `Supplier` | `Edm.String` (10) | No | `"0000200001"` |
-| `SupplierName` | `Edm.String` (80) | Yes | `"Doosan Metals Pvt Ltd"` |
+| `SupplierName` | `Edm.String` (80) | Yes | `"Deccan Agro Growers Cooperative"` |
 | `OrderDate` | `Edm.Date` | No | `"2026-06-24"` |
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"444000.00"` |
 | `OrderCount` | `Edm.Int32` | No | `2` |
@@ -172,7 +172,7 @@ in `$orderby` when paging.
 | Field | Type | Nullable | Example |
 |-------|------|----------|---------|
 | `Material` | `Edm.String` (40) | No | `"RAW-2002"` |
-| `MaterialDescription` | `Edm.String` (40) | Yes | `"Steel coil"` |
+| `MaterialDescription` | `Edm.String` (40) | Yes | `"Black pepper, whole"` |
 | `OrderDate` | `Edm.Date` | No | `"2026-06-24"` |
 | `TotalQuantity` | `Edm.Decimal` (13,3) | No | `"5000.000"` |
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
@@ -284,9 +284,9 @@ GET {root}PurchaseDelivery?$filter=Material eq 'RAW-2002' and PromisedDeliveryDa
       "PurchaseOrder": "4500001207",
       "PurchaseOrderItem": "00010",
       "Supplier": "0000200001",
-      "SupplierName": "Doosan Metals Pvt Ltd",
+      "SupplierName": "Deccan Agro Growers Cooperative",
       "Material": "RAW-2002",
-      "MaterialDescription": "Steel coil",
+      "MaterialDescription": "Black pepper, whole",
       "OrderDate": "2026-06-24",
       "OrderedQuantity": "5000.000",
       "DeliveredQuantity": "5000.000",
@@ -357,7 +357,7 @@ GET {root}ProductionOrderComponent?$filter=ProductionOrder eq '0001000417'
     {
       "ProductionOrder": "0001000417",
       "Material": "RAW-2002",
-      "MaterialDescription": "Steel coil",
+      "MaterialDescription": "Black pepper, whole",
       "RequiredQuantity": "4400.000",
       "QuantityUnit": "KG",
       "CompanyCode": "INA1"
@@ -378,7 +378,7 @@ GET {root}PurchaseSummaryBySupplier?$filter=OrderDate ge 2026-06-01 and OrderDat
   "value": [
     {
       "Supplier": "0000200001",
-      "SupplierName": "Doosan Metals Pvt Ltd",
+      "SupplierName": "Deccan Agro Growers Cooperative",
       "OrderDate": "2026-06-24",
       "TotalNetAmount": "444000.00",
       "OrderCount": 2,
@@ -387,7 +387,7 @@ GET {root}PurchaseSummaryBySupplier?$filter=OrderDate ge 2026-06-01 and OrderDat
     },
     {
       "Supplier": "0000200002",
-      "SupplierName": "Kalyani Wire Industries",
+      "SupplierName": "Malnad Botanicals Pvt Ltd",
       "OrderDate": "2026-06-24",
       "TotalNetAmount": "1505000.00",
       "OrderCount": 2,
@@ -396,7 +396,7 @@ GET {root}PurchaseSummaryBySupplier?$filter=OrderDate ge 2026-06-01 and OrderDat
     },
     {
       "Supplier": "0000200003",
-      "SupplierName": "Precision Bearings Co",
+      "SupplierName": "Pack-Rite Industries Pvt Ltd",
       "OrderDate": "2026-06-24",
       "TotalNetAmount": "214000.00",
       "OrderCount": 2,

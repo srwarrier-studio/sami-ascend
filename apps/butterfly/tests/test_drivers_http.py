@@ -146,7 +146,7 @@ class TestPurchaseDelivery:
     def test_filter_by_material_and_promised_date_range(self):
         url = "PurchaseDelivery?$filter=Material eq 'RAW-2002' and PromisedDeliveryDate ge 2026-07-01 and PromisedDeliveryDate le 2026-07-31"
         row = get(url).json()["value"][0]
-        assert (row["PurchaseOrder"], row["SupplierName"]) == ("4500001207", "Doosan Metals Pvt Ltd")
+        assert (row["PurchaseOrder"], row["SupplierName"]) == ("4500001207", "Deccan Agro Growers Cooperative")
         assert (row["PromisedDeliveryDate"], row["ActualDeliveryDate"], row["DeliveryStatus"]) == ("2026-07-14", "2026-07-26", "D")
         assert (row["OrderedQuantity"], row["DeliveredQuantity"]) == ("5000.000", "5000.000")
 
@@ -184,7 +184,7 @@ class TestProductionOrder:
 class TestProductionOrderComponent:
     def test_filter_by_order(self):
         body = get("ProductionOrderComponent?$filter=ProductionOrder eq '0001000417'").json()
-        assert body["value"] == [{"ProductionOrder": "0001000417", "Material": "RAW-2002", "MaterialDescription": "Steel coil", "RequiredQuantity": "4400.000", "QuantityUnit": "KG", "CompanyCode": "INA1"}]
+        assert body["value"] == [{"ProductionOrder": "0001000417", "Material": "RAW-2002", "MaterialDescription": "Black pepper, whole", "RequiredQuantity": "4400.000", "QuantityUnit": "KG", "CompanyCode": "INA1"}]
 
     def test_filter_by_component_material_finds_every_order_using_it(self):
         body = get("ProductionOrderComponent?$filter=Material eq 'RAW-2002'&$orderby=ProductionOrder").json()
@@ -196,5 +196,5 @@ class TestJoins:
         order = get("ProductionOrder?$filter=DelayReason eq 'MATERIAL_SHORTAGE'").json()["value"][0]
         component = get(f"ProductionOrderComponent?$filter=ProductionOrder eq '{order['ProductionOrder']}'").json()["value"][0]
         delivery = get(f"PurchaseDelivery?$filter=Material eq '{component['Material']}' and PromisedDeliveryDate le {order['PlannedEndDate']}&$orderby=PromisedDeliveryDate desc&$top=1").json()["value"][0]
-        assert delivery["SupplierName"] == "Doosan Metals Pvt Ltd"
+        assert delivery["SupplierName"] == "Deccan Agro Growers Cooperative"
         assert delivery["ActualDeliveryDate"] > delivery["PromisedDeliveryDate"]

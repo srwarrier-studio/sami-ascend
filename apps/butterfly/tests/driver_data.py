@@ -22,9 +22,9 @@ CONTRACTS = [
 ]
 
 DELIVERIES = [
-    PurchaseDelivery("4500001207", "00010", "0000200001", "Doosan Metals Pvt Ltd", "RAW-2002", "Steel coil", date(2026, 6, 24), Decimal("5000.000"), Decimal("5000.000"), "KG", date(2026, 7, 14), date(2026, 7, 26), "D"),
-    PurchaseDelivery("4500001150", "00010", "0000200001", "Doosan Metals Pvt Ltd", "RAW-2002", "Steel coil", date(2026, 5, 20), Decimal("5000.000"), Decimal("5000.000"), "KG", date(2026, 6, 10), date(2026, 6, 11), "D"),
-    PurchaseDelivery("4500001302", "00010", "0000200002", "Kalyani Wire Industries", "RAW-2003", "Copper rod", date(2026, 10, 1), Decimal("2000.000"), Decimal("0.000"), "KG", date(2026, 10, 20), None, "O"),
+    PurchaseDelivery("4500001207", "00010", "0000200001", "Deccan Agro Growers Cooperative", "RAW-2002", "Black pepper, whole", date(2026, 6, 24), Decimal("5000.000"), Decimal("5000.000"), "KG", date(2026, 7, 14), date(2026, 7, 26), "D"),
+    PurchaseDelivery("4500001150", "00010", "0000200001", "Deccan Agro Growers Cooperative", "RAW-2002", "Black pepper, whole", date(2026, 5, 20), Decimal("5000.000"), Decimal("5000.000"), "KG", date(2026, 6, 10), date(2026, 6, 11), "D"),
+    PurchaseDelivery("4500001302", "00010", "0000200002", "Malnad Botanicals Pvt Ltd", "RAW-2003", "Frankincense resin", date(2026, 10, 1), Decimal("2000.000"), Decimal("0.000"), "KG", date(2026, 10, 20), None, "O"),
 ]
 
 PRODUCTION_ORDERS = [
@@ -34,9 +34,9 @@ PRODUCTION_ORDERS = [
 ]
 
 COMPONENTS = [
-    ProductionOrderComponent("0001000417", "RAW-2002", "Steel coil", Decimal("4400.000"), "KG"),
-    ProductionOrderComponent("0001000388", "RAW-2005", "Bearing steel", Decimal("950.000"), "KG"),
-    ProductionOrderComponent("0001000431", "RAW-2002", "Steel coil", Decimal("4400.000"), "KG"),
+    ProductionOrderComponent("0001000417", "RAW-2002", "Black pepper, whole", Decimal("4400.000"), "KG"),
+    ProductionOrderComponent("0001000388", "RAW-2005", "Gelatin capsule shells", Decimal("950.000"), "KG"),
+    ProductionOrderComponent("0001000431", "RAW-2002", "Black pepper, whole", Decimal("4400.000"), "KG"),
 ]
 
 

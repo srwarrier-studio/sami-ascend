@@ -98,7 +98,7 @@ class TestTheDecoys:
         assert abs(material_sales((2026, 5), "RM-1005") - normal) / normal < Decimal("0.12")
 
     def test_the_decoys_are_real_events_in_the_data(self):
-        late = [d for d in SEED.deliveries if d.supplier_name == "Kalyani Wire Industries" and d.actual_delivery_date and (d.actual_delivery_date - d.promised_delivery_date).days == 4]
+        late = [d for d in SEED.deliveries if d.supplier_name == "Malnad Botanicals Pvt Ltd" and d.actual_delivery_date and (d.actual_delivery_date - d.promised_delivery_date).days == 4]
         broken = [p for p in SEED.production_orders if p.delay_reason == "MACHINE_BREAKDOWN"]
         assert len(late) == 1 and len(broken) == 1
 
