@@ -74,6 +74,7 @@ SALES_CONTRACT_FIELDS = {
     "ContractValue": ("contract_value", FieldType.DECIMAL),
     "TransactionCurrency": ("transaction_currency", FieldType.STRING),
     "ContractStatus": ("contract_status", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
 }
 
 PURCHASE_DELIVERY_FIELDS = {
@@ -92,6 +93,7 @@ PURCHASE_DELIVERY_FIELDS = {
     "PromisedDeliveryDate": ("promised_delivery_date", FieldType.DATE),
     "ActualDeliveryDate": ("actual_delivery_date", FieldType.DATE),
     "DeliveryStatus": ("delivery_status", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
 }
 
 CUSTOMER_INVOICE_FIELDS = {
@@ -104,6 +106,7 @@ CUSTOMER_INVOICE_FIELDS = {
     "TransactionCurrency": ("transaction_currency", FieldType.STRING),
     "ClearedAmount": ("cleared_amount", FieldType.DECIMAL),
     "ClearingDate": ("clearing_date", FieldType.DATE),
+    "CompanyCode": ("company_code", FieldType.STRING),
 }
 
 RECEIVABLES_SUMMARY_FIELDS = {
@@ -113,6 +116,7 @@ RECEIVABLES_SUMMARY_FIELDS = {
     "OpenCount": ("open_count", FieldType.DECIMAL),
     "OverdueCount": ("overdue_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
 }
 
 RECEIVABLES_BY_CUSTOMER_FIELDS = {
@@ -127,6 +131,7 @@ RECEIVABLES_AGEING_FIELDS = {
     "OpenAmount": ("open_amount", FieldType.DECIMAL),
     "OpenCount": ("open_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
 }
 
 PRODUCTION_ORDER_FIELDS = {
@@ -141,6 +146,7 @@ PRODUCTION_ORDER_FIELDS = {
     "ActualEndDate": ("actual_end_date", FieldType.DATE),
     "ProductionStatus": ("production_status", FieldType.STRING),
     "DelayReason": ("delay_reason", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
 }
 
 PRODUCTION_ORDER_COMPONENT_FIELDS = {
@@ -149,9 +155,10 @@ PRODUCTION_ORDER_COMPONENT_FIELDS = {
     "MaterialDescription": ("material_description", FieldType.STRING),
     "RequiredQuantity": ("required_quantity", FieldType.DECIMAL),
     "QuantityUnit": ("quantity_unit", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
 }
 
-PURCHASE_SUMMARY_BY_DAY_FIELDS = {name: field for name, field in SALES_SUMMARY_BY_DAY_FIELDS.items() if name != "CompanyCode"}
+PURCHASE_SUMMARY_BY_DAY_FIELDS = SALES_SUMMARY_BY_DAY_FIELDS
 
 PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {
     "Supplier": ("supplier", FieldType.STRING),
@@ -160,6 +167,7 @@ PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {
     "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
     "OrderCount": ("order_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
 }
 
-PURCHASE_SUMMARY_BY_MATERIAL_FIELDS = {name: field for name, field in SALES_SUMMARY_BY_MATERIAL_FIELDS.items() if name != "CompanyCode"}
+PURCHASE_SUMMARY_BY_MATERIAL_FIELDS = SALES_SUMMARY_BY_MATERIAL_FIELDS

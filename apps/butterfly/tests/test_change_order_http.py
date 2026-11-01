@@ -153,7 +153,7 @@ class TestCreateThenChangeFlow:
     def test_order_created_over_http_can_be_changed_with_the_etag_from_the_create(self):
         client = make_client()
         created = client.post(URL, json={
-            "SalesOrderType": "OR", "CompanyCode": "1000", "SoldToParty": "0000100001", "TransactionCurrency": "INR",
+            "SalesOrderType": "OR", "CompanyCode": "INA1", "SoldToParty": "0000100001", "TransactionCurrency": "INR",
             "_Item": [{"Material": "RM-1001", "Quantity": "5", "QuantityUnit": "KG"}],
         }).json()
 

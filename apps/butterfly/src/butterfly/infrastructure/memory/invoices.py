@@ -39,4 +39,5 @@ def build_invoice(order: SalesOrder, today: date) -> CustomerInvoice:
         transaction_currency=order.transaction_currency,
         cleared_amount=order.total_net_amount if cleared else Decimal("0.00"),
         clearing_date=paid_on if cleared else None,
+        company_code=order.company_code,
     )

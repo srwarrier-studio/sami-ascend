@@ -71,7 +71,7 @@ class TestInvoiceRoute:
     def test_lists_the_invoices_with_the_contract_fields(self):
         body = self.client.get(DRIVERS_ROOT + "CustomerInvoice?$top=1").json()
         assert body["@odata.context"] == "$metadata#CustomerInvoice"
-        assert set(body["value"][0]) == {"Invoice", "SoldToParty", "CustomerName", "InvoiceDate", "DueDate", "NetAmount", "TransactionCurrency", "ClearedAmount", "ClearingDate"}
+        assert set(body["value"][0]) == {"Invoice", "SoldToParty", "CustomerName", "InvoiceDate", "DueDate", "NetAmount", "TransactionCurrency", "ClearedAmount", "ClearingDate", "CompanyCode"}
 
     def test_filters_and_counts_like_the_other_entities(self):
         body = self.client.get(DRIVERS_ROOT + "CustomerInvoice?$filter=SoldToParty eq '0000100005'&$count=true&$top=1").json()

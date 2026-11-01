@@ -61,7 +61,7 @@ class TestRunnerSeed:
     def test_a_new_order_continues_after_the_last_story_order(self):
         client = TestClient(build_default_app(TODAY, "story"))
         last = client.get(ROOT + "SalesOrder?$orderby=SalesOrder desc&$top=1&$select=SalesOrder").json()["value"][0]["SalesOrder"]
-        created = client.post(ROOT + "SalesOrder", json={"SalesOrderType": "OR", "CompanyCode": "1000", "SoldToParty": "0000100002", "TransactionCurrency": "INR", "_Item": [{"Material": "RM-1003", "Quantity": "12.5", "QuantityUnit": "KG"}]})
+        created = client.post(ROOT + "SalesOrder", json={"SalesOrderType": "OR", "CompanyCode": "INA1", "SoldToParty": "0000100002", "TransactionCurrency": "INR", "_Item": [{"Material": "RM-1003", "Quantity": "12.5", "QuantityUnit": "KG"}]})
         assert created.status_code == 201
         assert int(created.json()["SalesOrder"]) == int(last) + 1
 

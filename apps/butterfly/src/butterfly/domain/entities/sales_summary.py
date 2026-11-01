@@ -9,7 +9,7 @@ class SalesSummaryByDay:
     total_net_amount: Decimal
     order_count: int
     currency: str
-    company_code: str = "1000"
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -20,7 +20,7 @@ class SalesSummaryByCustomer:
     total_net_amount: Decimal
     order_count: int
     currency: str
-    company_code: str = "1000"
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -32,7 +32,7 @@ class SalesSummaryByMaterial:
     quantity_unit: str
     total_net_amount: Decimal
     currency: str
-    company_code: str = "1000"
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -41,6 +41,7 @@ class PurchaseSummaryByDay:
     total_net_amount: Decimal
     order_count: int
     currency: str
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,7 @@ class PurchaseSummaryBySupplier:
     total_net_amount: Decimal
     order_count: int
     currency: str
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -62,6 +64,7 @@ class PurchaseSummaryByMaterial:
     quantity_unit: str
     total_net_amount: Decimal
     currency: str
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -72,6 +75,7 @@ class ReceivablesSummary:
     open_count: int
     overdue_count: int
     currency: str
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -84,6 +88,7 @@ class ReceivablesByCustomer:
     open_count: int
     overdue_count: int
     currency: str
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -93,3 +98,4 @@ class ReceivablesAgeing:
     open_amount: Decimal
     open_count: int
     currency: str
+    company_code: str = "INA1"

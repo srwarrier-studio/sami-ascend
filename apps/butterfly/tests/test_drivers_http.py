@@ -184,7 +184,7 @@ class TestProductionOrder:
 class TestProductionOrderComponent:
     def test_filter_by_order(self):
         body = get("ProductionOrderComponent?$filter=ProductionOrder eq '0001000417'").json()
-        assert body["value"] == [{"ProductionOrder": "0001000417", "Material": "RAW-2002", "MaterialDescription": "Steel coil", "RequiredQuantity": "4400.000", "QuantityUnit": "KG"}]
+        assert body["value"] == [{"ProductionOrder": "0001000417", "Material": "RAW-2002", "MaterialDescription": "Steel coil", "RequiredQuantity": "4400.000", "QuantityUnit": "KG", "CompanyCode": "INA1"}]
 
     def test_filter_by_component_material_finds_every_order_using_it(self):
         body = get("ProductionOrderComponent?$filter=Material eq 'RAW-2002'&$orderby=ProductionOrder").json()

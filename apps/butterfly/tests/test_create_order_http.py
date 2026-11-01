@@ -10,7 +10,7 @@ URL = ROOT + "SalesOrder"
 
 BODY = {
     "SalesOrderType": "OR",
-    "CompanyCode": "1000",
+    "CompanyCode": "INA1",
     "SoldToParty": "0000100001",
     "RequestedDeliveryDate": "2026-11-05",
     "TransactionCurrency": "INR",

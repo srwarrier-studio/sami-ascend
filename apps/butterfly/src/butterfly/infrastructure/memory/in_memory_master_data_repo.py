@@ -3,7 +3,7 @@ from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.infrastructure.memory.seed import CUSTOMERS, MATERIALS
 
 CURRENCIES = {"INR"}
-COMPANIES = {"1000", "2000", "3000"}
+COMPANIES = {"INA1", "INA2", "INA3"}
 
 
 class InMemoryMasterDataRepo(MasterDataRepo):

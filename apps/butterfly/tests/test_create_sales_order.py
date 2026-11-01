@@ -14,7 +14,7 @@ NOW = datetime(2026, 10, 27, 9, 15, 30, 750000, tzinfo=timezone.utc)
 
 VALID_BODY = {
     "SalesOrderType": "OR",
-    "CompanyCode": "1000",
+    "CompanyCode": "INA1",
     "SoldToParty": "0000100001",
     "RequestedDeliveryDate": "2026-11-05",
     "TransactionCurrency": "INR",
@@ -304,7 +304,7 @@ class TestFieldsTheCallerMayNotSend:
 class TestCompany:
     def test_the_company_of_the_order_is_stored(self):
         repo, use_case = make()
-        assert use_case.execute(body(CompanyCode="2000")).company_code == "2000"
+        assert use_case.execute(body(CompanyCode="INA2")).company_code == "INA2"
 
     def test_the_country_comes_from_the_customer(self):
         repo, use_case = make()

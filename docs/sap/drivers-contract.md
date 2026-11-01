@@ -39,6 +39,7 @@ replaces.
 | `ContractValue` | `Edm.Decimal` (15,2) | No | `"9000000.00"` |
 | `TransactionCurrency` | `Edm.String` (5) | No | `"INR"` |
 | `ContractStatus` | `Edm.String` (1) | No | `"E"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
 
 ### PurchaseDelivery (key: `PurchaseOrder`, `PurchaseOrderItem`)
 
@@ -62,6 +63,7 @@ the first goods receipt that completed the item; it is empty while the item is o
 | `PromisedDeliveryDate` | `Edm.Date` | No | `"2026-07-14"` |
 | `ActualDeliveryDate` | `Edm.Date` | Yes | `"2026-07-26"` |
 | `DeliveryStatus` | `Edm.String` (1) | No | `"D"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
 
 ### CustomerInvoice (key: `Invoice`)
 
@@ -79,6 +81,7 @@ the amount paid so far and `ClearingDate` the date the payment cleared the invoi
 | `TransactionCurrency` | `Edm.String` (5) | No | `"INR"` |
 | `ClearedAmount` | `Edm.Decimal` (15,2) | No | `"0.00"` |
 | `ClearingDate` | `Edm.Date` | Yes | `null` |
+| `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
 
 ```json
 {
@@ -93,7 +96,8 @@ the amount paid so far and `ClearingDate` the date the payment cleared the invoi
       "NetAmount": "412500.00",
       "TransactionCurrency": "INR",
       "ClearedAmount": "0.00",
-      "ClearingDate": null
+      "ClearingDate": null,
+      "CompanyCode": "INA1"
     }
   ]
 }
@@ -114,6 +118,7 @@ the amount paid so far and `ClearingDate` the date the payment cleared the invoi
 | `ActualEndDate` | `Edm.Date` | Yes | `"2026-08-03"` |
 | `ProductionStatus` | `Edm.String` (1) | No | `"C"` |
 | `DelayReason` | `Edm.String` (20) | Yes | `"MATERIAL_SHORTAGE"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
 
 `ActualEndDate` is empty while the order is running. `DelayReason` is the reason the planner
 confirmed when the order finished late; it is empty for an order that finished on time.
@@ -129,6 +134,7 @@ The materials an order consumes.
 | `MaterialDescription` | `Edm.String` (40) | Yes | `"Steel coil"` |
 | `RequiredQuantity` | `Edm.Decimal` (13,3) | No | `"4400.000"` |
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
 
 ### Purchase summaries (read-only, one row per day and key)
 
@@ -139,7 +145,7 @@ the day it was ordered), the key shown and `TransactionCurrency`. `TotalNetAmoun
 `OrderedQuantity`. Same query options and order rules as the other entities; give the whole key
 in `$orderby` when paging.
 
-### PurchaseSummaryByDay (key: `OrderDate`, `Currency`)
+### PurchaseSummaryByDay (key: `OrderDate`, `Currency`, `CompanyCode`)
 
 | Field | Type | Nullable | Example |
 |-------|------|----------|---------|
@@ -147,8 +153,9 @@ in `$orderby` when paging.
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"2163000.00"` |
 | `OrderCount` | `Edm.Int32` | No | `6` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
 
-### PurchaseSummaryBySupplier (key: `OrderDate`, `Supplier`, `Currency`)
+### PurchaseSummaryBySupplier (key: `OrderDate`, `Supplier`, `Currency`, `CompanyCode`)
 
 | Field | Type | Nullable | Example |
 |-------|------|----------|---------|
@@ -158,8 +165,9 @@ in `$orderby` when paging.
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"444000.00"` |
 | `OrderCount` | `Edm.Int32` | No | `2` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
 
-### PurchaseSummaryByMaterial (key: `OrderDate`, `Material`, `Currency`)
+### PurchaseSummaryByMaterial (key: `OrderDate`, `Material`, `Currency`, `CompanyCode`)
 
 | Field | Type | Nullable | Example |
 |-------|------|----------|---------|
@@ -170,6 +178,7 @@ in `$orderby` when paging.
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"260000.00"` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
 
 ### Receivables summaries (read-only, measured on a day)
 
@@ -177,15 +186,17 @@ Aggregated by SAP from `CustomerInvoice`, so a consumer never pages through invo
 parameter `AsOfDate` (`...ReceivablesAgeing?AsOfDate=2026-10-31`, default today; a value that is not a date is `400`). An invoice counts when
 `InvoiceDate` is on or before `AsOfDate`; its open amount is `NetAmount` minus `ClearedAmount` when `ClearingDate` is on or before `AsOfDate`.
 Invoices with nothing open are left out. An invoice is overdue when `DueDate` is before `AsOfDate` and it is still open. Rows are grouped by
-`TransactionCurrency` (returned as `Currency`), and `OpenCount` and `OverdueCount` are numbers of invoices. All three support the same query options as the other entities.
+`TransactionCurrency` (returned as `Currency`) and `CompanyCode`, and `OpenCount` and `OverdueCount` are numbers of invoices. All three support the same query options as the other entities.
 
 | Entity | Key | Fields besides the key |
 |--------|-----|------------------------|
-| `ReceivablesSummary` | `AsOfDate`, `Currency` | `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount` |
-| `ReceivablesByCustomer` | `AsOfDate`, `SoldToParty`, `Currency` | `CustomerName`, `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount` |
-| `ReceivablesAgeing` | `AsOfDate`, `AgeBucket`, `Currency` | `OpenAmount`, `OpenCount` |
+| `ReceivablesSummary` | `AsOfDate`, `Currency`, `CompanyCode` | `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount` |
+| `ReceivablesByCustomer` | `AsOfDate`, `SoldToParty`, `Currency`, `CompanyCode` | `CustomerName`, `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount` |
+| `ReceivablesAgeing` | `AsOfDate`, `AgeBucket`, `Currency`, `CompanyCode` | `OpenAmount`, `OpenCount` |
 
 `AgeBucket` is the days past `DueDate` on `AsOfDate`: `current` (not yet due), `1-30`, `31-60`, `61-90` or `90+`. Buckets with nothing open have no row.
+
+Every entity and summary here carries `CompanyCode` (the company that owns the row; all three group companies are in one SAP client). A summary has one row per company, and a consumer adds companies up for a group view. `CompanyCode` can be filtered, selected and ordered like any field.
 
 ## 3. Codes
 
@@ -240,7 +251,8 @@ GET {root}SalesContract?$filter=SoldToParty eq '0000100001' and ValidTo ge 2026-
       "ValidTo": "2026-07-12",
       "ContractValue": "9000000.00",
       "TransactionCurrency": "INR",
-      "ContractStatus": "E"
+      "ContractStatus": "E",
+      "CompanyCode": "INA1"
     },
     {
       "SalesContract": "0040000163",
@@ -251,7 +263,8 @@ GET {root}SalesContract?$filter=SoldToParty eq '0000100001' and ValidTo ge 2026-
       "ValidTo": "2027-09-13",
       "ContractValue": "10000000.00",
       "TransactionCurrency": "INR",
-      "ContractStatus": "A"
+      "ContractStatus": "A",
+      "CompanyCode": "INA1"
     }
   ]
 }
@@ -282,7 +295,8 @@ GET {root}PurchaseDelivery?$filter=Material eq 'RAW-2002' and PromisedDeliveryDa
       "TransactionCurrency": "INR",
       "PromisedDeliveryDate": "2026-07-14",
       "ActualDeliveryDate": "2026-07-26",
-      "DeliveryStatus": "D"
+      "DeliveryStatus": "D",
+      "CompanyCode": "INA1"
     }
   ]
 }
@@ -309,7 +323,8 @@ GET {root}ProductionOrder?$filter=Material eq 'RM-1002' and PlannedEndDate ge 20
       "PlannedEndDate": "2026-07-20",
       "ActualEndDate": "2026-08-03",
       "ProductionStatus": "C",
-      "DelayReason": "MATERIAL_SHORTAGE"
+      "DelayReason": "MATERIAL_SHORTAGE",
+      "CompanyCode": "INA1"
     },
     {
       "ProductionOrder": "0001000423",
@@ -322,7 +337,8 @@ GET {root}ProductionOrder?$filter=Material eq 'RM-1002' and PlannedEndDate ge 20
       "PlannedEndDate": "2026-08-20",
       "ActualEndDate": "2026-08-20",
       "ProductionStatus": "C",
-      "DelayReason": null
+      "DelayReason": null,
+      "CompanyCode": "INA1"
     }
   ]
 }
@@ -343,7 +359,8 @@ GET {root}ProductionOrderComponent?$filter=ProductionOrder eq '0001000417'
       "Material": "RAW-2002",
       "MaterialDescription": "Steel coil",
       "RequiredQuantity": "4400.000",
-      "QuantityUnit": "KG"
+      "QuantityUnit": "KG",
+      "CompanyCode": "INA1"
     }
   ]
 }
@@ -365,7 +382,8 @@ GET {root}PurchaseSummaryBySupplier?$filter=OrderDate ge 2026-06-01 and OrderDat
       "OrderDate": "2026-06-24",
       "TotalNetAmount": "444000.00",
       "OrderCount": 2,
-      "Currency": "INR"
+      "Currency": "INR",
+      "CompanyCode": "INA1"
     },
     {
       "Supplier": "0000200002",
@@ -373,7 +391,8 @@ GET {root}PurchaseSummaryBySupplier?$filter=OrderDate ge 2026-06-01 and OrderDat
       "OrderDate": "2026-06-24",
       "TotalNetAmount": "1505000.00",
       "OrderCount": 2,
-      "Currency": "INR"
+      "Currency": "INR",
+      "CompanyCode": "INA1"
     },
     {
       "Supplier": "0000200003",
@@ -381,7 +400,8 @@ GET {root}PurchaseSummaryBySupplier?$filter=OrderDate ge 2026-06-01 and OrderDat
       "OrderDate": "2026-06-24",
       "TotalNetAmount": "214000.00",
       "OrderCount": 2,
-      "Currency": "INR"
+      "Currency": "INR",
+      "CompanyCode": "INA1"
     }
   ]
 }

@@ -14,6 +14,7 @@ class SalesContract:
     contract_value: Decimal
     transaction_currency: str
     contract_status: str
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,7 @@ class PurchaseDelivery:
     delivery_status: str
     net_amount: Decimal = Decimal("0.00")
     transaction_currency: str = "INR"
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -46,6 +48,7 @@ class CustomerInvoice:
     transaction_currency: str
     cleared_amount: Decimal
     clearing_date: date | None
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -61,6 +64,7 @@ class ProductionOrder:
     actual_end_date: date | None
     production_status: str
     delay_reason: str | None
+    company_code: str = "INA1"
 
 
 @dataclass(frozen=True)
@@ -70,3 +74,4 @@ class ProductionOrderComponent:
     material_description: str | None
     required_quantity: Decimal
     quantity_unit: str
+    company_code: str = "INA1"

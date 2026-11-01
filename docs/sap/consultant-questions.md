@@ -24,6 +24,13 @@ Answered with the answer and the date, and update the document that depended on 
 13. Is one sales organisation, distribution channel and division per user enough, or must the user choose them on each order? Which values default from the customer?
 14. Can RAP offer ship-to party, customer reference and date, pricing on read, cancel (reject) and item change on an open order?
 
+### Company codes and country (`sales-contract.md`, `drivers-contract.md`)
+15. The three group companies share one SAP client. The codes are `INA1`, `INA2` and `INA3` (owner); confirm which is Sami-Sabinsa Group, Sami Nutraceuticals and Organica Aromatics (assumed in that order).
+16. Which field gives the company of a sales order, a purchase order, a production order and a billing document (for example the company code of the sales document, the plant's company code, the billing company code)? Can every CDS view expose it as `CompanyCode`?
+17. Can `Country` come from the customer master (`LAND1`) on the order and the invoice, as an ISO two-letter code?
+18. Are sales between the three companies (intercompany) booked as ordinary sales orders, or are they marked so they can be left out of group totals?
+19. Are customer invoices read from billing documents (`VBRK`/`VBRP`) and open items from `BSID`/`BSAD`, and which fields hold the due date (`FAEDT` or a baseline date plus terms) and the clearing date?
+
 ## Answered
 
 None yet.

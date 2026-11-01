@@ -5,7 +5,7 @@ from conftest import make_client
 
 BODY = {
     "SalesOrderType": "OR",
-    "CompanyCode": "1000",
+    "CompanyCode": "INA1",
     "SoldToParty": "0000100001",
     "TransactionCurrency": "INR",
     "_Item": [

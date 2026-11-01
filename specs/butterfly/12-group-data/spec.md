@@ -6,7 +6,7 @@ Butterfly's sample data looks like the Sami group (three companies in one SAP cl
 ## Behavior
 ### Companies (`docs/sap/`, changed first)
 - Every entity in the sales service and the drivers service (orders, contracts, deliveries, production orders, components, invoices; items reach their company through their order) and every summary gains `CompanyCode` (`Edm.String` 4, not nullable), as a field to read, `$filter` and `$select`, and as part of every summary key. A summary without a company filter still returns one row per company, so a consumer adds them up for the group view; butterfly never sums across companies.
-- `CompanyCode` values are assumed: `1000` Sami-Sabinsa Group Limited, `2000` Sami Nutraceuticals Private Limited, `3000` Organica Aromatics Private Limited. They map to the auth-api companies `sabinsa`, `neutraceuticals`, `organica`. The real codes go into `docs/sap/consultant-questions.md`.
+- `CompanyCode` values are the owner's real codes `INA1`, `INA2`, `INA3`; which company is which is assumed for now: `INA1` Sami-Sabinsa Group Limited, `INA2` Sami Nutraceuticals Private Limited, `INA3` Organica Aromatics Private Limited. They map to the auth-api companies `sabinsa`, `neutraceuticals`, `organica`. The real codes go into `docs/sap/consultant-questions.md`.
 - A create takes `CompanyCode` (a change cannot move an order to another company); a missing or unknown code is a validation error.
 
 ### Data (invented names only; no real customers, suppliers or amounts)
@@ -18,7 +18,7 @@ Butterfly's sample data looks like the Sami group (three companies in one SAP cl
 - The generator stays fixed arithmetic with no random numbers, and the event machinery and scenario list from butterfly 08 to 11 keep working: the same scenarios exist, with their events pointing at the new customers, materials and suppliers, and their ground truth files rewritten with the new names.
 
 ## Acceptance cases
-- Every row of every entity and summary has a `CompanyCode` among the three; `$filter=CompanyCode eq '2000'` returns only that company, and the per-company totals of a summary add up to the all-company data.
+- Every row of every entity and summary has a `CompanyCode` among the three; `$filter=CompanyCode eq 'INA2'` returns only that company, and the per-company totals of a summary add up to the all-company data.
 - Each company has its own products, customers and suppliers; no product, customer or supplier appears under two companies.
 - No steel, bearing or old customer/supplier name remains in the data, scenarios, README or tests.
 - A USD row and an INR row both exist for sales, purchases and invoices, and every summary keeps them in separate rows.
@@ -33,6 +33,6 @@ Exchange rates and a reporting currency, intercompany sales between the three co
 butterfly 11 (receivables), `docs/sap/consultant-questions.md`.
 
 ## Open questions for the owner
-- Are `1000`, `2000`, `3000` fine for now, or do you know the real company codes?
+- Which of `INA1`, `INA2`, `INA3` is which company? The spec assumes the order Sabinsa, Nutraceuticals, Organica.
 - Which product families should each company have (the spec guesses extracts for Sabinsa, finished ingredients and probiotics for Nutraceuticals, aroma chemicals for Organica)?
 - Should intercompany sales (one group company selling to another) exist in the sample data, or stay out until finance answers?
