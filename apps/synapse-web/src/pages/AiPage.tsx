@@ -5,6 +5,8 @@ import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Modal, PageHeader, Pap
 import { AnswerBlocks } from '../ai/AnswerBlocks'
 import { SHOWN_PROBLEMS } from '../ai/agentsClient'
 import type { AgentAnswer, AgentContext } from '../ai/agentsClient'
+import { IntentCard } from '../ai/IntentCard'
+import type { IntentReading } from '../ai/intentClient'
 import { BUILDER } from '../ai/chatPlanner'
 import type { ChatBoard } from '../ai/chatPlanner'
 import { BoardGrid } from '../boards/BoardGrid'
@@ -13,7 +15,7 @@ import { buildWidgets } from '../boards/layout'
 import { CatalogWidget } from '../catalog/CatalogWidget'
 import classes from '../boards/Board.module.css'
 
-type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard; agent?: AgentAnswer }
+type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard; agent?: AgentAnswer; intent?: IntentReading | null }
 
 const UNAVAILABLE = 'The analysis service is not available right now.'
 
@@ -21,7 +23,7 @@ const examples = ['Show top customers and top materials', `${BUILDER} build me a
 
 export function AiPage() {
   const navigate = useNavigate()
-  const { catalog, catalogClient, chatPlanner, agentsClient, boardStore } = useRouteContext({ from: '/ai' })
+  const { catalog, catalogClient, chatPlanner, agentsClient, intentClient, boardStore } = useRouteContext({ from: '/ai' })
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [building, setBuilding] = useState(false)
@@ -41,25 +43,28 @@ export function AiPage() {
     setBusy(true)
     setText('')
     setMessages((all) => [...all, { from: 'you', text: asked }])
-    const agent = asked.toLowerCase().startsWith(BUILDER) ? null : await agentsClient.ask(asked, remembered ?? undefined).catch(() => undefined)
+    const forBoard = asked.toLowerCase().startsWith(BUILDER)
+    const reading = forBoard ? Promise.resolve(null) : intentClient.ask(asked).catch(() => null)
+    const agent = forBoard ? null : await agentsClient.ask(asked, remembered ?? undefined).catch(() => undefined)
+    const intent = await reading
     if (agent === undefined) {
-      setMessages((all) => [...all, { from: 'ai', text: UNAVAILABLE }])
+      setMessages((all) => [...all, { from: 'ai', text: UNAVAILABLE, intent }])
       setBusy(false)
       return
     }
     if (agent?.readable && agent.question) setRemembered(agent.question)
     if (agent && (agent.readable || (agent.problem !== null && SHOWN_PROBLEMS.includes(agent.problem)))) {
-      setMessages((all) => [...all, { from: 'ai', text: '', agent }])
+      setMessages((all) => [...all, { from: 'ai', text: '', agent, intent }])
       setBusy(false)
       return
     }
     const answer = await chatPlanner.plan(asked, catalog)
     if (agent && answer.catalogIds.length === 0 && !answer.board) {
-      setMessages((all) => [...all, { from: 'ai', text: '', agent }])
+      setMessages((all) => [...all, { from: 'ai', text: '', agent, intent }])
       setBusy(false)
       return
     }
-    setMessages((all) => [...all, { from: 'ai', text: answer.reply, catalogIds: answer.catalogIds, board: answer.board }])
+    setMessages((all) => [...all, { from: 'ai', text: answer.reply, catalogIds: answer.catalogIds, board: answer.board, intent }])
     if (answer.board) setBoard(answer.board)
     setBusy(false)
   }
@@ -134,6 +139,7 @@ export function AiPage() {
                   Open board
                 </Button>
               )}
+              {message.intent && <IntentCard reading={message.intent} />}
             </div>
           ))}
           {busy && (

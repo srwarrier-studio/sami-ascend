@@ -8,6 +8,8 @@ import { MockBoardStore } from './boards/boardStore'
 import type { BoardStore } from './boards/boardStore'
 import { HttpAgentsClient } from './ai/agentsClient'
 import type { AgentsClient } from './ai/agentsClient'
+import { HttpIntentClient } from './ai/intentClient'
+import type { IntentClient } from './ai/intentClient'
 import { MockChatPlanner } from './ai/chatPlanner'
 import type { ChatPlanner } from './ai/chatPlanner'
 import { MockBoardExporter } from './export/boardExporter'
@@ -26,6 +28,7 @@ type AppProps = {
   boardStore?: BoardStore
   chatPlanner?: ChatPlanner
   agentsClient?: AgentsClient
+  intentClient?: IntentClient
   catalogClient?: CatalogClient
   boardExporter?: BoardExporter
   ui?: UiSettings
@@ -51,9 +54,10 @@ const defaultCatalogClient = new MockCatalogClient()
 const defaultBoardExporter = new MockBoardExporter()
 const defaultChatPlanner = new MockChatPlanner()
 const defaultAgentsClient = new HttpAgentsClient()
+const defaultIntentClient = new HttpIntentClient()
 const defaultUi: UiSettings = { palette: 'midnight', motion: 'full' }
 
-export default function App({ client, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, agentsClient = defaultAgentsClient, catalogClient = defaultCatalogClient, boardExporter = defaultBoardExporter, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
+export default function App({ client, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, agentsClient = defaultAgentsClient, intentClient = defaultIntentClient, catalogClient = defaultCatalogClient, boardExporter = defaultBoardExporter, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
   const { session, login, logout, retry } = useSession(client)
   const { company, setCompany } = useCompany(session.status === 'signedIn' ? session.user : null)
   const { state: catalog, retry: retryCatalog } = useCatalog(catalogClient, session.status === 'signedIn')
@@ -69,5 +73,5 @@ export default function App({ client, boardStore = defaultBoardStore, chatPlanne
         </Stack>
       </Container>
     )
-  return <Routed context={{ session, login, logout, catalogClient, catalog: catalog.status === 'ready' ? catalog.entries : [], boardStore, chatPlanner, agentsClient, boardExporter, company, setCompany, ui, setUi: onUiChange }} history={history} />
+  return <Routed context={{ session, login, logout, catalogClient, catalog: catalog.status === 'ready' ? catalog.entries : [], boardStore, chatPlanner, agentsClient, intentClient, boardExporter, company, setCompany, ui, setUi: onUiChange }} history={history} />
 }

@@ -6,15 +6,17 @@ import App from '../src/App'
 import { MockBoardStore } from '../src/boards/boardStore'
 import { MockAgentsClient } from '../src/ai/agentsClient'
 import type { AgentAnswer } from '../src/ai/agentsClient'
+import { MockIntentClient } from '../src/ai/intentClient'
+import type { IntentReading } from '../src/ai/intentClient'
 import { MockCatalogClient } from '../src/catalog/mockCatalogClient'
 import { MockSessionClient } from '../src/session/sessionClient'
 
 const UNREADABLE: AgentAnswer = { readable: false, problem: 'unreadable', label: null, question: null, blocks: [{ type: 'text', lines: ['Ask why a metric rose.'] }] }
 
-const open = (store = new MockBoardStore(), agents: MockAgentsClient = new MockAgentsClient(UNREADABLE)) => {
+const open = (store = new MockBoardStore(), agents: MockAgentsClient = new MockAgentsClient(UNREADABLE), intent: MockIntentClient = new MockIntentClient()) => {
   render(
     <UiProvider palette={synapsePalette}>
-      <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={new MockCatalogClient()} agentsClient={agents} boardStore={store} history={createMemoryHistory({ initialEntries: ['/ai'] })} />
+      <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={new MockCatalogClient()} agentsClient={agents} intentClient={intent} boardStore={store} history={createMemoryHistory({ initialEntries: ['/ai'] })} />
     </UiProvider>,
   )
   return store
@@ -234,5 +236,69 @@ describe('answers from the agent', () => {
     expect(await screen.findByText('The analysis service is not available right now.')).toBeInTheDocument()
     expect(screen.queryByText(/^Here is/)).toBeNull()
     expect(screen.getByLabelText('Message')).toBeEnabled()
+  })
+})
+
+const ANSWERED: IntentReading = { domain: 'Sales', domainProbability: 0.95, problem: null, reason: null, scenarios: [{ id: 'sales_top_customers', probability: 0.74, clause: 'the largest customer' }, { id: 'sales_compare_previous', probability: 0.61, clause: 'compared to July' }], didYouMean: [] }
+const refusal = (reason: NonNullable<IntentReading['reason']>, didYouMean: string[] = []): IntentReading => ({ domain: 'Finance', domainProbability: 0.7, problem: 'cannot_answer', reason, scenarios: [], didYouMean })
+
+describe('How the question was read', () => {
+  it('shows the domain and every scenario with its percentage under the agent answer', async () => {
+    open(new MockBoardStore(), new MockAgentsClient(WHY), new MockIntentClient(ANSWERED))
+    await ask('what were sales for august')
+    expect(await screen.findByText('Sales fell 14.4% from July 2026 to August 2026.')).toBeInTheDocument()
+    expect(await screen.findByText('Understood as Sales (95%)')).toBeInTheDocument()
+    expect(screen.getByText('Sales top customers, 74%')).toBeInTheDocument()
+    expect(screen.getByText('Sales compare previous, 61%')).toBeInTheDocument()
+    expect(screen.getByText('Reading preview')).toBeInTheDocument()
+  })
+
+  it.each([
+    ['not_about_business', 'This does not look like a question about our figures.'],
+    ['not_sure', 'I am not sure what you mean.'],
+    ['no_scenarios', 'This is about Finance, which I cannot answer yet.'],
+    ['nothing_matched', 'I could not tell which figure you want from Finance.'],
+  ] as const)('says %s in words', async (reason, sentence) => {
+    open(new MockBoardStore(), new MockAgentsClient(UNREADABLE), new MockIntentClient(refusal(reason)))
+    await ask('zebra')
+    expect(await screen.findByText(sentence)).toBeInTheDocument()
+    expect(screen.queryByText(/Understood as/)).toBeNull()
+  })
+
+  it('suggests the nearest domains', async () => {
+    open(new MockBoardStore(), new MockAgentsClient(UNREADABLE), new MockIntentClient(refusal('not_sure', ['Sales', 'Purchase'])))
+    await ask('zebra')
+    expect(await screen.findByText(/Did you mean Sales or Purchase\?/)).toBeInTheDocument()
+  })
+
+  it('draws the message as before when intent-api is not reachable', async () => {
+    open(new MockBoardStore(), new MockAgentsClient(WHY), new MockIntentClient(new Error('down')))
+    await ask('what were sales for august')
+    expect(await screen.findByText('Sales fell 14.4% from July 2026 to August 2026.')).toBeInTheDocument()
+    expect(screen.queryByText('Reading preview')).toBeNull()
+  })
+
+  it('shows the reading even when the analysis service is down', async () => {
+    open(new MockBoardStore(), new MockAgentsClient(new Error('down')), new MockIntentClient(ANSWERED))
+    await ask('what were sales for august')
+    expect(await screen.findByText('The analysis service is not available right now.')).toBeInTheDocument()
+    expect(await screen.findByText('Understood as Sales (95%)')).toBeInTheDocument()
+  })
+
+  it('shows the reading under a widget reply too', async () => {
+    open(new MockBoardStore(), new MockAgentsClient(UNREADABLE), new MockIntentClient(ANSWERED))
+    await ask('show me top customers')
+    expect(await screen.findByText(/^Here is Top customers/)).toBeInTheDocument()
+    expect(await screen.findByText('Understood as Sales (95%)')).toBeInTheDocument()
+  })
+
+  it('sends the question to intent-api once per message and never a @builder request', async () => {
+    const intent = new MockIntentClient(ANSWERED)
+    open(new MockBoardStore(), new MockAgentsClient(WHY), intent)
+    await ask('what were sales for august')
+    await screen.findByText('Understood as Sales (95%)')
+    await ask('@builder build an inventory board')
+    expect(await screen.findByRole('dialog', { name: /Inventory review/ })).toBeInTheDocument()
+    expect(intent.calls).toEqual(['what were sales for august'])
   })
 })
