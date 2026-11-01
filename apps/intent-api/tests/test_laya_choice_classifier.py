@@ -64,6 +64,10 @@ class TestDecision:
         decision = classifier_with(answering({"Sales": 0.2, "Purchase": 0.65, "Other": 0.15})).choose("x", "q", CHOICES)
         assert decision == Decision("Purchase", 0.65)
 
+    def test_keeps_the_probability_of_every_offered_choice(self):
+        decision = classifier_with(answering({"Sales": 0.2, "Purchase": 0.65, "Other": 0.15, "Extra": 0.9})).choose("x", "q", CHOICES)
+        assert decision.scores == {"Sales": 0.2, "Purchase": 0.65, "Other": 0.15}
+
     def test_only_the_offered_choices_count(self):
         decision = classifier_with(answering({"Sales": 0.2, "Purchase": 0.3, "Other": 0.1, "Extra": 0.9})).choose("x", "q", CHOICES)
         assert decision.choice == "Purchase"

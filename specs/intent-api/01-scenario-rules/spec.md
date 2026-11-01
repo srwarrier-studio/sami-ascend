@@ -27,7 +27,7 @@ Each scenario is a `[[scenario]]` table with: `id`, `domain`, `description` (sho
 
 ### The reader
 1. Domain: one Laya choice question ("Which department should handle this?") over the domains and `Other`, state `{"question": text}`. The result keeps the probability of the chosen domain.
-2. Refuse when Laya says `Other`, when the probability is below `DOMAIN_MIN_CONFIDENCE` (set from the evaluation), or when the domain has no scenarios yet. A refusal is `problem: "cannot_answer"` with the nearest domains as "did you mean" choices, and the question is appended to `unanswered.jsonl` (setting `UNANSWERED_LOG`).
+2. Refuse when Laya says `Other`, when the probability is below `DOMAIN_MIN_PROBABILITY` (set from the evaluation), or when the domain has no scenarios yet. A refusal is `problem: "cannot_answer"` with the nearest domains as "did you mean" choices, and the question is appended to `unanswered.jsonl` (setting `UNANSWERED_LOG`).
 3. Scenarios: the question is split into clauses at "and", commas, semicolons and "then"; for each clause one Laya choice question offers the scenarios of the chosen domain plus "nothing is asked", and the answers are joined. `covers` is applied afterwards and at most `MAX_SCENARIOS` (4) are kept, best first; a clause below `SCENARIO_MIN_PROBABILITY` counts as nothing. A named customer, supplier or material is not a scenario: it is the `entity` slot, found in phase 02, so "sales to X in August" selects the plain sales-figure scenario.
 4. The response of `match` lists the domain, the selected scenarios, each with the probability Laya gave, and the options that were offered, so every decision can be read.
 

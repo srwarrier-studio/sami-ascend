@@ -34,4 +34,4 @@ class LayaChoiceClassifier(ChoiceClassifier):
         except (ValueError, KeyError, TypeError) as error:
             raise ClassifierUnavailable("unreadable answer") from error
         best = max(scored, key=scored.get)
-        return Decision(best, scored[best])
+        return Decision(best, scored[best], scored)
