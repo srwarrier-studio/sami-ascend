@@ -1,7 +1,10 @@
 import { useCallback, useState } from 'react'
+import { ALL_COMPANIES } from './companies'
 import type { User } from './sessionClient'
 
 const key = (userid: string) => `synapse.company.${userid}`
+
+const allowed = (user: User, id: string) => (id === ALL_COMPANIES ? user.companies.length > 1 : user.companies.includes(id))
 
 const stored = (user: User) => {
   try {
@@ -16,7 +19,7 @@ export function useCompany(user: User | null) {
 
   const setCompany = useCallback(
     (id: string) => {
-      if (!user?.companies.includes(id)) return
+      if (!user || !allowed(user, id)) return
       try {
         localStorage.setItem(key(user.userid), id)
       } catch {
@@ -30,5 +33,5 @@ export function useCompany(user: User | null) {
   if (!user) return { company: null, setCompany }
   if (user.companies.length === 1) return { company: user.companies[0], setCompany }
   const chosen = stored(user)
-  return { company: chosen && user.companies.includes(chosen) ? chosen : null, setCompany }
+  return { company: chosen && allowed(user, chosen) ? chosen : null, setCompany }
 }

@@ -21,6 +21,13 @@ const withCompanies = (companies: string[]): SessionClient =>
 
 beforeEach(() => localStorage.clear())
 
+describe('one company', () => {
+  it('never offers all companies', async () => {
+    open('/company', withCompanies(['organica']))
+    expect(screen.queryByRole('button', { name: /All companies/ })).not.toBeInTheDocument()
+  })
+})
+
 describe('several companies, none chosen', () => {
   const manager = () => new MockSessionClient('manager@mock-sami.com')
 
@@ -30,6 +37,13 @@ describe('several companies, none chosen', () => {
     expect(screen.getByRole('button', { name: /Sami Sabinsa Group Limited/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Sami Neutraceuticals Private Limited/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Organica/ })).not.toBeInTheDocument()
+  })
+
+  it('offers all companies and remembers it', async () => {
+    open('/company', manager())
+    await userEvent.click(await screen.findByRole('button', { name: /All companies/ }))
+    expect(await screen.findByText('My boards')).toBeInTheDocument()
+    expect(localStorage.getItem('synapse.company.u-manager')).toBe('all')
   })
 
   it('redirects another page to the picker', async () => {
