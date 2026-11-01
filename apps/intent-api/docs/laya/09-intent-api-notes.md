@@ -172,6 +172,37 @@ Findings:
 - Remaining misses are about comparison words ("versus the month before", "up or down against") read as plain value or trend, "revenue by customer" read as value, and one compare-with-last-year mix-up.
 - 82% on questions we wrote ourselves is under the 90% bar floated for the evaluation; this is the step where fine-tuning would help most.
 
+## Run 10: the whole pipeline on the evaluation set (2026-11-01)
+`intent-api eval` on the 79 tuning questions of `apps/intent-api/evals/questions.json` (113 in all; 34 held out and not looked at yet; 50 answerable, 29 that must be refused: other domains without scenarios, forecasts, not-business). Real Laya, 1.3 s per question (domain call plus one call per clause).
+
+Without any floor (`typed-decisions`): exact 36 of 50 answerable, wrong or extra scenario 10, missing 3, wrongly refused 1; refused correctly 24 of 29, wrongly answered 5; domain right 72 of 79; harmful (wrong or extra + wrongly answered) 15.
+
+The trade-off, `typed-decisions` (domain floor / scenario floor: exact, harmful, wrongly refused):
+| Floors | Exact | Harmful | Wrongly refused | Correctly refused |
+|---|---|---|---|---|
+| 0 / 0 | 36 | 15 | 1 | 24 |
+| 0 / 0.3 | 36 | 11 | 1 | 26 |
+| 0 / 0.4 | 30 | 7 | 7 | 28 |
+| 0.4 / 0.4 | 29 | 5 | 10 | 28 |
+| 0.5 / 0.4 | 23 | 4 | 16 | 29 |
+| 0.6 / 0.6 | 13 | 0 | 30 | 29 |
+`english` (`convaiinnovations/laya`) is worse: 32 exact, 15 harmful at no floor, and its probabilities are so flat that floors barely help (0.5 / 0.5: 27 exact, 5 harmful).
+
+Reading:
+- No setting gives both "answers most things" and "never gives a wrong answer". Zero harmful needs floors of about 0.6, which refuses 30 of the 50 answerable questions. Around 0 / 0.4 it answers 30 exactly right, 7 wrong or extra, refuses 7 answerable and 1 out of 29 must-refuse questions is answered.
+- Harmful cases at no floor are of three kinds: forecasts and margins that look like sales questions (`predict export sales` answered as `sales_value` at 0.29 to 0.33), comparison wording read as value or trend ("up or down against last month", "relative to April"), and a few confident domain slips ("which buyers took the most from us" read as Purchase 0.79).
+- A floor of 0.3 on scenarios removes the forecast cases cheaply (harmful 15 to 11 with no extra refusals); beyond that every step costs correct answers.
+- Zero-shot, on questions written by us, does not yet meet an "at least 90% exact and no wrong answers" bar. That is the point where the owner's real questions and fine-tuning (docs/laya/07) come in.
+
+## Run 11: held-out questions with the chosen floors (2026-11-01)
+Floors chosen with the owner (their go-ahead on the recommendation): `DOMAIN_MIN_PROBABILITY` 0, `SCENARIO_MIN_PROBABILITY` 0.3. The 34 held-out questions were run once, with `--final`, after the floors were fixed on the tuning questions (`typed-decisions`).
+- Answerable (24): exact 19 (79%), wrong or extra scenario 4, missing 0, wrongly refused 1.
+- Must refuse (10): correctly refused 9, wrongly answered 1.
+- Domain right on 33 of 34. Harmful (wrong or extra + wrongly answered): 5 of 34 (15%).
+- The misses: "are export sales higher than a year ago" read as trend; "compare imports this month with last month" read as compare-with-last-year; "top suppliers this quarter" read as Sales (top customers) at domain 0.33; "sles for last mnth" read as compare-with-last-year; "what will curcumin sales be next quarter" answered as a plain sales figure at 0.50 (a forecast); "which products brought the most revenue this year" refused.
+- Tuning questions at the same floors: exact 36 of 50, harmful 11 of 79. Held-out is not worse than tuning, so the floors did not overfit; both say the same: about four in five answerable questions come out exactly right and about one in seven questions gets a wrong answer where a refusal was right.
+- This held-out set is now spent for threshold choices; a new one is needed before the floors are changed again.
+
 ## Next tests (not yet run)
 - Refusal alone: sales / purchases / other with narrow descriptions, plus the `noul` gate, on a larger off-topic and out-of-scope set (forecasts, weather, jokes, other departments, empty and gibberish input).
 - Isolate wording versus label set versus API form.

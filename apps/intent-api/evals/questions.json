@@ -1,0 +1,1181 @@
+[
+ {
+  "question": "What were sales for August?",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "reference",
+  "id": "q001",
+  "heldout": false
+ },
+ {
+  "question": "how much did we buy in september",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "reference",
+  "id": "q002",
+  "heldout": false
+ },
+ {
+  "question": "Why did sales drop in Augsut?",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_why"
+  ],
+  "source": "reference",
+  "id": "q003",
+  "heldout": false
+ },
+ {
+  "question": "what made purchases go up last month",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_why"
+  ],
+  "source": "reference",
+  "id": "q004",
+  "heldout": false
+ },
+ {
+  "question": "sales to Lakeview Botanicals in August",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "reference",
+  "id": "q005",
+  "heldout": true
+ },
+ {
+  "question": "show revenue by customer for july",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers"
+  ],
+  "source": "reference",
+  "id": "q006",
+  "heldout": false
+ },
+ {
+  "question": "top 5 suppliers by spend last quarter",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_suppliers"
+  ],
+  "source": "reference",
+  "id": "q007",
+  "heldout": true
+ },
+ {
+  "question": "which material did we sell most of in 2026",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_materials"
+  ],
+  "source": "reference",
+  "id": "q008",
+  "heldout": false
+ },
+ {
+  "question": "compare purchases with last year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_last_year"
+  ],
+  "source": "reference",
+  "id": "q009",
+  "heldout": false
+ },
+ {
+  "question": "sales trend for the last six months",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_trend"
+  ],
+  "source": "reference",
+  "id": "q010",
+  "heldout": true
+ },
+ {
+  "question": "is turnover up or down against the previous month",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous"
+  ],
+  "source": "reference",
+  "id": "q011",
+  "heldout": false
+ },
+ {
+  "question": "what did we spend with Kaveri Growers in june",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "reference",
+  "id": "q012",
+  "heldout": false
+ },
+ {
+  "question": "who is our biggest customer this year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers"
+  ],
+  "source": "reference",
+  "id": "q013",
+  "heldout": false
+ },
+ {
+  "question": "sales for turmeric extract in march",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "reference",
+  "id": "q014",
+  "heldout": true
+ },
+ {
+  "question": "how come procurement fell in may",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_why"
+  ],
+  "source": "reference",
+  "id": "q015",
+  "heldout": true
+ },
+ {
+  "question": "revenue last month versus the month before",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous"
+  ],
+  "source": "reference",
+  "id": "q016",
+  "heldout": false
+ },
+ {
+  "question": "top 3 customers in Q2",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers"
+  ],
+  "source": "reference",
+  "id": "q017",
+  "heldout": false
+ },
+ {
+  "question": "purchases from Medan Agro Traders in 2025",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "reference",
+  "id": "q018",
+  "heldout": false
+ },
+ {
+  "question": "tell me sales for this month so far",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "reference",
+  "id": "q019",
+  "heldout": true
+ },
+ {
+  "question": "what was spending in december last year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "reference",
+  "id": "q020",
+  "heldout": false
+ },
+ {
+  "question": "list suppliers by purchases in august",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_suppliers"
+  ],
+  "source": "reference",
+  "id": "q021",
+  "heldout": true
+ },
+ {
+  "question": "did sales change in april compared to march",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous"
+  ],
+  "source": "reference",
+  "id": "q022",
+  "heldout": false
+ },
+ {
+  "question": "I need sales of August compared to the last three months and the largest customer in the period",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous",
+   "sales_top_customers"
+  ],
+  "source": "reference",
+  "id": "q023",
+  "heldout": false
+ },
+ {
+  "question": "what were purchases in july and who was the top supplier",
+  "part": "multi",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_suppliers",
+   "purchases_value"
+  ],
+  "source": "reference",
+  "id": "q024",
+  "heldout": false
+ },
+ {
+  "question": "why did sales fall in august and which customer fell most",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers",
+   "sales_why"
+  ],
+  "source": "reference",
+  "id": "q025",
+  "heldout": false
+ },
+ {
+  "question": "sales for September, the trend over six months and the top 3 materials",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_materials",
+   "sales_trend"
+  ],
+  "source": "reference",
+  "id": "q026",
+  "heldout": true
+ },
+ {
+  "question": "compare purchases in october with last year and tell me the biggest supplier",
+  "part": "multi",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_last_year",
+   "purchases_top_suppliers"
+  ],
+  "source": "reference",
+  "id": "q027",
+  "heldout": false
+ },
+ {
+  "question": "sales to Lakeview Botanicals in august and how that compares to july",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous",
+   "sales_value"
+  ],
+  "source": "reference",
+  "id": "q028",
+  "heldout": false
+ },
+ {
+  "question": "give me this year's revenue and the best month",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "reference",
+  "id": "q029",
+  "heldout": false
+ },
+ {
+  "question": "what did we spend in q3 and why was it higher than q2",
+  "part": "multi",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value",
+   "purchases_why"
+  ],
+  "source": "reference",
+  "id": "q030",
+  "heldout": true
+ },
+ {
+  "question": "top customer and top material for last month",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers",
+   "sales_top_materials"
+  ],
+  "source": "reference",
+  "id": "q031",
+  "heldout": true
+ },
+ {
+  "question": "sales in june, july and august",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "reference",
+  "id": "q032",
+  "heldout": false
+ },
+ {
+  "question": "how did Kaveri Growers purchases do in 2026 compared to 2025 and what was the total",
+  "part": "multi",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_last_year",
+   "purchases_value"
+  ],
+  "source": "reference",
+  "id": "q033",
+  "heldout": false
+ },
+ {
+  "question": "hi",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q034",
+  "heldout": false
+ },
+ {
+  "question": "what is the weather today",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q035",
+  "heldout": false
+ },
+ {
+  "question": "tell me a joke",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q036",
+  "heldout": true
+ },
+ {
+  "question": "what is the stock price of Tesla",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q037",
+  "heldout": false
+ },
+ {
+  "question": "how many employees do we have",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q038",
+  "heldout": false
+ },
+ {
+  "question": "what is the inventory level of turmeric extract",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q039",
+  "heldout": false
+ },
+ {
+  "question": "forecast sales for next year",
+  "part": "refuse",
+  "domain": "Sales",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q040",
+  "heldout": false
+ },
+ {
+  "question": "who is the CEO",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q041",
+  "heldout": true
+ },
+ {
+  "question": "predict purchases for next quarter",
+  "part": "refuse",
+  "domain": "Purchase",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q042",
+  "heldout": false
+ },
+ {
+  "question": "how many production orders were late",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q043",
+  "heldout": false
+ },
+ {
+  "question": "send an email to Lakeview Botanicals",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q044",
+  "heldout": false
+ },
+ {
+  "question": "what is our profit margin in august",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "reference",
+  "id": "q045",
+  "heldout": false
+ },
+ {
+  "question": "export sales to the USA in October",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "q046",
+  "heldout": false
+ },
+ {
+  "question": "what did we sell in Europe last quarter",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "q047",
+  "heldout": true
+ },
+ {
+  "question": "how much did we invoice customers in June",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "q048",
+  "heldout": false
+ },
+ {
+  "question": "domestic sales for this financial year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "q049",
+  "heldout": false
+ },
+ {
+  "question": "how are sales trending over the last six months",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_trend"
+  ],
+  "source": "written",
+  "id": "q050",
+  "heldout": true
+ },
+ {
+  "question": "show the movement of export revenue this year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_trend"
+  ],
+  "source": "written",
+  "id": "q051",
+  "heldout": false
+ },
+ {
+  "question": "compare this quarter's sales with the same quarter last year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_last_year"
+  ],
+  "source": "written",
+  "id": "q052",
+  "heldout": false
+ },
+ {
+  "question": "are export sales higher than a year ago",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_last_year"
+  ],
+  "source": "written",
+  "id": "q053",
+  "heldout": true
+ },
+ {
+  "question": "are sales up or down against last month",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous"
+  ],
+  "source": "written",
+  "id": "q054",
+  "heldout": false
+ },
+ {
+  "question": "how did May sales do relative to April",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous"
+  ],
+  "source": "written",
+  "id": "q055",
+  "heldout": false
+ },
+ {
+  "question": "who are our top three customers by revenue in September",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers"
+  ],
+  "source": "written",
+  "id": "q056",
+  "heldout": true
+ },
+ {
+  "question": "which buyers took the most from us in the last quarter",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers"
+  ],
+  "source": "written",
+  "id": "q057",
+  "heldout": false
+ },
+ {
+  "question": "what were our biggest selling products in August",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_materials"
+  ],
+  "source": "written",
+  "id": "q058",
+  "heldout": false
+ },
+ {
+  "question": "which products brought the most revenue this year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_materials"
+  ],
+  "source": "written",
+  "id": "q059",
+  "heldout": true
+ },
+ {
+  "question": "why did export sales drop in March",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_why"
+  ],
+  "source": "written",
+  "id": "q060",
+  "heldout": false
+ },
+ {
+  "question": "what explains the rise in revenue last quarter",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_why"
+  ],
+  "source": "written",
+  "id": "q061",
+  "heldout": false
+ },
+ {
+  "question": "how much turmeric did we import in June",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "written",
+  "id": "q062",
+  "heldout": false
+ },
+ {
+  "question": "what did we spend on raw materials last month",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "written",
+  "id": "q063",
+  "heldout": false
+ },
+ {
+  "question": "compare imports this month with last month",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_previous"
+  ],
+  "source": "written",
+  "id": "q064",
+  "heldout": true
+ },
+ {
+  "question": "is raw material spend up on the previous quarter",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_previous"
+  ],
+  "source": "written",
+  "id": "q065",
+  "heldout": false
+ },
+ {
+  "question": "purchases this year versus last year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_last_year"
+  ],
+  "source": "written",
+  "id": "q066",
+  "heldout": false
+ },
+ {
+  "question": "are we importing more than a year ago",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_last_year"
+  ],
+  "source": "written",
+  "id": "q067",
+  "heldout": true
+ },
+ {
+  "question": "show the trend of raw material spend",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_trend"
+  ],
+  "source": "written",
+  "id": "q068",
+  "heldout": false
+ },
+ {
+  "question": "how has buying moved over the last six months",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_trend"
+  ],
+  "source": "written",
+  "id": "q069",
+  "heldout": false
+ },
+ {
+  "question": "top suppliers this quarter",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_suppliers"
+  ],
+  "source": "written",
+  "id": "q070",
+  "heldout": true
+ },
+ {
+  "question": "which vendors did we pay the most in March",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_suppliers"
+  ],
+  "source": "written",
+  "id": "q071",
+  "heldout": false
+ },
+ {
+  "question": "which raw materials did we spend the most on in July",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_materials"
+  ],
+  "source": "written",
+  "id": "q072",
+  "heldout": false
+ },
+ {
+  "question": "what are the costliest materials we bought this year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_materials"
+  ],
+  "source": "written",
+  "id": "q073",
+  "heldout": true
+ },
+ {
+  "question": "why did raw material costs rise in May",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_why"
+  ],
+  "source": "written",
+  "id": "q074",
+  "heldout": false
+ },
+ {
+  "question": "what caused the fall in imports last quarter",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_why"
+  ],
+  "source": "written",
+  "id": "q075",
+  "heldout": false
+ },
+ {
+  "question": "sales in July compared to June and who were the top customers",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous",
+   "sales_top_customers"
+  ],
+  "source": "written",
+  "id": "q076",
+  "heldout": false
+ },
+ {
+  "question": "purchases last month and the top suppliers",
+  "part": "multi",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value",
+   "purchases_top_suppliers"
+  ],
+  "source": "written",
+  "id": "q077",
+  "heldout": false
+ },
+ {
+  "question": "why did sales fall in February and compare it with last year",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_last_year",
+   "sales_why"
+  ],
+  "source": "written",
+  "id": "q078",
+  "heldout": true
+ },
+ {
+  "question": "top customers and best selling products in the third quarter",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers",
+   "sales_top_materials"
+  ],
+  "source": "written",
+  "id": "q079",
+  "heldout": false
+ },
+ {
+  "question": "the trend of spend this year and which materials cost the most",
+  "part": "multi",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_trend",
+   "purchases_top_materials"
+  ],
+  "source": "written",
+  "id": "q080",
+  "heldout": true
+ },
+ {
+  "question": "sles for last mnth",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "q081",
+  "heldout": true
+ },
+ {
+  "question": "revnue in agust",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "q082",
+  "heldout": false
+ },
+ {
+  "question": "custmer ranking by revenu",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers"
+  ],
+  "source": "written",
+  "id": "q083",
+  "heldout": false
+ },
+ {
+  "question": "wy did sales fall in mrch",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_why"
+  ],
+  "source": "written",
+  "id": "q084",
+  "heldout": true
+ },
+ {
+  "question": "purchas total for agust",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "written",
+  "id": "q085",
+  "heldout": true
+ },
+ {
+  "question": "top suplliers in agust",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_suppliers"
+  ],
+  "source": "written",
+  "id": "q086",
+  "heldout": false
+ },
+ {
+  "question": "which shipments are in transit",
+  "part": "refuse",
+  "domain": "Shipments",
+  "scenarios": [],
+  "source": "written",
+  "id": "q087",
+  "heldout": false
+ },
+ {
+  "question": "how many containers went to the USA this week",
+  "part": "refuse",
+  "domain": "Shipments",
+  "scenarios": [],
+  "source": "written",
+  "id": "q088",
+  "heldout": false
+ },
+ {
+  "question": "are any shipments delayed",
+  "part": "refuse",
+  "domain": "Shipments",
+  "scenarios": [],
+  "source": "written",
+  "id": "q089",
+  "heldout": true
+ },
+ {
+  "question": "what is the dispatch plan for tomorrow",
+  "part": "refuse",
+  "domain": "Shipments",
+  "scenarios": [],
+  "source": "written",
+  "id": "q090",
+  "heldout": false
+ },
+ {
+  "question": "how much do customers still owe us",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "written",
+  "id": "q091",
+  "heldout": false
+ },
+ {
+  "question": "which export receivables are overdue",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "written",
+  "id": "q092",
+  "heldout": true
+ },
+ {
+  "question": "payments received this week",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "written",
+  "id": "q093",
+  "heldout": false
+ },
+ {
+  "question": "what is our cash position today",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "written",
+  "id": "q094",
+  "heldout": false
+ },
+ {
+  "question": "which materials are below reorder level",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "written",
+  "id": "q095",
+  "heldout": false
+ },
+ {
+  "question": "stock of curcumin 95 in the warehouse",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "written",
+  "id": "q096",
+  "heldout": true
+ },
+ {
+  "question": "slow moving raw materials",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "written",
+  "id": "q097",
+  "heldout": false
+ },
+ {
+  "question": "batch yield for last month",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "written",
+  "id": "q098",
+  "heldout": false
+ },
+ {
+  "question": "scrap in the extraction plant",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "written",
+  "id": "q099",
+  "heldout": true
+ },
+ {
+  "question": "production output against plan today",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "written",
+  "id": "q100",
+  "heldout": false
+ },
+ {
+  "question": "predict export sales for next year",
+  "part": "refuse",
+  "domain": "Sales",
+  "scenarios": [],
+  "source": "written",
+  "id": "q101",
+  "heldout": false
+ },
+ {
+  "question": "what will curcumin sales be next quarter",
+  "part": "refuse",
+  "domain": "Sales",
+  "scenarios": [],
+  "source": "written",
+  "id": "q102",
+  "heldout": true
+ },
+ {
+  "question": "forecast raw material prices for next year",
+  "part": "refuse",
+  "domain": "Purchase",
+  "scenarios": [],
+  "source": "written",
+  "id": "q103",
+  "heldout": false
+ },
+ {
+  "question": "what is the weather in Bangalore",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "written",
+  "id": "q104",
+  "heldout": false
+ },
+ {
+  "question": "what time is it",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "written",
+  "id": "q105",
+  "heldout": true
+ },
+ {
+  "question": "how do I reset my password",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "written",
+  "id": "q106",
+  "heldout": false
+ },
+ {
+  "question": "can you help me",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "written",
+  "id": "q107",
+  "heldout": false
+ },
+ {
+  "question": "translate good morning to hindi",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "written",
+  "id": "q108",
+  "heldout": true
+ },
+ {
+  "question": "what is 25 times 17",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "written",
+  "id": "q109",
+  "heldout": false
+ },
+ {
+  "question": "write me a poem about turmeric",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "written",
+  "id": "q110",
+  "heldout": false
+ },
+ {
+  "question": "who won the cricket match",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "written",
+  "id": "q111",
+  "heldout": true
+ },
+ {
+  "question": "what is the payroll for march",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "written",
+  "id": "q112",
+  "heldout": false
+ },
+ {
+  "question": "book a meeting with the CFO",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "written",
+  "id": "q113",
+  "heldout": false
+ }
+]

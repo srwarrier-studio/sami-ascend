@@ -30,4 +30,12 @@ It prints the domain and its probability, `refused (Other)` when Laya says the q
 ## Match
 `POST /v1/intent/match` with `{"question": "..."}` (management or admin cookie). It asks Laya for the domain, then for the scenarios of that domain, and returns the domain with its probability and every domain's score, the scenarios offered, and the selected scenarios with their probabilities. A refusal is `200` with `problem: "cannot_answer"`, a `reason` (`not_about_business`, `not_sure`, `no_scenarios`, `nothing_matched`) and `did_you_mean` (the two nearest domains); it is also appended to `unanswered.jsonl` (setting `UNANSWERED_LOG`, ignored by git). When Laya cannot be reached the answer is `503` with `problem: "cannot_classify_now"`. `uv run --package intent-api intent-api unanswered` lists the refused questions by nearest domain.
 
-Settings: `DOMAIN_MIN_PROBABILITY` and `SCENARIO_MIN_PROBABILITY` (both 0 until the evaluation sets them), `MAX_SCENARIOS` (4).
+Settings: `DOMAIN_MIN_PROBABILITY` (0) and `SCENARIO_MIN_PROBABILITY` (0.3), both chosen with the evaluation, and `MAX_SCENARIOS` (4).
+
+## Evaluation
+`evals/questions.json` holds the questions (`id`, `question`, `part` single, multi or refuse, expected `domain`, expected `scenarios`, `heldout`). Questions with no scenarios must be refused: other domains that have no scenarios yet, forecasts, and anything not about the business. About a third are held out. With Laya running:
+
+```
+LAYA_URL=http://localhost:8011 uv run --package intent-api intent-api eval [--show] [--domain-min 0.4 --scenario-min 0.3]
+```
+It prints, for the chosen floors and for a grid of others, how many answerable questions were exactly right, had a wrong or extra scenario, or were missing one or wrongly refused, and how many must-refuse questions were refused or wrongly answered. It uses the tuning questions only; `--final` also runs the held-out ones once, with the chosen floors. Keep real manager questions out of this file unless the owner adds them on their own machine.

@@ -12,6 +12,11 @@ def main() -> None:
 
         scenarios(sys.argv[2:])
         return
+    if sys.argv[1:2] == ["eval"]:
+        from intent_api.entrypoint.evaluate import main as evaluate
+
+        evaluate(sys.argv[2:])
+        return
     if sys.argv[1:2] == ["unanswered"]:
         from intent_api.entrypoint.unanswered import main as unanswered
 
