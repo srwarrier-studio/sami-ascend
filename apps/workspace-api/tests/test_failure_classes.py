@@ -12,7 +12,7 @@ from workspace_api.infrastructure.butterfly_sales_order_gateway import Butterfly
 from workspace_api.infrastructure.mock_sales_order_gateway import MockSalesOrderGateway
 from workspace_api.infrastructure.settings import Settings
 
-ORDER = NewSalesOrder("OR", "0000100001", "INR", date(2026, 11, 5), [NewSalesOrderItem("RM-1001", Decimal("50.000"), "KG")])
+ORDER = NewSalesOrder("OR", "0000100001", "INR", date(2026, 11, 5), [NewSalesOrderItem("RM-1001", Decimal("50.000"), "KG")], "INA1")
 
 
 def create_through(handler):
@@ -123,7 +123,7 @@ class TestWriteLimit:
     def test_reads_are_not_limited(self):
         gateway = Blocking()
         throttled, thread = self.start_blocked(gateway, 1)
-        assert throttled.list_recent(5, 0).total == 0
+        assert throttled.list_recent(5, 0, ["INA1"]).total == 0
         gateway.release.set()
         thread.join()
 

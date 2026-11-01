@@ -16,7 +16,7 @@ CREATED = {
     "SalesOrder": "0000012031",
     "SalesOrderType": "OR",
     "SoldToParty": "0000100001",
-    "CustomerName": "Acme Industries",
+    "CustomerName": "Harborline Nutrition LLC",
     "OrderDate": "2026-10-27",
     "RequestedDeliveryDate": "2026-11-05",
     "TransactionCurrency": "INR",
@@ -25,6 +25,8 @@ CREATED = {
     "CreatedByUser": "BUTTERFLY",
     "CreationDateTime": "2026-10-27T09:15:30Z",
     "LastChangeDateTime": "2026-10-27T09:15:30Z",
+    "CompanyCode": "INA1",
+    "Country": "US",
     "_Item": [
         {
             "SalesOrder": "0000012031",
@@ -51,7 +53,7 @@ REJECTION = {
 
 
 def new_order(delivery: date | None = date(2026, 11, 5)) -> NewSalesOrder:
-    return NewSalesOrder("OR", "0000100001", "INR", delivery, [NewSalesOrderItem("RM-1001", Decimal("50.000"), "KG")])
+    return NewSalesOrder("OR", "0000100001", "INR", delivery, [NewSalesOrderItem("RM-1001", Decimal("50.000"), "KG")], "INA1")
 
 
 def gateway(handler) -> ButterflySalesOrderGateway:
@@ -73,6 +75,7 @@ class TestCreateRequest:
             "SalesOrderType": "OR",
             "SoldToParty": "0000100001",
             "TransactionCurrency": "INR",
+            "CompanyCode": "INA1",
             "RequestedDeliveryDate": "2026-11-05",
             "_Item": [{"Material": "RM-1001", "Quantity": "50.000", "QuantityUnit": "KG"}],
         }
@@ -95,6 +98,7 @@ class TestCreateResponse:
         assert order.total_net_amount == Decimal("125000.00")
         assert order.items[0].quantity == Decimal("50.000")
         assert order.items[0].material_description == "Steel rod 12mm"
+        assert (order.company_code, order.country) == ("INA1", "US")
         assert order.creation_date_time.isoformat() == "2026-10-27T09:15:30+00:00"
 
     def test_null_delivery_date_and_names_are_kept_as_none(self):

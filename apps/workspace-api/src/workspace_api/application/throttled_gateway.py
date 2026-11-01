@@ -19,5 +19,5 @@ class ThrottledGateway(SalesOrderGateway):
         finally:
             self.slots.release()
 
-    def list_recent(self, top: int, skip: int) -> SalesOrderPage:
-        return self.gateway.list_recent(top, skip)
+    def list_recent(self, top: int, skip: int, companies: list[str]) -> SalesOrderPage:
+        return self.gateway.list_recent(top, skip, companies)

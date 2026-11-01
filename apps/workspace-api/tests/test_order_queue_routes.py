@@ -18,7 +18,7 @@ REQUESTS = "/v1/workspace/sales-order-requests"
 
 
 def token(user="user-1", roles=("sales",)):
-    payload = {"sub": user, "sap_username": f"SAP_{user}", "roles": list(roles), "exp": datetime.now(timezone.utc) + timedelta(minutes=5)}
+    payload = {"sub": user, "sap_username": f"SAP_{user}", "roles": list(roles), "companies": ["sabinsa"], "exp": datetime.now(timezone.utc) + timedelta(minutes=5)}
     return jwt.encode(payload, SECRET, algorithm="HS256")
 
 
@@ -111,7 +111,7 @@ class TestTheSavedOrderIsShown:
 
     def test_the_202_the_status_and_the_list_all_carry_the_order_as_sent(self):
         client, response = self.queued()
-        sent = {"sales_order_type": "OR", "sold_to_party": "0000100001", "transaction_currency": "INR", "requested_delivery_date": "2026-11-05",
+        sent = {"sales_order_type": "OR", "sold_to_party": "0000100001", "transaction_currency": "INR", "requested_delivery_date": "2026-11-05", "company_code": "INA1",
                 "items": [{"material": "RM-1001", "quantity": "50.000", "quantity_unit": "KG"}]}
         request_id = response.json()["id"]
         assert response.json()["order"] == sent

@@ -9,6 +9,7 @@ def new_order_to_json(order: NewSalesOrder) -> dict:
         "SalesOrderType": order.sales_order_type,
         "SoldToParty": order.sold_to_party,
         "TransactionCurrency": order.transaction_currency,
+        "CompanyCode": order.company_code,
         "_Item": [
             {"Material": i.material, "Quantity": str(i.quantity), "QuantityUnit": i.quantity_unit}
             for i in order.items
@@ -35,6 +36,8 @@ def order_from_json(data: dict) -> SalesOrder:
         creation_date_time=datetime.fromisoformat(data["CreationDateTime"]),
         last_change_date_time=datetime.fromisoformat(data["LastChangeDateTime"]),
         items=[item_from_json(i) for i in data.get("_Item", [])],
+        company_code=data["CompanyCode"],
+        country=data["Country"],
     )
 
 

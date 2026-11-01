@@ -12,7 +12,7 @@ from token_verification.token_claims import TokenClaims
 from workspace_api.application.usecase.create_sales_order import CreateSalesOrder, Submitter
 from workspace_api.application.usecase.list_sales_orders import ListSalesOrders
 from workspace_api.domain.entities.order_request import OrderRequest
-from workspace_api.domain.errors import InvalidQuery, SalesOrderRejected, SapUnavailable, StoreUnavailable
+from workspace_api.domain.errors import CompanyNotAllowed, InvalidQuery, SalesOrderRejected, SapUnavailable, StoreUnavailable
 from workspace_api.domain.gateways.sales_order_gateway import SalesOrderGateway
 from workspace_api.domain.repositories.order_request_store import OrderRequestStore
 from workspace_api.entrypoint.schemas import (
@@ -32,6 +32,8 @@ def create_app(gateway: SalesOrderGateway, settings: Settings, orders: OrderRequ
 
     @router.post("/sales-orders", status_code=201, response_model=SalesOrderResponse)
     def create_sales_order(body: NewSalesOrderBody, claims: Annotated[TokenClaims, sales_only]):
+        if body.company_code not in {company.code for company in claims.companies}:
+            raise CompanyNotAllowed(body.company_code)
         submitter = Submitter(claims.userid, claims.sap_username, get_request_id())
         result = CreateSalesOrder(gateway, orders).execute(body.to_domain(), submitter)
         if isinstance(result, OrderRequest):
@@ -39,8 +41,8 @@ def create_app(gateway: SalesOrderGateway, settings: Settings, orders: OrderRequ
         return SalesOrderResponse.from_domain(result)
 
     @router.get("/sales-orders")
-    def list_sales_orders(top: int = 20, skip: int = 0) -> SalesOrderPageResponse:
-        page = ListSalesOrders(gateway).execute(top, skip)
+    def list_sales_orders(claims: Annotated[TokenClaims, sales_only], top: int = 20, skip: int = 0) -> SalesOrderPageResponse:
+        page = ListSalesOrders(gateway).execute([company.code for company in claims.companies], top, skip)
         return SalesOrderPageResponse.from_domain(page)
 
     if orders is not None:
@@ -68,6 +70,10 @@ def create_app(gateway: SalesOrderGateway, settings: Settings, orders: OrderRequ
     def rejected(request: Request, error: SalesOrderRejected) -> JSONResponse:
         details = [{"code": d.code, "target": d.target, "message": d.message} for d in error.details]
         return JSONResponse({"code": "VALIDATION_FAILED", "details": details}, status_code=422)
+
+    @app.exception_handler(CompanyNotAllowed)
+    def company_not_allowed(request: Request, error: CompanyNotAllowed) -> JSONResponse:
+        return JSONResponse({"code": "COMPANY_NOT_ALLOWED", "message": f"You do not have company {error}."}, status_code=403)
 
     @app.exception_handler(InvalidQuery)
     def invalid_query(request: Request, error: InvalidQuery) -> JSONResponse:
