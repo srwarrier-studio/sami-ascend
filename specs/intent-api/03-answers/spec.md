@@ -7,7 +7,7 @@
 Phase 02 made the reading good (`intent-tuned-2`: 73 of 80 answerable questions exactly right, 1 harmful answer in 121). In AI Mode the answer still comes from sami-agents' keyword matcher, so "to whom did we sell the most in June" is read as `sales_top_customers` (100%) and answered with "Most overdue accounts". The reading is right and the answer ignores it. Not every answer needs a chart: a value is a sentence, a trend is a chart.
 
 ## Behavior
-- A response table, `answers.toml` next to `scenarios.toml`, has one entry per scenario key: `response` (`value`, `compare`, `trend`, `ranking`; `why` is not here), the `metric` of the synapse-api registry, and for rankings the `by` dimension (`customer`, `supplier`, `material`). A key with no entry is read but not answered (`not_answerable_yet`). Changing what an answer looks like is a change in this file, not in code.
+- A response table, `answers.toml` next to `scenarios.toml`, has one entry per scenario key: `response` (`value`, `compare`, `trend`, `ranking`; `why` is not here), the `metric` of the synapse-api registry, for a compare `against` (`previous` or `last_year`), and for a ranking the `by` dimension (`customer`, `supplier`, `material`). A key with no entry is read but not answered (`not_answerable_yet`). Changing what an answer looks like is a change in this file, not in code.
 - Response kinds and the blocks they return (the same JSON blocks sami-agents returns, so synapse-web draws them already):
 
 | Response | Scenario keys | Blocks |

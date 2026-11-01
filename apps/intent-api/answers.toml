@@ -1,0 +1,67 @@
+[[answer]]
+scenario = "sales_value"
+response = "value"
+metric = "sales"
+
+[[answer]]
+scenario = "sales_compare_previous"
+response = "compare"
+metric = "sales"
+against = "previous"
+
+[[answer]]
+scenario = "sales_compare_last_year"
+response = "compare"
+metric = "sales"
+against = "last_year"
+
+[[answer]]
+scenario = "sales_trend"
+response = "trend"
+metric = "sales"
+
+[[answer]]
+scenario = "sales_top_customers"
+response = "ranking"
+metric = "sales"
+by = "customer"
+
+[[answer]]
+scenario = "sales_top_materials"
+response = "ranking"
+metric = "sales"
+by = "material"
+
+[[answer]]
+scenario = "purchases_value"
+response = "value"
+metric = "purchases"
+
+[[answer]]
+scenario = "purchases_compare_previous"
+response = "compare"
+metric = "purchases"
+against = "previous"
+
+[[answer]]
+scenario = "purchases_compare_last_year"
+response = "compare"
+metric = "purchases"
+against = "last_year"
+
+[[answer]]
+scenario = "purchases_trend"
+response = "trend"
+metric = "purchases"
+
+[[answer]]
+scenario = "purchases_top_suppliers"
+response = "ranking"
+metric = "purchases"
+by = "supplier"
+
+[[answer]]
+scenario = "purchases_top_materials"
+response = "ranking"
+metric = "purchases"
+by = "material"
