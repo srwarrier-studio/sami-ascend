@@ -1,0 +1,129 @@
+[domain.Sales]
+description = "sales, exports, customers, countries, revenue"
+
+[domain.Purchase]
+description = "purchases, imports, suppliers, raw materials, spend"
+
+[domain.Shipments]
+description = "shipments, dispatch, containers, in transit"
+
+[domain.Finance]
+description = "receivables, payments, overdue, cash"
+
+[domain.Inventory]
+description = "stock, warehouses, reorder"
+
+[domain.Production]
+description = "production, batches, yield, plant, scrap"
+
+[[scenario]]
+id = "sales_value"
+domain = "Sales"
+description = "the sales figure for a period, or for one named customer or material"
+examples = ["How much did we sell in July?", "total revenue for the last quarter"]
+needs = ["period"]
+covers = []
+
+[[scenario]]
+id = "sales_compare_previous"
+domain = "Sales"
+description = "sales against the period before"
+examples = ["compare June sales with May", "are sales up on the previous three months"]
+needs = ["period"]
+covers = ["sales_value"]
+
+[[scenario]]
+id = "sales_compare_last_year"
+domain = "Sales"
+description = "sales against the same period last year"
+examples = ["sales this March versus March last year", "how do this year's sales compare with last year"]
+needs = ["period"]
+covers = ["sales_value"]
+
+[[scenario]]
+id = "sales_trend"
+domain = "Sales"
+description = "the sales trend over recent months"
+examples = ["show the sales trend for the last half year", "has revenue been rising lately"]
+needs = ["period"]
+covers = ["sales_value"]
+
+[[scenario]]
+id = "sales_top_customers"
+domain = "Sales"
+description = "customers ranked by sales"
+examples = ["who are our five biggest customers", "which buyers brought in the most revenue in April"]
+needs = ["period", "top"]
+covers = []
+
+[[scenario]]
+id = "sales_top_materials"
+domain = "Sales"
+description = "materials ranked by sales"
+examples = ["which products sold the most in May", "top three materials by revenue"]
+needs = ["period", "top"]
+covers = []
+
+[[scenario]]
+id = "sales_why"
+domain = "Sales"
+description = "why sales changed"
+examples = ["what caused the drop in sales in June", "why was revenue higher in March"]
+needs = ["period"]
+covers = []
+
+[[scenario]]
+id = "purchases_value"
+domain = "Purchase"
+description = "the purchases figure for a period, or for one named supplier or material"
+examples = ["How much did we buy in July?", "total spend for the last quarter"]
+needs = ["period"]
+covers = []
+
+[[scenario]]
+id = "purchases_compare_previous"
+domain = "Purchase"
+description = "purchases against the period before"
+examples = ["compare June purchases with May", "is spend up on the previous three months"]
+needs = ["period"]
+covers = ["purchases_value"]
+
+[[scenario]]
+id = "purchases_compare_last_year"
+domain = "Purchase"
+description = "purchases against the same period last year"
+examples = ["purchases this March versus March last year", "how does this year's spend compare with last year"]
+needs = ["period"]
+covers = ["purchases_value"]
+
+[[scenario]]
+id = "purchases_trend"
+domain = "Purchase"
+description = "the purchases trend over recent months"
+examples = ["show the spend trend for the last half year", "has buying been rising lately"]
+needs = ["period"]
+covers = ["purchases_value"]
+
+[[scenario]]
+id = "purchases_top_suppliers"
+domain = "Purchase"
+description = "suppliers ranked by purchases"
+examples = ["who are our five biggest vendors", "which suppliers did we spend most with in April"]
+needs = ["period", "top"]
+covers = []
+
+[[scenario]]
+id = "purchases_top_materials"
+domain = "Purchase"
+description = "materials ranked by purchases"
+examples = ["which raw materials cost the most in May", "top three materials by spend"]
+needs = ["period", "top"]
+covers = []
+
+[[scenario]]
+id = "purchases_why"
+domain = "Purchase"
+description = "why purchases changed"
+examples = ["what caused the jump in spend in June", "why did buying fall in March"]
+needs = ["period"]
+covers = []

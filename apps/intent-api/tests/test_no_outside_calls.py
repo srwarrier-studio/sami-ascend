@@ -1,0 +1,14 @@
+from pathlib import Path
+
+SOURCE = Path(__file__).resolve().parents[1] / "src" / "intent_api"
+CALLERS = ["infrastructure/laya_choice_classifier.py"]
+CLIENTS = ("httpx", "requests", "urllib", "aiohttp", "socket")
+
+
+def test_only_the_laya_gateway_makes_outside_calls():
+    found = sorted(
+        str(path.relative_to(SOURCE))
+        for path in SOURCE.rglob("*.py")
+        if any(f"import {client}" in path.read_text() or f"from {client}" in path.read_text() for client in CLIENTS)
+    )
+    assert found == CALLERS
