@@ -1,7 +1,11 @@
+from datetime import date
+
 from intent_api.domain.entities.decision import Decision
+from intent_api.domain.entities.figures import Comparison, MonthFigure, Window
 from intent_api.domain.entities.match import Match
-from intent_api.domain.errors import ClassifierUnavailable
+from intent_api.domain.errors import ClassifierUnavailable, MetricsUnavailable
 from intent_api.domain.gateways.choice_classifier import ChoiceClassifier
+from intent_api.domain.gateways.metric_source import MetricSource
 from intent_api.domain.gateways.unanswered_log import UnansweredLog
 
 
@@ -29,3 +33,25 @@ class FakeUnansweredLog(UnansweredLog):
 
     def entries(self) -> list[dict]:
         return [{"question": question, "reason": match.reason, "domain": match.domain, "did_you_mean": list(match.did_you_mean)} for question, match in self.logged]
+
+
+class FakeMetricSource(MetricSource):
+    def __init__(self, months: list[MonthFigure] | None = None, comparisons: list[Comparison] | None = None):
+        self.months = months or []
+        self.comparisons = comparisons or []
+        self.down = False
+        self.calls = []
+
+    def month(self, token: str, metric: str, month: date, trend: int) -> list[MonthFigure]:
+        self.calls.append(("month", token, metric, month, trend))
+        self.check()
+        return self.months
+
+    def compare(self, token: str, metric: str, window: Window, by: str | None, top: int) -> list[Comparison]:
+        self.calls.append(("compare", token, metric, window, by, top))
+        self.check()
+        return self.comparisons
+
+    def check(self) -> None:
+        if self.down:
+            raise MetricsUnavailable("down")

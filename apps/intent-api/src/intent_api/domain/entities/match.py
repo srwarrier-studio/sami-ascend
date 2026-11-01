@@ -6,6 +6,8 @@ NOT_ABOUT_BUSINESS = "not_about_business"
 NOT_SURE = "not_sure"
 NO_SCENARIOS = "no_scenarios"
 NOTHING_MATCHED = "nothing_matched"
+NOT_ANSWERABLE_YET = "not_answerable_yet"
+PERIOD_NOT_SUPPORTED = "period_not_supported"
 
 
 @dataclass(frozen=True)

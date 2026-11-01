@@ -14,7 +14,10 @@ class Settings(BaseSettings):
     laya_api_key: str = ""
     laya_model: str = "typed-decisions"
     laya_timeout_seconds: float = 5.0
+    synapse_url: str = "http://localhost:8004"
+    synapse_timeout_seconds: float = 10.0
     max_scenarios: int = 4
+    top_ranked: int = 5
     scenario_min_probability: float = 0.3
     domain_min_probability: float = 0.4
     unanswered_log: Path = UNANSWERED_FILE

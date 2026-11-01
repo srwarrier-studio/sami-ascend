@@ -1,5 +1,9 @@
 from pydantic import BaseModel, Field, field_validator
 
+from intent_api.domain.entities.match import Match
+
+CANNOT_ANSWER = "cannot_answer"
+
 
 class MatchRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
@@ -28,3 +32,16 @@ class MatchResponse(BaseModel):
     offered: list[str]
     scenarios: list[SelectedScenario]
     did_you_mean: list[str]
+
+    @classmethod
+    def from_match(cls, result: Match) -> "MatchResponse":
+        return cls(
+            problem=None if result.answered else CANNOT_ANSWER,
+            reason=result.reason,
+            domain=result.domain,
+            domain_probability=result.domain_probability,
+            domain_scores=result.domain_scores,
+            offered=list(result.offered),
+            scenarios=[SelectedScenario(id=item.scenario, probability=item.probability, clause=item.clause) for item in result.selected],
+            did_you_mean=list(result.did_you_mean),
+        )
