@@ -17,6 +17,11 @@ def main() -> None:
 
         evaluate(sys.argv[2:])
         return
+    if sys.argv[1:2] == ["training"]:
+        from intent_api.entrypoint.training import main as training
+
+        training(sys.argv[2:])
+        return
     if sys.argv[1:2] == ["unanswered"]:
         from intent_api.entrypoint.unanswered import main as unanswered
 
