@@ -159,7 +159,7 @@ export function AiPage() {
                   Open board
                 </Button>
               )}
-              {message.intent && <IntentCard reading={message.intent} />}
+              {message.intent && <IntentCard reading={message.intent} answered={Boolean(message.catalogIds?.length || message.board || message.agent?.readable)} />}
             </div>
           ))}
           {busy && (

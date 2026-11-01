@@ -301,6 +301,31 @@ describe('How the question was read', () => {
     expect(await screen.findByText('Understood as Sales (95%)')).toBeInTheDocument()
   })
 
+  it('drops the refusal when widgets answered after the refusal', async () => {
+    open(new MockBoardStore(), new MockAgentsClient(UNREADABLE), new MockIntentClient(replyFor(refusal('no_scenarios', ['Sales']))))
+    await ask('show me top customers')
+    expect(await screen.findByText(/^Here is Top customers/)).toBeInTheDocument()
+    expect(await screen.findByText('Understood as Finance (70%)')).toBeInTheDocument()
+    expect(screen.queryByText(/cannot answer yet/)).toBeNull()
+    expect(screen.queryByText(/Did you mean/)).toBeNull()
+  })
+
+  it('drops the refusal when the agent answered after the refusal', async () => {
+    open(new MockBoardStore(), new MockAgentsClient(WHY), new MockIntentClient(replyFor(refusal('not_sure'))))
+    await ask('what were sales for august')
+    expect(await screen.findByText('Sales fell 14.4% from July 2026 to August 2026.')).toBeInTheDocument()
+    expect(screen.queryByText('I am not sure what you mean.')).toBeNull()
+  })
+
+  it('shows the badge only when no domain was read and widgets answered', async () => {
+    const unread: IntentReading = { ...refusal('not_sure'), domain: null }
+    open(new MockBoardStore(), new MockAgentsClient(UNREADABLE), new MockIntentClient(replyFor(unread)))
+    await ask('show me top customers')
+    expect(await screen.findByText(/^Here is Top customers/)).toBeInTheDocument()
+    expect(screen.getByText('Reading')).toBeInTheDocument()
+    expect(screen.queryByText(/Understood as/)).toBeNull()
+  })
+
   it('sends the question to intent-api once per message and never a @builder request', async () => {
     const intent = new MockIntentClient(replyFor(ANSWERED))
     open(new MockBoardStore(), new MockAgentsClient(WHY), intent)
