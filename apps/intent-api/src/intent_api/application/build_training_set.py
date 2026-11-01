@@ -19,6 +19,8 @@ class Settings:
     typo_rate: float = 0.2
     combos_per_domain: int = 60
     subset_rate: float = 0.3
+    cap_train: int = 150
+    cap_heldout: int = 60
 
 
 def normalised(text: str) -> str:
@@ -66,7 +68,29 @@ class BuildTrainingSet:
                 texts.setdefault(family.id, []).append((family, text))
                 items += self.items_for(family, text, rng)
         items += self.combined(texts)
-        return items
+        return self.capped(self.deduplicated(items))
+
+    def deduplicated(self, items: list[TrainingItem]) -> list[TrainingItem]:
+        seen: set[tuple] = set()
+        kept = []
+        for item in items:
+            key = (item.kind, normalised(item.text), item.offered, item.answer, item.heldout)
+            if key not in seen:
+                seen.add(key)
+                kept.append(item)
+        return kept
+
+    def capped(self, items: list[TrainingItem]) -> list[TrainingItem]:
+        groups: dict[tuple, list[int]] = {}
+        for position, item in enumerate(items):
+            groups.setdefault((item.kind, item.answer, item.heldout), []).append(position)
+        dropped: set[int] = set()
+        for key, positions in sorted(groups.items(), key=str):
+            cap = self.settings.cap_heldout if key[2] else self.settings.cap_train
+            if len(positions) > cap:
+                rng = random.Random(f"{self.settings.seed}:cap:{key}")
+                dropped.update(set(positions) - set(rng.sample(positions, cap)))
+        return [item for position, item in enumerate(items) if position not in dropped]
 
     def expand(self, family: Family, rng: random.Random) -> list[str]:
         out: list[str] = []

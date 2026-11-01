@@ -60,49 +60,49 @@ templates = ["is {customer} buying more than last month", "export sales to {coun
 id = "sales_compare_last_year_a"
 domain = "Sales"
 scenario = "sales_compare_last_year"
-templates = ["compare sales {period} with last year", "sales {period} versus the same period last year", "how do sales compare with a year ago", "year on year sales {period}"]
+templates = ["compare sales {period} with last year", "sales {period} versus the same period last year", "how do sales compare with a year ago", "year on year sales {period}", "{period} sales against last year", "sales {period} compared to the same time last year"]
 
 [[family]]
 id = "sales_compare_last_year_b"
 domain = "Sales"
 scenario = "sales_compare_last_year"
-templates = ["are sales higher than last year", "did revenue grow compared to the same time last year", "how is revenue {period} against last year", "sales this year versus last year"]
+templates = ["are sales higher than last year", "did revenue grow compared to the same time last year", "how is revenue {period} against last year", "sales this year versus last year", "revenue {period} versus a year ago", "is revenue better than the same quarter last year"]
 
 [[family]]
 id = "sales_compare_last_year_c"
 domain = "Sales"
 scenario = "sales_compare_last_year"
-templates = ["are we selling more than a year ago", "what is the year over year change in sales", "revenue now against the same quarter last year", "sales growth over last year"]
+templates = ["are we selling more than a year ago", "what is the year over year change in sales", "revenue now against the same quarter last year", "sales growth over last year", "are we ahead of last year on sales", "revenue growth over the previous year {period}"]
 
 [[family]]
 id = "sales_compare_last_year_d"
 domain = "Sales"
 scenario = "sales_compare_last_year"
-templates = ["are exports to {country} higher than last year", "did {customer} buy more than a year ago", "year on year revenue from {country}", "is {material} selling better than last year"]
+templates = ["are exports to {country} higher than last year", "did {customer} buy more than a year ago", "year on year revenue from {country}", "is {material} selling better than last year", "exports to {country} {period} against last year", "sales of {material} versus the same period last year"]
 
 [[family]]
 id = "sales_trend_a"
 domain = "Sales"
 scenario = "sales_trend"
-templates = ["show the sales trend", "how are sales trending", "sales trend over the last six months", "how have sales moved recently"]
+templates = ["show the sales trend", "how are sales trending", "sales trend over the last six months", "how have sales moved recently", "sales trend {period}", "how have sales moved {period}"]
 
 [[family]]
 id = "sales_trend_b"
 domain = "Sales"
 scenario = "sales_trend"
-templates = ["has revenue been rising lately", "is revenue going up or down over time", "how did revenue develop over the last months", "revenue over the past twelve months"]
+templates = ["has revenue been rising lately", "is revenue going up or down over time", "how did revenue develop over the last months", "revenue over the past twelve months", "revenue development {period}", "is revenue rising or falling {period}"]
 
 [[family]]
 id = "sales_trend_c"
 domain = "Sales"
 scenario = "sales_trend"
-templates = ["sales over time", "month by month sales", "the pattern of sales this year", "how have sales changed across the last quarters"]
+templates = ["sales over time", "month by month sales", "the pattern of sales this year", "how have sales changed across the last quarters", "sales pattern {period}", "month wise sales {period}"]
 
 [[family]]
 id = "sales_trend_d"
 domain = "Sales"
 scenario = "sales_trend"
-templates = ["trend of exports to {country}", "how has {customer} been buying over the last months", "sales trend of {material}", "how have export sales moved lately"]
+templates = ["trend of exports to {country}", "how has {customer} been buying over the last months", "sales trend of {material}", "how have export sales moved lately", "trend of exports to {country} {period}", "{customer} order trend {period}"]
 
 [[family]]
 id = "sales_top_customers_a"
@@ -228,49 +228,49 @@ templates = ["are we buying more from {supplier} than last month", "imports from
 id = "purchases_compare_last_year_a"
 domain = "Purchase"
 scenario = "purchases_compare_last_year"
-templates = ["compare purchases {period} with last year", "purchases {period} versus the same period last year", "how does spend compare with a year ago", "year on year purchases {period}"]
+templates = ["compare purchases {period} with last year", "purchases {period} versus the same period last year", "how does spend compare with a year ago", "year on year purchases {period}", "{period} purchases against last year", "spend {period} compared to the same time last year"]
 
 [[family]]
 id = "purchases_compare_last_year_b"
 domain = "Purchase"
 scenario = "purchases_compare_last_year"
-templates = ["are purchases higher than last year", "did spend grow compared to the same time last year", "how is spend {period} against last year", "purchases this year versus last year"]
+templates = ["are purchases higher than last year", "did spend grow compared to the same time last year", "how is spend {period} against last year", "purchases this year versus last year", "imports {period} versus a year ago", "is spend higher than the same quarter last year"]
 
 [[family]]
 id = "purchases_compare_last_year_c"
 domain = "Purchase"
 scenario = "purchases_compare_last_year"
-templates = ["are we buying more than a year ago", "what is the year over year change in spend", "imports now against the same quarter last year", "purchase growth over last year"]
+templates = ["are we buying more than a year ago", "what is the year over year change in spend", "imports now against the same quarter last year", "purchase growth over last year", "are we ahead of last year on spend", "purchase growth over the previous year {period}"]
 
 [[family]]
 id = "purchases_compare_last_year_d"
 domain = "Purchase"
 scenario = "purchases_compare_last_year"
-templates = ["are imports from {country} higher than last year", "did we buy more from {supplier} than a year ago", "year on year spend on {material}", "is {material} costing more than last year"]
+templates = ["are imports from {country} higher than last year", "did we buy more from {supplier} than a year ago", "year on year spend on {material}", "is {material} costing more than last year", "imports from {country} {period} against last year", "purchases of {material} versus the same period last year"]
 
 [[family]]
 id = "purchases_trend_a"
 domain = "Purchase"
 scenario = "purchases_trend"
-templates = ["show the purchases trend", "how is spend trending", "purchases trend over the last six months", "how has buying moved recently"]
+templates = ["show the purchases trend", "how is spend trending", "purchases trend over the last six months", "how has buying moved recently", "purchases trend {period}", "how has buying moved {period}"]
 
 [[family]]
 id = "purchases_trend_b"
 domain = "Purchase"
 scenario = "purchases_trend"
-templates = ["has spend been rising lately", "is spend going up or down over time", "how did spend develop over the last months", "raw material spend over the past twelve months"]
+templates = ["has spend been rising lately", "is spend going up or down over time", "how did spend develop over the last months", "raw material spend over the past twelve months", "spend development {period}", "is spend rising or falling {period}"]
 
 [[family]]
 id = "purchases_trend_c"
 domain = "Purchase"
 scenario = "purchases_trend"
-templates = ["purchases over time", "month by month spend", "the pattern of buying this year", "how have purchases changed across the last quarters"]
+templates = ["purchases over time", "month by month spend", "the pattern of buying this year", "how have purchases changed across the last quarters", "purchase pattern {period}", "month wise spend {period}"]
 
 [[family]]
 id = "purchases_trend_d"
 domain = "Purchase"
 scenario = "purchases_trend"
-templates = ["trend of imports from {country}", "how have we been buying from {supplier} over the last months", "spend trend of {material}", "how have import costs moved lately"]
+templates = ["trend of imports from {country}", "how have we been buying from {supplier} over the last months", "spend trend of {material}", "how have import costs moved lately", "trend of imports from {country} {period}", "{supplier} purchase trend {period}"]
 
 [[family]]
 id = "purchases_top_suppliers_a"
@@ -371,114 +371,138 @@ templates = ["expected price of {material} next year", "how much will we need to
 [[family]]
 id = "shipments_a"
 domain = "Shipments"
-templates = ["which shipments are in transit", "how many containers went to {country} this week", "are any shipments delayed", "what is the dispatch plan for tomorrow"]
+templates = ["which shipments are in transit", "how many containers went to {country} this week", "are any shipments delayed", "what is the dispatch plan for tomorrow", "how many shipments are on the way", "containers waiting at the port {period}", "shipping status for {country}", "which dispatches are late"]
 
 [[family]]
 id = "shipments_b"
 domain = "Shipments"
-templates = ["shipments to {country} {period}", "how many containers did we dispatch {period}", "where is the shipment for {customer}", "shipping delays {period}"]
+templates = ["shipments to {country} {period}", "how many containers did we dispatch {period}", "where is the shipment for {customer}", "shipping delays {period}", "delivery status of the order for {customer}", "dispatches to {country} {period}", "when did the last container leave", "port delays {period}"]
 
 [[family]]
 id = "shipments_c"
 domain = "Shipments"
-templates = ["list shipments waiting for customs", "which orders have not been dispatched yet", "shipment status for {customer}", "container tracking for {country}"]
+templates = ["list shipments waiting for customs", "which orders have not been dispatched yet", "shipment status for {customer}", "container tracking for {country}", "how many consignments are held up", "bill of lading for {customer}", "which shipments cleared customs {period}", "air freight bookings {period}"]
 
 [[family]]
 id = "shipments_d"
 domain = "Shipments"
-templates = ["how many shipments left {period}", "is the consignment to {customer} on its way", "freight bookings {period}", "when will the shipment to {country} arrive"]
+templates = ["how many shipments left {period}", "is the consignment to {customer} on its way", "freight bookings {period}", "when will the shipment to {country} arrive", "what is the estimated arrival for the {country} order", "pending dispatches for {customer}", "how many containers shipped {period}", "shipments by mode {period}"]
 
 [[family]]
 id = "finance_a"
 domain = "Finance"
-templates = ["how much do customers still owe us", "which receivables are overdue", "payments received {period}", "what is our cash position today"]
+templates = ["how much do customers still owe us", "which receivables are overdue", "payments received {period}", "what is our cash position today", "total receivables {period}", "how much is overdue from {customer}", "what did customers pay {period}", "bank position {period}"]
 
 [[family]]
 id = "finance_b"
 domain = "Finance"
-templates = ["how much does {customer} owe us", "outstanding invoices {period}", "overdue accounts", "cash flow {period}"]
+templates = ["how much does {customer} owe us", "outstanding invoices {period}", "overdue accounts", "cash flow {period}", "accounts payable {period}", "which invoices are unpaid", "cash inflow {period}", "payment delays from {country}"]
 
 [[family]]
 id = "finance_c"
 domain = "Finance"
-templates = ["what is our profit margin {period}", "which product has the highest margin", "gross margin on {material}", "what was our highest margin product {period}"]
+templates = ["what is our profit margin {period}", "which product has the highest margin", "gross margin on {material}", "what was our highest margin product {period}", "net margin {period}", "margin by product {period}", "which customer gives the best margin", "margin on {material}"]
 
 [[family]]
 id = "finance_d"
 domain = "Finance"
-templates = ["collections against target {period}", "which export receivables are overdue", "bank balance today", "how much did we pay vendors {period}"]
+templates = ["collections against target {period}", "which export receivables are overdue", "bank balance today", "how much did we pay vendors {period}", "ageing of receivables", "how much have we collected {period}", "expenses {period}", "what do we owe {supplier}"]
 
 [[family]]
 id = "inventory_a"
 domain = "Inventory"
-templates = ["which materials are below reorder level", "stock of {material} in the warehouse", "slow moving raw materials", "what is the stock value today"]
+templates = ["which materials are below reorder level", "stock of {material} in the warehouse", "slow moving raw materials", "what is the stock value today", "stock of {material} {period}", "what is below the safety stock", "warehouse stock value {period}", "how many days of {material} do we hold"]
 
 [[family]]
 id = "inventory_b"
 domain = "Inventory"
-templates = ["how much {material} do we have", "inventory ageing {period}", "stock by warehouse", "items that need reordering"]
+templates = ["how much {material} do we have", "inventory ageing {period}", "stock by warehouse", "items that need reordering", "inventory turnover {period}", "stock held at the warehouse", "which items are overstocked", "list of materials to reorder"]
 
 [[family]]
 id = "inventory_c"
 domain = "Inventory"
-templates = ["goods received {period}", "warehouse stock of {material}", "which materials are out of stock", "dead stock list"]
+templates = ["goods received {period}", "warehouse stock of {material}", "which materials are out of stock", "dead stock list", "goods issued {period}", "how much stock is expiring", "batches in the warehouse", "available quantity of {material}"]
 
 [[family]]
 id = "inventory_d"
 domain = "Inventory"
-templates = ["stock level of {material}", "how many days of stock are left", "inventory value {period}", "what is in the warehouse right now"]
+templates = ["stock level of {material}", "how many days of stock are left", "inventory value {period}", "what is in the warehouse right now", "stock position {period}", "obsolete stock list", "how much {material} is in transit to the warehouse", "stock movement {period}"]
 
 [[family]]
 id = "production_a"
 domain = "Production"
-templates = ["batch yield for {period}", "scrap in the extraction plant", "production output against plan today", "how many batches did we run {period}"]
+templates = ["batch yield for {period}", "scrap in the extraction plant", "production output against plan today", "how many batches did we run {period}", "yield of the {material} batch {period}", "how many batches failed {period}", "capacity utilisation {period}", "which orders are behind schedule"]
 
 [[family]]
 id = "production_b"
 domain = "Production"
-templates = ["which production orders are late", "machine downtime yesterday", "plant efficiency {period}", "yield of {material} {period}"]
+templates = ["which production orders are late", "machine downtime yesterday", "plant efficiency {period}", "yield of {material} {period}", "downtime by machine {period}", "output of the plant {period}", "quality rejections {period}", "production plan for {period}"]
 
 [[family]]
 id = "production_c"
 domain = "Production"
-templates = ["open production orders", "output by line {period}", "how is the production line performing", "rejected batches {period}"]
+templates = ["open production orders", "output by line {period}", "how is the production line performing", "rejected batches {period}", "how much {material} was produced {period}", "waste in the process {period}", "which line is running slow", "open work orders {period}"]
 
 [[family]]
 id = "production_d"
 domain = "Production"
-templates = ["how much {material} did we produce {period}", "extraction plant capacity usage", "production delays {period}", "equipment breakdowns {period}"]
+templates = ["how much {material} did we produce {period}", "extraction plant capacity usage", "production delays {period}", "equipment breakdowns {period}", "extraction batches completed {period}", "plant shutdown hours {period}", "energy use per batch {period}", "throughput {period}"]
 
 [[family]]
 id = "not_business_a"
 domain = "Other"
-templates = ["what is the weather in Bangalore", "what time is it", "will it rain tomorrow", "what is today's date"]
+templates = ["what is the weather in Bangalore", "what time is it", "will it rain tomorrow", "what is today's date", "what is the temperature outside", "is it going to be sunny this weekend", "what day is it today", "what is the time in New York", "how is the weather in {country}"]
 
 [[family]]
 id = "not_business_b"
 domain = "Other"
-templates = ["hello", "hi there", "thanks", "good morning"]
+templates = ["hello", "hi there", "thanks", "good morning", "good evening", "hey", "how are you", "thank you very much", "bye", "what is up"]
 
 [[family]]
 id = "not_business_c"
 domain = "Other"
-templates = ["tell me a joke", "write me a poem about turmeric", "translate good morning to hindi", "sing me a song"]
+templates = ["tell me a joke", "write me a poem about turmeric", "translate good morning to hindi", "sing me a song", "write a haiku about spices", "tell me a story", "give me a riddle", "write a limerick about {material}", "translate thank you to german"]
 
 [[family]]
 id = "not_business_d"
 domain = "Other"
-templates = ["what is 25 times 17", "what is the capital of france", "who won the cricket match", "how tall is mount everest"]
+templates = ["what is 25 times 17", "what is the capital of france", "who won the cricket match", "how tall is mount everest", "what is the square root of 144", "who painted the mona lisa", "how many days are in a leap year", "what is 15 percent of 200", "who is the prime minister of {country}", "what is the population of {country}"]
 
 [[family]]
 id = "not_business_e"
 domain = "Other"
-templates = ["what is the payroll for march", "how many employees do we have", "who is the CEO", "when is the next holiday"]
+templates = ["what is the payroll for march", "how many employees do we have", "who is the CEO", "when is the next holiday", "who is on leave today", "how many people work in the plant", "when is the next salary day", "what are the office timings", "show me the org chart", "who is my manager"]
 
 [[family]]
 id = "not_business_f"
 domain = "Other"
-templates = ["book a meeting with the CFO", "send an email to {customer}", "remind me to call {supplier} tomorrow", "schedule a call for friday"]
+templates = ["book a meeting with the CFO", "send an email to {customer}", "remind me to call {supplier} tomorrow", "schedule a call for friday", "set an alarm for seven", "open the calendar", "call {supplier}", "email the team about the meeting", "add a note to my list", "print this report"]
 
 [[family]]
 id = "not_business_g"
 domain = "Other"
-templates = ["how do I reset my password", "can you help me", "who are you", "what can you do"]
+templates = ["how do I reset my password", "can you help me", "who are you", "what can you do", "what do you know", "are you a robot", "how do I use this", "what questions can I ask", "help", "explain what you do"]
+
+[[family]]
+id = "forecast_sales_c"
+domain = "Sales"
+nothing = true
+templates = ["what sales can we expect {period}", "estimate export sales to {country} next year", "will sales grow next year", "sales target for next quarter"]
+
+[[family]]
+id = "forecast_sales_d"
+domain = "Sales"
+nothing = true
+templates = ["how will {customer} order in the future", "projected sales of {material}", "what do you expect revenue to be next year", "forecast demand for {material}"]
+
+[[family]]
+id = "forecast_purchases_c"
+domain = "Purchase"
+nothing = true
+templates = ["what purchases can we expect {period}", "estimate imports from {country} next year", "will spend grow next year", "purchase budget for next quarter"]
+
+[[family]]
+id = "forecast_purchases_d"
+domain = "Purchase"
+nothing = true
+templates = ["how much will we order from {supplier} in the future", "projected spend on {material}", "what do you expect costs to be next year", "forecast demand for {material} purchases"]

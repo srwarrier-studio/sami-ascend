@@ -77,8 +77,15 @@ class TestBuild:
         clean = BuildTrainingSet(LIBRARY, FAMILIES, SLOTS, Settings(typo_rate=0), EVALUATION).execute()
         assert len({item.text for item in ITEMS} - {item.text for item in clean}) > len(clean) // 10
 
-    def test_every_item_keeps_a_unique_text_inside_its_family_template(self):
-        assert len(ITEMS) > 3000 and len({(item.kind, item.text, item.offered) for item in ITEMS}) > len(ITEMS) * 0.9
+    def test_no_item_is_repeated(self):
+        assert len({(item.kind, normalised(item.text), item.offered, item.answer, item.heldout) for item in ITEMS}) == len(ITEMS)
+
+    def test_no_answer_has_more_items_than_the_cap_so_the_big_domains_do_not_drown_the_small_ones(self):
+        from collections import Counter
+
+        sizes = Counter((item.kind, item.answer, item.heldout) for item in ITEMS)
+        assert max(size for key, size in sizes.items() if not key[2]) <= Settings.cap_train
+        assert max(size for key, size in sizes.items() if key[2]) <= Settings.cap_heldout
 
 
 class TestTypo:
