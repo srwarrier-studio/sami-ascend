@@ -30,7 +30,7 @@ It prints the domain and its probability, `refused (Other)` when Laya says the q
 ## Match
 `POST /v1/intent/match` with `{"question": "..."}` (management or admin cookie). It asks Laya for the domain, then for the scenarios of that domain, and returns the domain with its probability and every domain's score, the scenarios offered, and the selected scenarios with their probabilities. A refusal is `200` with `problem: "cannot_answer"`, a `reason` (`not_about_business`, `not_sure`, `no_scenarios`, `nothing_matched`) and `did_you_mean` (the two nearest domains); it is also appended to `unanswered.jsonl` (setting `UNANSWERED_LOG`, ignored by git). When Laya cannot be reached the answer is `503` with `problem: "cannot_classify_now"`. `uv run --package intent-api intent-api unanswered` lists the refused questions by nearest domain.
 
-Settings: `DOMAIN_MIN_PROBABILITY` (0) and `SCENARIO_MIN_PROBABILITY` (0.3), both chosen with the evaluation, and `MAX_SCENARIOS` (4).
+Settings: `DOMAIN_MIN_PROBABILITY` (0.4) and `SCENARIO_MIN_PROBABILITY` (0.3), both chosen with the evaluation, and `MAX_SCENARIOS` (4).
 
 ## Evaluation
 `evals/questions.json` holds the questions (`id`, `question`, `part` single, multi or refuse, expected `domain`, expected `scenarios`, `heldout`). Questions with no scenarios must be refused: other domains that have no scenarios yet, forecasts, and anything not about the business. About a third are held out. With Laya running:

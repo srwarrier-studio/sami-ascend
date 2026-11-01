@@ -203,6 +203,19 @@ Floors chosen with the owner (their go-ahead on the recommendation): `DOMAIN_MIN
 - Tuning questions at the same floors: exact 36 of 50, harmful 11 of 79. Held-out is not worse than tuning, so the floors did not overfit; both say the same: about four in five answerable questions come out exactly right and about one in seven questions gets a wrong answer where a refusal was right.
 - This held-out set is now spent for threshold choices; a new one is needed before the floors are changed again.
 
+## Run 12: the spend question and the domain floor (2026-11-01, phase 02 task 1)
+A manager's real try in AI Mode: "how much did we spend in october 2025?" was read as Sales at 0.26 (Purchase 0.22, Other 0.18), answered with `sales_value`. Adding "money we earn" and "money we pay out" to the domain descriptions did not help (0.31), so wording alone is not the fix. Six spend and earn questions and two questions taken from the SAP article ("which suppliers have had late deliveries this month", "what was our highest-margin product last quarter") were added to the tuning questions (87 now; held-out untouched). `typed-decisions`, scenario floor 0.3:
+
+| Domain floor | Exact (of 56 answerable) | Wrong or extra | Wrongly refused | Must refuse, correct | Harmful (wrong or extra + wrongly answered) |
+|---|---|---|---|---|---|
+| 0 | 41 | 9 | 1 | 27 of 31 | 13 |
+| 0.4 | 37 | 5 | 9 | 27 of 31 | 9 |
+
+At 0.4 the generic spend questions (0.25 to 0.34) are refused as `not_sure` with Sales and Purchase suggested, four fewer wrong answers for four more exact answers lost. "Highest-margin product last quarter" is still answered as `sales_top_materials` (domain 0.40, scenario 0.31), the margin question the owner assigned to Finance (no scenario). `DOMAIN_MIN_PROBABILITY` default is now 0.4; the demo in AI Mode runs with it.
+
+## The SAP article (read 2026-11-01, `docs/sap-genai.html`, "How GenAI can make ERP insights more accessible", Timo Elliott, 21 July 2025)
+Relevant points: small language models fine-tuned on the company's own data, with retrieval, so users ask in natural language instead of dashboards (our direction, with Laya as the small model); ERP data is tables with relationships, so knowledge graphs help (sami-agents `graph.toml` is that idea); a toolset needs grounding, data masking, prompt management and lifecycle management (our answers will be grounded in synapse-api, data stays local); start by mapping what the ERP covers (our domains), train users and let them practise in low-risk settings (the "Reading preview" card). Its example questions, "highest-margin product last quarter" and "which suppliers have had late deliveries this month", are the kind of question we do not have scenarios for yet and are in the tuning set as must-refuse questions.
+
 ## Next tests (not yet run)
 - Refusal alone: sales / purchases / other with narrow descriptions, plus the `noul` gate, on a larger off-topic and out-of-scope set (forecasts, weather, jokes, other departments, empty and gibberish input).
 - Isolate wording versus label set versus API form.
