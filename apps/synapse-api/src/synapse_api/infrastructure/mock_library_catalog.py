@@ -14,10 +14,13 @@ class MockLibraryCatalog(WidgetCatalog):
         items = json.loads(LIBRARY_FILE.read_text()) if items is None else items
         self.items = {item["id"]: item for item in items}
 
+    def for_companies(self, companies: tuple[str, ...]) -> "MockLibraryCatalog":
+        return self
+
     def entries(self) -> list[CatalogEntry]:
         return [CatalogEntry(i["id"], i["title"], i["description"], i["category"], i["widget"]) for i in self.items.values()]
 
-    def data(self, entry_id: str, today: date) -> dict:
+    def data(self, entry_id: str, today: date, currency: str) -> dict:
         if entry_id not in self.items:
             raise CatalogEntryNotFound(entry_id)
         return self.items[entry_id]["props"]

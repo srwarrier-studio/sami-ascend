@@ -11,6 +11,9 @@ class MockRecordSource(RecordSource):
         self.failing = False
         self.calls = 0
 
+    def for_companies(self, companies: tuple[str, ...]) -> "MockRecordSource":
+        return self
+
     def fail(self) -> None:
         self.failing = True
 

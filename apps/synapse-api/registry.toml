@@ -4,9 +4,10 @@ service = "sales"
 measure = "TotalNetAmount"
 date = "OrderDate"
 currency = "Currency"
-by.day = { entity = "SalesSummaryByDay", order = "OrderDate,Currency", count = "OrderCount" }
-by.customer = { entity = "SalesSummaryByCustomer", key = "SoldToParty", name = "CustomerName", order = "OrderDate,SoldToParty,Currency", count = "OrderCount" }
-by.material = { entity = "SalesSummaryByMaterial", key = "Material", name = "MaterialDescription", unit = "QuantityUnit", quantity = "TotalQuantity", order = "OrderDate,Material,Currency" }
+company = "CompanyCode"
+by.day = { entity = "SalesSummaryByDay", order = "OrderDate,Currency,CompanyCode", count = "OrderCount" }
+by.customer = { entity = "SalesSummaryByCustomer", key = "SoldToParty", name = "CustomerName", order = "OrderDate,SoldToParty,Currency,CompanyCode", count = "OrderCount" }
+by.material = { entity = "SalesSummaryByMaterial", key = "Material", name = "MaterialDescription", unit = "QuantityUnit", quantity = "TotalQuantity", order = "OrderDate,Material,Currency,CompanyCode" }
 
 [metric.purchases]
 label = "Purchases"
@@ -14,12 +15,14 @@ service = "drivers"
 measure = "TotalNetAmount"
 date = "OrderDate"
 currency = "Currency"
-by.day = { entity = "PurchaseSummaryByDay", order = "OrderDate,Currency", count = "OrderCount" }
-by.supplier = { entity = "PurchaseSummaryBySupplier", key = "Supplier", name = "SupplierName", order = "OrderDate,Supplier,Currency", count = "OrderCount" }
-by.material = { entity = "PurchaseSummaryByMaterial", key = "Material", name = "MaterialDescription", unit = "QuantityUnit", quantity = "TotalQuantity", order = "OrderDate,Material,Currency" }
+company = "CompanyCode"
+by.day = { entity = "PurchaseSummaryByDay", order = "OrderDate,Currency,CompanyCode", count = "OrderCount" }
+by.supplier = { entity = "PurchaseSummaryBySupplier", key = "Supplier", name = "SupplierName", order = "OrderDate,Supplier,Currency,CompanyCode", count = "OrderCount" }
+by.material = { entity = "PurchaseSummaryByMaterial", key = "Material", name = "MaterialDescription", unit = "QuantityUnit", quantity = "TotalQuantity", order = "OrderDate,Material,Currency,CompanyCode" }
 
 [record.contract]
 service = "drivers"
+company = "CompanyCode"
 entity = "SalesContract"
 key_fields = ["SoldToParty", "SalesContract"]
 interval = { from = "ValidFrom", to = "ValidTo" }
@@ -27,6 +30,7 @@ order = "ValidFrom,SalesContract"
 
 [record.purchase_delivery]
 service = "drivers"
+company = "CompanyCode"
 entity = "PurchaseDelivery"
 key_fields = ["Material", "Supplier", "PurchaseOrder"]
 interval = { from = "PromisedDeliveryDate", to = "ActualDeliveryDate", fallback = "PromisedDeliveryDate", open_to_today = true }
@@ -35,6 +39,7 @@ order = "PromisedDeliveryDate,PurchaseOrder"
 
 [record.production_order]
 service = "drivers"
+company = "CompanyCode"
 entity = "ProductionOrder"
 key_fields = ["Material", "ProductionOrder"]
 interval = { from = "PlannedStartDate", to = "ActualEndDate", fallback = "PlannedEndDate", open_to_today = true }
@@ -43,6 +48,7 @@ order = "PlannedStartDate,ProductionOrder"
 
 [record.production_component]
 service = "drivers"
+company = "CompanyCode"
 entity = "ProductionOrderComponent"
 key_fields = ["ProductionOrder", "Material"]
 order = "ProductionOrder,Material"

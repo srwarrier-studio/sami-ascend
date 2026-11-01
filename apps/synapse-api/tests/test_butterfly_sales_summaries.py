@@ -33,9 +33,9 @@ def ok(*rows):
 
 class TestQuery:
     @pytest.mark.parametrize("method,entity,order", [
-        ("daily_sales", "SalesSummaryByDay", "OrderDate,Currency"),
-        ("customer_sales", "SalesSummaryByCustomer", "OrderDate,SoldToParty,Currency"),
-        ("material_sales", "SalesSummaryByMaterial", "OrderDate,Material,Currency"),
+        ("daily_sales", "SalesSummaryByDay", "OrderDate,Currency,CompanyCode"),
+        ("customer_sales", "SalesSummaryByCustomer", "OrderDate,SoldToParty,Currency,CompanyCode"),
+        ("material_sales", "SalesSummaryByMaterial", "OrderDate,Material,Currency,CompanyCode"),
     ])
     def test_builds_the_odata_query(self, method, entity, order):
         seen = []

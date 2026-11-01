@@ -22,6 +22,7 @@ class Metric:
     date: str
     currency: str
     dimensions: dict[str, Dimension] = field(default_factory=dict)
+    company: str | None = None
 
 
 @dataclass(frozen=True)
@@ -47,6 +48,7 @@ class RecordType:
     order: str
     interval: Interval | None = None
     delay: Delay | None = None
+    company: str | None = None
 
 
 @dataclass(frozen=True)

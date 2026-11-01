@@ -12,7 +12,6 @@ from synapse_api.domain.errors import CatalogEntryNotFound
 from synapse_api.domain.gateways.sales_source import SalesSource
 from synapse_api.domain.gateways.widget_catalog import WidgetCatalog
 
-CURRENCY = "INR"
 HIGH_VALUE_MINIMUM = Decimal(100000)
 TOP = 5
 MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -39,32 +38,32 @@ def year_periods(today: date) -> tuple[Period, Period]:
     return (today.replace(month=1, day=1), today), (date(today.year - 1, 1, 1), same_day(today.year - 1, today.month, today.day))
 
 
-def sales_in(source: SalesSource, period: Period) -> tuple[Decimal, int]:
+def sales_in(source: SalesSource, period: Period, currency: str) -> tuple[Decimal, int]:
     for total in total_per_currency(source, *period):
-        if total.currency == CURRENCY:
+        if total.currency == currency:
             return total.net_amount, total.order_count
     return Decimal(0), 0
 
 
 class SalesKpiWidget:
-    def __init__(self, source: SalesSource, entry: CatalogEntry, caption: str, periods: Callable[[date], tuple[Period, Period]], trend: Callable[[date], list[float]]):
+    def __init__(self, source: SalesSource, entry: CatalogEntry, caption: str, periods: Callable[[date], tuple[Period, Period]], trend: Callable[[date, str], list[float]]):
         self.source = source
         self.entry = entry
         self.caption = caption
         self.periods = periods
         self.trend = trend
 
-    def props(self, today: date) -> dict:
+    def props(self, today: date, currency: str) -> dict:
         current, previous = self.periods(today)
-        now, _ = sales_in(self.source, current)
-        before, _ = sales_in(self.source, previous)
+        now, _ = sales_in(self.source, current, currency)
+        before, _ = sales_in(self.source, previous, currency)
         props = {
             "title": self.entry.title,
             "measure": "sales",
             "value": float(now),
             "valueFormat": "currency",
             "caption": self.caption,
-            "trend": self.trend(today),
+            "trend": self.trend(today, currency),
         }
         if before:
             props["delta"] = float((now - before) / before)
@@ -76,8 +75,8 @@ class OrdersMonthWidget:
         self.source = source
         self.entry = entry
 
-    def props(self, today: date) -> dict:
-        _, count = sales_in(self.source, month_periods(today)[0])
+    def props(self, today: date, currency: str) -> dict:
+        _, count = sales_in(self.source, month_periods(today)[0], currency)
         return {"title": self.entry.title, "measure": "orders", "value": count, "caption": "since the 1st"}
 
 
@@ -86,9 +85,9 @@ class MonthOnMonthWidget:
         self.source = source
         self.entry = entry
 
-    def props(self, today: date) -> dict:
+    def props(self, today: date, currency: str) -> dict:
         months = GetMonthOnMonthSales(self.source).execute(today, 12)
-        data = [{"label": MONTH_NAMES[m.month - 1], "value": float(m.net_amount)} for m in months if m.currency == CURRENCY]
+        data = [{"label": MONTH_NAMES[m.month - 1], "value": float(m.net_amount)} for m in months if m.currency == currency]
         return {"title": self.entry.title, "measure": "sales", "valueFormat": "currency", "data": data}
 
 
@@ -97,7 +96,7 @@ class HighValueOrdersWidget:
         self.source = source
         self.entry = entry
 
-    def props(self, today: date) -> dict:
+    def props(self, today: date, currency: str) -> dict:
         orders = GetRecentHighValueOrders(self.source).execute(HIGH_VALUE_MINIMUM, TOP)
         return {
             "title": self.entry.title,
@@ -110,7 +109,7 @@ class HighValueOrdersWidget:
             "rows": [
                 {"order": o.order, "customer": o.customer_name, "status": ORDER_STATUS.get(o.status, o.status), "amount": float(o.net_amount)}
                 for o in orders
-                if o.currency == CURRENCY
+                if o.currency == currency
             ],
         }
 
@@ -120,9 +119,9 @@ class TopCustomersWidget:
         self.source = source
         self.entry = entry
 
-    def props(self, today: date) -> dict:
+    def props(self, today: date, currency: str) -> dict:
         ranked = GetTopCustomers(self.source).execute(today, TOP)
-        items = [{"label": r.name, "value": float(r.net_amount)} for r in ranked if r.currency == CURRENCY]
+        items = [{"label": r.name, "value": float(r.net_amount)} for r in ranked if r.currency == currency]
         return {"title": self.entry.title, "measure": "sales", "valueFormat": "currency", "items": items}
 
 
@@ -131,9 +130,9 @@ class TopMaterialsWidget:
         self.source = source
         self.entry = entry
 
-    def props(self, today: date) -> dict:
+    def props(self, today: date, currency: str) -> dict:
         ranked = GetTopMaterials(self.source).execute(today, TOP)
-        items = [{"label": r.description, "value": float(r.net_amount)} for r in ranked if r.currency == CURRENCY]
+        items = [{"label": r.description, "value": float(r.net_amount)} for r in ranked if r.currency == currency]
         return {"title": self.entry.title, "measure": "sales", "valueFormat": "currency", "items": items}
 
 
@@ -142,9 +141,9 @@ class DaySalesWidget:
         self.source = source
         self.entry = entry
 
-    def props(self, today: date) -> dict:
+    def props(self, today: date, currency: str) -> dict:
         this_month, last_month = month_periods(today)[0][0], month_periods(today)[1][0]
-        totals = {row.date: float(row.net_amount) for row in self.source.daily_sales(last_month, today) if row.currency == CURRENCY}
+        totals = {row.date: float(row.net_amount) for row in self.source.daily_sales(last_month, today) if row.currency == currency}
 
         def points(first: date, last: date) -> list[dict]:
             return [{"label": str(day), "value": totals.get(first.replace(day=day), 0.0)} for day in range(1, last.day + 1)]
@@ -167,8 +166,8 @@ class MonthTargetWidget:
         self.entry = entry
         self.target = target
 
-    def props(self, today: date) -> dict:
-        now, _ = sales_in(self.source, month_periods(today)[0])
+    def props(self, today: date, currency: str) -> dict:
+        now, _ = sales_in(self.source, month_periods(today)[0], currency)
         return {"title": self.entry.title, "measure": "sales", "value": float(now), "target": float(self.target), "valueFormat": "currency", "caption": "this month"}
 
 
@@ -177,7 +176,7 @@ class StatusSplitWidget:
         self.source = source
         self.entry = entry
 
-    def props(self, today: date) -> dict:
+    def props(self, today: date, currency: str) -> dict:
         counts: dict[str, int] = {}
         for row in self.source.order_statuses(today.replace(day=1), today):
             counts[row.status] = counts.get(row.status, 0) + 1
@@ -201,14 +200,17 @@ class SalesWidgetCatalog(WidgetCatalog):
         self.month_target = month_target
         self.widgets = self.build(source)
 
+    def for_companies(self, companies: tuple[str, ...]) -> "SalesWidgetCatalog":
+        return SalesWidgetCatalog(self.source.for_companies(companies), self.month_target)
+
     def build(self, source: SalesSource) -> list:
-        def daily_trend(today: date) -> list[float]:
-            totals = {row.date: float(row.net_amount) for row in source.daily_sales(today - timedelta(days=6), today) if row.currency == CURRENCY}
+        def daily_trend(today: date, currency: str) -> list[float]:
+            totals = {row.date: float(row.net_amount) for row in source.daily_sales(today - timedelta(days=6), today) if row.currency == currency}
             return [totals.get(today - timedelta(days=back), 0.0) for back in range(6, -1, -1)]
 
-        def monthly_trend(today: date) -> list[float]:
+        def monthly_trend(today: date, currency: str) -> list[float]:
             months = GetMonthOnMonthSales(source).execute(today, 6)
-            return [float(m.net_amount) for m in months if m.currency == CURRENCY]
+            return [float(m.net_amount) for m in months if m.currency == currency]
 
         today_entry = entry("sales-today", "Sales today", "Net sales invoiced today against yesterday.", "Sales", "KpiCard")
         month_entry = entry("sales-month", "Sales this month", "Net sales since the 1st of this month against the same days last month.", "Sales", "KpiCard")
@@ -230,8 +232,8 @@ class SalesWidgetCatalog(WidgetCatalog):
     def entries(self) -> list[CatalogEntry]:
         return [widget.entry for widget in self.widgets]
 
-    def data(self, entry_id: str, today: date) -> dict:
+    def data(self, entry_id: str, today: date, currency: str) -> dict:
         for widget in self.widgets:
             if widget.entry.id == entry_id:
-                return widget.props(today)
+                return {**widget.props(today, currency), "currency": currency}
         raise CatalogEntryNotFound(entry_id)

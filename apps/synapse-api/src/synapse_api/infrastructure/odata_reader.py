@@ -36,3 +36,9 @@ class ODataReader:
             return body["value"], "@odata.nextLink" in body
         except (ValueError, KeyError, TypeError) as error:
             raise SapUnavailable("unreadable body") from error
+
+
+def company_clause(field: str, companies: tuple[str, ...] | None) -> str:
+    if companies is None:
+        return ""
+    return "%20and%20(" + "%20or%20".join(f"{field}%20eq%20'{code}'" for code in companies) + ")"

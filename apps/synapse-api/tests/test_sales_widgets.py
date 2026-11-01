@@ -20,8 +20,8 @@ def make_catalog(**rows) -> SalesWidgetCatalog:
     return SalesWidgetCatalog(MockSalesSource(**rows), Decimal(1000))
 
 
-def data(catalog: SalesWidgetCatalog, entry_id: str) -> dict:
-    return GetWidgetData(catalog).execute(entry_id, TODAY)
+def data(catalog: SalesWidgetCatalog, entry_id: str, currency: str = "INR") -> dict:
+    return GetWidgetData(catalog).execute(entry_id, TODAY, currency)
 
 
 class TestCatalogList:
@@ -66,7 +66,7 @@ class TestSalesKpis:
 
     def test_orders_this_month_counts_orders(self):
         props = data(make_catalog(daily=[day(date(2026, 10, 1), "1", count=4), day(TODAY, "1", count=3)]), "orders-month")
-        assert props == {"title": "Orders this month", "measure": "orders", "value": 7, "caption": "since the 1st"}
+        assert props == {"title": "Orders this month", "measure": "orders", "value": 7, "caption": "since the 1st", "currency": "INR"}
 
 
 class TestSalesCharts:

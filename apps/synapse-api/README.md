@@ -18,6 +18,9 @@ source = ButterflySalesSource(Settings())
 rows = source.daily_sales(date(2026, 10, 1), date(2026, 10, 27))
 ```
 
+## Company scope and currency
+Every read route takes `company` (`sabinsa`, `neutraceuticals`, `organica` or `all`, default `all`). `all` means every company in the user's token; a company the user does not have is `403 COMPANY_NOT_ALLOWED`, an unknown one is `422`, and a user with no companies gets `403`. The scope becomes a `CompanyCode` filter on every butterfly read through `for_companies(...)` on the sources and the catalog. Catalog data takes `currency` (default `DEFAULT_CURRENCY`, `USD`) and says which currency it shows; amounts of different currencies are never added.
+
 ## Test
 ```
 uv run --package synapse-api --with pytest pytest apps/synapse-api -v

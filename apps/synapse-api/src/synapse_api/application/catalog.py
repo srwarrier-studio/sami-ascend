@@ -16,5 +16,5 @@ class GetWidgetData:
     def __init__(self, catalog: WidgetCatalog):
         self.catalog = catalog
 
-    def execute(self, entry_id: str, today: date) -> dict:
-        return self.catalog.data(entry_id, today)
+    def execute(self, entry_id: str, today: date, currency: str) -> dict:
+        return self.catalog.data(entry_id, today, currency)

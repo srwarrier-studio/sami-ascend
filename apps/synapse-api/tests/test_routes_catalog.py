@@ -41,9 +41,10 @@ class TestCatalog:
         }
 
     def test_serves_a_sales_widgets_props(self):
-        response = make_client(MockSalesSource(DAILY), ["management"]).get(f"{BASE}/sales-today/data")
+        response = make_client(MockSalesSource(DAILY), ["management"]).get(f"{BASE}/sales-today/data?currency=INR")
         assert response.status_code == 200
         assert response.json()["value"] == 30.5
+        assert response.json()["currency"] == "INR"
         assert response.json()["valueFormat"] == "currency"
 
     def test_serves_a_library_widgets_props(self):
@@ -68,3 +69,29 @@ class TestCache:
         clock.now = 301
         client.get(f"{BASE}/top-customers/data")
         assert source.calls > calls
+
+
+class TestCurrency:
+    def widget(self, query: str = "", daily=None):
+        return make_client(MockSalesSource(daily or DAILY), ["management"]).get(f"{BASE}/sales-today/data{query}")
+
+    def test_the_default_currency_is_dollars_and_the_widget_names_it(self):
+        assert self.widget().json()["currency"] == "USD"
+
+    def test_a_widget_shows_only_the_asked_currency(self):
+        from test_sales_widgets import day
+
+        daily = [day(TODAY, "30.5", currency="INR"), day(TODAY, "7.25", currency="USD")]
+        assert self.widget("?currency=USD", daily).json()["value"] == 7.25
+        assert self.widget("?currency=inr", daily).json()["value"] == 30.5
+
+    @pytest.mark.parametrize("bad", ["US", "USDX", "12$"])
+    def test_a_bad_currency_is_422(self, bad):
+        assert self.widget(f"?currency={bad}").status_code == 422
+
+    def test_each_currency_is_cached_on_its_own(self):
+        from test_sales_widgets import day
+
+        source = MockSalesSource([day(TODAY, "30.5", currency="INR"), day(TODAY, "7.25", currency="USD")])
+        http = make_client(source, ["management"])
+        assert [http.get(f"{BASE}/sales-today/data?currency={c}").json()["value"] for c in ("USD", "INR", "USD")] == [7.25, 30.5, 7.25]
