@@ -16,7 +16,7 @@ The research facility does not allow external or cloud AI, and nothing is sent t
 | 2. Tell me | "What are the sales for August?" | metric and period from the question, a real figure, a sentence, a trend chart | done (sami-agents 03) |
 | 3. Why | "Why did sales drop in August?" | find where the change is, traverse the related things for what happened there, rank by effect, explain with evidence | this document |
 
-A level 3 answer looks like: "Sales fell 14.5% from July to August (₹75.7 lakh to ₹64.8 lakh). About ₹8.8 lakh of the fall is Acme Industries, whose sales contract ended on 12 July and was not renewed until 14 September. About ₹4.1 lakh is Steel plate 5mm sold to other customers: Doosan Metals delivered Steel coil 12 days late (promised 14 July, delivered 26 July), which delayed production order 0001000417 by 14 days. The other customers together bought about ₹2.0 lakh more, which offsets part of it."
+A level 3 answer looks like: "Sales fell 14.5% from July to August ($94.7k to $80.9k). About $11.0k of the fall is Harborline Nutrition LLC, whose sales contract ended on 12 July and was not renewed until 14 September. About $5.2k is Piperine extract 95% sold to other customers: Deccan Agro Growers Cooperative delivered Black pepper, whole 12 days late (promised 14 July, delivered 26 July), which delayed production order 0001000417 by 14 days. The other customers together bought about $2.5k more, which offsets part of it."
 
 ## 2. Principles
 
@@ -35,7 +35,7 @@ A graph suits questions about *relationships* and does nothing for questions abo
 | **Metric layer** | "sales for August", "top five customers", "this month against last", "where did the change come from" (split by customer, material, month; volume against price) | grouping and comparing over the sales data, in synapse-api; no graph |
 | **Entity graph** | "why did it happen", "what does X affect", "what depends on what" | traversal over related things across systems |
 
-The metric layer finds *where* a change is (Acme fell, Steel plate fell). The graph explains *why it happened there*.
+The metric layer finds *where* a change is (Harborline fell, Piperine extract fell). The graph explains *why it happened there*.
 
 ### The entity graph
 
@@ -77,8 +77,8 @@ join = { Customer = "SoldToParty", Contract = "SoldToParty" }
 | Mode | Question | Start | Direction |
 |------|----------|-------|-----------|
 | Root cause | "why did sales fall in August" | the biggest movers from the metric layer | upstream, through anomalous nodes only |
-| Impact | "what did Doosan's late delivery affect" | a node with an anomaly | downstream |
-| Dependency | "which suppliers feed what Acme buys" | any node | either way, no time window |
+| Impact | "what did Deccan Agro's late delivery affect" | a node with an anomaly | downstream |
+| Dependency | "which suppliers feed what Harborline buys" | any node | either way, no time window |
 
 How the root-cause walk goes:
 
@@ -128,7 +128,7 @@ Butterfly serves several scenarios, each with a written ground truth (the causes
 
 | Scenario | What happened | Right answer |
 |----------|--------------|--------------|
-| `august-contract` (the first story, section 7) | contract expired, supplier late, production late | Acme's contract; steel shortage through production and supplier; offset by growth elsewhere |
+| `august-contract` (the first story, section 7) | contract expired, supplier late, production late | Harborline's contract; pepper shortage through production and supplier; offset by growth elsewhere |
 | `price-cut` | a product's price is cut, volume unchanged | the metric layer shows price, not volume; no event explains it |
 | `supplier-no-effect` | late delivery and late production, but sales do not move | no sales drop; if asked about impact, production was delayed and no sales effect is found |
 | `customer-lost` | a customer stops ordering with its contract still valid | the customer is the biggest mover; no cause found in the data |
@@ -140,24 +140,26 @@ An evaluation run reports causes found, causes invented and causes missed, and r
 
 ## 7. The first scenario, `august-contract` (butterfly 08)
 
+> Data note (butterfly 12): the story belongs to company `INA1` (Sami-Sabinsa), whose customers all buy in USD, so the figures here are in dollars. The other two group companies are quiet and add their own sales, so a group total moves by smaller percentages; read the story with `CompanyCode eq 'INA1'`.
+
 "Why did sales drop in August 2026?" The data is built, with fixed arithmetic and no random numbers, so the correct answer is known. These figures are measured from the data and pinned by tests (`apps/butterfly/tests/test_story_ground_truth.py`).
 
 | Factor | What the data says |
 |--------|-------------------|
-| The fall | July ₹75.7 lakh, August ₹64.8 lakh: ₹11.0 lakh or 14.5% lower. Normal months are about ₹90 lakh, and July is already 13.6% below June |
-| Customer contract | Acme Industries (the biggest customer, about 21% of sales) has contract `0040000127`, valid to 2026-07-12, renewed only from 2026-09-14 by `0040000163`. Its orders stop on 12 July except a few small spot orders. Acme: ₹9.0 lakh in July, ₹0.2 lakh in August, which is **₹8.8 lakh, 80% of the fall** |
-| Supplier delay | Doosan Metals delivered Steel coil on purchase order `4500001207` on 2026-07-26, promised 2026-07-14: 12 days late |
-| Production delay | Production order `0001000417` for Steel plate 5mm (`RM-1002`) was planned 2026-07-06 to 2026-07-20 and finished 2026-08-03 (14 days late), reason `MATERIAL_SHORTAGE`, component Steel coil |
-| Effect on sales | From 2026-07-20 to 2026-08-31 the other customers order Steel plate 5mm about 40% less. Steel plate sales to them: ₹7.5 lakh in July, ₹3.4 lakh in August, which is **₹4.1 lakh, 38% of the fall** |
-| Offset | The other customers' remaining sales are about ₹2.0 lakh higher in August than in July: **-18%** of the fall. A good answer reports it |
-| Recovery | September is back to ₹79.9 lakh and October to ₹90.9 lakh |
+| The fall | July $94.7k, August $80.9k: $13.7k or 14.5% lower. Normal months are about $112k, and July is already 13.6% below June |
+| Customer contract | Harborline Nutrition LLC (the biggest customer, about 12% of sales in July) has contract `0040000127`, valid to 2026-07-12, renewed only from 2026-09-14 by `0040000163`. Its orders stop on 12 July except a few small spot orders. Harborline: $11.3k in July, $0.3k in August, which is **$11.0k, 80% of the fall** |
+| Supplier delay | Deccan Agro Growers Cooperative delivered Black pepper, whole on purchase order `4500001207` on 2026-07-26, promised 2026-07-14: 12 days late |
+| Production delay | Production order `0001000417` for Piperine extract 95% (`RM-1002`) was planned 2026-07-06 to 2026-07-20 and finished 2026-08-03 (14 days late), reason `MATERIAL_SHORTAGE`, component Black pepper, whole |
+| Effect on sales | From 2026-07-20 to 2026-08-31 the other customers order Piperine extract 95% about 40% less. Piperine sales to them: $9.4k in July, $4.2k in August, which is **$5.2k, 38% of the fall** |
+| Offset | The other customers' remaining sales are about $2.5k higher in August than in July: **-18%** of the fall. A good answer reports it |
+| Recovery | September is back to $99.9k and October to $113.6k |
 
-The three parts are additive: Acme 80% + steel shortage 38% + offset (-18%) = 100%. They are not the same as "sales by customer" and "sales by material", which overlap (Acme's lost orders include steel plate).
+The three parts are additive: Harborline 80% + pepper shortage 38% + offset (-18%) = 100%. They are not the same as "sales by customer" and "sales by material", which overlap (Harborline's lost orders include piperine).
 
 Two decoys test that the agent does not blame everything it finds:
 
-- Kalyani Wire Industries delivered Copper rod 4 days late in May (`4500001196`); copper wire sales in May are normal.
-- Production order `0001000408` for Bearing 6204 finished 6 days late in May for `MACHINE_BREAKDOWN`; bearing sales in May are normal.
+- Malnad Botanicals Pvt Ltd delivered Frankincense resin 4 days late in May (`4500001196`); Boswellia extract sales in May are normal.
+- Production order `0001000408` for Probiotic capsule 10B CFU finished 6 days late in May for `MACHINE_BREAKDOWN`; probiotic capsule sales in May are normal.
 
 Every other delivery is within 2 days of its promise and every other production order finished on time. As of 2026-10-31 next month's purchase orders are open and next month's production orders are running.
 

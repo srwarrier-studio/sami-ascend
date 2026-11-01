@@ -29,21 +29,21 @@ curl "http://localhost:8003/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdriv
 ```
 
 ## Seeds
-`BUTTERFLY_SEED=story` (the default) serves 14 months of sales (about 1,360 orders from 2025-09-01 to today) plus contracts, purchase deliveries, production orders and components, built so that sales fall in August 2026 for known reasons: Harborline Nutrition LLC' contract ended on 12 July and was not renewed until 14 September, and Doosan Metals delivered Black pepper, whole 12 days late, which delayed Steel plate production. Two events (a late copper rod delivery and a bearing machine breakdown, both in May) did not affect sales. The story is described in `docs/ai-analysis.md` section 7 and pinned by `tests/test_story_ground_truth.py`. `BUTTERFLY_SEED=small` serves the old 30 orders and an empty drivers service; anything else stops the start with a message. New orders continue after the last seeded number.
+`BUTTERFLY_SEED=story` (the default) serves 14 months of data (about 4,100 orders from 2025-09-01 to today) for the three group companies `INA1` (Sami-Sabinsa Group, herbal extracts, exports in USD), `INA2` (Sami Nutraceuticals, probiotics and finished products, USD and INR) and `INA3` (Organica Aromatics, aroma chemicals, USD and INR), each with its own customers, products, suppliers and numbers, plus contracts, invoices, purchase deliveries, production orders and components. The story and every scenario event belong to `INA1`; the other two companies stay quiet. In the story, sales of `INA1` fall in August 2026 for known reasons: Harborline Nutrition LLC's contract ended on 12 July and was not renewed until 14 September, and Deccan Agro Growers Cooperative delivered Black pepper, whole 12 days late, which delayed Piperine extract 95% production. Two events (a late Frankincense resin delivery and a Probiotic capsule machine breakdown, both in May) did not affect sales. Amounts are in each customer's currency (`USD` or `INR`) and every row has a `CompanyCode`; read one company with `$filter=CompanyCode eq 'INA1'`. The story is described in `docs/ai-analysis.md` section 7 and pinned by `tests/test_story_ground_truth.py`. `BUTTERFLY_SEED=small` serves the old 30 orders and an empty drivers service; anything else stops the start with a message. New orders continue after the last seeded number.
 
 ## Scenarios
 `BUTTERFLY_SCENARIO` chooses the story served with `BUTTERFLY_SEED=story` (default `august-contract`); an unknown name stops the start with the list. Each scenario is a set of events applied to the same 14-month base history (`domain/entities/scenario.py`, list in `infrastructure/memory/scenarios.py`) and has a written ground truth in `scenarios/<name>.json`: month to ask about, expected change ranges, causes that must be found (with keys), things that must not be blamed, and whether anything stays unexplained.
 
 | Name | What happens | Ground truth |
 |------|--------------|--------------|
-| `august-contract` | the story above | Acme's contract `0040000127`, the late steel coil `4500001207` and production order `0001000417`; the May decoys are not to blame |
+| `august-contract` | the story above | Harborline's contract `0040000127`, the late Black pepper, whole delivery `4500001207` and production order `0001000417`; the May decoys are not to blame |
 | `price-cut` | Curcumin extract 95% price down 15% from 2026-08-01 | value falls on that product, volume does not; no contract, supply or production event |
-| `supplier-no-effect` | Black pepper, whole 12 days late and Steel plate production 14 days late in July, orders unchanged | no drop; the delays exist and have no effect |
-| `customer-lost` | Lakeshore Supplements Inc stops ordering from 2026-08-10, contract still valid | Eastern is the biggest mover; nothing explains it |
-| `breakdown-shortfall` | Probiotic capsule 10B CFU production 10 days late in July (`MACHINE_BREAKDOWN`), half the bearing orders of Bharat, Cauvery and Deccan missing until 2026-08-15 | production order `0001000420`; no supplier delay |
+| `supplier-no-effect` | Black pepper, whole 12 days late and Piperine extract 95% production 14 days late in July, orders unchanged | no drop; the delays exist and have no effect |
+| `customer-lost` | Lakeshore Supplements Inc stops ordering from 2026-08-10, contract still valid | Lakeshore is the biggest mover; nothing explains it |
+| `breakdown-shortfall` | Probiotic capsule 10B CFU production 10 days late in July (`MACHINE_BREAKDOWN`), half the Probiotic capsule 10B CFU orders of Eurovita, Nordic and Pacific missing until 2026-08-15 | production order `0001000420`; no supplier delay |
 | `quiet-month` | nothing | no month more than 5% from normal |
-| `two-causes` (held back) | Deccan's contract ends 2026-07-20; Frankincense resin 10 days late with copper wire orders halved | contract `0040000152` and delivery `4500001208`, each tied to its own customer or product |
-| `cancellations` (held back) | Cauvery cancels 40% of its August orders | the cancelled orders, not a contract or supply event |
+| `two-causes` (held back) | Pacific's contract ends 2026-07-20; Frankincense resin 10 days late with Boswellia extract 65% orders halved | contract `0040000152` and delivery `4500001208`, each tied to its own customer or product |
+| `cancellations` (held back) | Nordic cancels 40% of its August orders | the cancelled orders, not a contract or supply event |
 
 Purchase scenarios (ground truth has `"metric": "purchases"`; a purchase counts in the month it was ordered, and orders are placed about the 24th of the month before delivery):
 
@@ -51,7 +51,7 @@ Purchase scenarios (ground truth has `"metric": "purchases"`; a purchase counts 
 |------|--------------|--------------|
 | `purchase-price-rise` | Black pepper, whole price +20% on orders from 2026-08-01 | August value up on that material by price; quantity unchanged |
 | `stock-up` | Frankincense resin ordered 1.6 times in September | September value up by quantity on Frankincense resin; price unchanged; nothing in the data says why |
-| `demand-surge` | Steel plate sales +35% from 2026-06-15, flowing to production plans from July and to Black pepper, whole orders from August | August purchases up through Black pepper, whole quantity; the chain is sales, production order, component, purchase |
+| `demand-surge` | Piperine extract 95% sales +35% from 2026-06-15, flowing to production plans from July and to Black pepper, whole orders from August | August purchases up through Black pepper, whole quantity; the chain is sales, production order, component, purchase |
 | `quiet-purchases` | nothing | no month more than 5% from normal |
 | `supplier-switch` (held back) | Gelatin capsule shells moves from Pack-Rite Industries Pvt Ltd to Malnad Botanicals Pvt Ltd at +15% from October | October: one supplier lost, one gained, price up on Gelatin capsule shells |
 | `double-cause` (held back) | Withania root, dried price +25% and Laminate film for sachets quantity x1.5 in September | both found, each tied to its own material |

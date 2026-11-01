@@ -33,7 +33,7 @@ from butterfly.infrastructure.memory.seed import USERS
 STORY_START = date(2025, 9, 1)
 
 SPOT_EVERY = 10
-ACME_WEIGHT = Decimal("1")
+STORY_CUSTOMER_WEIGHT = Decimal("1")
 OTHER_WEIGHT = Decimal("0.95")
 CANCEL_EVERY = 16
 NORMAL_WORKING_DAYS = 22
@@ -225,7 +225,7 @@ def build_order(sequence: int, index: int, day: date, customer_index: int, copy:
 def build_item(number: str, position: int, material: tuple, index: int, customer_index: int, step: int, spot: bool, factor: Decimal, price_change: Decimal, growth: Decimal, company: CompanyProfile, currency: str) -> SalesOrderItem:
     material_id, description, unit, price = material
     steps = Decimal(10 * (1 + (index + customer_index + step) % 5))
-    quantity = (steps * company.quantity_factor[company.materials.index(material)] * factor * growth * (Decimal("0.5") if spot else 1) * (ACME_WEIGHT if customer_index == 0 else OTHER_WEIGHT)).quantize(Decimal("0.001"))
+    quantity = (steps * company.quantity_factor[company.materials.index(material)] * factor * growth * (Decimal("0.5") if spot else 1) * (STORY_CUSTOMER_WEIGHT if customer_index == 0 else OTHER_WEIGHT)).quantize(Decimal("0.001"))
     return SalesOrderItem(
         sales_order=number,
         sales_order_item=f"{(position + 1) * 10:06d}",

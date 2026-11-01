@@ -18,7 +18,7 @@ REPO = InMemoryDriverRepo(invoices=SEED.invoices)
 
 
 def invoice(number, amount, invoice_date, due, cleared=None, currency="INR", customer="0000100001"):
-    return CustomerInvoice(number, customer, "Acme", invoice_date, due, Decimal(amount), currency, Decimal(amount) if cleared else Decimal("0.00"), cleared)
+    return CustomerInvoice(number, customer, "Harborline", invoice_date, due, Decimal(amount), currency, Decimal(amount) if cleared else Decimal("0.00"), cleared)
 
 
 def repo_of(*invoices):

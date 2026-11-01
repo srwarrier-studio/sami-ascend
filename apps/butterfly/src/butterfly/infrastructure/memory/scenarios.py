@@ -15,80 +15,80 @@ from butterfly.domain.entities.scenario import (
     SupplyDelay,
 )
 
-ACME, BHARAT, CAUVERY, DECCAN, EASTERN = range(5)
+HARBORLINE, EUROVITA, NORDIC, PACIFIC, LAKESHORE = range(5)
 
-STEEL_ROD = "RM-1001"
-STEEL_PLATE = "RM-1002"
-COPPER_WIRE = "RM-1003"
-BEARING = "RM-1005"
-STEEL_COIL = "RAW-2002"
-COPPER_ROD = "RAW-2003"
-ALUMINIUM_INGOT = "RAW-2004"
-BEARING_STEEL = "RAW-2005"
-WIRE_ROD = "RAW-2006"
-KALYANI = 1
+CURCUMIN = "RM-1001"
+PIPERINE = "RM-1002"
+BOSWELLIA = "RM-1003"
+PROBIOTIC_CAPSULE = "RM-1005"
+BLACK_PEPPER = "RAW-2002"
+FRANKINCENSE = "RAW-2003"
+WITHANIA_ROOT = "RAW-2004"
+CAPSULE_SHELLS = "RAW-2005"
+LAMINATE_FILM = "RAW-2006"
+MALNAD = 1
 
 JULY = date(2026, 7, 1)
 MAY = date(2026, 5, 1)
 
-STEEL_PLATE_DELAYS = (
-    SupplyDelay(STEEL_COIL, JULY, 12, Drop(STEEL_PLATE, date(2026, 7, 20), date(2026, 8, 31), 3, 5)),
-    ProductionDelay(STEEL_PLATE, JULY, 14, "MATERIAL_SHORTAGE"),
+PIPERINE_DELAYS = (
+    SupplyDelay(BLACK_PEPPER, JULY, 12, Drop(PIPERINE, date(2026, 7, 20), date(2026, 8, 31), 3, 5)),
+    ProductionDelay(PIPERINE, JULY, 14, "MATERIAL_SHORTAGE"),
 )
 
 MAY_DECOYS = (
-    SupplyDelay(COPPER_ROD, MAY, 4),
-    ProductionDelay(BEARING, MAY, 6, "MACHINE_BREAKDOWN"),
+    SupplyDelay(FRANKINCENSE, MAY, 4),
+    ProductionDelay(PROBIOTIC_CAPSULE, MAY, 6, "MACHINE_BREAKDOWN"),
 )
 
 AUGUST_CONTRACT = Scenario(
     "august-contract",
     (
-        ContractEnd(ACME, date(2026, 7, 12), date(2026, 9, 14), "0040000163", spot=True),
-        *STEEL_PLATE_DELAYS,
+        ContractEnd(HARBORLINE, date(2026, 7, 12), date(2026, 9, 14), "0040000163", spot=True),
+        *PIPERINE_DELAYS,
         *MAY_DECOYS,
     ),
 )
 
 SCENARIOS = [
     AUGUST_CONTRACT,
-    Scenario("price-cut", (PriceChange(STEEL_ROD, "0.85", date(2026, 8, 1)),)),
+    Scenario("price-cut", (PriceChange(CURCUMIN, "0.85", date(2026, 8, 1)),)),
     Scenario(
         "supplier-no-effect",
         (
-            SupplyDelay(STEEL_COIL, JULY, 12),
-            ProductionDelay(STEEL_PLATE, JULY, 14, "MATERIAL_SHORTAGE"),
+            SupplyDelay(BLACK_PEPPER, JULY, 12),
+            ProductionDelay(PIPERINE, JULY, 14, "MATERIAL_SHORTAGE"),
         ),
     ),
-    Scenario("customer-lost", (CustomerLoss(EASTERN, date(2026, 8, 10)),)),
+    Scenario("customer-lost", (CustomerLoss(LAKESHORE, date(2026, 8, 10)),)),
     Scenario(
         "breakdown-shortfall",
-        (ProductionDelay(BEARING, JULY, 10, "MACHINE_BREAKDOWN", Drop(BEARING, date(2026, 7, 20), date(2026, 8, 15), 1, 2, (BHARAT, CAUVERY, DECCAN))),),
+        (ProductionDelay(PROBIOTIC_CAPSULE, JULY, 10, "MACHINE_BREAKDOWN", Drop(PROBIOTIC_CAPSULE, date(2026, 7, 20), date(2026, 8, 15), 1, 2, (EUROVITA, NORDIC, PACIFIC))),),
     ),
     Scenario("quiet-month", ()),
     Scenario(
         "two-causes",
         (
-            ContractEnd(DECCAN, date(2026, 7, 20)),
-            SupplyDelay(COPPER_ROD, JULY, 10, Drop(COPPER_WIRE, date(2026, 7, 20), date(2026, 8, 31), 1, 2, (ACME, BHARAT, CAUVERY, EASTERN))),
+            ContractEnd(PACIFIC, date(2026, 7, 20)),
+            SupplyDelay(FRANKINCENSE, JULY, 10, Drop(BOSWELLIA, date(2026, 7, 20), date(2026, 8, 31), 1, 2, (HARBORLINE, EUROVITA, NORDIC, LAKESHORE))),
         ),
         holdout=True,
     ),
     Scenario(
         "cancellations",
-        (Cancellations(CAUVERY, 2, 5, date(2026, 8, 1), date(2026, 8, 31)),),
+        (Cancellations(NORDIC, 2, 5, date(2026, 8, 1), date(2026, 8, 31)),),
         holdout=True,
     ),
-    Scenario("purchase-price-rise", (PurchasePriceChange(STEEL_COIL, "1.2", date(2026, 8, 1)),)),
-    Scenario("stock-up", (PurchaseQuantityChange(COPPER_ROD, "1.6", date(2026, 9, 1), date(2026, 9, 30)),)),
-    Scenario("demand-surge", (DemandGrowth(STEEL_PLATE, "1.35", date(2026, 6, 15)),)),
+    Scenario("purchase-price-rise", (PurchasePriceChange(BLACK_PEPPER, "1.2", date(2026, 8, 1)),)),
+    Scenario("stock-up", (PurchaseQuantityChange(FRANKINCENSE, "1.6", date(2026, 9, 1), date(2026, 9, 30)),)),
+    Scenario("demand-surge", (DemandGrowth(PIPERINE, "1.35", date(2026, 6, 15)),)),
     Scenario("quiet-purchases", ()),
-    Scenario("supplier-switch", (SupplierSwitch(BEARING_STEEL, KALYANI, "1.15", date(2026, 10, 1)),), holdout=True),
+    Scenario("supplier-switch", (SupplierSwitch(CAPSULE_SHELLS, MALNAD, "1.15", date(2026, 10, 1)),), holdout=True),
     Scenario(
         "double-cause",
         (
-            PurchasePriceChange(ALUMINIUM_INGOT, "1.25", date(2026, 9, 1)),
-            PurchaseQuantityChange(WIRE_ROD, "1.5", date(2026, 9, 1), date(2026, 9, 30)),
+            PurchasePriceChange(WITHANIA_ROOT, "1.25", date(2026, 9, 1)),
+            PurchaseQuantityChange(LAMINATE_FILM, "1.5", date(2026, 9, 1), date(2026, 9, 30)),
         ),
         holdout=True,
     ),

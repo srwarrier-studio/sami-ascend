@@ -88,7 +88,7 @@ class TestEveryEntity:
         response = get(f"{entity}?$select=Nope")
         assert response.status_code == 400 and response.json()["error"]["code"]
 
-    @pytest.mark.parametrize("option", ["$expand=_Item", "$apply=groupby((Material))", "$search=steel", "$levels=2"])
+    @pytest.mark.parametrize("option", ["$expand=_Item", "$apply=groupby((Material))", "$search=turmeric", "$levels=2"])
     def test_options_the_contract_does_not_support_are_a_400(self, entity, option):
         response = get(f"{entity}?{option}")
         assert response.status_code == 400
