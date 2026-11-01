@@ -1,0 +1,17 @@
+[domain.Sales]
+description = "sales orders, revenue, customers"
+
+[domain.Purchase]
+description = "purchases, spend, suppliers, vendors"
+
+[domain.Finance]
+description = "receivables, payments, overdue, cash"
+
+[domain.Inventory]
+description = "stock, warehouses, reorder"
+
+[domain.Exports]
+description = "export shipments, destinations"
+
+[domain.Production]
+description = "production, machines, scrap, output"
