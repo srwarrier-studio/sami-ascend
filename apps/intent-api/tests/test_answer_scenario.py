@@ -136,10 +136,20 @@ class TestTrend:
         answer(source, "trend", LAST_YEAR)
         assert source.calls[0][3:] == (date(2025, 12, 1), 12)
 
-    def test_a_running_month_ends_the_trend_at_this_month(self):
+    def test_a_running_month_ends_the_trend_at_the_last_finished_month(self):
         source = FakeMetricSource(months=[figure()])
         answer(source, "trend", THIS_MONTH)
-        assert source.calls[0][3:] == (date(2026, 11, 1), 6)
+        assert source.calls[0][3:] == (date(2026, 10, 1), 6)
+
+    def test_this_year_ends_the_trend_at_the_last_finished_month(self):
+        source = FakeMetricSource(months=[figure()])
+        answer(source, "trend", ReadPeriod().execute("this year", TODAY))
+        assert source.calls[0][3:] == (date(2026, 10, 1), 12)
+
+    def test_a_running_january_ends_the_trend_in_december(self):
+        source = FakeMetricSource(months=[figure()])
+        answer(source, "trend", ReadPeriod().execute("this month", date(2027, 1, 10)))
+        assert source.calls[0][3:] == (date(2026, 12, 1), 6)
 
     def test_two_currencies_give_two_charts(self):
         source = FakeMetricSource(months=[figure("INR"), figure("USD")])
