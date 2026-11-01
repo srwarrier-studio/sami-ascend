@@ -26,7 +26,7 @@ const examples = ['Show top customers and top materials', `${BUILDER} build me a
 
 export function AiPage() {
   const navigate = useNavigate()
-  const { catalog, catalogClient, chatPlanner, agentsClient, intentClient, boardStore } = useRouteContext({ from: '/ai' })
+  const { catalog, catalogClient, chatPlanner, agentsClient, intentClient, boardStore, company } = useRouteContext({ from: '/ai' })
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [building, setBuilding] = useState(false)
@@ -47,7 +47,7 @@ export function AiPage() {
     setText('')
     setMessages((all) => [...all, { from: 'you', text: asked }])
     const forBoard = asked.toLowerCase().startsWith(BUILDER)
-    const reply: IntentReply | null | 'figures_down' = forBoard ? null : await intentClient.answer(asked).catch((error) => (error instanceof IntentDataUnavailable ? 'figures_down' : null))
+    const reply: IntentReply | null | 'figures_down' = forBoard ? null : await intentClient.answer(asked, company).catch((error) => (error instanceof IntentDataUnavailable ? 'figures_down' : null))
     if (reply === 'figures_down') {
       setMessages((all) => [...all, { from: 'ai', text: NO_FIGURES }])
       setBusy(false)
@@ -147,7 +147,7 @@ export function AiPage() {
                     return (
                       entry && (
                         <WidgetCell key={id} widget={entry.widget}>
-                          <CatalogWidget entry={entry} client={catalogClient} />
+                          <CatalogWidget entry={entry} client={catalogClient} company={company} />
                         </WidgetCell>
                       )
                     )
@@ -202,7 +202,7 @@ export function AiPage() {
         size="90%"
         closeButtonProps={{ 'aria-label': 'Close' }}
       >
-        {board && <BoardGrid widgets={buildWidgets(board.catalogIds, catalog)} catalog={catalog} client={catalogClient} editing={false} onChange={() => undefined} />}
+        {board && <BoardGrid widgets={buildWidgets(board.catalogIds, catalog)} catalog={catalog} client={catalogClient} company={company} editing={false} onChange={() => undefined} />}
       </Modal>
       {board && (
         <SaveBoardModal

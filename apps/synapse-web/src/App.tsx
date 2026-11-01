@@ -60,8 +60,19 @@ const defaultUi: UiSettings = { palette: 'midnight', motion: 'full' }
 export default function App({ client, boardStore = defaultBoardStore, chatPlanner = defaultChatPlanner, agentsClient = defaultAgentsClient, intentClient = defaultIntentClient, catalogClient = defaultCatalogClient, boardExporter = defaultBoardExporter, ui = defaultUi, onUiChange = () => undefined, history }: AppProps) {
   const { session, login, logout, retry } = useSession(client)
   const { company, setCompany } = useCompany(session.status === 'signedIn' ? session.user : null)
-  const { state: catalog, retry: retryCatalog } = useCatalog(catalogClient, session.status === 'signedIn')
-  if (session.status === 'loading' || (session.status === 'signedIn' && catalog.status !== 'ready' && catalog.status !== 'failed')) return <SplashScreen mark={<SynapseLogo size={72} />} name={APP_NAME} tagline={TAGLINE} />
+  const { state: catalog, retry: retryCatalog } = useCatalog(catalogClient, session.status === 'signedIn', company)
+  if (session.status === 'loading' || (session.status === 'signedIn' && catalog.status !== 'ready' && catalog.status !== 'failed' && catalog.status !== 'denied')) return <SplashScreen mark={<SynapseLogo size={72} />} name={APP_NAME} tagline={TAGLINE} />
+  if (session.status === 'signedIn' && catalog.status === 'denied')
+    return (
+      <Container py="xl">
+        <Stack align="flex-start">
+          <Alert color="red" title="No access">
+            You do not have access to this company.
+          </Alert>
+          <Button onClick={() => setCompany(session.user.companies[0])}>Choose another company</Button>
+        </Stack>
+      </Container>
+    )
   if (session.status === 'unreachable' || (session.status === 'signedIn' && catalog.status === 'failed'))
     return (
       <Container py="xl">

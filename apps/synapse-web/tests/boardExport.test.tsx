@@ -56,7 +56,7 @@ describe('Export PDF button', () => {
 
   it('does not export while a widget is still loading', async () => {
     const mock = new MockCatalogClient()
-    const exporter = open({ list: () => mock.list(), data: () => new Promise(() => undefined) } as unknown as MockCatalogClient)
+    const exporter = open({ list: () => mock.list(null), data: () => new Promise(() => undefined) } as unknown as MockCatalogClient)
     await userEvent.click(await screen.findByRole('button', { name: 'Export PDF' }))
     expect(exporter.exported).toHaveLength(0)
     expect(await screen.findByText('Widgets are still loading')).toBeInTheDocument()

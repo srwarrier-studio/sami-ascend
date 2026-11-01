@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
+import { CompanyNotAllowed } from './catalogClient'
 import type { CatalogClient, CatalogEntry } from './catalogClient'
 
-export type CatalogState = { status: 'idle' } | { status: 'loading' } | { status: 'failed' } | { status: 'ready'; entries: CatalogEntry[] }
+export type CatalogState = { status: 'idle' } | { status: 'loading' } | { status: 'failed' } | { status: 'denied' } | { status: 'ready'; entries: CatalogEntry[] }
 
-export function useCatalog(client: CatalogClient, enabled: boolean) {
+export function useCatalog(client: CatalogClient, enabled: boolean, company: string | null) {
   const [state, setState] = useState<CatalogState>({ status: 'idle' })
 
   const load = useCallback(() => {
     setState({ status: 'loading' })
-    client.list().then(
+    client.list(company).then(
       (entries) => setState({ status: 'ready', entries }),
-      () => setState({ status: 'failed' }),
+      (error) => setState({ status: error instanceof CompanyNotAllowed ? 'denied' : 'failed' }),
     )
-  }, [client])
+  }, [client, company])
 
   useEffect(() => {
     if (enabled) load()

@@ -6,14 +6,14 @@ type State = { status: 'loading' } | { status: 'failed'; message: string } | { s
 
 export const REFRESH_MS = 300000
 
-export function CatalogWidget({ entry, client, refreshMs = REFRESH_MS }: { entry: CatalogEntry; client: CatalogClient; refreshMs?: number }) {
+export function CatalogWidget({ entry, client, company, refreshMs = REFRESH_MS }: { entry: CatalogEntry; client: CatalogClient; company: string | null; refreshMs?: number }) {
   const [state, setState] = useState<State>({ status: 'loading' })
 
   useEffect(() => {
     let current = true
     const load = () =>
       client
-        .data(entry.id)
+        .data(entry.id, company)
         .then((props) => current && setState({ status: 'ready', props }))
         .catch((error: unknown) => current && setState({ status: 'failed', message: error instanceof Error ? error.message : 'Could not load' }))
     load()
@@ -22,7 +22,7 @@ export function CatalogWidget({ entry, client, refreshMs = REFRESH_MS }: { entry
       current = false
       clearInterval(timer)
     }
-  }, [entry, client, refreshMs])
+  }, [entry, client, company, refreshMs])
 
   if (state.status === 'loading') return <Skeleton height="100%" radius="lg" aria-label={`Loading ${entry.title}`} />
   if (state.status === 'failed') return <Alert color="red" title={entry.title}>{state.message}</Alert>

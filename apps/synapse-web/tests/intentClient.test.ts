@@ -34,9 +34,15 @@ const reply = (overrides: Record<string, unknown> = {}) => ({
 })
 
 describe('asking intent-api for an answer', () => {
+  it('sends the chosen company with the question', async () => {
+    const fetchMock = stub(respond(200, reply()))
+    await new HttpIntentClient().answer('Sales?', 'organica')
+    expect(JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)).toEqual({ question: 'Sales?', company: 'organica' })
+  })
+
   it('posts the question with credentials to the answer route and returns the reading and the blocks', async () => {
     const fetchMock = stub(respond(200, reply()))
-    const result = await new HttpIntentClient().answer('What were sales for August?')
+    const result = await new HttpIntentClient().answer('What were sales for August?', null)
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('http://localhost:8006/v1/intent/answer')
     expect(init.method).toBe('POST')
@@ -48,7 +54,7 @@ describe('asking intent-api for an answer', () => {
 
   it('reads text, table and trend blocks in order, per scenario', async () => {
     stub(respond(200, reply({ answers: [{ scenario: 'sales_top_customers', blocks: [text, table] }, { scenario: 'sales_trend', blocks: [text, trend] }] })))
-    const result = await new HttpIntentClient().answer('x')
+    const result = await new HttpIntentClient().answer('x', null)
     expect(result.answers.map((item) => item.scenario)).toEqual(['sales_top_customers', 'sales_trend'])
     expect(result.answers[0].blocks.map((block) => block.type)).toEqual(['text', 'table'])
     expect(result.answers[1].blocks.map((block) => block.type)).toEqual(['text', 'trend'])
@@ -56,39 +62,39 @@ describe('asking intent-api for an answer', () => {
 
   it('reads a refusal with its reason, the periods and no answers', async () => {
     stub(respond(200, reply({ problem: 'cannot_answer', reason: 'period_not_supported', periods: ['June 2026', 'May 2026'], answers: [] })))
-    expect(await new HttpIntentClient().answer('x')).toMatchObject({ problem: 'cannot_answer', reason: 'period_not_supported', periods: ['June 2026', 'May 2026'], answers: [] })
+    expect(await new HttpIntentClient().answer('x', null)).toMatchObject({ problem: 'cannot_answer', reason: 'period_not_supported', periods: ['June 2026', 'May 2026'], answers: [] })
   })
 
   it.each(['not_answerable_yet', 'not_about_business', 'not_sure', 'no_scenarios', 'nothing_matched'])('accepts the reason %s', async (reason) => {
     stub(respond(200, reply({ problem: 'cannot_answer', reason, answers: [] })))
-    expect((await new HttpIntentClient().answer('x')).reason).toBe(reason)
+    expect((await new HttpIntentClient().answer('x', null)).reason).toBe(reason)
   })
 
   it('treats a 503 with cannot_fetch_now as the figures being unavailable', async () => {
     stub(respond(503, { problem: 'cannot_fetch_now' }))
-    await expect(new HttpIntentClient().answer('sales')).rejects.toBeInstanceOf(IntentDataUnavailable)
+    await expect(new HttpIntentClient().answer('sales', null)).rejects.toBeInstanceOf(IntentDataUnavailable)
   })
 
   it('keeps cannot_classify_now as plain unavailable', async () => {
     stub(respond(503, { problem: 'cannot_classify_now' }))
-    const failure = await new HttpIntentClient().answer('sales').catch((error) => error)
+    const failure = await new HttpIntentClient().answer('sales', null).catch((error) => error)
     expect(failure).toBeInstanceOf(IntentUnavailable)
     expect(failure).not.toBeInstanceOf(IntentDataUnavailable)
   })
 
   it.each([401, 403, 422, 500])('treats status %s as unavailable', async (status) => {
     stub(respond(status, {}))
-    await expect(new HttpIntentClient().answer('sales')).rejects.toBeInstanceOf(IntentUnavailable)
+    await expect(new HttpIntentClient().answer('sales', null)).rejects.toBeInstanceOf(IntentUnavailable)
   })
 
   it('treats a network error as unavailable', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('failed') }))
-    await expect(new HttpIntentClient().answer('sales')).rejects.toBeInstanceOf(IntentUnavailable)
+    await expect(new HttpIntentClient().answer('sales', null)).rejects.toBeInstanceOf(IntentUnavailable)
   })
 
   it('treats a body that is not JSON as unavailable', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>', { status: 200 })))
-    await expect(new HttpIntentClient().answer('sales')).rejects.toBeInstanceOf(IntentUnavailable)
+    await expect(new HttpIntentClient().answer('sales', null)).rejects.toBeInstanceOf(IntentUnavailable)
   })
 })
 
@@ -127,7 +133,7 @@ describe('parseReading', () => {
 describe('MockIntentClient', () => {
   it('records the questions and fails when given an error', async () => {
     const mock = new MockIntentClient(new Error('down'))
-    await expect(mock.answer('x')).rejects.toThrow('down')
+    await expect(mock.answer('x', null)).rejects.toThrow('down')
     expect(mock.calls).toEqual(['x'])
   })
 })

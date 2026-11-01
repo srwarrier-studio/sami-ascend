@@ -180,7 +180,7 @@ describe('refresh', () => {
     const client = { list: vi.fn(), data: dataCall }
     render(
       <UiProvider palette={synapsePalette}>
-        <CatalogWidget entry={fixtureEntries[0]} client={client} refreshMs={40} />
+        <CatalogWidget company={null} entry={fixtureEntries[0]} client={client} refreshMs={40} />
       </UiProvider>,
     )
     expect(await screen.findByText('Ticker')).toBeInTheDocument()

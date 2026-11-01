@@ -28,7 +28,7 @@ export type IntentReply = {
 }
 
 export type IntentClient = {
-  answer: (question: string) => Promise<IntentReply>
+  answer: (question: string, company: string | null) => Promise<IntentReply>
 }
 
 export class IntentUnavailable extends Error {}
@@ -72,14 +72,14 @@ export function parseReply(body: unknown): IntentReply {
 }
 
 export class HttpIntentClient implements IntentClient {
-  async answer(question: string) {
+  async answer(question: string, company: string | null) {
     let response: Response
     try {
       response = await fetch(`${INTENT_URL}/v1/intent/answer`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify(company ? { question, company } : { question }),
         signal: AbortSignal.timeout(TIMEOUT_MS),
       })
     } catch {
@@ -95,13 +95,15 @@ export class HttpIntentClient implements IntentClient {
 export class MockIntentClient implements IntentClient {
   private reply: IntentReply | Error
   calls: string[] = []
+  companies: (string | null)[] = []
 
   constructor(reply: IntentReply | Error = new IntentUnavailable('mock')) {
     this.reply = reply
   }
 
-  async answer(question: string) {
+  async answer(question: string, company: string | null) {
     this.calls.push(question)
+    this.companies.push(company)
     if (this.reply instanceof Error) throw this.reply
     return this.reply
   }

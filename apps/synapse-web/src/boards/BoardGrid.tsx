@@ -11,12 +11,13 @@ type BoardGridProps = {
   widgets: BoardWidget[]
   catalog: CatalogEntry[]
   client: CatalogClient
+  company: string | null
   editing: boolean
   onChange: (widgets: BoardWidget[]) => void
   empty?: ReactNode
 }
 
-export function BoardGrid({ widgets, catalog, client, editing, onChange, empty }: BoardGridProps) {
+export function BoardGrid({ widgets, catalog, client, company, editing, onChange, empty }: BoardGridProps) {
   const [dragging, setDragging] = useState<string | null>(null)
   const [preview, setPreview] = useState<BoardWidget[] | null>(null)
   const shown = preview ?? widgets
@@ -68,7 +69,7 @@ export function BoardGrid({ widgets, catalog, client, editing, onChange, empty }
                 </ActionIcon>
               </div>
             )}
-            <CatalogWidget entry={entry} client={client} />
+            <CatalogWidget entry={entry} client={client} company={company} />
           </WidgetCell>
         )
       })}

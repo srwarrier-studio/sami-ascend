@@ -14,7 +14,7 @@ describe('catalog fixtures', () => {
 
   it.each(fixtures)('$entry.id serves props the registry accepts', async ({ entry }) => {
     expect(registry.names()).toContain(entry.widget)
-    const props = await new MockCatalogClient().data(entry.id)
+    const props = await new MockCatalogClient().data(entry.id, null)
     const { container } = render(<UiProvider palette={synapsePalette}>{registry.render(entry.widget, props)}</UiProvider>)
     expect(container).not.toHaveTextContent('Cannot show widget')
   })
@@ -24,7 +24,7 @@ describe('CatalogWidget', () => {
   it('shows a skeleton, then the widget', async () => {
     render(
       <UiProvider palette={synapsePalette}>
-        <CatalogWidget entry={fixtureEntries[0]} client={new MockCatalogClient()} />
+        <CatalogWidget company={null} entry={fixtureEntries[0]} client={new MockCatalogClient()} />
       </UiProvider>,
     )
     expect(screen.getByLabelText('Loading Sales today')).toBeInTheDocument()
@@ -35,7 +35,7 @@ describe('CatalogWidget', () => {
     const failing = { list: vi.fn(), data: () => Promise.reject(new Error('SAP is not reachable')) }
     render(
       <UiProvider palette={synapsePalette}>
-        <CatalogWidget entry={fixtureEntries[0]} client={failing} />
+        <CatalogWidget company={null} entry={fixtureEntries[0]} client={failing} />
       </UiProvider>,
     )
     expect(await screen.findByText('SAP is not reachable')).toBeInTheDocument()
@@ -55,7 +55,7 @@ describe('Reports page', () => {
 
   it('shows one widget error on the board while the others still draw', async () => {
     const mock = new MockCatalogClient()
-    const client = { list: () => mock.list(), data: (id: string) => (id === 'sales-today' ? Promise.reject(new Error('SAP is not reachable')) : mock.data(id)) }
+    const client = { list: () => mock.list(null), data: (id: string) => (id === 'sales-today' ? Promise.reject(new Error('SAP is not reachable')) : mock.data(id, null)) }
     render(
       <UiProvider palette={synapsePalette}>
         <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={client} history={createMemoryHistory({ initialEntries: ['/'] })} />
