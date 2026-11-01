@@ -1,8 +1,11 @@
 [domain.Sales]
-description = "sales orders, revenue, customers"
+description = "sales, exports, customers, countries, revenue"
 
 [domain.Purchase]
-description = "purchases, spend, suppliers, vendors"
+description = "purchases, imports, suppliers, raw materials, spend"
+
+[domain.Shipments]
+description = "shipments, dispatch, containers, in transit"
 
 [domain.Finance]
 description = "receivables, payments, overdue, cash"
@@ -10,8 +13,5 @@ description = "receivables, payments, overdue, cash"
 [domain.Inventory]
 description = "stock, warehouses, reorder"
 
-[domain.Exports]
-description = "export shipments, destinations"
-
 [domain.Production]
-description = "production, machines, scrap, output"
+description = "production, batches, yield, plant, scrap"

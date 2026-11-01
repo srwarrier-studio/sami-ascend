@@ -62,14 +62,14 @@
    ]
   },
   {
-   "question": "sales to Acme in August",
+   "question": "sales to Lakeview Botanicals in August",
    "plan": [
     {
      "operation": "value",
      "metric": "sales",
      "split_by": "none",
      "entities": [
-      "acme"
+      "lakeview botanicals"
      ],
      "period": "2026-08",
      "compare": "none",
@@ -169,14 +169,14 @@
    ]
   },
   {
-   "question": "what did we spend with Doosan in june",
+   "question": "what did we spend with Kaveri Growers in june",
    "plan": [
     {
      "operation": "value",
      "metric": "purchases",
      "split_by": "none",
      "entities": [
-      "doosan"
+      "kaveri growers"
      ],
      "period": "2026-06",
      "compare": "none",
@@ -201,14 +201,14 @@
    ]
   },
   {
-   "question": "sales for steel coil in march",
+   "question": "sales for turmeric extract in march",
    "plan": [
     {
      "operation": "value",
      "metric": "sales",
      "split_by": "none",
      "entities": [
-      "steel coil"
+      "turmeric extract"
      ],
      "period": "2026-03",
      "compare": "none",
@@ -263,14 +263,14 @@
    ]
   },
   {
-   "question": "purchases from Zenith Corp in 2025",
+   "question": "purchases from Medan Agro Traders in 2025",
    "plan": [
     {
      "operation": "value",
      "metric": "purchases",
      "split_by": "none",
      "entities": [
-      "zenith corp"
+      "medan agro traders"
      ],
      "period": "2025",
      "compare": "none",
@@ -477,14 +477,14 @@
    ]
   },
   {
-   "question": "sales to Acme in august and how that compares to july",
+   "question": "sales to Lakeview Botanicals in august and how that compares to july",
    "plan": [
     {
      "operation": "value",
      "metric": "sales",
      "split_by": "none",
      "entities": [
-      "acme"
+      "lakeview botanicals"
      ],
      "period": "2026-08",
      "compare": "none",
@@ -496,7 +496,7 @@
      "metric": "sales",
      "split_by": "none",
      "entities": [
-      "acme"
+      "lakeview botanicals"
      ],
      "period": "2026-08",
      "compare": "previous",
@@ -616,14 +616,14 @@
    ]
   },
   {
-   "question": "how did Doosan purchases do in 2026 compared to 2025 and what was the total",
+   "question": "how did Kaveri Growers purchases do in 2026 compared to 2025 and what was the total",
    "plan": [
     {
      "operation": "compare",
      "metric": "purchases",
      "split_by": "none",
      "entities": [
-      "doosan"
+      "kaveri growers"
      ],
      "period": "2026",
      "compare": "last_year",
@@ -635,7 +635,7 @@
      "metric": "purchases",
      "split_by": "none",
      "entities": [
-      "doosan"
+      "kaveri growers"
      ],
      "period": "2026",
      "compare": "none",

@@ -30,5 +30,5 @@ class TestLoadDomains:
         with pytest.raises(LibraryError):
             load_domains(library(tmp_path, "[domain"))
 
-    def test_the_shipped_file_has_the_six_app_domains(self):
-        assert list(load_domains(SCENARIOS_FILE)) == ["Sales", "Purchase", "Finance", "Inventory", "Exports", "Production"]
+    def test_the_shipped_file_has_the_six_domains(self):
+        assert list(load_domains(SCENARIOS_FILE)) == ["Sales", "Purchase", "Shipments", "Finance", "Inventory", "Production"]

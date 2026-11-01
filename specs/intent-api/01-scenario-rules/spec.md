@@ -21,7 +21,7 @@ The first model-based attempt in sami-agents (one yes/no per scenario, 16 scenar
 Laya runs in its own process (`laya-serve`, own virtualenv, CPU torch; it runs on Python 3.14) and intent-api calls it over HTTP, configured by `LAYA_URL` and `LAYA_API_KEY`. Laya is behind a gateway (a port in `domain`, an HTTP adapter in `infrastructure`, a fake in the tests). If Laya is unreachable the answer is `problem: "cannot_classify_now"`, never a guess. Everything runs on the host for now; Docker comes at the very end.
 
 ### The scenario library (`apps/intent-api/scenarios.toml`, owner maintained)
-The app's domains are Sales, Purchase, Finance, Inventory, Exports and Production (the widget categories of synapse-api). Each domain has a short `description` (three to six words, the words a manager uses) that is what Laya reads; Laya also gets an `Other: everything else` option.
+The domains are Sales (exports and domestic: most sales go abroad, the USA first, in USD and INR; country, region and customer are dimensions, not a separate domain), Purchase (including imported raw materials, with the supplier's country), Shipments (dispatch, containers, in transit), Finance, Inventory and Production. Exports is not a domain. Each domain has a short `description` (three to six words, the words a manager uses) that is what Laya reads; Laya also gets an `Other: everything else` option.
 
 Each scenario has: `id`, `domain`, `description` (short), `examples` (sample questions), `needs` (the slots it needs: `period`, `entity` of a type, `top`), and `covers` (scenarios it makes redundant, for example "compare with previous" covers "value"). The loader rejects: a duplicate id, an unknown domain or slot, `covers` that loops or names an unknown scenario, a domain without a description, a scenario with no `examples`. A new scenario entry is all a new kind of question needs; the code knows no flow.
 
@@ -57,4 +57,4 @@ Nothing new in the repo (merged `token-verification`, `structured-logging`). A r
 2. Port 8006 and the name `intent-api` are assumed.
 3. Is it acceptable that `unanswered.jsonl` keeps manager questions on the server's disk?
 4. Which checkpoint: `typed-decisions` and `convaiinnovations/laya` tied at 59 of 65 on the domain question; the choice is made in task 2 on the larger set.
-5. The two ambiguous kinds of question found so far: "export revenue" (Exports or Sales) and "profit margin" (Finance, no scenario). Which domain should win?
+5. "profit margin" reads as Sales but belongs to Finance and has no scenario yet. Which domain should win?

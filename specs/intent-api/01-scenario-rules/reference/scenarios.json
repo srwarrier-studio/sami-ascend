@@ -47,7 +47,7 @@
    ]
   },
   {
-   "question": "sales to Acme in August",
+   "question": "sales to Lakeview Botanicals in August",
    "part": "single",
    "expected": [
     "sales_entity_value"
@@ -96,7 +96,7 @@
    ]
   },
   {
-   "question": "what did we spend with Doosan in june",
+   "question": "what did we spend with Kaveri Growers in june",
    "part": "single",
    "expected": [
     "purchases_entity_value"
@@ -110,7 +110,7 @@
    ]
   },
   {
-   "question": "sales for steel coil in march",
+   "question": "sales for turmeric extract in march",
    "part": "single",
    "expected": [
     "sales_entity_value"
@@ -138,7 +138,7 @@
    ]
   },
   {
-   "question": "purchases from Zenith Corp in 2025",
+   "question": "purchases from Medan Agro Traders in 2025",
    "part": "single",
    "expected": [
     "purchases_entity_value"
@@ -213,7 +213,7 @@
    ]
   },
   {
-   "question": "sales to Acme in august and how that compares to july",
+   "question": "sales to Lakeview Botanicals in august and how that compares to july",
    "part": "multi",
    "expected": [
     "sales_compare_previous",
@@ -251,7 +251,7 @@
    ]
   },
   {
-   "question": "how did Doosan purchases do in 2026 compared to 2025 and what was the total",
+   "question": "how did Kaveri Growers purchases do in 2026 compared to 2025 and what was the total",
    "part": "multi",
    "expected": [
     "purchases_compare_last_year",
@@ -292,7 +292,7 @@
    "expected": []
   },
   {
-   "question": "what is the inventory level of steel coil",
+   "question": "what is the inventory level of turmeric extract",
    "part": "refuse",
    "expected": []
   },
@@ -317,7 +317,7 @@
    "expected": []
   },
   {
-   "question": "send an email to Acme",
+   "question": "send an email to Lakeview Botanicals",
    "part": "refuse",
    "expected": []
   },

@@ -142,6 +142,13 @@ Findings:
 - Confidence is more useful than before: with laya the right answers sit at median 0.99 and p10 0.66 while the wrong ones have median 0.57. A floor around 0.6 to 0.65 would catch most misses but also refuse some right answers (and not the confident Sales misreads). Pick from the larger evaluation set, not these 81.
 - Non-business refusal is 13 of 16 with `Other`; adding scenario existence checks after the domain (rules) covers the rest.
 
+## Run 8: company-shaped domains (2026-11-01)
+After the owner described the business (mostly exports, USD and INR, raw material imports), the domains became Sales (exports and domestic together), Purchase (including imports), Shipments, Finance, Inventory, Production, with short descriptions in `apps/intent-api/scenarios.toml`. Check through the real app code (`ReadDomain` + `LayaChoiceClassifier`, `typed-decisions`): 40 invented questions in this shape (export sales by country and in USD, imported turmeric, shipments in transit, overdue export receivables, extraction plant scrap, plus 6 not about the business).
+- 39 of 40 right, median 364 ms per call. The one miss: "slow moving raw materials" read as `Other` (0.26) instead of Inventory.
+- "export revenue last month" now lands in Sales, the ambiguity of run 4 is gone with the merged domain.
+- Questions and names are invented (Lakeview Botanicals, Kaveri Growers, Medan Agro Traders); no real company data was used or shared. The reference question files in the spec folder were changed to these names.
+- Small and friendly set written by us: it says the descriptions work, not how real managers will phrase things. The evaluation task must keep a held-out part and take in the owner's real questions through a local run.
+
 ## Next tests (not yet run)
 - Refusal alone: sales / purchases / other with narrow descriptions, plus the `noul` gate, on a larger off-topic and out-of-scope set (forecasts, weather, jokes, other departments, empty and gibberish input).
 - Isolate wording versus label set versus API form.
