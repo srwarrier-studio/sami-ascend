@@ -26,3 +26,8 @@ It prints the domain and its probability, `refused (Other)` when Laya says the q
 
 ## Scenario library
 `scenarios.toml` lists the domains (`[domain.<Name>]` with a short description) and the approved scenarios (`[[scenario]]` with `id`, `domain`, `description`, `examples`, `needs`, `covers`). `uv run --package intent-api intent-api scenarios check` validates it and `scenarios show` prints it by domain. A new kind of question is a new `[[scenario]]` entry; the code knows no flow.
+
+## Match
+`POST /v1/intent/match` with `{"question": "..."}` (management or admin cookie). It asks Laya for the domain, then for the scenarios of that domain, and returns the domain with its probability and every domain's score, the scenarios offered, and the selected scenarios with their probabilities. A refusal is `200` with `problem: "cannot_answer"`, a `reason` (`not_about_business`, `not_sure`, `no_scenarios`, `nothing_matched`) and `did_you_mean` (the two nearest domains); it is also appended to `unanswered.jsonl` (setting `UNANSWERED_LOG`, ignored by git). When Laya cannot be reached the answer is `503` with `problem: "cannot_classify_now"`. `uv run --package intent-api intent-api unanswered` lists the refused questions by nearest domain.
+
+Settings: `DOMAIN_MIN_PROBABILITY` and `SCENARIO_MIN_PROBABILITY` (both 0 until the evaluation sets them), `MAX_SCENARIOS` (4).

@@ -3,6 +3,7 @@ from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = Path(__file__).resolve().parents[5] / ".env"
+UNANSWERED_FILE = Path(__file__).resolve().parents[3] / "unanswered.jsonl"
 
 
 class Settings(BaseSettings):
@@ -15,3 +16,5 @@ class Settings(BaseSettings):
     laya_timeout_seconds: float = 5.0
     max_scenarios: int = 4
     scenario_min_probability: float = 0.0
+    domain_min_probability: float = 0.0
+    unanswered_log: Path = UNANSWERED_FILE

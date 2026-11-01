@@ -2,18 +2,26 @@ from intent_api.application.choose_scenarios import ChooseScenarios
 from intent_api.application.read_domain import OTHER, ReadDomain
 from intent_api.domain.entities.match import NO_SCENARIOS, NOT_ABOUT_BUSINESS, NOT_SURE, NOTHING_MATCHED, Match
 from intent_api.domain.entities.scenario import Library
+from intent_api.domain.gateways.unanswered_log import UnansweredLog
 
 NEAREST = 2
 
 
 class MatchQuestion:
-    def __init__(self, read_domain: ReadDomain, choose_scenarios: ChooseScenarios, library: Library, domain_min_probability: float = 0.0):
+    def __init__(self, read_domain: ReadDomain, choose_scenarios: ChooseScenarios, library: Library, domain_min_probability: float = 0.0, log: UnansweredLog | None = None):
         self.read_domain = read_domain
         self.choose_scenarios = choose_scenarios
         self.library = library
         self.domain_min_probability = domain_min_probability
+        self.log = log
 
     def execute(self, text: str) -> Match:
+        match = self.match(text)
+        if not match.answered and self.log:
+            self.log.record(text, match)
+        return match
+
+    def match(self, text: str) -> Match:
         decision = self.read_domain.execute(text)
         nearest = tuple(sorted((name for name in decision.scores if name != OTHER), key=lambda name: -decision.scores[name])[:NEAREST])
         refused = lambda reason, offered=(): Match(decision.choice, decision.probability, decision.scores, offered, (), reason, nearest)
