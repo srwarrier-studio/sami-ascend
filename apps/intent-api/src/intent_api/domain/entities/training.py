@@ -11,6 +11,7 @@ class Family:
     nothing: bool
     templates: tuple[str, ...]
     heldout: bool
+    domain_item: bool = True
 
 
 @dataclass(frozen=True)

@@ -49,6 +49,12 @@ class TestLoadFamilies:
     def test_a_bad_family_is_rejected(self, tmp_path, fields, text):
         assert text in rejected(tmp_path, SLOTS + family(**fields))
 
+    def test_a_fragment_family_has_no_domain_item_and_needs_a_scenario(self, tmp_path):
+        families, _ = loaded(tmp_path, SLOTS + family(domain_item="false"))
+        assert families[0].domain_item is False
+        assert "needs a scenario" in rejected(tmp_path, SLOTS + family(id='"joke"', domain='"Other"', scenario=None, domain_item="false"))
+        assert "'domain_item' must be true or false" in rejected(tmp_path, SLOTS + family(domain_item='"no"'))
+
     def test_a_duplicate_id_is_rejected(self, tmp_path):
         assert "duplicate id" in rejected(tmp_path, SLOTS + family() + family())
 

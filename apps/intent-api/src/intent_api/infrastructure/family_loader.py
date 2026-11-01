@@ -51,6 +51,7 @@ def read_family(index: int, row, library: Library, slots: dict[str, list[str]], 
     if label.startswith("family #"):
         problems.append(f"{label}: needs an id")
     domain, scenario, nothing = row.get("domain"), row.get("scenario"), row.get("nothing", False)
+    domain_item = row.get("domain_item", True)
     if domain not in {*library.domains, OTHER}:
         problems.append(f"{label}: unknown domain '{domain}'")
     if scenario is not None and (scenario not in library.scenarios or library.scenarios[scenario].domain != domain):
@@ -59,6 +60,10 @@ def read_family(index: int, row, library: Library, slots: dict[str, list[str]], 
         problems.append(f"{label}: a family with a scenario cannot also be 'nothing'")
     if nothing is not True and nothing is not False:
         problems.append(f"{label}: 'nothing' must be true or false")
+    if domain_item is not True and domain_item is not False:
+        problems.append(f"{label}: 'domain_item' must be true or false")
+    if domain_item is False and scenario is None:
+        problems.append(f"{label}: a family without a domain item needs a scenario")
     templates = row.get("templates")
     if not isinstance(templates, list) or not templates or not all(isinstance(text, str) and text.strip() for text in templates):
         problems.append(f"{label}: needs a list of templates")
@@ -69,7 +74,7 @@ def read_family(index: int, row, library: Library, slots: dict[str, list[str]], 
                     problems.append(f"{label}: template '{text}' uses unknown slot '{slot}'")
     if len(problems) > found:
         return None
-    return Family(name, domain, scenario, nothing, tuple(templates), False)
+    return Family(name, domain, scenario, nothing, tuple(templates), False, domain_item)
 
 
 def mark_heldout(families: list[Family]) -> list[Family]:
@@ -77,4 +82,4 @@ def mark_heldout(families: list[Family]) -> list[Family]:
     for family in sorted(families, key=lambda item: item.id):
         groups.setdefault((family.domain, family.scenario, family.nothing), []).append(family)
     held = {family.id for members in groups.values() for position, family in enumerate(members, start=1) if position % HELDOUT_EVERY == 0}
-    return [Family(f.id, f.domain, f.scenario, f.nothing, f.templates, f.id in held) for f in families]
+    return [Family(f.id, f.domain, f.scenario, f.nothing, f.templates, f.id in held, f.domain_item) for f in families]

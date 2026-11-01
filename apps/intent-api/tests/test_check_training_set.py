@@ -59,7 +59,7 @@ class TestRules:
         assert "no items that teach 'nothing is asked'" in " | ".join(check(remaining).problems)
 
     def test_a_group_with_too_few_families_is_a_problem(self):
-        few = [family for family in FAMILIES if family.id not in {"forecast_sales_c", "forecast_sales_d"}]
+        few = [family for family in FAMILIES if not (family.domain == "Sales" and family.scenario is None and family.id not in {"forecast_sales_a", "forecast_sales_b"})]
         assert "forecast Sales: only 2 families" in " | ".join(check(families=few).problems)
 
     def test_unbalanced_scenario_items_are_a_problem(self):

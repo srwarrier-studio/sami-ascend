@@ -57,10 +57,11 @@ class TestBuild:
         other = [item for item in ITEMS if item.kind == "domain" and item.answer == OTHER]
         assert nothing and other and not any(item.kind == "scenario" for item in ITEMS if item.answer == OTHER)
 
-    def test_a_combined_question_gives_one_domain_item_and_one_item_per_clause(self):
+    def test_a_combined_question_is_a_domain_item_and_its_clauses_are_taught_as_scenario_items(self):
         combined = [item for item in ITEMS if len(item.families) == 2]
+        taught = {family for item in ITEMS if item.kind == "scenario" and len(item.families) == 1 for family in item.families}
         assert combined and all(item.kind == "domain" for item in combined)
-        assert len([item for item in ITEMS if item.kind == "scenario" and item.text and any(one.text.startswith(item.text) for one in combined[:1])]) >= 1
+        assert {family for item in combined for family in item.families} <= taught
 
     def test_every_scenario_and_domain_is_taught_in_training_and_tested(self):
         for held in (False, True):
@@ -86,6 +87,26 @@ class TestBuild:
         sizes = Counter((item.kind, item.answer, item.heldout) for item in ITEMS)
         assert max(size for key, size in sizes.items() if not key[2]) <= Settings.cap_train
         assert max(size for key, size in sizes.items() if key[2]) <= Settings.cap_heldout
+
+
+class TestFragments:
+    def test_a_fragment_family_teaches_the_scenario_but_not_the_domain(self):
+        fragments = {family.id for family in FAMILIES if not family.domain_item}
+        assert fragments and all(family.scenario for family in FAMILIES if family.id in fragments)
+        taught = [item for item in ITEMS if set(item.families) & fragments]
+        assert any(item.kind == "scenario" and len(item.families) == 1 and item.families[0] in fragments for item in ITEMS)
+        assert not [item for item in taught if item.kind == "domain" and len(item.families) == 1]
+
+    def test_a_combined_question_never_starts_with_a_fragment(self):
+        fragments = {family.id for family in FAMILIES if not family.domain_item}
+        combined = [item for item in ITEMS if len(item.families) == 2]
+        assert combined and not [item for item in combined if item.families[0] in fragments]
+        assert [item for item in combined if item.families[1] in fragments]
+
+    def test_the_second_round_patterns_are_taught_without_copying_an_evaluation_question(self):
+        second_round = {family.id for family in FAMILIES if family.id.endswith(("_e", "_f", "_g", "_h")) or family.id.startswith(("purchase_nothing", "sales_nothing"))}
+        texts = {normalised(item.text) for item in ITEMS if set(item.families) & second_round}
+        assert len(texts) > 300 and not texts & EVALUATION
 
 
 class TestTypo:

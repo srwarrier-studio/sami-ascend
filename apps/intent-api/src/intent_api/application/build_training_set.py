@@ -128,7 +128,7 @@ class BuildTrainingSet:
         return TrainingItem("scenario", text, answer, (*names, NOTHING), (family.id,), family.heldout)
 
     def items_for(self, family: Family, text: str, rng: random.Random) -> list[TrainingItem]:
-        items = [self.domain_item(family, text)]
+        items = [self.domain_item(family, text)] if family.domain_item else []
         if family.scenario:
             items.append(self.scenario_item(family, text, family.scenario, rng))
         elif family.nothing:
@@ -140,11 +140,12 @@ class BuildTrainingSet:
         for heldout in (False, True):
             for domain in self.library.domains:
                 pool = [family for family in sorted(self.families, key=lambda item: item.id) if family.domain == domain and family.scenario and family.heldout == heldout]
-                if len({family.scenario for family in pool}) < 2:
+                openers = [family for family in pool if family.domain_item]
+                if not openers or len({family.scenario for family in pool}) < 2:
                     continue
                 rng = random.Random(f"{self.settings.seed}:combo:{domain}:{heldout}")
                 for _ in range(self.settings.combos_per_domain // (1 if not heldout else 3)):
-                    first, second = rng.sample(pool, 2)
+                    first, second = rng.choice(openers), rng.choice(pool)
                     if first.scenario == second.scenario:
                         continue
                     one, two = rng.choice(texts[first.id])[1], rng.choice(texts[second.id])[1]
