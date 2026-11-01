@@ -80,7 +80,7 @@ class TestContractCreateErrorExamples:
         for change in [
             {"SalesOrderType": None},
             {"RequestedDeliveryDate": "x", "Colour": 1},
-            {"SoldToParty": "0000999999", "TransactionCurrency": "USD", "RequestedDeliveryDate": "2020-01-01"},
+            {"SoldToParty": "0000999999", "TransactionCurrency": "EUR", "RequestedDeliveryDate": "2020-01-01"},
             {"CompanyCode": "9999"},
             {"_Item": []},
             {"_Item": [{"Material": "RM-9999", "Quantity": "0", "QuantityUnit": "EA"}]},

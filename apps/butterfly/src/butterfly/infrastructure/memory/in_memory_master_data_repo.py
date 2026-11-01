@@ -1,17 +1,22 @@
 from butterfly.domain.entities.master_data import Customer, Material
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
-from butterfly.infrastructure.memory.seed import CUSTOMERS, MATERIALS
+from butterfly.infrastructure.memory.companies import COMPANIES
 
-CURRENCIES = {"INR"}
-COMPANIES = {"INA1", "INA2", "INA3"}
+CURRENCIES = {"INR", "USD"}
+COMPANY_CODES = {company.code for company in COMPANIES}
 
 
 class InMemoryMasterDataRepo(MasterDataRepo):
     def __init__(self):
-        self.customers = {cid: Customer(cid, name) for cid, name in CUSTOMERS}
+        self.customers = {
+            customer.customer_id: Customer(customer.customer_id, customer.name, customer.country, company.code)
+            for company in COMPANIES
+            for customer in company.customers
+        }
         self.materials = {
-            mid: Material(mid, description, unit, price)
-            for mid, description, unit, price in MATERIALS
+            material_id: Material(material_id, description, unit, price, company.code)
+            for company in COMPANIES
+            for material_id, description, unit, price in company.materials
         }
 
     def get_customer(self, customer_id: str) -> Customer | None:
@@ -21,7 +26,7 @@ class InMemoryMasterDataRepo(MasterDataRepo):
         return self.materials.get(material_id)
 
     def company_exists(self, company_code: str) -> bool:
-        return company_code in COMPANIES
+        return company_code in COMPANY_CODES
 
     def currency_exists(self, currency: str) -> bool:
         return currency in CURRENCIES

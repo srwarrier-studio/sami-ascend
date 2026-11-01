@@ -48,13 +48,13 @@ class TestCreateOverHttp:
         assert data["@odata.context"] == "$metadata#SalesOrder(_Item())/$entity"
         assert data["@odata.etag"] == 'W/"20261027091530"'
         assert data["SalesOrder"] == "0000012031"
-        assert data["CustomerName"] == "Acme Industries"
+        assert data["CustomerName"] == "Harborline Nutrition LLC"
         assert data["TotalNetAmount"] == "125000.00"
         assert data["OverallStatus"] == "A"
         assert data["CreatedByUser"] == "BUTTERFLY"
         assert data["CreationDateTime"] == "2026-10-27T09:15:30Z"
         assert [i["SalesOrderItem"] for i in data["_Item"]] == ["000010", "000020"]
-        assert data["_Item"][0]["MaterialDescription"] == "Steel rod 12mm"
+        assert data["_Item"][0]["MaterialDescription"] == "Curcumin extract 95%"
 
     def test_etag_matches_a_later_read(self):
         read = self.client.get(f"{URL}('0000012031')").json()
@@ -134,13 +134,13 @@ class TestCreateValidationOverHttp:
 
     def test_nothing_is_created(self):
         client = make_client()
-        client.post(URL, json=body(TransactionCurrency="USD"))
+        client.post(URL, json=body(TransactionCurrency="EUR"))
 
         assert client.get(URL, params={"$count": "true", "$top": "0"}).json()["@odata.count"] == len(ORDERS)
 
     def test_a_failed_create_does_not_use_up_a_number(self):
         client = make_client()
-        client.post(URL, json=body(TransactionCurrency="USD"))
+        client.post(URL, json=body(TransactionCurrency="EUR"))
 
         assert client.post(URL, json=BODY).json()["SalesOrder"] == "0000012031"
 

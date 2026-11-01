@@ -33,7 +33,7 @@ replaces.
 | `SalesContract` | `Edm.String` (10) | No | `"0040000127"` |
 | `PredecessorContract` | `Edm.String` (10) | Yes | `"0040000071"` |
 | `SoldToParty` | `Edm.String` (10) | No | `"0000100001"` |
-| `CustomerName` | `Edm.String` (80) | Yes | `"Acme Industries"` |
+| `CustomerName` | `Edm.String` (80) | Yes | `"Harborline Nutrition LLC"` |
 | `ValidFrom` | `Edm.Date` | No | `"2025-07-13"` |
 | `ValidTo` | `Edm.Date` | No | `"2026-07-12"` |
 | `ContractValue` | `Edm.Decimal` (15,2) | No | `"9000000.00"` |
@@ -74,7 +74,7 @@ the amount paid so far and `ClearingDate` the date the payment cleared the invoi
 |-------|------|----------|---------|
 | `Invoice` | `Edm.String` (10) | No | `"9000012001"` |
 | `SoldToParty` | `Edm.String` (10) | No | `"0000100003"` |
-| `CustomerName` | `Edm.String` (80) | Yes | `"Cauvery Engineering"` |
+| `CustomerName` | `Edm.String` (80) | Yes | `"Nordic Botanicals AB"` |
 | `InvoiceDate` | `Edm.Date` | No | `"2026-08-14"` |
 | `DueDate` | `Edm.Date` | No | `"2026-10-13"` |
 | `NetAmount` | `Edm.Decimal` (15,2) | No | `"412500.00"` |
@@ -90,7 +90,7 @@ the amount paid so far and `ClearingDate` the date the payment cleared the invoi
     {
       "Invoice": "9000012001",
       "SoldToParty": "0000100003",
-      "CustomerName": "Cauvery Engineering",
+      "CustomerName": "Nordic Botanicals AB",
       "InvoiceDate": "2026-08-14",
       "DueDate": "2026-10-13",
       "NetAmount": "412500.00",
@@ -109,7 +109,7 @@ the amount paid so far and `ClearingDate` the date the payment cleared the invoi
 |-------|------|----------|---------|
 | `ProductionOrder` | `Edm.String` (10) | No | `"0001000417"` |
 | `Material` | `Edm.String` (40) | No | `"RM-1002"` |
-| `MaterialDescription` | `Edm.String` (40) | Yes | `"Steel plate 5mm"` |
+| `MaterialDescription` | `Edm.String` (40) | Yes | `"Piperine extract 95%"` |
 | `PlannedQuantity` | `Edm.Decimal` (13,3) | No | `"4000.000"` |
 | `ConfirmedQuantity` | `Edm.Decimal` (13,3) | No | `"4000.000"` |
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
@@ -246,11 +246,11 @@ GET {root}SalesContract?$filter=SoldToParty eq '0000100001' and ValidTo ge 2026-
       "SalesContract": "0040000127",
       "PredecessorContract": "0040000071",
       "SoldToParty": "0000100001",
-      "CustomerName": "Acme Industries",
+      "CustomerName": "Harborline Nutrition LLC",
       "ValidFrom": "2025-07-13",
       "ValidTo": "2026-07-12",
-      "ContractValue": "9000000.00",
-      "TransactionCurrency": "INR",
+      "ContractValue": "112500.00",
+      "TransactionCurrency": "USD",
       "ContractStatus": "E",
       "CompanyCode": "INA1"
     },
@@ -258,11 +258,11 @@ GET {root}SalesContract?$filter=SoldToParty eq '0000100001' and ValidTo ge 2026-
       "SalesContract": "0040000163",
       "PredecessorContract": "0040000127",
       "SoldToParty": "0000100001",
-      "CustomerName": "Acme Industries",
+      "CustomerName": "Harborline Nutrition LLC",
       "ValidFrom": "2026-09-14",
       "ValidTo": "2027-09-13",
-      "ContractValue": "10000000.00",
-      "TransactionCurrency": "INR",
+      "ContractValue": "125000.00",
+      "TransactionCurrency": "USD",
       "ContractStatus": "A",
       "CompanyCode": "INA1"
     }
@@ -315,7 +315,7 @@ GET {root}ProductionOrder?$filter=Material eq 'RM-1002' and PlannedEndDate ge 20
     {
       "ProductionOrder": "0001000417",
       "Material": "RM-1002",
-      "MaterialDescription": "Steel plate 5mm",
+      "MaterialDescription": "Piperine extract 95%",
       "PlannedQuantity": "4000.000",
       "ConfirmedQuantity": "4000.000",
       "QuantityUnit": "KG",
@@ -329,7 +329,7 @@ GET {root}ProductionOrder?$filter=Material eq 'RM-1002' and PlannedEndDate ge 20
     {
       "ProductionOrder": "0001000423",
       "Material": "RM-1002",
-      "MaterialDescription": "Steel plate 5mm",
+      "MaterialDescription": "Piperine extract 95%",
       "PlannedQuantity": "4000.000",
       "ConfirmedQuantity": "4000.000",
       "QuantityUnit": "KG",

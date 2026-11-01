@@ -134,7 +134,7 @@ class TestSalesContract:
         body = get("SalesContract?$filter=SalesContract eq '0040000140'").json()
         assert body["value"][0]["PredecessorContract"] is None and body["value"][0]["CustomerName"] is None
         assert get("SalesContract?$filter=PredecessorContract eq '0040000071'").json()["value"][0]["SalesContract"] == "0040000127"
-        assert ids(get("SalesContract?$filter=contains(CustomerName,'Acme')").json(), "SalesContract") == ["0040000071", "0040000127", "0040000163"]
+        assert ids(get("SalesContract?$filter=contains(CustomerName,'Harborline')").json(), "SalesContract") == ["0040000071", "0040000127", "0040000163"]
 
     def test_order_by_puts_empty_values_first_when_ascending_and_last_when_descending(self):
         up = ids(get("SalesContract?$orderby=PredecessorContract").json(), "PredecessorContract")

@@ -21,7 +21,7 @@ class TestContracts:
         assert (second.valid_from, second.valid_to) == (date(2025, 7, 13), date(2026, 7, 12))
         assert (third.valid_from, third.valid_to) == (date(2026, 9, 14), date(2027, 9, 13))
         assert (first.contract_status, second.contract_status, third.contract_status) == ("E", "E", "A")
-        assert all(c.sold_to_party == ACME and c.customer_name == "Acme Industries" for c in (first, second, third))
+        assert all(c.sold_to_party == ACME and c.customer_name == "Harborline Nutrition LLC" for c in (first, second, third))
 
     def test_every_other_customer_has_a_contract_valid_on_every_day_of_the_story(self):
         others = [c for c in SEED.contracts if c.sold_to_party != ACME]
@@ -85,7 +85,7 @@ class TestDeliveries:
 class TestProduction:
     def test_steel_plate_finished_fourteen_days_late_for_lack_of_steel_coil(self):
         row = PRODUCTION["0001000417"]
-        assert (row.material, row.material_description) == ("RM-1002", "Steel plate 5mm")
+        assert (row.material, row.material_description) == ("RM-1002", "Piperine extract 95%")
         assert (row.planned_start_date, row.planned_end_date, row.actual_end_date) == (date(2026, 7, 6), date(2026, 7, 20), date(2026, 8, 3))
         assert (row.production_status, row.delay_reason) == ("C", "MATERIAL_SHORTAGE")
         assert row.confirmed_quantity == row.planned_quantity

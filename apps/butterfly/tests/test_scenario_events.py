@@ -2,6 +2,7 @@ import hashlib
 from datetime import date
 from decimal import Decimal
 
+from butterfly.domain.entities.master_data import in_currency
 from butterfly.domain.entities.scenario import (
     Cancellations,
     ContractEnd,
@@ -38,9 +39,9 @@ def orders_of(seed, customer, start, end):
 
 
 BUTTERFLY_EIGHT = {
-    date(2026, 10, 31): {"orders": "75b9aef738bef9db", "contracts": "b05b2dcf3025efb0", "production_orders": "01cbc9cba9b51495", "components": "795a51017bcff511"},
-    date(2026, 8, 15): {"orders": "89d979be1d58b741", "contracts": "aac100d48ffea67e", "production_orders": "fd7146a72ad3094b", "components": "115ab08ada6d8421"},
-    date(2026, 9, 1): {"orders": "ace432dd23466f9b", "contracts": "aac100d48ffea67e", "production_orders": "22927f903cf5ee28", "components": "f752d6971669dbad"},
+    date(2026, 10, 31): {"orders": "24052640905a0f0f", "contracts": "eda98503c519f89f", "production_orders": "dd9589c4c911687e", "components": "795a51017bcff511"},
+    date(2026, 8, 15): {"orders": "2029c6e6da65851b", "contracts": "588ebcb61cf58ece", "production_orders": "7d951370c4d49f5d", "components": "115ab08ada6d8421"},
+    date(2026, 9, 1): {"orders": "5cbb98e7bc389bcc", "contracts": "588ebcb61cf58ece", "production_orders": "3bedaa1302a7d4f0", "components": "f752d6971669dbad"},
 }
 DELIVERIES_WITH_AMOUNTS = {date(2026, 10, 31): "8e046277d738a6fb", date(2026, 8, 15): "bf8846bf1a3a65a5", date(2026, 9, 1): "c41c5535e0959ee4"}
 
@@ -126,7 +127,7 @@ class TestPriceChange:
             for old_item, new_item in zip(old.items, new.items):
                 assert old_item.quantity == new_item.quantity
                 if old_item.material == "RM-1001":
-                    assert new_item.net_amount == (old_item.quantity * Decimal("1250.00") * Decimal("0.85")).quantize(Decimal("0.01"))
+                    assert new_item.net_amount == (old_item.quantity * in_currency(Decimal("1250.00"), "USD") * Decimal("0.85")).quantize(Decimal("0.01"))
                 else:
                     assert new_item.net_amount == old_item.net_amount
 

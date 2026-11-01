@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from butterfly.entrypoint.app import build_default_app
 from butterfly.infrastructure.api.odata import DRIVERS_ROOT, ROOT
+from butterfly.infrastructure.memory.companies import COMPANIES
 from butterfly.infrastructure.memory.scenarios import AUGUST_CONTRACT, SCENARIOS, find_scenario
 from butterfly.infrastructure.memory.story_seed import build_story_seed
 from contract_helpers import same_shape
@@ -63,7 +64,7 @@ class TestContractsHoldForEveryScenario:
 
     @pytest.mark.parametrize("name", NAMES)
     def test_the_summaries_exclude_cancelled_orders_and_add_up_to_the_orders(self, name):
-        seed = build_story_seed(TODAY, find_scenario(name))
+        seed = build_story_seed(TODAY, find_scenario(name), COMPANIES)
         live = sum(o.total_net_amount for o in seed.orders if o.overall_status != "X")
         client, rows = client_for(name), []
         while page := client.get(ROOT + "SalesSummaryByCustomer", params={"$skip": len(rows)}).json()["value"]:

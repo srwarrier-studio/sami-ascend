@@ -2,23 +2,10 @@ from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
 
 from butterfly.domain.entities.sales_order import SalesOrder, SalesOrderItem
+from butterfly.infrastructure.memory.companies import INA1
 
-CUSTOMERS = [
-    ("0000100001", "Acme Industries"),
-    ("0000100002", "Bharat Steels"),
-    ("0000100003", "Cauvery Engineering"),
-    ("0000100004", "Deccan Fabricators"),
-    ("0000100005", "Eastern Castings"),
-]
-
-MATERIALS = [
-    ("RM-1001", "Steel rod 12mm", "KG", Decimal("1250.00")),
-    ("RM-1002", "Steel plate 5mm", "KG", Decimal("2500.00")),
-    ("RM-1003", "Copper wire 2mm", "KG", Decimal("840.00")),
-    ("RM-1004", "Aluminium sheet 3mm", "KG", Decimal("610.50")),
-    ("RM-1005", "Bearing 6204", "EA", Decimal("95.00")),
-    ("RM-1006", "Hex bolt M10", "EA", Decimal("4.25")),
-]
+CUSTOMERS = [(customer.customer_id, customer.name) for customer in INA1.customers]
+MATERIALS = INA1.materials
 
 USERS = ["SMANI", "KRAJAN", "PDEVI"]
 STATUSES = ["A", "B", "C", "C", "A", "X", "B", "C"]

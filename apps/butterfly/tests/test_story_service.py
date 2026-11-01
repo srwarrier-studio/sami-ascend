@@ -67,5 +67,5 @@ class TestRunnerSeed:
 
     def test_the_sales_summaries_show_the_story(self):
         client = TestClient(build_default_app(TODAY, "story"))
-        july = client.get(ROOT + "SalesSummaryByDay?$filter=OrderDate ge 2026-07-01 and OrderDate le 2026-07-31&$count=true").json()
+        july = client.get(ROOT + "SalesSummaryByDay?$filter=OrderDate ge 2026-07-01 and OrderDate le 2026-07-31 and CompanyCode eq 'INA1'&$count=true").json()
         assert july["@odata.count"] == 23

@@ -25,7 +25,7 @@ Nullable `No` means the field is always present in responses.
 | `SalesOrder` | `Edm.String` (10) | No | `"0000012345"` |
 | `SalesOrderType` | `Edm.String` (4) | No | `"OR"` |
 | `SoldToParty` | `Edm.String` (10) | No | `"0000100001"` |
-| `CustomerName` | `Edm.String` (80) | Yes | `"Acme Industries"` |
+| `CustomerName` | `Edm.String` (80) | Yes | `"Harborline Nutrition LLC"` |
 | `OrderDate` | `Edm.Date` | No | `"2026-10-27"` |
 | `RequestedDeliveryDate` | `Edm.Date` | Yes | `"2026-11-05"` |
 | `TransactionCurrency` | `Edm.String` (5) | No | `"INR"` |
@@ -46,7 +46,7 @@ Navigation: `_Item` (collection of `SalesOrderItem`).
 | `SalesOrder` | `Edm.String` (10) | No | `"0000012345"` |
 | `SalesOrderItem` | `Edm.String` (6) | No | `"000010"` |
 | `Material` | `Edm.String` (40) | No | `"RM-1001"` |
-| `MaterialDescription` | `Edm.String` (40) | Yes | `"Steel rod 12mm"` |
+| `MaterialDescription` | `Edm.String` (40) | Yes | `"Curcumin extract 95%"` |
 | `Quantity` | `Edm.Decimal` (13,3) | No | `"50.000"` |
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
 | `NetAmount` | `Edm.Decimal` (15,2) | No | `"62500.00"` |
@@ -72,7 +72,7 @@ Used for dashboard totals. No create, change or delete.
 | Field | Type | Nullable | Example |
 |-------|------|----------|---------|
 | `SoldToParty` | `Edm.String` (10) | No | `"0000100001"` |
-| `CustomerName` | `Edm.String` (80) | Yes | `"Acme Industries"` |
+| `CustomerName` | `Edm.String` (80) | Yes | `"Harborline Nutrition LLC"` |
 | `OrderDate` | `Edm.Date` | No | `"2026-10-27"` |
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"125000.00"` |
 | `OrderCount` | `Edm.Int32` | No | `2` |
@@ -84,7 +84,7 @@ Used for dashboard totals. No create, change or delete.
 | Field | Type | Nullable | Example |
 |-------|------|----------|---------|
 | `Material` | `Edm.String` (40) | No | `"RM-1001"` |
-| `MaterialDescription` | `Edm.String` (40) | Yes | `"Steel rod 12mm"` |
+| `MaterialDescription` | `Edm.String` (40) | Yes | `"Curcumin extract 95%"` |
 | `OrderDate` | `Edm.Date` | No | `"2026-10-27"` |
 | `TotalQuantity` | `Edm.Decimal` (13,3) | No | `"500.000"` |
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
@@ -165,12 +165,12 @@ GET {root}SalesOrder?$filter=OrderDate eq 2026-10-27&$select=SalesOrder,Customer
   "value": [
     {
       "SalesOrder": "0000012345",
-      "CustomerName": "Acme Industries",
+      "CustomerName": "Harborline Nutrition LLC",
       "TotalNetAmount": "125000.00"
     },
     {
       "SalesOrder": "0000012344",
-      "CustomerName": "Bharat Steels",
+      "CustomerName": "Eurovita Ingredients GmbH",
       "TotalNetAmount": "98000.50"
     }
   ]
@@ -193,7 +193,7 @@ GET {root}SalesOrder('0000012345')
   "SalesOrder": "0000012345",
   "SalesOrderType": "OR",
   "SoldToParty": "0000100001",
-  "CustomerName": "Acme Industries",
+  "CustomerName": "Harborline Nutrition LLC",
   "OrderDate": "2026-10-27",
   "RequestedDeliveryDate": "2026-11-05",
   "TransactionCurrency": "INR",
@@ -222,7 +222,7 @@ GET {root}SalesOrder('0000012345')?$expand=_Item
   "SalesOrder": "0000012345",
   "SalesOrderType": "OR",
   "SoldToParty": "0000100001",
-  "CustomerName": "Acme Industries",
+  "CustomerName": "Harborline Nutrition LLC",
   "OrderDate": "2026-10-27",
   "RequestedDeliveryDate": "2026-11-05",
   "TransactionCurrency": "INR",
@@ -238,7 +238,7 @@ GET {root}SalesOrder('0000012345')?$expand=_Item
       "SalesOrder": "0000012345",
       "SalesOrderItem": "000010",
       "Material": "RM-1001",
-      "MaterialDescription": "Steel rod 12mm",
+      "MaterialDescription": "Curcumin extract 95%",
       "Quantity": "50.000",
       "QuantityUnit": "KG",
       "NetAmount": "62500.00"
@@ -247,7 +247,7 @@ GET {root}SalesOrder('0000012345')?$expand=_Item
       "SalesOrder": "0000012345",
       "SalesOrderItem": "000020",
       "Material": "RM-1002",
-      "MaterialDescription": "Steel plate 5mm",
+      "MaterialDescription": "Piperine extract 95%",
       "Quantity": "25.000",
       "QuantityUnit": "KG",
       "NetAmount": "62500.00"
