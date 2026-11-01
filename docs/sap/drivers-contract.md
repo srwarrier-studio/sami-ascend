@@ -63,6 +63,42 @@ the first goods receipt that completed the item; it is empty while the item is o
 | `ActualDeliveryDate` | `Edm.Date` | Yes | `"2026-07-26"` |
 | `DeliveryStatus` | `Edm.String` (1) | No | `"D"` |
 
+### CustomerInvoice (key: `Invoice`)
+
+One row per billed sales order; cancelled sales orders have no invoice. `DueDate` is the invoice date plus the customer's payment terms. `ClearedAmount` is
+the amount paid so far and `ClearingDate` the date the payment cleared the invoice; both are empty-valued (`0.00` and null) while the invoice is open.
+
+| Field | Type | Nullable | Example |
+|-------|------|----------|---------|
+| `Invoice` | `Edm.String` (10) | No | `"9000012001"` |
+| `SoldToParty` | `Edm.String` (10) | No | `"0000100003"` |
+| `CustomerName` | `Edm.String` (80) | Yes | `"Cauvery Engineering"` |
+| `InvoiceDate` | `Edm.Date` | No | `"2026-08-14"` |
+| `DueDate` | `Edm.Date` | No | `"2026-10-13"` |
+| `NetAmount` | `Edm.Decimal` (15,2) | No | `"412500.00"` |
+| `TransactionCurrency` | `Edm.String` (5) | No | `"INR"` |
+| `ClearedAmount` | `Edm.Decimal` (15,2) | No | `"0.00"` |
+| `ClearingDate` | `Edm.Date` | Yes | `null` |
+
+```json
+{
+  "@odata.context": "$metadata#CustomerInvoice",
+  "value": [
+    {
+      "Invoice": "9000012001",
+      "SoldToParty": "0000100003",
+      "CustomerName": "Cauvery Engineering",
+      "InvoiceDate": "2026-08-14",
+      "DueDate": "2026-10-13",
+      "NetAmount": "412500.00",
+      "TransactionCurrency": "INR",
+      "ClearedAmount": "0.00",
+      "ClearingDate": null
+    }
+  ]
+}
+```
+
 ### ProductionOrder (key: `ProductionOrder`)
 
 | Field | Type | Nullable | Example |

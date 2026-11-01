@@ -12,6 +12,7 @@ from structured_logging import RequestIdMiddleware, get_request_id, setup_loggin
 
 from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.filter.fields import (
+    CUSTOMER_INVOICE_FIELDS,
     PRODUCTION_ORDER_COMPONENT_FIELDS,
     PRODUCTION_ORDER_FIELDS,
     PURCHASE_DELIVERY_FIELDS,
@@ -230,6 +231,7 @@ def create_app(
     drivers_router = APIRouter(prefix=DRIVERS_ROOT.rstrip("/"))
     add_list_route(drivers_router, "SalesContract", drivers.contracts, SALES_CONTRACT_FIELDS)
     add_list_route(drivers_router, "PurchaseDelivery", drivers.deliveries, PURCHASE_DELIVERY_FIELDS)
+    add_list_route(drivers_router, "CustomerInvoice", drivers.invoices, CUSTOMER_INVOICE_FIELDS)
     add_list_route(drivers_router, "ProductionOrder", drivers.production_orders, PRODUCTION_ORDER_FIELDS)
     add_list_route(drivers_router, "ProductionOrderComponent", drivers.components, PRODUCTION_ORDER_COMPONENT_FIELDS)
     add_list_route(drivers_router, "PurchaseSummaryByDay", lambda: SummarizePurchasesByDay(drivers).execute(), PURCHASE_SUMMARY_BY_DAY_FIELDS)
@@ -329,7 +331,7 @@ def build_default_app(today: date, seed_name: str | None = None, scenario_name: 
         return create_app(InMemorySalesOrderRepo(build_seed(today)))
     if name == "story":
         story = build_story_seed(today, find_scenario(scenario))
-        drivers = InMemoryDriverRepo(story.contracts, story.deliveries, story.production_orders, story.components)
+        drivers = InMemoryDriverRepo(story.contracts, story.deliveries, story.production_orders, story.components, story.invoices)
         return create_app(InMemorySalesOrderRepo(story.orders), drivers=drivers)
     raise SystemExit(f"BUTTERFLY_SEED must be 'story' or 'small', not '{name}'")
 
