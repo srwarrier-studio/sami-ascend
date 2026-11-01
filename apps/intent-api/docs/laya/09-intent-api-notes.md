@@ -246,6 +246,22 @@ Limits:
 ## Round 2 of the training data (2026-11-01)
 After the first tuned checkpoint (run 13) the failure patterns were rephrased into new invented families (no evaluation question is copied, and the 24 fresh probes of run 13 were kept out so they stay a clean test): invoiced, billed and turnover wording for Sales; "spending last December" style past periods as a plain value, not a comparison; comparison wording ("up or down against", "next to the previous month"); "{year} compared to {year}" as compare-with-last-year; clause fragments ("and how that compares to the month before", "and what was the total sales") that teach the scenario but not the domain (`domain_item = false`, new in the family loader); colloquial top customer and top supplier wording ("who do we pay the most"); raw-material ageing stock as Inventory; unsupported Purchase and Sales questions (late deliveries, open purchase orders, price per kg, average order value, orders received) as "nothing is asked". 131 families (was 87), 2,577 training and 1,067 held-out items (was 2,068 and 921); `training check` passes and both files pass Laya's `dry_run` with nothing skipped. The earlier files were kept as `train_round1.jsonl` and `heldout_round1.jsonl` next to the notebook. Run 14 will be the second checkpoint, compared with run 13 on the same evaluation questions and probes.
 
+## Run 14: the second checkpoint (2026-11-01, phase 02 task 4)
+Trained by the owner on a remote GPU from the round 2 files (2,577 training items, 1,067 held-out items, 131 families), run name `intent-tuned-2`. Laya's own held-out accuracy 0.7301 to 0.9185 (ECE 0.1487 to 0.0527); the held-out set is bigger and harder than in run 13 (1,067 items against 921), so it is not comparable with 0.953. The calibration slice (257 items) gave a temperature of 1.82, so confidence is spread again instead of about 1.0. Served on the host as `LAYA_EXTRA_MODELS={"intent-tuned-2": "<folder>"}`, `LAYA_MODEL=intent-tuned-2`, then `intent-api eval --final` (floors 0.4 / 0.3, about 1.3 s per question):
+
+| | Run 13 | Run 14 |
+|---|---|---|
+| Tuning questions (87): exact of 56 answerable | 51 | 51 |
+| Wrong or extra scenario | 2 | 1 |
+| Wrongly refused | 2 | 2 |
+| Must refuse, correct (of 31) | 29 | 31 |
+| Harmful | 4 | 1 |
+| Held-out questions (34): exact of 24 | 23 | 22 |
+| Held-out must refuse, correct (of 10) | 10 | 10 |
+| Held-out harmful | 0 | 0 |
+
+Together: 73 of 80 answerable exactly right (91.3%), 1 harmful answer in 121 (0.8%); the bar was 90% and 5%. Remaining misses: the second scenario of a combined question dropped ("in august and how that compares", "in 2026 compared to 2025"), "this year's revenue and the best month" also picked top customers, and four wrong refusals ("export sales to the USA in October", "revnue in agust", "sales for turmeric extract in march", "how come procurement fell in may", the last read as Other at 0.47). The 24 fresh probes of run 13 were not re-run. The sweep is still flat across the floors, so the floors stay 0.4 and 0.3. The owner decided to use `intent-tuned-2`. The questions and families still share an author: the owner's local set of real-sounding questions is the honest test.
+
 ## Next tests (not yet run)
 - Refusal alone: sales / purchases / other with narrow descriptions, plus the `noul` gate, on a larger off-topic and out-of-scope set (forecasts, weather, jokes, other departments, empty and gibberish input).
 - Isolate wording versus label set versus API form.
