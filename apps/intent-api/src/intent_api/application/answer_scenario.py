@@ -1,0 +1,65 @@
+from intent_api.application import wording
+from intent_api.application.comparison_window import comparison_window
+from intent_api.domain.entities.answer import Answer, AnswerRule, Block
+from intent_api.domain.entities.period import Period
+from intent_api.domain.gateways.metric_source import MetricSource
+
+READ_ALL = 50
+YEAR_TREND_MONTHS = 12
+MONTH_TREND_MONTHS = 6
+
+
+class AnswerScenario:
+    def __init__(self, source: MetricSource, top: int = 5):
+        self.source = source
+        self.top = top
+
+    def execute(self, rule: AnswerRule, period: Period, token: str) -> Answer:
+        build = {"value": self.value, "compare": self.compare, "trend": self.trend, "ranking": self.ranking}[rule.response]
+        return Answer(rule.scenario, tuple(build(rule, period, token)))
+
+    def value(self, rule: AnswerRule, period: Period, token: str) -> list[Block]:
+        comparisons = self.source.compare(token, rule.metric, comparison_window(period, None), None, 1)
+        if not comparisons:
+            return [self.text(wording.nothing_recorded(rule.metric, period))]
+        return [self.text(*[wording.value_line(rule.metric, period, comparison) for comparison in comparisons])]
+
+    def compare(self, rule: AnswerRule, period: Period, token: str) -> list[Block]:
+        window = comparison_window(period, rule.against)
+        comparisons = self.source.compare(token, rule.metric, window, None, 1)
+        if not comparisons:
+            return [self.text(wording.nothing_recorded(rule.metric, period))]
+        before = str(window.compare_start.year) if period.kind == "year" else window.compare_start.strftime("%B %Y")
+        return [self.text(*[wording.compare_line(rule.metric, period, before, comparison) for comparison in comparisons])]
+
+    def trend(self, rule: AnswerRule, period: Period, token: str) -> list[Block]:
+        months = YEAR_TREND_MONTHS if period.kind == "year" else MONTH_TREND_MONTHS
+        figures = [figure for figure in self.source.month(token, rule.metric, period.end.replace(day=1), months) if figure.trend]
+        if not figures:
+            return [self.text(wording.nothing_recorded(rule.metric, period))]
+        blocks = [self.text(*[wording.trend_line(rule.metric, figure) for figure in figures])]
+        for figure in figures:
+            points = [{"month": f"{point.year}-{point.month:02d}", "value": str(point.amount)} for point in figure.trend]
+            blocks.append(Block("trend", {"metric": rule.metric, "currency": figure.currency, "points": points, "marked": []}))
+        return blocks
+
+    def ranking(self, rule: AnswerRule, period: Period, token: str) -> list[Block]:
+        comparisons = [
+            comparison
+            for comparison in self.source.compare(token, rule.metric, comparison_window(period, None), rule.by, READ_ALL)
+            if any(row.current > 0 for row in comparison.rows)
+        ]
+        if not comparisons:
+            return [self.text(wording.nothing_recorded(rule.metric, period))]
+        ranked = [(comparison, sorted((row for row in comparison.rows if row.current > 0), key=lambda row: (-row.current, row.key))[: self.top]) for comparison in comparisons]
+        lines = [wording.ranking_line(rule.metric, rule.by, period, comparison, rows[0]) for comparison, rows in ranked]
+        if any(comparison.truncated for comparison, _ in ranked):
+            lines.append(wording.truncated_line(rule.by, READ_ALL))
+        blocks = [self.text(*lines)]
+        for comparison, rows in ranked:
+            title = wording.ranking_title(rule.by, period, comparison.currency, len(ranked) > 1)
+            blocks.append(Block("table", {"title": title, "columns": ["Name", "Current"], "rows": [{"name": row.name, "current": str(row.current)} for row in rows]}))
+        return blocks
+
+    def text(self, *lines: str) -> Block:
+        return Block("text", {"lines": list(lines)})
