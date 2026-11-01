@@ -33,3 +33,6 @@ If you are developing a production application, we recommend enabling type-aware
 ```
 
 See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+
+## AI Mode and intent-api
+AI Mode asks intent-api (`VITE_INTENT_URL`, default `http://localhost:8006`) first and draws its answer; questions it cannot answer fall through to sami-agents (`VITE_AGENTS_URL`) and the widget catalog. To see it, run Laya with the tuned checkpoint and intent-api (see `apps/intent-api/README.md`) with the same `JWT_SECRET`; `scripts/dev.sh start` starts the whole stack.

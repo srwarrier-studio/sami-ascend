@@ -4,7 +4,10 @@ import { useNavigate, useRouteContext } from '@tanstack/react-router'
 import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Modal, PageHeader, PaperPlaneRightIcon, SparkleIcon, Stack, Text, TextInput, Title, WidgetCell, WidgetGrid } from '@sami/ui'
 import { AnswerBlocks } from '../ai/AnswerBlocks'
 import { SHOWN_PROBLEMS } from '../ai/agentsClient'
-import type { AgentAnswer, AgentContext } from '../ai/agentsClient'
+import type { AgentAnswer, AgentContext, AnswerBlock } from '../ai/agentsClient'
+import { IntentCard } from '../ai/IntentCard'
+import { IntentDataUnavailable } from '../ai/intentClient'
+import type { IntentReading, IntentReply } from '../ai/intentClient'
 import { BUILDER } from '../ai/chatPlanner'
 import type { ChatBoard } from '../ai/chatPlanner'
 import { BoardGrid } from '../boards/BoardGrid'
@@ -13,15 +16,17 @@ import { buildWidgets } from '../boards/layout'
 import { CatalogWidget } from '../catalog/CatalogWidget'
 import classes from '../boards/Board.module.css'
 
-type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard; agent?: AgentAnswer }
+type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard; agent?: AgentAnswer; blocks?: AnswerBlock[]; intent?: IntentReading | null }
 
 const UNAVAILABLE = 'The analysis service is not available right now.'
+const NO_FIGURES = 'The figures are not available right now.'
+const unusablePeriod = (periods: string[]) => `I could not use the period in your question (I read ${periods.join(' and ')}). Ask for one period that has already started.`
 
 const examples = ['Show top customers and top materials', `${BUILDER} build me a sales board`, `${BUILDER} build an inventory board`]
 
 export function AiPage() {
   const navigate = useNavigate()
-  const { catalog, catalogClient, chatPlanner, agentsClient, boardStore } = useRouteContext({ from: '/ai' })
+  const { catalog, catalogClient, chatPlanner, agentsClient, intentClient, boardStore } = useRouteContext({ from: '/ai' })
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [building, setBuilding] = useState(false)
@@ -41,25 +46,43 @@ export function AiPage() {
     setBusy(true)
     setText('')
     setMessages((all) => [...all, { from: 'you', text: asked }])
-    const agent = asked.toLowerCase().startsWith(BUILDER) ? null : await agentsClient.ask(asked, remembered ?? undefined).catch(() => undefined)
+    const forBoard = asked.toLowerCase().startsWith(BUILDER)
+    const reply: IntentReply | null | 'figures_down' = forBoard ? null : await intentClient.answer(asked).catch((error) => (error instanceof IntentDataUnavailable ? 'figures_down' : null))
+    if (reply === 'figures_down') {
+      setMessages((all) => [...all, { from: 'ai', text: NO_FIGURES }])
+      setBusy(false)
+      return
+    }
+    const intent = reply?.reading ?? null
+    if (reply && reply.problem === null && reply.answers.length > 0) {
+      setMessages((all) => [...all, { from: 'ai', text: '', blocks: reply.answers.flatMap((item) => item.blocks), intent }])
+      setBusy(false)
+      return
+    }
+    if (reply?.reason === 'period_not_supported') {
+      setMessages((all) => [...all, { from: 'ai', text: unusablePeriod(reply.periods), intent }])
+      setBusy(false)
+      return
+    }
+    const agent = forBoard ? null : await agentsClient.ask(asked, remembered ?? undefined).catch(() => undefined)
     if (agent === undefined) {
-      setMessages((all) => [...all, { from: 'ai', text: UNAVAILABLE }])
+      setMessages((all) => [...all, { from: 'ai', text: UNAVAILABLE, intent }])
       setBusy(false)
       return
     }
     if (agent?.readable && agent.question) setRemembered(agent.question)
     if (agent && (agent.readable || (agent.problem !== null && SHOWN_PROBLEMS.includes(agent.problem)))) {
-      setMessages((all) => [...all, { from: 'ai', text: '', agent }])
+      setMessages((all) => [...all, { from: 'ai', text: '', agent, intent }])
       setBusy(false)
       return
     }
     const answer = await chatPlanner.plan(asked, catalog)
     if (agent && answer.catalogIds.length === 0 && !answer.board) {
-      setMessages((all) => [...all, { from: 'ai', text: '', agent }])
+      setMessages((all) => [...all, { from: 'ai', text: '', agent, intent }])
       setBusy(false)
       return
     }
-    setMessages((all) => [...all, { from: 'ai', text: answer.reply, catalogIds: answer.catalogIds, board: answer.board }])
+    setMessages((all) => [...all, { from: 'ai', text: answer.reply, catalogIds: answer.catalogIds, board: answer.board, intent }])
     if (answer.board) setBoard(answer.board)
     setBusy(false)
   }
@@ -104,12 +127,14 @@ export function AiPage() {
             </Stack>
           )}
           {messages.map((message, index) => (
-            <div key={index} className={classes.bubble} data-from={message.from} data-wide={message.catalogIds?.length || message.agent?.blocks.length ? true : undefined}>
+            <div key={index} className={classes.bubble} data-from={message.from} data-wide={message.catalogIds?.length || message.agent?.blocks.length || message.blocks?.length ? true : undefined}>
               {message.from === 'you' && message.text.toLowerCase().startsWith(BUILDER) ? (
                 <>
                   <span className={classes.mention}>{message.text.slice(0, BUILDER.length)}</span>
                   {message.text.slice(BUILDER.length)}
                 </>
+              ) : message.blocks ? (
+                <AnswerBlocks blocks={message.blocks} label={null} />
               ) : message.agent ? (
                 <AnswerBlocks blocks={message.agent.blocks} label={message.agent.label} />
               ) : (
@@ -134,6 +159,7 @@ export function AiPage() {
                   Open board
                 </Button>
               )}
+              {message.intent && <IntentCard reading={message.intent} />}
             </div>
           ))}
           {busy && (
