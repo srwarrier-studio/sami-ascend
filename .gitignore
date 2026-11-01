@@ -4,4 +4,4 @@
 node_modules
 __pycache__
 unanswered.jsonl
-apps/intent-api/training/out/
+Training/out/

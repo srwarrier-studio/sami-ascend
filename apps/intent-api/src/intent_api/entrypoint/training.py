@@ -10,7 +10,7 @@ from intent_api.infrastructure.family_loader import load_families
 from intent_api.infrastructure.library_loader import load_library
 from intent_api.infrastructure.training_files import write_files
 
-OUT_FOLDER = Path(__file__).resolve().parents[3] / "training" / "out"
+OUT_FOLDER = Path(__file__).resolve().parents[5] / "Training" / "out"
 
 
 def main(argv: list[str]) -> None:

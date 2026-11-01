@@ -7,7 +7,7 @@ from intent_api.domain.entities.scenario import Library
 from intent_api.domain.entities.training import Family
 from intent_api.domain.errors import LibraryError
 
-FAMILIES_FILE = Path(__file__).resolve().parents[3] / "training" / "families.toml"
+FAMILIES_FILE = Path(__file__).resolve().parents[5] / "Training" / "families.toml"
 SLOT = re.compile(r"\{(\w+)\}")
 HELDOUT_EVERY = 4
 
