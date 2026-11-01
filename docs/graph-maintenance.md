@@ -1,6 +1,6 @@
 # Maintaining the graph
 
-`apps/sami-agents/graph.toml` says what relates to what and what counts as unusual. The code that walks it knows nothing about sales, suppliers or production: add a line here and the next question can use it. You change this file, not code, unless you need a new *kind* of anomaly.
+`apps/intent-api/graph.toml` says what relates to what and what counts as unusual. The code that walks it knows nothing about sales, suppliers or production: add a line here and the next question can use it. You change this file, not code, unless you need a new *kind* of anomaly.
 
 ## The ideas
 - A **node** is a kind of thing whose rows can be read: a record type from synapse-api (`record:contract`) or a member of a split from a metric (`metric:sales.customer`, a customer or a material).
@@ -20,7 +20,7 @@
 
 Going back from an effect (root cause), an edge that lists `shows` is only followed when the kind found at that effect is one of them, so a change of supplier is not "explained" by production plans. A starting mover has no kind and follows every edge.
 
-Supply delay and extra demand travel opposite ways through the same nodes, so a pair of nodes can have two edges, one each way, carrying different kinds. Look at the existing ones with `sami-agents graph show`.
+Supply delay and extra demand travel opposite ways through the same nodes, so a pair of nodes can have two edges, one each way, carrying different kinds. Look at the existing ones with `intent-api graph show`.
 
 ## Adding a node and an edge
 Say purchase prices can only move when a price list has a gap, and a record type `price_list` is already in `apps/synapse-api/registry.toml`.
@@ -44,8 +44,8 @@ join = { cause = "Material", effect = "key" }
 carries = ["coverage_gap"]
 ```
 
-4. Run `uv run --package sami-agents sami-agents graph check`. It tells you, by name, about a source that is not in the registry, a field the contract does not list, a join field that is not a key field, a kind that the node does not define, a wrong parameter, and nodes that nothing connects. Fix what it says until it prints `ok`. Lines starting with `info:` are loops, which are allowed (a walk stops at its limits).
-5. Run `uv run --package sami-agents sami-agents graph show` (add `--mermaid` for a diagram) and read the result as a sentence: "a gap in the price list can cause a change in purchases of the material".
+4. Run `uv run --package intent-api intent-api graph check`. It tells you, by name, about a source that is not in the registry, a field the contract does not list, a join field that is not a key field, a kind that the node does not define, a wrong parameter, and nodes that nothing connects. Fix what it says until it prints `ok`. Lines starting with `info:` are loops, which are allowed (a walk stops at its limits).
+5. Run `uv run --package intent-api intent-api graph show` (add `--mermaid` for a diagram) and read the result as a sentence: "a gap in the price list can cause a change in purchases of the material".
 6. Add a scenario to butterfly (or a real past case) with the expected cause, and check the walk finds it. Add a case where the thing is present but did *not* matter: a good graph reports nothing there.
 
 ## Rules of thumb
