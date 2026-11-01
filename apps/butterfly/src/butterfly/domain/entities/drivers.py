@@ -36,6 +36,19 @@ class PurchaseDelivery:
 
 
 @dataclass(frozen=True)
+class CustomerInvoice:
+    invoice: str
+    sold_to_party: str
+    customer_name: str | None
+    invoice_date: date
+    due_date: date
+    net_amount: Decimal
+    transaction_currency: str
+    cleared_amount: Decimal
+    clearing_date: date | None
+
+
+@dataclass(frozen=True)
 class ProductionOrder:
     production_order: str
     material: str

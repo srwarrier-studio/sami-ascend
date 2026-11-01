@@ -12,9 +12,13 @@ from structured_logging import RequestIdMiddleware, get_request_id, setup_loggin
 
 from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.filter.fields import (
+    CUSTOMER_INVOICE_FIELDS,
     PRODUCTION_ORDER_COMPONENT_FIELDS,
     PRODUCTION_ORDER_FIELDS,
     PURCHASE_DELIVERY_FIELDS,
+    RECEIVABLES_AGEING_FIELDS,
+    RECEIVABLES_BY_CUSTOMER_FIELDS,
+    RECEIVABLES_SUMMARY_FIELDS,
     SALES_CONTRACT_FIELDS,
     SALES_ORDER_FIELDS,
     SALES_ORDER_ITEM_FIELDS,
@@ -35,6 +39,9 @@ from butterfly.application.usecase.list_sales_summary import ListSalesSummary
 from butterfly.application.usecase.summarize_purchases_by_day import SummarizePurchasesByDay
 from butterfly.application.usecase.summarize_purchases_by_material import SummarizePurchasesByMaterial
 from butterfly.application.usecase.summarize_purchases_by_supplier import SummarizePurchasesBySupplier
+from butterfly.application.usecase.summarize_receivables import SummarizeReceivables
+from butterfly.application.usecase.summarize_receivables_ageing import SummarizeReceivablesAgeing
+from butterfly.application.usecase.summarize_receivables_by_customer import SummarizeReceivablesByCustomer
 from butterfly.application.usecase.summarize_by_customer import SummarizeByCustomer
 from butterfly.application.usecase.summarize_by_day import SummarizeByDay
 from butterfly.application.usecase.summarize_by_material import SummarizeByMaterial
@@ -220,6 +227,36 @@ def create_app(
             body["value"] = [summary_to_json(row, fields, result.select) for row in result.rows]
             return body
 
+    def as_of_date(text: str | None) -> date:
+        if text is None:
+            return now().date()
+        try:
+            return date.fromisoformat(text)
+        except ValueError:
+            raise InvalidQuery("AsOfDate must be a date like 2026-10-31.", "AsOfDate")
+
+    def add_receivables_route(target: APIRouter, entity: str, summarize, fields: dict):
+        @target.get("/" + entity)
+        def list_receivables(
+            request: Request,
+            as_of: str | None = Query(None, alias="AsOfDate"),
+            filter_text: str | None = Query(None, alias="$filter"),
+            select: str | None = Query(None, alias="$select"),
+            orderby: str | None = Query(None, alias="$orderby"),
+            top: str | None = Query(None, alias="$top"),
+            skip: str | None = Query(None, alias="$skip"),
+            count: str | None = Query(None, alias="$count"),
+        ):
+            reject_unsupported(request, LIST_OPTIONS)
+            day = as_of_date(as_of)
+            query = ListQuery(filter_text, select, orderby, top, skip, count)
+            result = ListSalesSummary(lambda: summarize(drivers).execute(day), fields).execute(query)
+            body = {"@odata.context": context_for(entity, result.select, fields, False)}
+            if result.total is not None:
+                body["@odata.count"] = result.total
+            body["value"] = [summary_to_json(row, fields, result.select) for row in result.rows]
+            return body
+
     def add_summary_route(entity: str, summarize, fields: dict):
         add_list_route(router, entity, lambda: summarize(repo).execute(), fields)
 
@@ -230,6 +267,10 @@ def create_app(
     drivers_router = APIRouter(prefix=DRIVERS_ROOT.rstrip("/"))
     add_list_route(drivers_router, "SalesContract", drivers.contracts, SALES_CONTRACT_FIELDS)
     add_list_route(drivers_router, "PurchaseDelivery", drivers.deliveries, PURCHASE_DELIVERY_FIELDS)
+    add_list_route(drivers_router, "CustomerInvoice", drivers.invoices, CUSTOMER_INVOICE_FIELDS)
+    add_receivables_route(drivers_router, "ReceivablesSummary", SummarizeReceivables, RECEIVABLES_SUMMARY_FIELDS)
+    add_receivables_route(drivers_router, "ReceivablesByCustomer", SummarizeReceivablesByCustomer, RECEIVABLES_BY_CUSTOMER_FIELDS)
+    add_receivables_route(drivers_router, "ReceivablesAgeing", SummarizeReceivablesAgeing, RECEIVABLES_AGEING_FIELDS)
     add_list_route(drivers_router, "ProductionOrder", drivers.production_orders, PRODUCTION_ORDER_FIELDS)
     add_list_route(drivers_router, "ProductionOrderComponent", drivers.components, PRODUCTION_ORDER_COMPONENT_FIELDS)
     add_list_route(drivers_router, "PurchaseSummaryByDay", lambda: SummarizePurchasesByDay(drivers).execute(), PURCHASE_SUMMARY_BY_DAY_FIELDS)
@@ -329,7 +370,7 @@ def build_default_app(today: date, seed_name: str | None = None, scenario_name: 
         return create_app(InMemorySalesOrderRepo(build_seed(today)))
     if name == "story":
         story = build_story_seed(today, find_scenario(scenario))
-        drivers = InMemoryDriverRepo(story.contracts, story.deliveries, story.production_orders, story.components)
+        drivers = InMemoryDriverRepo(story.contracts, story.deliveries, story.production_orders, story.components, story.invoices)
         return create_app(InMemorySalesOrderRepo(story.orders), drivers=drivers)
     raise SystemExit(f"BUTTERFLY_SEED must be 'story' or 'small', not '{name}'")
 

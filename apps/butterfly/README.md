@@ -22,7 +22,7 @@ curl "http://localhost:8003/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/
 - Reference data: customers `0000100001` to `0000100005`; materials `RM-1001` to `RM-1004` in `KG`, `RM-1005` and `RM-1006` in `EA`; currency `INR`.
 
 ## Drivers service
-Second read-only service on `/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/`: `SalesContract`, `PurchaseDelivery`, `ProductionOrder`, `ProductionOrderComponent` (fields in `docs/sap/drivers-contract.md`). Same query options as the summaries; `$expand` and writes are refused.
+Second read-only service on `/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/`: `SalesContract`, `PurchaseDelivery`, `CustomerInvoice`, `ProductionOrder`, `ProductionOrderComponent` (fields in `docs/sap/drivers-contract.md`). Receivables are read through `ReceivablesSummary`, `ReceivablesByCustomer` and `ReceivablesAgeing`, measured on the day in the custom parameter `AsOfDate` (default today, a bad date is `400`); invoices are one per non-cancelled sales order, with payment terms and delays fixed per customer so every ageing bucket has data and one customer never pays. Same query options as the summaries; `$expand` and writes are refused.
 
 ```
 curl "http://localhost:8003/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/PurchaseDelivery?\$filter=Material%20eq%20'RAW-2002'&\$orderby=PromisedDeliveryDate%20desc&\$top=3"
