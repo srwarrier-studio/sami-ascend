@@ -107,6 +107,7 @@ CUSTOMER_INVOICE_FIELDS = {
     "ClearedAmount": ("cleared_amount", FieldType.DECIMAL),
     "ClearingDate": ("clearing_date", FieldType.DATE),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "Country": ("country", FieldType.STRING),
 }
 
 RECEIVABLES_SUMMARY_FIELDS = {

@@ -49,6 +49,7 @@ class CustomerInvoice:
     cleared_amount: Decimal
     clearing_date: date | None
     company_code: str = "INA1"
+    country: str = "IN"
 
 
 @dataclass(frozen=True)

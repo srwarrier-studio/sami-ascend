@@ -77,11 +77,12 @@ the amount paid so far and `ClearingDate` the date the payment cleared the invoi
 | `CustomerName` | `Edm.String` (80) | Yes | `"Nordic Botanicals AB"` |
 | `InvoiceDate` | `Edm.Date` | No | `"2026-08-14"` |
 | `DueDate` | `Edm.Date` | No | `"2026-10-13"` |
-| `NetAmount` | `Edm.Decimal` (15,2) | No | `"412500.00"` |
-| `TransactionCurrency` | `Edm.String` (5) | No | `"INR"` |
+| `NetAmount` | `Edm.Decimal` (15,2) | No | `"5156.25"` |
+| `TransactionCurrency` | `Edm.String` (5) | No | `"USD"` |
 | `ClearedAmount` | `Edm.Decimal` (15,2) | No | `"0.00"` |
 | `ClearingDate` | `Edm.Date` | Yes | `null` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
+| `Country` | `Edm.String` (2) | No | `"SE"` |
 
 ```json
 {
@@ -93,11 +94,12 @@ the amount paid so far and `ClearingDate` the date the payment cleared the invoi
       "CustomerName": "Nordic Botanicals AB",
       "InvoiceDate": "2026-08-14",
       "DueDate": "2026-10-13",
-      "NetAmount": "412500.00",
-      "TransactionCurrency": "INR",
+      "NetAmount": "5156.25",
+      "TransactionCurrency": "USD",
       "ClearedAmount": "0.00",
       "ClearingDate": null,
-      "CompanyCode": "INA1"
+      "CompanyCode": "INA1",
+      "Country": "SE"
     }
   ]
 }

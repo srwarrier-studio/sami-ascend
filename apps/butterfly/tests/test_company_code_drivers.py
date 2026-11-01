@@ -8,6 +8,7 @@ from butterfly.application.usecase.summarize_receivables import SummarizeReceiva
 from butterfly.application.usecase.summarize_receivables_ageing import SummarizeReceivablesAgeing
 from butterfly.application.usecase.summarize_receivables_by_customer import SummarizeReceivablesByCustomer
 from butterfly.infrastructure.api.odata import DRIVERS_ROOT
+from butterfly.infrastructure.memory.companies import COMPANIES
 from butterfly.infrastructure.memory.in_memory_driver_repo import InMemoryDriverRepo
 from butterfly.infrastructure.memory.story_seed import build_story_seed
 from driver_data import make_driver_client
@@ -49,3 +50,36 @@ class TestReadingByCompany:
         for entity in ("SalesContract", "PurchaseDelivery", "ProductionOrder", "ProductionOrderComponent", "PurchaseSummaryByDay", "CustomerInvoice", "ReceivablesSummary"):
             body = client.get(DRIVERS_ROOT + entity + "?$filter=CompanyCode eq '9999'").json()
             assert body["value"] == [], entity
+
+
+GROUP = build_story_seed(TODAY, companies=COMPANIES)
+GROUP_REPO = InMemoryDriverRepo(invoices=GROUP.invoices)
+
+
+class TestReceivablesOfEveryCompany:
+    def test_every_company_has_open_and_overdue_invoices_in_its_own_currencies(self):
+        for company in COMPANIES:
+            currencies = {c.currency for c in company.customers}
+            rows = [r for r in SummarizeReceivables(GROUP_REPO).execute(TODAY) if r.company_code == company.code]
+            assert {r.currency for r in rows} == currencies
+            assert all(r.open_amount > 0 and r.overdue_amount > 0 for r in rows)
+
+    def test_the_customer_rows_of_a_company_add_up_to_its_summary(self):
+        for summary in SummarizeReceivables(GROUP_REPO).execute(TODAY):
+            parts = [r for r in SummarizeReceivablesByCustomer(GROUP_REPO).execute(TODAY) if (r.company_code, r.currency) == (summary.company_code, summary.currency)]
+            assert sum(r.open_amount for r in parts) == summary.open_amount
+
+    def test_ageing_of_a_company_adds_up_to_its_summary(self):
+        for summary in SummarizeReceivables(GROUP_REPO).execute(TODAY):
+            parts = [r for r in SummarizeReceivablesAgeing(GROUP_REPO).execute(TODAY) if (r.company_code, r.currency) == (summary.company_code, summary.currency)]
+            assert sum(r.open_amount for r in parts) == summary.open_amount
+
+    def test_customers_of_other_countries_pay_on_longer_terms_than_domestic_ones(self):
+        terms = {c.customer_id: c.terms_days for company in COMPANIES for c in company.customers}
+        domestic = [terms[c.customer_id] for company in COMPANIES for c in company.customers if c.country == "IN"]
+        abroad = [terms[c.customer_id] for company in COMPANIES for c in company.customers if c.country != "IN"]
+        assert sum(abroad) / len(abroad) > sum(domestic) / len(domestic)
+
+    def test_the_customer_who_never_pays_is_in_the_story_company(self):
+        never = [c for company in COMPANIES for c in company.customers if c.delay_days >= 1000]
+        assert [c.customer_id for c in never] == ["0000100005"]
