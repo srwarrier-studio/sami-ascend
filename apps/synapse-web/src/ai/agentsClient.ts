@@ -34,7 +34,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every((item) => typeof item === 'string')
 const records = (value: unknown): value is Record<string, unknown>[] => Array.isArray(value) && value.every(isRecord)
 
-function parseBlock(block: unknown): AnswerBlock | null {
+export function parseBlock(block: unknown): AnswerBlock | null {
   if (!isRecord(block)) return null
   if (block.type === 'text' && strings(block.lines)) return { type: 'text', lines: block.lines }
   if (block.type === 'trend' && typeof block.metric === 'string' && typeof block.currency === 'string' && records(block.points) && strings(block.marked)) {

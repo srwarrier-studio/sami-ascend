@@ -17,7 +17,7 @@ export function IntentCard({ reading }: { reading: IntentReading }) {
     <Stack gap={2} mt="xs" aria-label="How the question was read">
       <Group gap="xs">
         <Badge variant="light" size="xs" tt="none">
-          Reading preview
+          Reading
         </Badge>
         {!refused && (
           <Text size="xs" fw={600}>

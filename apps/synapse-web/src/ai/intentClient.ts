@@ -1,4 +1,6 @@
 import { INTENT_URL } from '../config'
+import { parseBlock } from './agentsClient'
+import type { AnswerBlock } from './agentsClient'
 
 export type IntentReason = 'not_about_business' | 'not_sure' | 'no_scenarios' | 'nothing_matched'
 
@@ -13,14 +15,29 @@ export type IntentReading = {
   didYouMean: string[]
 }
 
+export type ReplyReason = IntentReason | 'not_answerable_yet' | 'period_not_supported'
+
+export type IntentAnswer = { scenario: string; blocks: AnswerBlock[] }
+
+export type IntentReply = {
+  reading: IntentReading
+  problem: 'cannot_answer' | null
+  reason: ReplyReason | null
+  periods: string[]
+  answers: IntentAnswer[]
+}
+
 export type IntentClient = {
-  ask: (question: string) => Promise<IntentReading>
+  answer: (question: string) => Promise<IntentReply>
 }
 
 export class IntentUnavailable extends Error {}
 
-const TIMEOUT_MS = 10000
+export class IntentDataUnavailable extends IntentUnavailable {}
+
+const TIMEOUT_MS = 20000
 const REASONS: IntentReason[] = ['not_about_business', 'not_sure', 'no_scenarios', 'nothing_matched']
+const REPLY_REASONS: ReplyReason[] = [...REASONS, 'not_answerable_yet', 'period_not_supported']
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value)
 const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every((item) => typeof item === 'string')
@@ -39,11 +56,26 @@ export function parseReading(body: unknown): IntentReading {
   return { domain: body.domain, domainProbability: body.domain_probability, problem: body.problem, reason, scenarios: body.scenarios.map(parseScenario), didYouMean: body.did_you_mean }
 }
 
+function parseAnswer(value: unknown): IntentAnswer {
+  if (!isRecord(value) || typeof value.scenario !== 'string' || !Array.isArray(value.blocks)) throw new IntentUnavailable('unreadable answer')
+  const blocks = value.blocks.map(parseBlock)
+  if (blocks.some((block) => block === null)) throw new IntentUnavailable('unreadable block')
+  return { scenario: value.scenario, blocks: blocks as AnswerBlock[] }
+}
+
+export function parseReply(body: unknown): IntentReply {
+  if (!isRecord(body) || !strings(body.periods) || !Array.isArray(body.answers)) throw new IntentUnavailable('unreadable answer')
+  if (body.problem !== null && body.problem !== 'cannot_answer') throw new IntentUnavailable('unreadable answer')
+  const reason = body.reason === null ? null : REPLY_REASONS.find((name) => name === body.reason)
+  if (reason === undefined) throw new IntentUnavailable('unreadable answer')
+  return { reading: parseReading(body.reading), problem: body.problem, reason, periods: body.periods, answers: body.answers.map(parseAnswer) }
+}
+
 export class HttpIntentClient implements IntentClient {
-  async ask(question: string) {
+  async answer(question: string) {
     let response: Response
     try {
-      response = await fetch(`${INTENT_URL}/v1/intent/match`, {
+      response = await fetch(`${INTENT_URL}/v1/intent/answer`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -53,22 +85,24 @@ export class HttpIntentClient implements IntentClient {
     } catch {
       throw new IntentUnavailable('not reached')
     }
+    const body = await response.json().catch(() => null)
+    if (response.status === 503 && isRecord(body) && body.problem === 'cannot_fetch_now') throw new IntentDataUnavailable('figures not reached')
     if (!response.ok) throw new IntentUnavailable(`status ${response.status}`)
-    return parseReading(await response.json().catch(() => null))
+    return parseReply(body)
   }
 }
 
 export class MockIntentClient implements IntentClient {
-  private reading: IntentReading | Error
+  private reply: IntentReply | Error
   calls: string[] = []
 
-  constructor(reading: IntentReading | Error = new IntentUnavailable('mock')) {
-    this.reading = reading
+  constructor(reply: IntentReply | Error = new IntentUnavailable('mock')) {
+    this.reply = reply
   }
 
-  async ask(question: string) {
+  async answer(question: string) {
     this.calls.push(question)
-    if (this.reading instanceof Error) throw this.reading
-    return this.reading
+    if (this.reply instanceof Error) throw this.reply
+    return this.reply
   }
 }
