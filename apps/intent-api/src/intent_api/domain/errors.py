@@ -21,5 +21,9 @@ class PeriodNotSupported(Exception):
         self.reason = reason
 
 
+class DataUnavailable(Exception):
+    pass
+
+
 class MetricsUnavailable(Exception):
     pass

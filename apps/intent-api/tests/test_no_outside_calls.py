@@ -1,7 +1,7 @@
 from pathlib import Path
 
 SOURCE = Path(__file__).resolve().parents[1] / "src" / "intent_api"
-CALLERS = ["infrastructure/laya_choice_classifier.py", "infrastructure/synapse_metric_source.py"]
+CALLERS = ["infrastructure/laya_choice_classifier.py", "infrastructure/synapse_data_source.py", "infrastructure/synapse_metric_source.py"]
 CLIENTS = ("httpx", "requests", "urllib", "aiohttp", "socket")
 
 
