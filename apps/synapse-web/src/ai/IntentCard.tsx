@@ -11,21 +11,21 @@ const REFUSALS: Record<IntentReason, (domain: string | null) => string> = {
   nothing_matched: (domain) => `I could not tell which figure you want from ${domain ?? 'this topic'}.`,
 }
 
-export function IntentCard({ reading }: { reading: IntentReading }) {
-  const refused = reading.reason !== null
+export function IntentCard({ reading, answered = false }: { reading: IntentReading; answered?: boolean }) {
+  const refused = reading.reason !== null && !answered
   return (
     <Stack gap={2} mt="xs" aria-label="How the question was read">
       <Group gap="xs">
         <Badge variant="light" size="xs" tt="none">
           Reading
         </Badge>
-        {!refused && (
+        {reading.domain !== null && !refused && (
           <Text size="xs" fw={600}>
             Understood as {reading.domain} ({percent(reading.domainProbability)})
           </Text>
         )}
       </Group>
-      {reading.reason !== null && (
+      {refused && reading.reason !== null && (
         <Text size="xs" c="dimmed">
           {REFUSALS[reading.reason](reading.domain)}
           {reading.didYouMean.length > 0 && ` Did you mean ${reading.didYouMean.join(' or ')}?`}
