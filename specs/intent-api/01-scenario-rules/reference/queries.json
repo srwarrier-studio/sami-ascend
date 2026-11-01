@@ -1,0 +1,683 @@
+{
+ "today": "2026-11-01",
+ "single": [
+  {
+   "question": "What were sales for August?",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-08",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "how much did we buy in september",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-09",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "Why did sales drop in Augsut?",
+   "plan": [
+    {
+     "operation": "explain",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-08",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "what made purchases go up last month",
+   "plan": [
+    {
+     "operation": "explain",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "sales to Acme in August",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [
+      "acme"
+     ],
+     "period": "2026-08",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "show revenue by customer for july",
+   "plan": [
+    {
+     "operation": "rank",
+     "metric": "sales",
+     "split_by": "customer",
+     "entities": [],
+     "period": "2026-07",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "top 5 suppliers by spend last quarter",
+   "plan": [
+    {
+     "operation": "rank",
+     "metric": "purchases",
+     "split_by": "supplier",
+     "entities": [],
+     "period": "2026-Q3",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 5
+    }
+   ]
+  },
+  {
+   "question": "which material did we sell most of in 2026",
+   "plan": [
+    {
+     "operation": "rank",
+     "metric": "sales",
+     "split_by": "material",
+     "entities": [],
+     "period": "2026",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 1
+    }
+   ]
+  },
+  {
+   "question": "compare purchases with last year",
+   "plan": [
+    {
+     "operation": "compare",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "last_year",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "sales trend for the last six months",
+   "plan": [
+    {
+     "operation": "trend",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "none",
+     "compare_n": 6,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "is turnover up or down against the previous month",
+   "plan": [
+    {
+     "operation": "compare",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "previous",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "what did we spend with Doosan in june",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [
+      "doosan"
+     ],
+     "period": "2026-06",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "who is our biggest customer this year",
+   "plan": [
+    {
+     "operation": "rank",
+     "metric": "sales",
+     "split_by": "customer",
+     "entities": [],
+     "period": "2026",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 1
+    }
+   ]
+  },
+  {
+   "question": "sales for steel coil in march",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [
+      "steel coil"
+     ],
+     "period": "2026-03",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "how come procurement fell in may",
+   "plan": [
+    {
+     "operation": "explain",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-05",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "revenue last month versus the month before",
+   "plan": [
+    {
+     "operation": "compare",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "previous",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "top 3 customers in Q2",
+   "plan": [
+    {
+     "operation": "rank",
+     "metric": "sales",
+     "split_by": "customer",
+     "entities": [],
+     "period": "2026-Q2",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 3
+    }
+   ]
+  },
+  {
+   "question": "purchases from Zenith Corp in 2025",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [
+      "zenith corp"
+     ],
+     "period": "2025",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "tell me sales for this month so far",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-11",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "what was spending in december last year",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [],
+     "period": "2025-12",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "list suppliers by purchases in august",
+   "plan": [
+    {
+     "operation": "rank",
+     "metric": "purchases",
+     "split_by": "supplier",
+     "entities": [],
+     "period": "2026-08",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "did sales change in april compared to march",
+   "plan": [
+    {
+     "operation": "compare",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-04",
+     "compare": "previous",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  }
+ ],
+ "multi": [
+  {
+   "question": "I need sales of August compared to the last three months and the largest customer in the period",
+   "plan": [
+    {
+     "operation": "compare",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-08",
+     "compare": "previous_n",
+     "compare_n": 3,
+     "top": 0
+    },
+    {
+     "operation": "rank",
+     "metric": "sales",
+     "split_by": "customer",
+     "entities": [],
+     "period": "2026-08",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 1
+    }
+   ]
+  },
+  {
+   "question": "what were purchases in july and who was the top supplier",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-07",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "rank",
+     "metric": "purchases",
+     "split_by": "supplier",
+     "entities": [],
+     "period": "2026-07",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 1
+    }
+   ]
+  },
+  {
+   "question": "why did sales fall in august and which customer fell most",
+   "plan": [
+    {
+     "operation": "explain",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-08",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "rank",
+     "metric": "sales",
+     "split_by": "customer",
+     "entities": [],
+     "period": "2026-08",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 1
+    }
+   ]
+  },
+  {
+   "question": "sales for September, the trend over six months and the top 3 materials",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-09",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "trend",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-09",
+     "compare": "none",
+     "compare_n": 6,
+     "top": 0
+    },
+    {
+     "operation": "rank",
+     "metric": "sales",
+     "split_by": "material",
+     "entities": [],
+     "period": "2026-09",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 3
+    }
+   ]
+  },
+  {
+   "question": "compare purchases in october with last year and tell me the biggest supplier",
+   "plan": [
+    {
+     "operation": "compare",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "last_year",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "rank",
+     "metric": "purchases",
+     "split_by": "supplier",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 1
+    }
+   ]
+  },
+  {
+   "question": "sales to Acme in august and how that compares to july",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [
+      "acme"
+     ],
+     "period": "2026-08",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "compare",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [
+      "acme"
+     ],
+     "period": "2026-08",
+     "compare": "previous",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "give me this year's revenue and the best month",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "rank",
+     "metric": "sales",
+     "split_by": "month",
+     "entities": [],
+     "period": "2026",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 1
+    }
+   ]
+  },
+  {
+   "question": "what did we spend in q3 and why was it higher than q2",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-Q3",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "explain",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-Q3",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "top customer and top material for last month",
+   "plan": [
+    {
+     "operation": "rank",
+     "metric": "sales",
+     "split_by": "customer",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 1
+    },
+    {
+     "operation": "rank",
+     "metric": "sales",
+     "split_by": "material",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 1
+    }
+   ]
+  },
+  {
+   "question": "sales in june, july and august",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-06",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "value",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-07",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "value",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-08",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "how did Doosan purchases do in 2026 compared to 2025 and what was the total",
+   "plan": [
+    {
+     "operation": "compare",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [
+      "doosan"
+     ],
+     "period": "2026",
+     "compare": "last_year",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "value",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [
+      "doosan"
+     ],
+     "period": "2026",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  },
+  {
+   "question": "sales last month, purchases last month and whether we are up on the month before",
+   "plan": [
+    {
+     "operation": "value",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "value",
+     "metric": "purchases",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "none",
+     "compare_n": 0,
+     "top": 0
+    },
+    {
+     "operation": "compare",
+     "metric": "sales",
+     "split_by": "none",
+     "entities": [],
+     "period": "2026-10",
+     "compare": "previous",
+     "compare_n": 0,
+     "top": 0
+    }
+   ]
+  }
+ ]
+}

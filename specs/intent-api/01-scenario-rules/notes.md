@@ -1,0 +1,4 @@
+# Notes
+
+- Laya per-scenario test (2026-11-01, sami-agents branch `sami-agents/phase-07-query-reader`, tags `sami-agents-07-spec-checkpoint` and `sami-agents-07-scenario-checkpoint`): 16 draft scenarios, 46 questions (34 answerable, 12 to refuse), one yes/no relevance question per scenario with `typed-decisions`. Exactly the right scenarios: 0 of 34 at 0.5, 3 at 0.7, 6 at 0.8, 4 at 0.9 (at 0.9 only 2 questions had a wrong or extra scenario, but 28 got none). Refused correctly of 12: 6, 10, 12, 12. Typical errors: sales and purchases both selected, "why" read as "compare", forecasts not refused at 0.7. Not tried: a category step with one choice question, rule words as hints, clause splitting. Probabilities are in the scratchpad of that session only.
+- A fine-tuned LFM2.5-230M (Liquid AI) as a "skill selector" was considered and not started (https://www.liquid.ai/blog/lfm2-5-230m).

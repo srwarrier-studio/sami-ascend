@@ -1,0 +1,26 @@
+[project]
+name = "intent-api"
+version = "0.1.0"
+description = "Reads a manager's question and picks the approved scenarios it asks for, with fixed rules only"
+readme = "README.md"
+authors = [
+    { name = "Sarath", email = "silverfire92@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard]>=0.115",
+    "pydantic-settings>=2",
+    "structured-logging",
+    "token-verification",
+]
+
+[project.scripts]
+intent-api = "intent_api:main"
+
+[build-system]
+requires = ["uv_build>=0.9.26,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+structured-logging = { workspace = true }
+token-verification = { workspace = true }
