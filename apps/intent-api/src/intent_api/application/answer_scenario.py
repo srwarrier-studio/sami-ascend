@@ -23,9 +23,9 @@ class AnswerScenario:
         self.top = top
         self.why = why
 
-    def execute(self, rule: AnswerRule, period: Period, token: str, company: str = "all", currency: str | None = None, today: date | None = None) -> Answer:
+    def execute(self, rule: AnswerRule, period: Period, token: str, company: str = "all", currency: str | None = None, today: date | None = None, direction: str = "change") -> Answer:
         if rule.response == "why":
-            return Answer(rule.scenario, tuple(self.why.execute(rule, period, token, today or date.today(), company, currency)))
+            return Answer(rule.scenario, tuple(self.why.execute(rule, period, token, today or date.today(), company, currency, direction)))
         scoped = AnswerScenario(self.source.for_company(None if company == "all" else company), self.top)
         build = {"value": scoped.value, "compare": scoped.compare, "trend": scoped.trend, "ranking": scoped.ranking}[rule.response]
         return Answer(rule.scenario, tuple(build(rule, period, token)))

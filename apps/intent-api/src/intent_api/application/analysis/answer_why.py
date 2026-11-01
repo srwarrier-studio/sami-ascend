@@ -19,11 +19,11 @@ class AnswerWhy:
         self.graph = graph
         self.thresholds = thresholds
 
-    def execute(self, rule: AnswerRule, period: Period, token: str, today: date, company: str, currency: str | None) -> list[Block]:
+    def execute(self, rule: AnswerRule, period: Period, token: str, today: date, company: str, currency: str | None, direction: str = "change") -> list[Block]:
         if period.kind != "month" or not period.complete:
             return [Block("text", {"lines": [NEEDS_A_FINISHED_MONTH]})]
         scoped = self.source.for_company(None if company == "all" else company)
-        question = Question(rule.metric, "auto", period.start, currency=currency)
+        question = Question(rule.metric, direction, period.start, currency=currency)
         try:
             analysis = AnalyseQuestion(scoped, self.graph, self.thresholds).execute(question, token, today)
             trend = scoped.trend(token, rule.metric, period.start, TREND_MONTHS) if analysis.currency else []
