@@ -63,6 +63,42 @@ the first goods receipt that completed the item; it is empty while the item is o
 | `ActualDeliveryDate` | `Edm.Date` | Yes | `"2026-07-26"` |
 | `DeliveryStatus` | `Edm.String` (1) | No | `"D"` |
 
+### CustomerInvoice (key: `Invoice`)
+
+One row per billed sales order; cancelled sales orders have no invoice. `DueDate` is the invoice date plus the customer's payment terms. `ClearedAmount` is
+the amount paid so far and `ClearingDate` the date the payment cleared the invoice; both are empty-valued (`0.00` and null) while the invoice is open.
+
+| Field | Type | Nullable | Example |
+|-------|------|----------|---------|
+| `Invoice` | `Edm.String` (10) | No | `"9000012001"` |
+| `SoldToParty` | `Edm.String` (10) | No | `"0000100003"` |
+| `CustomerName` | `Edm.String` (80) | Yes | `"Cauvery Engineering"` |
+| `InvoiceDate` | `Edm.Date` | No | `"2026-08-14"` |
+| `DueDate` | `Edm.Date` | No | `"2026-10-13"` |
+| `NetAmount` | `Edm.Decimal` (15,2) | No | `"412500.00"` |
+| `TransactionCurrency` | `Edm.String` (5) | No | `"INR"` |
+| `ClearedAmount` | `Edm.Decimal` (15,2) | No | `"0.00"` |
+| `ClearingDate` | `Edm.Date` | Yes | `null` |
+
+```json
+{
+  "@odata.context": "$metadata#CustomerInvoice",
+  "value": [
+    {
+      "Invoice": "9000012001",
+      "SoldToParty": "0000100003",
+      "CustomerName": "Cauvery Engineering",
+      "InvoiceDate": "2026-08-14",
+      "DueDate": "2026-10-13",
+      "NetAmount": "412500.00",
+      "TransactionCurrency": "INR",
+      "ClearedAmount": "0.00",
+      "ClearingDate": null
+    }
+  ]
+}
+```
+
 ### ProductionOrder (key: `ProductionOrder`)
 
 | Field | Type | Nullable | Example |
@@ -134,6 +170,22 @@ in `$orderby` when paging.
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"260000.00"` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
+
+### Receivables summaries (read-only, measured on a day)
+
+Aggregated by SAP from `CustomerInvoice`, so a consumer never pages through invoices to total them. The day is the custom query
+parameter `AsOfDate` (`...ReceivablesAgeing?AsOfDate=2026-10-31`, default today; a value that is not a date is `400`). An invoice counts when
+`InvoiceDate` is on or before `AsOfDate`; its open amount is `NetAmount` minus `ClearedAmount` when `ClearingDate` is on or before `AsOfDate`.
+Invoices with nothing open are left out. An invoice is overdue when `DueDate` is before `AsOfDate` and it is still open. Rows are grouped by
+`TransactionCurrency` (returned as `Currency`), and `OpenCount` and `OverdueCount` are numbers of invoices. All three support the same query options as the other entities.
+
+| Entity | Key | Fields besides the key |
+|--------|-----|------------------------|
+| `ReceivablesSummary` | `AsOfDate`, `Currency` | `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount` |
+| `ReceivablesByCustomer` | `AsOfDate`, `SoldToParty`, `Currency` | `CustomerName`, `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount` |
+| `ReceivablesAgeing` | `AsOfDate`, `AgeBucket`, `Currency` | `OpenAmount`, `OpenCount` |
+
+`AgeBucket` is the days past `DueDate` on `AsOfDate`: `current` (not yet due), `1-30`, `31-60`, `61-90` or `90+`. Buckets with nothing open have no row.
 
 ## 3. Codes
 

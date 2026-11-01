@@ -3,6 +3,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
 
 from butterfly.domain.entities.drivers import (
+    CustomerInvoice,
     ProductionOrder,
     ProductionOrderComponent,
     PurchaseDelivery,
@@ -24,6 +25,7 @@ from butterfly.domain.entities.scenario import (
     SupplyDelay,
 )
 from butterfly.infrastructure.memory.scenarios import AUGUST_CONTRACT
+from butterfly.infrastructure.memory.invoices import build_invoices
 from butterfly.infrastructure.memory.seed import CUSTOMERS, MATERIALS, USERS
 
 STORY_START = date(2025, 9, 1)
@@ -86,6 +88,7 @@ class StorySeed:
     deliveries: list[PurchaseDelivery]
     production_orders: list[ProductionOrder]
     components: list[ProductionOrderComponent]
+    invoices: list[CustomerInvoice]
 
 
 def build_story_seed(today: date, scenario: Scenario = AUGUST_CONTRACT) -> StorySeed:
@@ -94,7 +97,7 @@ def build_story_seed(today: date, scenario: Scenario = AUGUST_CONTRACT) -> Story
     orders = build_orders(today, scenario)
     deliveries = build_deliveries(planning_months, today, scenario)
     production_orders, components = build_production(planning_months, today, scenario)
-    return StorySeed(orders, build_contracts(today, scenario), deliveries, production_orders, components)
+    return StorySeed(orders, build_contracts(today, scenario), deliveries, production_orders, components, build_invoices(orders, today))
 
 
 def events_of(scenario: Scenario, kind: type) -> list:
