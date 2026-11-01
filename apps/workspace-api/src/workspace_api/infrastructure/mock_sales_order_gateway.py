@@ -41,10 +41,12 @@ class MockSalesOrderGateway(SalesOrderGateway):
             creation_date_time=now,
             last_change_date_time=now,
             items=items,
+            company_code=order.company_code,
+            country="IN",
         )
         self.orders.append(created)
         return created
 
-    def list_recent(self, top: int, skip: int) -> SalesOrderPage:
-        newest_first = sorted(self.orders, key=lambda o: o.sales_order, reverse=True)
+    def list_recent(self, top: int, skip: int, companies: list[str]) -> SalesOrderPage:
+        newest_first = sorted((o for o in self.orders if o.company_code in companies), key=lambda o: o.sales_order, reverse=True)
         return SalesOrderPage(newest_first[skip : skip + top], len(newest_first))

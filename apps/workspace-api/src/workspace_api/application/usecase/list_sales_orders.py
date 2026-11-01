@@ -9,9 +9,11 @@ class ListSalesOrders:
     def __init__(self, gateway: SalesOrderGateway):
         self.gateway = gateway
 
-    def execute(self, top: int = 20, skip: int = 0) -> SalesOrderPage:
+    def execute(self, companies: list[str], top: int = 20, skip: int = 0) -> SalesOrderPage:
         if not 1 <= top <= MAX_TOP:
             raise InvalidQuery(f"top must be between 1 and {MAX_TOP}")
         if skip < 0:
             raise InvalidQuery("skip must be 0 or more")
-        return self.gateway.list_recent(top, skip)
+        if not companies:
+            return SalesOrderPage([], 0)
+        return self.gateway.list_recent(top, skip, companies)

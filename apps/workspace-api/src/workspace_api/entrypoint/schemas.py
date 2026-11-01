@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from workspace_api.domain.entities.order_request import OrderRequest
 from workspace_api.domain.entities.sales_order import (
@@ -24,6 +24,7 @@ class NewSalesOrderBody(BaseModel):
     transaction_currency: str
     requested_delivery_date: date | None = None
     items: list[NewSalesOrderItemBody]
+    company_code: str = Field(max_length=4)
 
     def to_domain(self) -> NewSalesOrder:
         return NewSalesOrder(
@@ -32,6 +33,7 @@ class NewSalesOrderBody(BaseModel):
             self.transaction_currency,
             self.requested_delivery_date,
             [NewSalesOrderItem(i.material, i.quantity, i.quantity_unit) for i in self.items],
+            self.company_code,
         )
 
 
@@ -58,6 +60,8 @@ class SalesOrderResponse(BaseModel):
     creation_date_time: datetime
     last_change_date_time: datetime
     items: list[SalesOrderItemResponse]
+    company_code: str
+    country: str
 
     @classmethod
     def from_domain(cls, order: SalesOrder) -> "SalesOrderResponse":

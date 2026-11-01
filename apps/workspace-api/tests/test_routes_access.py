@@ -17,23 +17,25 @@ VALID_BODY = {
     "transaction_currency": "INR",
     "requested_delivery_date": "2026-11-05",
     "items": [{"material": "RM-1001", "quantity": "50.000", "quantity_unit": "KG"}],
+    "company_code": "INA1",
 }
 
 
-def token_with(roles: list[str]) -> str:
+def token_with(roles: list[str], companies: list[str] | None = None) -> str:
     payload = {
         "sub": "user-1",
         "sap_username": "SAP_USER",
         "roles": roles,
+        "companies": ["sabinsa"] if companies is None else companies,
         "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
     }
     return jwt.encode(payload, SECRET, algorithm="HS256")
 
 
-def make_client(gateway: MockSalesOrderGateway, roles: list[str] | None = None) -> TestClient:
+def make_client(gateway: MockSalesOrderGateway, roles: list[str] | None = None, companies: list[str] | None = None) -> TestClient:
     client = TestClient(create_app(gateway, Settings(jwt_secret=SECRET)))
     if roles is not None:
-        client.cookies.set(ACCESS_TOKEN_COOKIE, token_with(roles))
+        client.cookies.set(ACCESS_TOKEN_COOKIE, token_with(roles, companies))
     return client
 
 

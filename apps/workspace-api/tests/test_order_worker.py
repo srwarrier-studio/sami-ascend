@@ -12,7 +12,7 @@ from workspace_api.infrastructure.mock_sales_order_gateway import MockSalesOrder
 from workspace_api.infrastructure.sqlite_order_request_store import SqliteOrderRequestStore
 
 T0 = datetime(2026, 10, 31, 9, 0, tzinfo=timezone.utc)
-BODY = {"sales_order_type": "OR", "sold_to_party": "0000100001", "transaction_currency": "INR", "requested_delivery_date": "2026-11-05",
+BODY = {"sales_order_type": "OR", "sold_to_party": "0000100001", "transaction_currency": "INR", "requested_delivery_date": "2026-11-05", "company_code": "INA1",
         "items": [{"material": "RM-1001", "quantity": "50.000", "quantity_unit": "KG"}]}
 
 

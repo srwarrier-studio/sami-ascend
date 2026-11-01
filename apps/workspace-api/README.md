@@ -10,8 +10,8 @@ Workflow backend for department users. Serves sales order routes to the workspac
 - `SalesOrderRejected` carries every validation detail (branch on `code`); `SapUnavailable` covers timeouts, connection errors and `5xx`.
 
 ## Routes (`/v1/workspace`)
-- `POST /sales-orders` creates an order, `201` with the order. Body: `sales_order_type`, `sold_to_party`, `transaction_currency`, `requested_delivery_date` (optional), `items` (`material`, `quantity` as string, `quantity_unit`).
-- `GET /sales-orders?top=20&skip=0` lists newest first: `{orders, total}`.
+- `POST /sales-orders` creates an order, `201` with the order. Body: `sales_order_type`, `sold_to_party`, `transaction_currency`, `requested_delivery_date` (optional), `company_code` (required, one of the user's companies from the token: `INA1` sabinsa, `INA2` neutraceuticals, `INA3` organica; another company is `403 COMPANY_NOT_ALLOWED`, nothing is sent), `items` (`material`, `quantity` as string, `quantity_unit`).
+- `GET /sales-orders?top=20&skip=0` lists newest first: `{orders, total}`, only orders of the user's companies; every order has `company_code` and `country`.
 - Errors: `401` no or bad login cookie, `403` no `sales` role, `422` with `VALIDATION_FAILED` (and `details`) or `INVALID_QUERY`, `503` `SAP_UNAVAILABLE`. Branch on `code`, never on `message`.
 
 ## Run
