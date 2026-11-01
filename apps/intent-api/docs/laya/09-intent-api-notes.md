@@ -216,6 +216,33 @@ At 0.4 the generic spend questions (0.25 to 0.34) are refused as `not_sure` with
 ## The SAP article (read 2026-11-01, `docs/sap-genai.html`, "How GenAI can make ERP insights more accessible", Timo Elliott, 21 July 2025)
 Relevant points: small language models fine-tuned on the company's own data, with retrieval, so users ask in natural language instead of dashboards (our direction, with Laya as the small model); ERP data is tables with relationships, so knowledge graphs help (sami-agents `graph.toml` is that idea); a toolset needs grounding, data masking, prompt management and lifecycle management (our answers will be grounded in synapse-api, data stays local); start by mapping what the ERP covers (our domains), train users and let them practise in low-risk settings (the "Reading preview" card). Its example questions, "highest-margin product last quarter" and "which suppliers have had late deliveries this month", are the kind of question we do not have scenarios for yet and are in the tuning set as must-refuse questions.
 
+## Run 13: the fine-tuned checkpoint (2026-11-01, phase 02 task 4)
+Trained by the owner on a remote GPU (`Training/intent-training.ipynb`): base `typed-decisions`, 1,862 training items (206 held out by Laya for calibration), 10 epochs, soft cross-entropy, options shuffled. The training loss was about 0 from epoch 3. Notebook table on the 921 held-out family items: accuracy 0.767 to 0.953, ECE 0.170 to 0.040, mean confidence 0.597 to 0.993. The calibration slice came from the training families (accuracy 1.0, temperature 0.998), so confidence is not corrected for unseen wording.
+
+Served on the host as an extra checkpoint (`LAYA_EXTRA_MODELS={"intent-tuned": "<folder>"}`, `LAYA_MODELS=intent-tuned`, `LAYA_MODEL=intent-tuned`), then `intent-api eval` (floors 0.4 / 0.3):
+
+| | Zero-shot `typed-decisions` | Tuned |
+|---|---|---|
+| Tuning questions (87): exact of 56 answerable | 37 | 51 |
+| Wrong or extra scenario | 5 | 2 |
+| Wrongly refused | 9 | 2 |
+| Must refuse, correct (of 31) | 27 | 29 |
+| Harmful (wrong or extra + wrongly answered) | 9 | 4 |
+| Held-out questions (34): exact of 24 | 19 (at 0 / 0.3) | 23 |
+| Held-out harmful | 5 | 0 |
+| Seconds per question | 1.2 to 1.3 | 1.2 |
+
+Remaining tuning failures: "is turnover up or down against the previous month" and "how much did we invoice customers in June" read as Finance (0.95 and 0.99), "what was spending in december last year" given compare-with-last-year, two multi-part questions with a wrong or missing second scenario, and two must-refuse questions answered ("slow moving raw materials" as purchases_top_materials, "which suppliers have had late deliveries this month" as top suppliers).
+
+Fresh probes written after training, with phrasing not in the families (24): 22 right; the two misses were "which vendor gets most of our money" (Sales, 0.72) and "what was the best month for sales this year" (refused; no such scenario, so the refusal is defensible).
+
+Limits:
+- Confidence is now about 1.0 for nearly everything, so the floors (`DOMAIN_MIN_PROBABILITY`, `SCENARIO_MIN_PROBABILITY`) no longer separate right from wrong; the sweep is flat. Refusals now come from `Other`, a domain without scenarios and "nothing is asked", all learned. Confident mistakes (domain 0.95 to 1.00) are the remaining risk.
+- The evaluation questions and the training families have the same author, and only exact repeats were removed, so these numbers measure our style. The owner's local set of real-sounding questions is the honest test; only totals are to be shared.
+- The held-out evaluation questions were already used once for the floors in phase 01, so they are a sanity check, not a clean test.
+- The checkpoint is large (840 MB model, 1.5 GB zip) and is not committed; it lives in `Training/intent-tuned/` (git-ignored) next to the zip.
+- The training warning "Conflicting schema detected for question 'choice'" came from the domain and scenario items sharing one question id; it did not stop training or change the results above.
+
 ## Next tests (not yet run)
 - Refusal alone: sales / purchases / other with narrow descriptions, plus the `noul` gate, on a larger off-topic and out-of-scope set (forecasts, weather, jokes, other departments, empty and gibberish input).
 - Isolate wording versus label set versus API form.
