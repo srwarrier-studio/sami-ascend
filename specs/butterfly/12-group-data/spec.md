@@ -5,13 +5,13 @@ Butterfly's sample data looks like the Sami group (three companies in one SAP cl
 
 ## Behavior
 ### Companies (`docs/sap/`, changed first)
-- Every entity in the sales service and the drivers service (orders, items, contracts, deliveries, production orders, components, invoices) and every summary gains `CompanyCode` (`Edm.String` 4, not nullable), as a field to read, `$filter` and `$select`, and as part of every summary key. A summary without a company filter still returns one row per company, so a consumer adds them up for the group view; butterfly never sums across companies.
+- Every entity in the sales service and the drivers service (orders, contracts, deliveries, production orders, components, invoices; items reach their company through their order) and every summary gains `CompanyCode` (`Edm.String` 4, not nullable), as a field to read, `$filter` and `$select`, and as part of every summary key. A summary without a company filter still returns one row per company, so a consumer adds them up for the group view; butterfly never sums across companies.
 - `CompanyCode` values are assumed: `1000` Sami-Sabinsa Group Limited, `2000` Sami Nutraceuticals Private Limited, `3000` Organica Aromatics Private Limited. They map to the auth-api companies `sabinsa`, `neutraceuticals`, `organica`. The real codes go into `docs/sap/consultant-questions.md`.
-- A write (create or change a sales order) takes `CompanyCode`; a missing or unknown code is a validation error.
+- A create takes `CompanyCode` (a change cannot move an order to another company); a missing or unknown code is a validation error.
 
 ### Data (invented names only; no real customers, suppliers or amounts)
 - **Products** per company, replacing the steel list: Sabinsa sells standardised herbal and spice extracts and fine chemicals; Nutraceuticals sells finished nutraceutical ingredients and probiotics; Organica sells aroma chemicals. About 6 materials per company, each with a unit (`KG`, `MT`) and a price.
-- **Customers**: about 6 per company, invented, mostly export buyers across several countries (the USA the largest), a small domestic share. A customer has a country; the country is a new field `Country` (`Edm.String` 2, ISO code) on the order and the invoice.
+- **Customers**: about 6 per company, invented, mostly export buyers across several countries (the USA the largest), a small domestic share. A customer has a country; the country is a new field `Country` (`Edm.String` 2, ISO code) on the order and the invoice, taken from the customer (not written by the client).
 - **Currency**: export sales and invoices in `USD`, domestic in `INR`; purchases of imported raw material in `USD`, local purchases in `INR`. Rows keep one `TransactionCurrency`; no exchange rate is added.
 - **Suppliers and raw materials**: contract-farmed turmeric and black pepper in India (INR), imported turmeric (USD), solvents and chemical intermediates; each company buys what it makes products from, and production orders and components follow the new products.
 - **Invoices**: payment terms and delays per customer follow the new customers (export buyers on longer terms; one customer who never pays; one slow payer), still fixed arithmetic.

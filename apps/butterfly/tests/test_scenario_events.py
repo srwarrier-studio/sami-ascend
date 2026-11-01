@@ -38,9 +38,9 @@ def orders_of(seed, customer, start, end):
 
 
 BUTTERFLY_EIGHT = {
-    date(2026, 10, 31): {"orders": "be3dc0cf5d209f8a", "contracts": "77208a2c8362559d", "production_orders": "918f6fc80d8cf23d", "components": "4ee79d2ae772c724"},
-    date(2026, 8, 15): {"orders": "d16872b0cd0672f8", "contracts": "1f592dbcff450c37", "production_orders": "039f27b642636434", "components": "c57ee25e615e4775"},
-    date(2026, 9, 1): {"orders": "f8b1bf7c47ba5d5d", "contracts": "1f592dbcff450c37", "production_orders": "68b8b8dc219e118c", "components": "afac484cb3ddae0a"},
+    date(2026, 10, 31): {"orders": "7e38e283a5d06c4d", "contracts": "77208a2c8362559d", "production_orders": "918f6fc80d8cf23d", "components": "4ee79d2ae772c724"},
+    date(2026, 8, 15): {"orders": "a02b9f4da62e019a", "contracts": "1f592dbcff450c37", "production_orders": "039f27b642636434", "components": "c57ee25e615e4775"},
+    date(2026, 9, 1): {"orders": "d848cd472db06d5f", "contracts": "1f592dbcff450c37", "production_orders": "68b8b8dc219e118c", "components": "afac484cb3ddae0a"},
 }
 DELIVERIES_WITH_AMOUNTS = {date(2026, 10, 31): "0a3d86e25ebef67a", date(2026, 8, 15): "03790bf72890111e", date(2026, 9, 1): "0daa551b818585ac"}
 

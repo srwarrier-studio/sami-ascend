@@ -6,6 +6,7 @@ from decimal import Decimal
 class Customer:
     customer_id: str
     name: str
+    country: str = "IN"
 
 
 @dataclass(frozen=True)

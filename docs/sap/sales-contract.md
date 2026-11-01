@@ -34,6 +34,8 @@ Nullable `No` means the field is always present in responses.
 | `CreatedByUser` | `Edm.String` (12) | No | `"SMANI"` |
 | `CreationDateTime` | `Edm.DateTimeOffset` | No | `"2026-10-27T09:15:30Z"` |
 | `LastChangeDateTime` | `Edm.DateTimeOffset` | No | `"2026-10-27T09:15:30Z"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"1000"` |
+| `Country` | `Edm.String` (2) | No | `"IN"` |
 
 Navigation: `_Item` (collection of `SalesOrderItem`).
 
@@ -55,7 +57,7 @@ Navigation: none. Items are read through `SalesOrder(...)/_Item` or `$expand=_It
 
 Used for dashboard totals. No create, change or delete.
 
-**SalesSummaryByDay** (key: `OrderDate`)
+**SalesSummaryByDay** (key: `OrderDate`, `CompanyCode`)
 
 | Field | Type | Nullable | Example |
 |-------|------|----------|---------|
@@ -63,8 +65,9 @@ Used for dashboard totals. No create, change or delete.
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"845000.00"` |
 | `OrderCount` | `Edm.Int32` | No | `14` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"1000"` |
 
-**SalesSummaryByCustomer** (key: `SoldToParty`, `OrderDate`)
+**SalesSummaryByCustomer** (key: `SoldToParty`, `OrderDate`, `CompanyCode`)
 
 | Field | Type | Nullable | Example |
 |-------|------|----------|---------|
@@ -74,8 +77,9 @@ Used for dashboard totals. No create, change or delete.
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"125000.00"` |
 | `OrderCount` | `Edm.Int32` | No | `2` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"1000"` |
 
-**SalesSummaryByMaterial** (key: `Material`, `OrderDate`)
+**SalesSummaryByMaterial** (key: `Material`, `OrderDate`, `CompanyCode`)
 
 | Field | Type | Nullable | Example |
 |-------|------|----------|---------|
@@ -86,8 +90,9 @@ Used for dashboard totals. No create, change or delete.
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"625000.00"` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"1000"` |
 
-Summaries are per day. Month-to-date and year-to-date are sums over a `$filter` on
+`CompanyCode` is part of every summary key: a summary returns one row per company, and a consumer that wants the group adds the companies up. Summaries are per day. Month-to-date and year-to-date are sums over a `$filter` on
 `OrderDate`, done by synapse-api. Each summary has one row per currency per key; synapse-api
 does not add amounts across currencies.
 
@@ -196,7 +201,9 @@ GET {root}SalesOrder('0000012345')
   "OverallStatus": "A",
   "CreatedByUser": "SMANI",
   "CreationDateTime": "2026-10-27T09:15:30Z",
-  "LastChangeDateTime": "2026-10-27T09:15:30Z"
+  "LastChangeDateTime": "2026-10-27T09:15:30Z",
+  "CompanyCode": "1000",
+  "Country": "IN"
 }
 ```
 
@@ -224,6 +231,8 @@ GET {root}SalesOrder('0000012345')?$expand=_Item
   "CreatedByUser": "SMANI",
   "CreationDateTime": "2026-10-27T09:15:30Z",
   "LastChangeDateTime": "2026-10-27T09:15:30Z",
+  "CompanyCode": "1000",
+  "Country": "IN",
   "_Item": [
     {
       "SalesOrder": "0000012345",
@@ -269,13 +278,15 @@ GET {root}SalesSummaryByDay?$filter=OrderDate ge 2026-10-26 and OrderDate le 202
       "OrderDate": "2026-10-26",
       "TotalNetAmount": "712000.00",
       "OrderCount": 11,
-      "Currency": "INR"
+      "Currency": "INR",
+      "CompanyCode": "1000"
     },
     {
       "OrderDate": "2026-10-27",
       "TotalNetAmount": "845000.00",
       "OrderCount": 14,
-      "Currency": "INR"
+      "Currency": "INR",
+      "CompanyCode": "1000"
     }
   ]
 }
@@ -303,6 +314,7 @@ POST {root}SalesOrder
   "SoldToParty": "0000100001",
   "RequestedDeliveryDate": "2026-11-05",
   "TransactionCurrency": "INR",
+  "CompanyCode": "1000",
   "_Item": [
     { "Material": "RM-1001", "Quantity": "50.000", "QuantityUnit": "KG" },
     { "Material": "RM-1002", "Quantity": "25.000", "QuantityUnit": "KG" }
@@ -314,13 +326,13 @@ Input rules:
 
 | Field | Rule |
 |-------|------|
-| `SalesOrderType`, `SoldToParty`, `TransactionCurrency` | Required |
+| `SalesOrderType`, `SoldToParty`, `TransactionCurrency`, `CompanyCode` | Required; `CompanyCode` must be one of the group's company codes |
 | `RequestedDeliveryDate` | Optional; must not be before today |
 | `_Item` | Required, at least one item |
 | `Material`, `Quantity`, `QuantityUnit` | Required on each item; `Quantity` greater than 0 |
 
 SAP fills in everything else: `SalesOrder`, `SalesOrderItem` (`000010`, `000020`, ...),
-`CustomerName`, `MaterialDescription`, `OrderDate` (today), `NetAmount`, `TotalNetAmount`,
+`CustomerName`, `Country` (the customer's), `MaterialDescription`, `OrderDate` (today), `NetAmount`, `TotalNetAmount`,
 `OverallStatus` (`A`), `CreatedByUser`, and both timestamps. Prices come from SAP pricing.
 
 Sending a field SAP fills in, or a name that is not a field, is rejected with
@@ -382,7 +394,7 @@ can show every message at once. `target` is the field path.
 In `_Item/1/Quantity`, `1` is the zero-based position in the request.
 
 Detail codes: `FIELD_REQUIRED`, `FIELD_INVALID`, `FIELD_NOT_ALLOWED`, `CUSTOMER_UNKNOWN`,
-`MATERIAL_UNKNOWN`, `UNIT_INVALID`, `CURRENCY_INVALID`, `QUANTITY_NOT_POSITIVE`,
+`COMPANY_UNKNOWN`, `MATERIAL_UNKNOWN`, `UNIT_INVALID`, `CURRENCY_INVALID`, `QUANTITY_NOT_POSITIVE`,
 `DELIVERY_DATE_IN_PAST`, `ORDER_NOT_CHANGEABLE`, `NO_ITEMS`.
 
 | Code | Meaning | `target` |
@@ -390,6 +402,7 @@ Detail codes: `FIELD_REQUIRED`, `FIELD_INVALID`, `FIELD_NOT_ALLOWED`, `CUSTOMER_
 | `FIELD_REQUIRED` | A required field is missing, null or empty | the field |
 | `FIELD_INVALID` | The value has the wrong format (date not `YYYY-MM-DD`, quantity not a decimal string, a number where text is required) | the field |
 | `FIELD_NOT_ALLOWED` | A field SAP fills in, or an unknown name | the field |
+| `COMPANY_UNKNOWN` | The company code is not one of the group's | `CompanyCode` |
 | `UNIT_INVALID` | The unit is not the material's unit | `_Item/n/QuantityUnit` |
 | `NO_ITEMS` | `_Item` is missing or empty | `_Item` |
 

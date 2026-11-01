@@ -81,6 +81,7 @@ class TestContractCreateErrorExamples:
             {"SalesOrderType": None},
             {"RequestedDeliveryDate": "x", "Colour": 1},
             {"SoldToParty": "0000999999", "TransactionCurrency": "USD", "RequestedDeliveryDate": "2020-01-01"},
+            {"CompanyCode": "9999"},
             {"_Item": []},
             {"_Item": [{"Material": "RM-9999", "Quantity": "0", "QuantityUnit": "EA"}]},
             {"_Item": [{"Material": "RM-1001", "Quantity": "1", "QuantityUnit": "EA"}]},

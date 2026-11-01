@@ -5,7 +5,7 @@ URL = ROOT + "SalesOrder"
 FIELDS = [
     "SalesOrder", "SalesOrderType", "SoldToParty", "CustomerName", "OrderDate",
     "RequestedDeliveryDate", "TransactionCurrency", "TotalNetAmount", "OverallStatus",
-    "CreatedByUser", "CreationDateTime", "LastChangeDateTime",
+    "CreatedByUser", "CreationDateTime", "LastChangeDateTime", "CompanyCode", "Country",
 ]
 
 

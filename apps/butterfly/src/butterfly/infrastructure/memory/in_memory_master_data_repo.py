@@ -3,6 +3,7 @@ from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.infrastructure.memory.seed import CUSTOMERS, MATERIALS
 
 CURRENCIES = {"INR"}
+COMPANIES = {"1000", "2000", "3000"}
 
 
 class InMemoryMasterDataRepo(MasterDataRepo):
@@ -18,6 +19,9 @@ class InMemoryMasterDataRepo(MasterDataRepo):
 
     def get_material(self, material_id: str) -> Material | None:
         return self.materials.get(material_id)
+
+    def company_exists(self, company_code: str) -> bool:
+        return company_code in COMPANIES
 
     def currency_exists(self, currency: str) -> bool:
         return currency in CURRENCIES

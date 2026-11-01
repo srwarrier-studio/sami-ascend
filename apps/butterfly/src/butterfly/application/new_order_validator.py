@@ -10,10 +10,11 @@ from butterfly.domain.entities.master_data import Customer, Material
 from butterfly.domain.errors import ValidationDetail
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 
-HEADER_FIELDS = ["SalesOrderType", "SoldToParty", "RequestedDeliveryDate", "TransactionCurrency"]
+HEADER_FIELDS = ["SalesOrderType", "SoldToParty", "RequestedDeliveryDate", "TransactionCurrency", "CompanyCode"]
 ITEM_FIELDS = ["Material", "Quantity", "QuantityUnit"]
 MAX_LENGTH = {
     "SalesOrderType": 4,
+    "CompanyCode": 4,
     "SoldToParty": 10,
     "TransactionCurrency": 5,
     "Material": 40,
@@ -32,6 +33,7 @@ class NewItem:
 @dataclass(frozen=True)
 class NewOrder:
     sales_order_type: str
+    company_code: str
     customer: Customer
     requested_delivery_date: date | None
     currency: str
@@ -54,10 +56,11 @@ class NewOrderValidator:
         customer = self.customer(body)
         delivery_date = self.delivery_date(body)
         currency = self.currency(body)
+        company_code = self.company(body)
         items = self.items(body)
         if self.details:
             return None, self.details
-        return NewOrder(order_type, customer, delivery_date, currency, items), []
+        return NewOrder(order_type, company_code, customer, delivery_date, currency, items), []
 
     def check_not_allowed(self, body: dict, allowed: list[str], prefix: str, known: dict):
         for name in body:
@@ -82,6 +85,12 @@ class NewOrderValidator:
             )
             return None
         return value
+
+    def company(self, body: dict) -> str | None:
+        company_code = self.text(body, "CompanyCode", "CompanyCode")
+        if company_code is not None and not self.master_data.company_exists(company_code):
+            self.problem("COMPANY_UNKNOWN", f"Company {company_code} does not exist.", "CompanyCode")
+        return company_code
 
     def customer(self, body: dict) -> Customer | None:
         customer_id = self.text(body, "SoldToParty", "SoldToParty")

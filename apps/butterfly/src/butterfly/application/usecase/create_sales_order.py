@@ -63,4 +63,6 @@ class CreateSalesOrder:
             creation_date_time=moment,
             last_change_date_time=moment,
             items=items,
+            company_code=new_order.company_code,
+            country=new_order.customer.country,
         )

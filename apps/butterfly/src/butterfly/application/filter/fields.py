@@ -21,6 +21,8 @@ SALES_ORDER_FIELDS = {
     "CreatedByUser": ("created_by_user", FieldType.STRING),
     "CreationDateTime": ("creation_date_time", FieldType.DATETIME),
     "LastChangeDateTime": ("last_change_date_time", FieldType.DATETIME),
+    "CompanyCode": ("company_code", FieldType.STRING),
+    "Country": ("country", FieldType.STRING),
 }
 
 SALES_ORDER_ITEM_FIELDS = {
@@ -38,6 +40,7 @@ SALES_SUMMARY_BY_DAY_FIELDS = {
     "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
     "OrderCount": ("order_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
 }
 
 SALES_SUMMARY_BY_CUSTOMER_FIELDS = {
@@ -47,6 +50,7 @@ SALES_SUMMARY_BY_CUSTOMER_FIELDS = {
     "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
     "OrderCount": ("order_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
 }
 
 SALES_SUMMARY_BY_MATERIAL_FIELDS = {
@@ -57,6 +61,7 @@ SALES_SUMMARY_BY_MATERIAL_FIELDS = {
     "QuantityUnit": ("quantity_unit", FieldType.STRING),
     "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
 }
 
 SALES_CONTRACT_FIELDS = {
@@ -146,7 +151,7 @@ PRODUCTION_ORDER_COMPONENT_FIELDS = {
     "QuantityUnit": ("quantity_unit", FieldType.STRING),
 }
 
-PURCHASE_SUMMARY_BY_DAY_FIELDS = SALES_SUMMARY_BY_DAY_FIELDS
+PURCHASE_SUMMARY_BY_DAY_FIELDS = {name: field for name, field in SALES_SUMMARY_BY_DAY_FIELDS.items() if name != "CompanyCode"}
 
 PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {
     "Supplier": ("supplier", FieldType.STRING),
@@ -157,4 +162,4 @@ PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {
     "Currency": ("currency", FieldType.STRING),
 }
 
-PURCHASE_SUMMARY_BY_MATERIAL_FIELDS = SALES_SUMMARY_BY_MATERIAL_FIELDS
+PURCHASE_SUMMARY_BY_MATERIAL_FIELDS = {name: field for name, field in SALES_SUMMARY_BY_MATERIAL_FIELDS.items() if name != "CompanyCode"}

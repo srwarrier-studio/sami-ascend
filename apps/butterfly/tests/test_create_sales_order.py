@@ -14,6 +14,7 @@ NOW = datetime(2026, 10, 27, 9, 15, 30, 750000, tzinfo=timezone.utc)
 
 VALID_BODY = {
     "SalesOrderType": "OR",
+    "CompanyCode": "1000",
     "SoldToParty": "0000100001",
     "RequestedDeliveryDate": "2026-11-05",
     "TransactionCurrency": "INR",
@@ -300,6 +301,25 @@ class TestFieldsTheCallerMayNotSend:
         assert ("FIELD_NOT_ALLOWED", "soldtoparty") in result
 
 
+class TestCompany:
+    def test_the_company_of_the_order_is_stored(self):
+        repo, use_case = make()
+        assert use_case.execute(body(CompanyCode="2000")).company_code == "2000"
+
+    def test_the_country_comes_from_the_customer(self):
+        repo, use_case = make()
+        assert use_case.execute(VALID_BODY).country == "IN"
+
+    def test_a_missing_company_is_required(self):
+        assert problems(body_without("CompanyCode")) == [("FIELD_REQUIRED", "CompanyCode")]
+
+    def test_an_unknown_company_is_rejected(self):
+        assert problems(body(CompanyCode="9999")) == [("COMPANY_UNKNOWN", "CompanyCode")]
+
+    def test_the_country_cannot_be_sent(self):
+        assert problems(body(Country="US")) == [("FIELD_NOT_ALLOWED", "Country")]
+
+
 class TestSeveralProblemsAtOnce:
     def test_all_are_returned_in_one_failure(self):
         everything_wrong = {
@@ -307,6 +327,7 @@ class TestSeveralProblemsAtOnce:
             "SoldToParty": "0000999999",
             "RequestedDeliveryDate": "2020-01-01",
             "TransactionCurrency": "USD",
+            "CompanyCode": "9999",
             "_Item": [
                 {"Material": "RM-9999", "Quantity": "1", "QuantityUnit": "KG"},
                 {"Material": "RM-1001", "Quantity": "0", "QuantityUnit": "EA"},
@@ -319,6 +340,7 @@ class TestSeveralProblemsAtOnce:
             ("CUSTOMER_UNKNOWN", "SoldToParty"),
             ("DELIVERY_DATE_IN_PAST", "RequestedDeliveryDate"),
             ("CURRENCY_INVALID", "TransactionCurrency"),
+            ("COMPANY_UNKNOWN", "CompanyCode"),
             ("MATERIAL_UNKNOWN", "_Item/0/Material"),
             ("QUANTITY_NOT_POSITIVE", "_Item/1/Quantity"),
             ("UNIT_INVALID", "_Item/1/QuantityUnit"),
@@ -336,6 +358,7 @@ class TestSeveralProblemsAtOnce:
             ("FIELD_REQUIRED", "SalesOrderType"),
             ("FIELD_REQUIRED", "SoldToParty"),
             ("FIELD_REQUIRED", "TransactionCurrency"),
+            ("FIELD_REQUIRED", "CompanyCode"),
             ("NO_ITEMS", "_Item"),
         ]
 

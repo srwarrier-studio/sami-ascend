@@ -9,6 +9,7 @@ class SalesSummaryByDay:
     total_net_amount: Decimal
     order_count: int
     currency: str
+    company_code: str = "1000"
 
 
 @dataclass(frozen=True)
@@ -19,6 +20,7 @@ class SalesSummaryByCustomer:
     total_net_amount: Decimal
     order_count: int
     currency: str
+    company_code: str = "1000"
 
 
 @dataclass(frozen=True)
@@ -30,6 +32,7 @@ class SalesSummaryByMaterial:
     quantity_unit: str
     total_net_amount: Decimal
     currency: str
+    company_code: str = "1000"
 
 
 @dataclass(frozen=True)

@@ -13,11 +13,11 @@ class SummarizeByCustomer:
         for order in self.repo.list_all():
             if order.overall_status == "X":
                 continue
-            key = (order.order_date, order.sold_to_party, order.transaction_currency)
+            key = (order.order_date, order.sold_to_party, order.transaction_currency, order.company_code)
             entry = totals.setdefault(key, [order.customer_name, Decimal("0.00"), 0])
             entry[1] += order.total_net_amount
             entry[2] += 1
         return [
-            SalesSummaryByCustomer(party, name, day, amount, count, currency)
-            for (day, party, currency), (name, amount, count) in sorted(totals.items())
+            SalesSummaryByCustomer(party, name, day, amount, count, currency, company)
+            for (day, party, currency, company), (name, amount, count) in sorted(totals.items())
         ]
