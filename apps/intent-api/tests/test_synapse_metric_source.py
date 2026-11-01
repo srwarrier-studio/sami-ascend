@@ -151,3 +151,32 @@ def fetch(source, call):
     if call == "month":
         return source.month("tok", "sales", date(2026, 6, 1), 6)
     return source.compare("tok", "sales", WINDOW, "customer", 50)
+
+
+class TestACompany:
+    def test_the_company_is_sent_with_every_read(self):
+        seen = []
+
+        def handler(request):
+            seen.append(dict(request.url.params))
+            return httpx.Response(200, json=MONTH)
+
+        scoped = source_with(handler).for_company("sabinsa")
+        scoped.month("tok", "sales", date(2026, 6, 1), 6)
+        assert seen[0]["company"] == "sabinsa"
+
+    def test_nothing_is_added_without_a_company(self):
+        seen = []
+
+        def handler(request):
+            seen.append(dict(request.url.params))
+            return httpx.Response(200, json=MONTH)
+
+        source_with(handler).month("tok", "sales", date(2026, 6, 1), 6)
+        assert "company" not in seen[0]
+
+    def test_403_for_a_company_is_company_not_allowed(self):
+        from intent_api.domain.errors import CompanyNotAllowed
+
+        with pytest.raises(CompanyNotAllowed):
+            source_with(lambda request: httpx.Response(403)).for_company("organica").month("tok", "sales", date(2026, 6, 1), 6)

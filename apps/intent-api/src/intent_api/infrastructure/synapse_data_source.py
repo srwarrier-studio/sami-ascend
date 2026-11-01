@@ -7,7 +7,7 @@ from token_verification.fastapi_deps import ACCESS_TOKEN_COOKIE
 
 from intent_api.domain.analysis.finding import MemberChange, Window
 from intent_api.domain.analysis.measure import Comparison, DimensionInfo, MetricInfo, MoverRow, TrendPoint
-from intent_api.domain.errors import DataUnavailable
+from intent_api.domain.errors import CompanyNotAllowed, DataUnavailable
 from intent_api.domain.analysis.data_source import DataSource
 from intent_api.infrastructure.settings import Settings
 
@@ -90,6 +90,8 @@ class SynapseDataSource(DataSource):
             response = self.client.get(path, params=params, headers=headers)
         except httpx.TransportError as error:
             raise DataUnavailable(type(error).__name__) from error
+        if response.status_code == 403 and self.company:
+            raise CompanyNotAllowed(self.company)
         if response.status_code != 200:
             raise DataUnavailable(f"unexpected status {response.status_code}")
         try:

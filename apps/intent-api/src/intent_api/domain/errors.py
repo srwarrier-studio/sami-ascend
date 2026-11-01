@@ -21,6 +21,10 @@ class PeriodNotSupported(Exception):
         self.reason = reason
 
 
+class CompanyNotAllowed(Exception):
+    pass
+
+
 class DataUnavailable(Exception):
     pass
 

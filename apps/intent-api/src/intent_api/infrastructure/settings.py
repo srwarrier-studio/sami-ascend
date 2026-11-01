@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     synapse_url: str = "http://localhost:8004"
     synapse_timeout_seconds: float = 10.0
     max_scenarios: int = 4
+    significant_percent: float = 5
+    mover_min_percent: float = 10
+    mover_min_share: float = 2
+    price_majority_percent: float = 50
     top_ranked: int = 5
     scenario_min_probability: float = 0.3
     domain_min_probability: float = 0.4

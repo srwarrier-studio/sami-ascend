@@ -65,3 +65,13 @@ scenario = "purchases_top_materials"
 response = "ranking"
 metric = "purchases"
 by = "material"
+
+[[answer]]
+scenario = "sales_why"
+response = "why"
+metric = "sales"
+
+[[answer]]
+scenario = "purchases_why"
+response = "why"
+metric = "purchases"

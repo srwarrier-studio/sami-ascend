@@ -41,6 +41,11 @@ class FakeMetricSource(MetricSource):
         self.comparisons = comparisons or []
         self.down = False
         self.calls = []
+        self.companies = []
+
+    def for_company(self, company):
+        self.companies.append(company)
+        return self
 
     def month(self, token: str, metric: str, month: date, trend: int) -> list[MonthFigure]:
         self.calls.append(("month", token, metric, month, trend))

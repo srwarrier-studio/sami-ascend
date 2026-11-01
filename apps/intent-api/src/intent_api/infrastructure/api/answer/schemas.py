@@ -1,7 +1,15 @@
+from typing import Literal
+
 from pydantic import BaseModel
 
 from intent_api.domain.entities.reply import Reply
-from intent_api.infrastructure.api.match.schemas import CANNOT_ANSWER, MatchResponse
+from intent_api.infrastructure.api.match.schemas import CANNOT_ANSWER, MatchRequest, MatchResponse
+
+COMPANIES = ("all", "sabinsa", "neutraceuticals", "organica")
+
+
+class AnswerRequest(MatchRequest):
+    company: Literal["all", "sabinsa", "neutraceuticals", "organica"] = "all"
 
 
 class AnswerItem(BaseModel):

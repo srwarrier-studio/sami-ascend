@@ -1,5 +1,5 @@
 import calendar
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from decimal import Decimal
 
@@ -58,7 +58,9 @@ class AnalyseQuestion:
             return Analysis(question, window, "", Decimal(0), Decimal(0), Decimal(0), None, False, limits=["There is no data for this metric in these months."])
         total = self.pick(totals, question.currency)
         if total is None:
-            return Analysis(question, window, question.currency or "", Decimal(0), Decimal(0), Decimal(0), None, False, limits=[f"There is no data in {question.currency} for these months."])
+            return Analysis(question, window, "", Decimal(0), Decimal(0), Decimal(0), None, False, limits=[f"There is no data in {question.currency} for these months."])
+        if question.direction == "auto":
+            question = replace(question, direction="fall" if total.change < 0 else "rise")
         analysis = Analysis(question, window, total.currency, total.current, total.previous, total.change, total.change_percent, self.significant(total))
         analysis.other_currencies = [(other.currency, other.change_percent) for other in totals if other is not total and self.significant(other)]
         truncated = False

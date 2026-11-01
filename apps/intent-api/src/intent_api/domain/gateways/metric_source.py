@@ -6,6 +6,9 @@ from intent_api.domain.entities.figures import Comparison, MonthFigure, Window
 
 class MetricSource(ABC):
     @abstractmethod
+    def for_company(self, company: str | None) -> "MetricSource": ...
+
+    @abstractmethod
     def month(self, token: str, metric: str, month: date, trend: int) -> list[MonthFigure]: ...
 
     @abstractmethod

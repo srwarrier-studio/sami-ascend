@@ -240,3 +240,15 @@ class TestCompanyScope:
     def test_the_mock_records_the_company_it_was_scoped_to(self):
         mock = MockDataSource()
         assert mock.for_company("all") is mock and mock.companies == ["all"]
+
+
+class TestACompanyTheUserDoesNotHave:
+    def test_403_with_a_company_is_company_not_allowed(self):
+        from intent_api.domain.errors import CompanyNotAllowed
+
+        with pytest.raises(CompanyNotAllowed):
+            source(lambda request: httpx.Response(403, json={"code": "COMPANY_NOT_ALLOWED"})).for_company("organica").metrics("tok")
+
+    def test_403_without_a_company_is_just_unavailable(self):
+        with pytest.raises(DataUnavailable):
+            source(lambda request: httpx.Response(403)).metrics("tok")
