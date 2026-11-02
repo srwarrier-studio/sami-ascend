@@ -65,27 +65,27 @@ class TestComparisonOperators:
 
 class TestStringFunctions:
     def test_contains(self):
-        assert numbers("contains(CustomerName,'Steel')") == expected(
-            lambda o: "Steel" in o.customer_name
+        assert numbers("contains(CustomerName,'Ingredients')") == expected(
+            lambda o: "Ingredients" in o.customer_name
         )
 
     def test_startswith(self):
-        assert numbers("startswith(CustomerName,'Acme')") == expected(
-            lambda o: o.customer_name.startswith("Acme")
+        assert numbers("startswith(CustomerName,'Harborline')") == expected(
+            lambda o: o.customer_name.startswith("Harborline")
         )
 
     def test_matching_is_case_sensitive(self):
-        assert numbers("contains(CustomerName,'steel')") == []
+        assert numbers("contains(CustomerName,'ingredients')") == []
 
     def test_empty_text_matches_every_filled_value(self):
         assert len(numbers("contains(CustomerName,'')")) == len(ORDERS)
 
     def test_space_after_comma_is_allowed(self):
-        assert numbers("contains(CustomerName, 'Steel')") == numbers("contains(CustomerName,'Steel')")
+        assert numbers("contains(CustomerName, 'Ingredients')") == numbers("contains(CustomerName,'Ingredients')")
 
     def test_can_be_negated(self):
-        assert numbers("not contains(CustomerName,'Steel')") == expected(
-            lambda o: "Steel" not in o.customer_name
+        assert numbers("not contains(CustomerName,'Ingredients')") == expected(
+            lambda o: "Ingredients" not in o.customer_name
         )
 
 
@@ -148,7 +148,7 @@ class TestNullValues:
     def with_nulls(self):
         return [
             replace(ORDERS[0], customer_name=None, requested_delivery_date=None),
-            replace(ORDERS[1], customer_name="Acme", requested_delivery_date=date(2026, 11, 1)),
+            replace(ORDERS[1], customer_name="Harborline", requested_delivery_date=date(2026, 11, 1)),
         ]
 
     def test_null_text_matches_no_comparison(self):
@@ -157,7 +157,7 @@ class TestNullValues:
 
     def test_null_text_matches_no_function(self):
         orders = self.with_nulls()
-        assert numbers("contains(CustomerName,'A')", orders) == [orders[1].sales_order]
+        assert numbers("contains(CustomerName,'H')", orders) == [orders[1].sales_order]
 
     def test_null_date_matches_no_comparison(self):
         orders = self.with_nulls()
@@ -202,7 +202,7 @@ BAD_FILTERS = {
     "impossible date": "OrderDate eq 2026-13-45",
     "date field compared to timestamp": "OrderDate eq 2026-10-27T09:15:30Z",
     "contains on a date": "contains(OrderDate,'2026')",
-    "contains without quotes": "contains(CustomerName,Steel)",
+    "contains without quotes": "contains(CustomerName,Ingredients)",
     "contains missing bracket": "contains(CustomerName,'a'",
     "function used as a value": "OverallStatus eq contains(CustomerName,'a')",
     "unexpected character": "OverallStatus eq 'A' ; drop",

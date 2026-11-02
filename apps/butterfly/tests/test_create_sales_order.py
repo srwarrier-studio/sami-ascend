@@ -14,6 +14,7 @@ NOW = datetime(2026, 10, 27, 9, 15, 30, 750000, tzinfo=timezone.utc)
 
 VALID_BODY = {
     "SalesOrderType": "OR",
+    "CompanyCode": "INA1",
     "SoldToParty": "0000100001",
     "RequestedDeliveryDate": "2026-11-05",
     "TransactionCurrency": "INR",
@@ -72,7 +73,7 @@ class TestCreateSalesOrder:
     def test_header_comes_from_the_request_and_master_data(self):
         assert self.order.sales_order_type == "OR"
         assert self.order.sold_to_party == "0000100001"
-        assert self.order.customer_name == "Acme Industries"
+        assert self.order.customer_name == "Harborline Nutrition LLC"
         assert self.order.transaction_currency == "INR"
         assert self.order.requested_delivery_date == date(2026, 11, 5)
 
@@ -92,7 +93,7 @@ class TestCreateSalesOrder:
     def test_item_text_and_amounts_come_from_master_data(self):
         first = self.order.items[0]
 
-        assert first.material_description == "Steel rod 12mm"
+        assert first.material_description == "Curcumin extract 95%"
         assert first.net_amount == Decimal("62500.00")
         assert self.order.items[1].net_amount == Decimal("62500.00")
 
@@ -220,7 +221,7 @@ class TestReferenceData:
         assert problems(body(SoldToParty="100001")) == [("CUSTOMER_UNKNOWN", "SoldToParty")]
 
     def test_unknown_currency(self):
-        assert problems(body(TransactionCurrency="USD")) == [("CURRENCY_INVALID", "TransactionCurrency")]
+        assert problems(body(TransactionCurrency="EUR")) == [("CURRENCY_INVALID", "TransactionCurrency")]
 
     def test_currency_is_case_sensitive(self):
         assert problems(body(TransactionCurrency="inr")) == [("CURRENCY_INVALID", "TransactionCurrency")]
@@ -300,13 +301,48 @@ class TestFieldsTheCallerMayNotSend:
         assert ("FIELD_NOT_ALLOWED", "soldtoparty") in result
 
 
+class TestCompany:
+    OTHER = {"CompanyCode": "INA2", "SoldToParty": "0000110001", "_Item": [{"Material": "NU-1001", "Quantity": "10.000", "QuantityUnit": "KG"}]}
+
+    def test_the_company_of_the_order_is_stored(self):
+        repo, use_case = make()
+        assert use_case.execute(body(**self.OTHER)).company_code == "INA2"
+
+    def test_the_country_comes_from_the_customer(self):
+        repo, use_case = make()
+        assert use_case.execute(VALID_BODY).country == "US"
+        assert use_case.execute(body(**self.OTHER)).country == "US"
+
+    def test_a_customer_of_another_company_is_rejected(self):
+        assert problems(body(CompanyCode="INA2")) == [
+            ("CUSTOMER_UNKNOWN", "SoldToParty"),
+            ("MATERIAL_UNKNOWN", "_Item/0/Material"),
+            ("MATERIAL_UNKNOWN", "_Item/1/Material"),
+        ]
+
+    def test_a_usd_order_is_priced_in_dollars(self):
+        repo, use_case = make()
+        order = use_case.execute(body(TransactionCurrency="USD", _Item=[{"Material": "RM-1001", "Quantity": "80.000", "QuantityUnit": "KG"}]))
+        assert order.total_net_amount == Decimal("1250.00")
+
+    def test_a_missing_company_is_required(self):
+        assert problems(body_without("CompanyCode")) == [("FIELD_REQUIRED", "CompanyCode")]
+
+    def test_an_unknown_company_is_rejected(self):
+        assert problems(body(CompanyCode="9999")) == [("COMPANY_UNKNOWN", "CompanyCode")]
+
+    def test_the_country_cannot_be_sent(self):
+        assert problems(body(Country="US")) == [("FIELD_NOT_ALLOWED", "Country")]
+
+
 class TestSeveralProblemsAtOnce:
     def test_all_are_returned_in_one_failure(self):
         everything_wrong = {
             "OverallStatus": "C",
             "SoldToParty": "0000999999",
             "RequestedDeliveryDate": "2020-01-01",
-            "TransactionCurrency": "USD",
+            "TransactionCurrency": "EUR",
+            "CompanyCode": "9999",
             "_Item": [
                 {"Material": "RM-9999", "Quantity": "1", "QuantityUnit": "KG"},
                 {"Material": "RM-1001", "Quantity": "0", "QuantityUnit": "EA"},
@@ -319,6 +355,7 @@ class TestSeveralProblemsAtOnce:
             ("CUSTOMER_UNKNOWN", "SoldToParty"),
             ("DELIVERY_DATE_IN_PAST", "RequestedDeliveryDate"),
             ("CURRENCY_INVALID", "TransactionCurrency"),
+            ("COMPANY_UNKNOWN", "CompanyCode"),
             ("MATERIAL_UNKNOWN", "_Item/0/Material"),
             ("QUANTITY_NOT_POSITIVE", "_Item/1/Quantity"),
             ("UNIT_INVALID", "_Item/1/QuantityUnit"),
@@ -336,6 +373,7 @@ class TestSeveralProblemsAtOnce:
             ("FIELD_REQUIRED", "SalesOrderType"),
             ("FIELD_REQUIRED", "SoldToParty"),
             ("FIELD_REQUIRED", "TransactionCurrency"),
+            ("FIELD_REQUIRED", "CompanyCode"),
             ("NO_ITEMS", "_Item"),
         ]
 

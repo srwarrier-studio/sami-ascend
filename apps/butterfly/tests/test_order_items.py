@@ -72,7 +72,7 @@ class TestItemFilter:
         assert get(filter="Material eq 'NOPE'").json()["value"] == []
 
     def test_an_order_field_is_not_an_item_field(self):
-        response = get(filter="CustomerName eq 'Acme Industries'")
+        response = get(filter="CustomerName eq 'Harborline Nutrition LLC'")
 
         assert response.status_code == 400
         assert response.json()["error"]["code"] == "INVALID_QUERY"

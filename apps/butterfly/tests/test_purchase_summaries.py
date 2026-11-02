@@ -10,10 +10,12 @@ from butterfly.application.usecase.summarize_purchases_by_supplier import Summar
 from butterfly.entrypoint.app import build_default_app
 from butterfly.infrastructure.api.odata import DRIVERS_ROOT
 from butterfly.infrastructure.memory.in_memory_driver_repo import InMemoryDriverRepo
+from butterfly.infrastructure.memory.companies import COMPANIES
 from butterfly.infrastructure.memory.story_seed import build_story_seed
 
 TODAY = date(2026, 10, 31)
 SEED = build_story_seed(TODAY)
+GROUP = build_story_seed(TODAY, companies=COMPANIES)
 REPO = InMemoryDriverRepo(deliveries=SEED.deliveries)
 TOTAL = sum(d.net_amount for d in SEED.deliveries)
 
@@ -25,7 +27,7 @@ class TestSummariesAddUpToTheDeliveries:
 
     def test_by_supplier_groups_a_days_items_of_one_supplier(self):
         row = next(r for r in SummarizePurchasesBySupplier(REPO).execute() if r.order_date == date(2026, 6, 24) and r.supplier == "0000200001")
-        assert (row.total_net_amount, row.order_count, row.supplier_name) == (Decimal("444000.00"), 2, "Doosan Metals Pvt Ltd")
+        assert (row.total_net_amount, row.order_count, row.supplier_name) == (Decimal("444000.00"), 2, "Deccan Agro Growers Cooperative")
 
     def test_by_material_sums_the_ordered_quantity_and_amount(self):
         row = next(r for r in SummarizePurchasesByMaterial(REPO).execute() if r.order_date == date(2026, 6, 24) and r.material == "RAW-2002")
@@ -67,8 +69,8 @@ class TestThroughTheService:
         rows, page = [], 100
         while chunk := self.get(f"PurchaseSummaryByMaterial?$orderby=OrderDate,Material,Currency&$top={page}&$skip={len(rows)}").json()["value"]:
             rows += chunk
-        assert len(rows) == len({(r["OrderDate"], r["Material"]) for r in rows}) == len(SEED.deliveries)
-        assert sum(Decimal(r["TotalNetAmount"]) for r in rows) == TOTAL
+        assert len(rows) == len({(r["OrderDate"], r["Material"]) for r in rows}) == len(GROUP.deliveries)
+        assert sum(Decimal(r["TotalNetAmount"]) for r in rows) == sum(d.net_amount for d in GROUP.deliveries)
 
     def test_count_and_select_work_like_the_other_entities(self):
         body = self.get("PurchaseSummaryByDay?$count=true&$top=1&$select=OrderDate,TotalNetAmount").json()

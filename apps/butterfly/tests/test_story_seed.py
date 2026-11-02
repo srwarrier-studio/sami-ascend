@@ -7,24 +7,24 @@ from butterfly.infrastructure.memory.story_seed import STORY_START, build_story_
 
 TODAY = date(2026, 10, 31)
 SEED = build_story_seed(TODAY)
-ACME = "0000100001"
+HARBORLINE = "0000100001"
 CONTRACTS = {c.sales_contract: c for c in SEED.contracts}
 DELIVERIES = {d.purchase_order: d for d in SEED.deliveries}
 PRODUCTION = {p.production_order: p for p in SEED.production_orders}
 
 
 class TestContracts:
-    def test_acme_has_three_linked_contracts_with_a_gap_in_the_middle(self):
+    def test_harborline_has_three_linked_contracts_with_a_gap_in_the_middle(self):
         first, second, third = (CONTRACTS[n] for n in ("0040000071", "0040000127", "0040000163"))
         assert first.predecessor_contract is None
         assert (second.predecessor_contract, third.predecessor_contract) == ("0040000071", "0040000127")
         assert (second.valid_from, second.valid_to) == (date(2025, 7, 13), date(2026, 7, 12))
         assert (third.valid_from, third.valid_to) == (date(2026, 9, 14), date(2027, 9, 13))
         assert (first.contract_status, second.contract_status, third.contract_status) == ("E", "E", "A")
-        assert all(c.sold_to_party == ACME and c.customer_name == "Acme Industries" for c in (first, second, third))
+        assert all(c.sold_to_party == HARBORLINE and c.customer_name == "Harborline Nutrition LLC" for c in (first, second, third))
 
     def test_every_other_customer_has_a_contract_valid_on_every_day_of_the_story(self):
-        others = [c for c in SEED.contracts if c.sold_to_party != ACME]
+        others = [c for c in SEED.contracts if c.sold_to_party != HARBORLINE]
         day = STORY_START
         while day <= TODAY:
             for customer_id, _ in CUSTOMERS[1:]:
@@ -44,16 +44,16 @@ class TestContracts:
 
 
 class TestDeliveries:
-    def test_doosan_delivered_steel_coil_twelve_days_late(self):
+    def test_deccan_agro_delivered_black_pepper_twelve_days_late(self):
         row = DELIVERIES["4500001207"]
-        assert (row.supplier, row.supplier_name) == ("0000200001", "Doosan Metals Pvt Ltd")
-        assert (row.material, row.material_description) == ("RAW-2002", "Steel coil")
+        assert (row.supplier, row.supplier_name) == ("0000200001", "Deccan Agro Growers Cooperative")
+        assert (row.material, row.material_description) == ("RAW-2002", "Black pepper, whole")
         assert (row.order_date, row.promised_delivery_date, row.actual_delivery_date) == (date(2026, 6, 24), date(2026, 7, 14), date(2026, 7, 26))
         assert (row.ordered_quantity, row.delivered_quantity, row.delivery_status) == (Decimal("5000.000"), Decimal("5000.000"), "D")
 
-    def test_a_copper_rod_delivery_in_may_was_four_days_late(self):
+    def test_a_frankincense_delivery_in_may_was_four_days_late(self):
         row = DELIVERIES["4500001196"]
-        assert (row.supplier_name, row.material) == ("Kalyani Wire Industries", "RAW-2003")
+        assert (row.supplier_name, row.material) == ("Malnad Botanicals Pvt Ltd", "RAW-2003")
         assert (row.actual_delivery_date - row.promised_delivery_date).days == 4 and row.promised_delivery_date.month == 5
 
     def test_those_are_the_only_deliveries_more_than_two_days_late(self):
@@ -79,18 +79,18 @@ class TestDeliveries:
         by_supplier = defaultdict(set)
         for d in SEED.deliveries:
             by_supplier[d.supplier_name].add(d.material)
-        assert {name: len(materials) for name, materials in by_supplier.items()} == {"Doosan Metals Pvt Ltd": 2, "Kalyani Wire Industries": 2, "Precision Bearings Co": 2}
+        assert {name: len(materials) for name, materials in by_supplier.items()} == {"Deccan Agro Growers Cooperative": 2, "Malnad Botanicals Pvt Ltd": 2, "Pack-Rite Industries Pvt Ltd": 2}
 
 
 class TestProduction:
-    def test_steel_plate_finished_fourteen_days_late_for_lack_of_steel_coil(self):
+    def test_piperine_finished_fourteen_days_late_for_lack_of_black_pepper(self):
         row = PRODUCTION["0001000417"]
-        assert (row.material, row.material_description) == ("RM-1002", "Steel plate 5mm")
+        assert (row.material, row.material_description) == ("RM-1002", "Piperine extract 95%")
         assert (row.planned_start_date, row.planned_end_date, row.actual_end_date) == (date(2026, 7, 6), date(2026, 7, 20), date(2026, 8, 3))
         assert (row.production_status, row.delay_reason) == ("C", "MATERIAL_SHORTAGE")
         assert row.confirmed_quantity == row.planned_quantity
 
-    def test_bearings_were_late_in_may_because_a_machine_broke_down(self):
+    def test_probiotic_capsules_were_late_in_may_because_a_machine_broke_down(self):
         row = PRODUCTION["0001000408"]
         assert (row.material, row.planned_end_date.month, row.delay_reason) == ("RM-1005", 5, "MACHINE_BREAKDOWN")
         assert (row.actual_end_date - row.planned_end_date).days == 6
@@ -120,9 +120,9 @@ class TestProduction:
             assert component.material == raw[PRODUCTION[component.production_order].material]
             assert component.required_quantity > PRODUCTION[component.production_order].planned_quantity
 
-    def test_the_late_steel_plate_order_uses_the_late_steel_coil(self):
+    def test_the_late_piperine_order_uses_the_late_black_pepper(self):
         component = next(c for c in SEED.components if c.production_order == "0001000417")
-        assert (component.material, component.material_description, component.required_quantity) == ("RAW-2002", "Steel coil", Decimal("4400.000"))
+        assert (component.material, component.material_description, component.required_quantity) == ("RAW-2002", "Black pepper, whole", Decimal("4400.000"))
         delivery = DELIVERIES["4500001207"]
         assert delivery.material == component.material and delivery.promised_delivery_date <= PRODUCTION["0001000417"].planned_end_date < delivery.actual_delivery_date
 
@@ -158,19 +158,19 @@ class TestSalesHistory:
         assert set(statuses) <= {"A", "B", "C", "X"} and 0 < statuses["X"] < len(SEED.orders) / 10
         assert all(o.overall_status in ("C", "X") for o in SEED.orders if (TODAY - o.order_date).days > 30)
 
-    def test_acme_stops_ordering_after_the_contract_ends_except_for_a_few_small_spot_orders(self):
-        gap = [o for o in SEED.orders if o.sold_to_party == ACME and date(2026, 7, 12) < o.order_date < date(2026, 9, 14)]
+    def test_harborline_stops_ordering_after_the_contract_ends_except_for_a_few_small_spot_orders(self):
+        gap = [o for o in SEED.orders if o.sold_to_party == HARBORLINE and date(2026, 7, 12) < o.order_date < date(2026, 9, 14)]
         assert 2 <= len(gap) <= 6 and all(len(o.items) == 1 for o in gap)
-        regular = [o for o in SEED.orders if o.sold_to_party == ACME and o.order_date <= date(2026, 7, 12)]
+        regular = [o for o in SEED.orders if o.sold_to_party == HARBORLINE and o.order_date <= date(2026, 7, 12)]
         assert len(regular) > 100 and max(len(o.items) for o in regular) == 3
 
-    def test_acme_orders_normally_again_after_the_renewal(self):
-        after = [o for o in SEED.orders if o.sold_to_party == ACME and o.order_date >= date(2026, 9, 14)]
+    def test_harborline_orders_normally_again_after_the_renewal(self):
+        after = [o for o in SEED.orders if o.sold_to_party == HARBORLINE and o.order_date >= date(2026, 9, 14)]
         assert len(after) > 25
 
-    def test_steel_plate_is_ordered_less_while_the_steel_coil_is_missing(self):
+    def test_piperine_is_ordered_less_while_the_black_pepper_is_missing(self):
         def per_day(start, end):
-            others = [o for o in SEED.orders if o.sold_to_party != ACME and start <= o.order_date <= end]
+            others = [o for o in SEED.orders if o.sold_to_party != HARBORLINE and start <= o.order_date <= end]
             days = {o.order_date for o in others}
             return sum(1 for o in others for i in o.items if i.material == "RM-1002") / len(days)
 

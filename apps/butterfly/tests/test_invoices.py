@@ -71,8 +71,16 @@ class TestInvoiceRoute:
     def test_lists_the_invoices_with_the_contract_fields(self):
         body = self.client.get(DRIVERS_ROOT + "CustomerInvoice?$top=1").json()
         assert body["@odata.context"] == "$metadata#CustomerInvoice"
-        assert set(body["value"][0]) == {"Invoice", "SoldToParty", "CustomerName", "InvoiceDate", "DueDate", "NetAmount", "TransactionCurrency", "ClearedAmount", "ClearingDate"}
+        assert set(body["value"][0]) == {"Invoice", "SoldToParty", "CustomerName", "InvoiceDate", "DueDate", "NetAmount", "TransactionCurrency", "ClearedAmount", "ClearingDate", "CompanyCode", "Country"}
 
     def test_filters_and_counts_like_the_other_entities(self):
         body = self.client.get(DRIVERS_ROOT + "CustomerInvoice?$filter=SoldToParty eq '0000100005'&$count=true&$top=1").json()
         assert body["@odata.count"] == len([i for i in SEED.invoices if i.sold_to_party == "0000100005"])
+
+
+class TestCountryAndCompany:
+    def test_an_invoice_has_the_country_and_company_of_its_order(self):
+        for order in SEED.orders:
+            if order.overall_status != "X":
+                invoice = invoice_of(order)
+                assert (invoice.country, invoice.company_code) == (order.country, order.company_code)

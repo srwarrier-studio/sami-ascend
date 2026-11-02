@@ -27,6 +27,8 @@ def order_to_json(order: SalesOrder, fields: list[str] | None = None) -> dict:
         "CreatedByUser": order.created_by_user,
         "CreationDateTime": timestamp(order.creation_date_time),
         "LastChangeDateTime": timestamp(order.last_change_date_time),
+        "CompanyCode": order.company_code,
+        "Country": order.country,
     }
     if fields is None:
         return row

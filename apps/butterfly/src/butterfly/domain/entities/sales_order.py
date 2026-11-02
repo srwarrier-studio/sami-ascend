@@ -29,6 +29,8 @@ class SalesOrder:
     creation_date_time: datetime
     last_change_date_time: datetime
     items: list[SalesOrderItem] = field(default_factory=list)
+    company_code: str = "INA1"
+    country: str = "IN"
 
     @property
     def etag(self) -> str:

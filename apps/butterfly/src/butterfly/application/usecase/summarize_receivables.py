@@ -11,12 +11,12 @@ class SummarizeReceivables:
         self.repo = repo
 
     def execute(self, as_of: date) -> list[ReceivablesSummary]:
-        totals: dict[str, list] = {}
+        totals: dict[tuple, list] = {}
         for invoice in open_invoices(self.repo.invoices(), as_of):
-            entry = totals.setdefault(invoice.transaction_currency, [Decimal("0.00"), Decimal("0.00"), 0, 0])
+            entry = totals.setdefault((invoice.transaction_currency, invoice.company_code), [Decimal("0.00"), Decimal("0.00"), 0, 0])
             entry[0] += open_amount(invoice, as_of)
             entry[2] += 1
             if is_overdue(invoice, as_of):
                 entry[1] += open_amount(invoice, as_of)
                 entry[3] += 1
-        return [ReceivablesSummary(as_of, *entry[:2], *entry[2:], currency) for currency, entry in sorted(totals.items())]
+        return [ReceivablesSummary(as_of, *entry, *key) for key, entry in sorted(totals.items())]

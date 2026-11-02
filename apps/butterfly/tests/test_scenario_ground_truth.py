@@ -16,7 +16,8 @@ from butterfly.domain.entities.scenario import (
     SupplierSwitch,
 )
 from butterfly.infrastructure.memory.scenarios import SCENARIOS
-from butterfly.infrastructure.memory.story_seed import RAW_MATERIALS, build_story_seed
+from butterfly.infrastructure.memory.companies import INA1
+from butterfly.infrastructure.memory.story_seed import build_story_seed
 
 TODAY = date(2026, 10, 31)
 FOLDER = Path(__file__).resolve().parent.parent / "scenarios"
@@ -28,7 +29,7 @@ EVENT_CAUSES = {
     "demand_growth": (DemandGrowth, "material"),
     "supplier_switch": (SupplierSwitch, "raw_material"),
 }
-MATERIAL_OF_RAW = {raw[0]: raw[4] for raw in RAW_MATERIALS}
+MATERIAL_OF_RAW = {raw[0]: raw[4] for raw in INA1.raw_materials}
 
 
 def month_of(text: str) -> tuple[int, int]:

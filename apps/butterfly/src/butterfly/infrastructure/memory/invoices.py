@@ -3,22 +3,9 @@ from decimal import Decimal
 
 from butterfly.domain.entities.drivers import CustomerInvoice
 from butterfly.domain.entities.sales_order import SalesOrder
+from butterfly.infrastructure.memory.companies import COMPANIES
 
-PAYMENT_TERMS_DAYS = {
-    "0000100001": 30,
-    "0000100002": 45,
-    "0000100003": 60,
-    "0000100004": 30,
-    "0000100005": 45,
-}
-
-PAYMENT_DELAY_DAYS = {
-    "0000100001": 0,
-    "0000100002": 20,
-    "0000100003": 75,
-    "0000100004": 10,
-    "0000100005": 1000,
-}
+CUSTOMERS = {customer.customer_id: customer for company in COMPANIES for customer in company.customers}
 
 
 def build_invoices(orders: list[SalesOrder], today: date) -> list[CustomerInvoice]:
@@ -26,8 +13,8 @@ def build_invoices(orders: list[SalesOrder], today: date) -> list[CustomerInvoic
 
 
 def build_invoice(order: SalesOrder, today: date) -> CustomerInvoice:
-    due = order.order_date + timedelta(days=PAYMENT_TERMS_DAYS[order.sold_to_party])
-    paid_on = due + timedelta(days=PAYMENT_DELAY_DAYS[order.sold_to_party])
+    due = order.order_date + timedelta(days=CUSTOMERS[order.sold_to_party].terms_days)
+    paid_on = due + timedelta(days=CUSTOMERS[order.sold_to_party].delay_days)
     cleared = paid_on <= today
     return CustomerInvoice(
         invoice="9" + order.sales_order[1:],
@@ -39,4 +26,6 @@ def build_invoice(order: SalesOrder, today: date) -> CustomerInvoice:
         transaction_currency=order.transaction_currency,
         cleared_amount=order.total_net_amount if cleared else Decimal("0.00"),
         clearing_date=paid_on if cleared else None,
+        company_code=order.company_code,
+        country=order.country,
     )

@@ -6,8 +6,8 @@ from butterfly.infrastructure.memory.story_seed import build_story_seed
 
 TODAY = date(2026, 10, 31)
 SEED = build_story_seed(TODAY)
-ACME = "0000100001"
-STEEL_PLATE = "RM-1002"
+HARBORLINE = "0000100001"
+PIPERINE = "RM-1002"
 LIVE = [o for o in SEED.orders if o.overall_status != "X"]
 
 
@@ -19,8 +19,8 @@ def total(month: tuple[int, int], keep=lambda order: True) -> Decimal:
     return sum((o.total_net_amount for o in LIVE if month_of(o.order_date) == month and keep(o)), Decimal(0))
 
 
-def steel_plate_sales(month: tuple[int, int], keep=lambda order: True) -> Decimal:
-    return sum((i.net_amount for o in LIVE if month_of(o.order_date) == month and keep(o) for i in o.items if i.material == STEEL_PLATE), Decimal(0))
+def piperine_sales(month: tuple[int, int], keep=lambda order: True) -> Decimal:
+    return sum((i.net_amount for o in LIVE if month_of(o.order_date) == month and keep(o) for i in o.items if i.material == PIPERINE), Decimal(0))
 
 
 def material_sales(month: tuple[int, int], material: str) -> Decimal:
@@ -34,9 +34,9 @@ def percent(part: Decimal, whole: Decimal) -> float:
 JUNE, JULY, AUGUST, SEPTEMBER, OCTOBER = (2026, 6), (2026, 7), (2026, 8), (2026, 9), (2026, 10)
 BASELINE = [(2025, 9), (2025, 10), (2025, 11), (2025, 12), (2026, 1), (2026, 2), (2026, 3), (2026, 4), (2026, 5)]
 FALL = total(JULY) - total(AUGUST)
-ACME_LOSS = total(JULY, lambda o: o.sold_to_party == ACME) - total(AUGUST, lambda o: o.sold_to_party == ACME)
-SHORTAGE_LOSS = steel_plate_sales(JULY, lambda o: o.sold_to_party != ACME) - steel_plate_sales(AUGUST, lambda o: o.sold_to_party != ACME)
-OTHER = FALL - ACME_LOSS - SHORTAGE_LOSS
+STORY_CUSTOMER_LOSS = total(JULY, lambda o: o.sold_to_party == HARBORLINE) - total(AUGUST, lambda o: o.sold_to_party == HARBORLINE)
+SHORTAGE_LOSS = piperine_sales(JULY, lambda o: o.sold_to_party != HARBORLINE) - piperine_sales(AUGUST, lambda o: o.sold_to_party != HARBORLINE)
+OTHER = FALL - STORY_CUSTOMER_LOSS - SHORTAGE_LOSS
 
 
 class TestTheFall:
@@ -46,7 +46,7 @@ class TestTheFall:
     def test_july_was_already_lower_than_june(self):
         assert -16 <= percent(total(JULY) - total(JUNE), total(JUNE)) <= -10
 
-    def test_sales_recover_after_the_contract_is_renewed_and_the_steel_arrives(self):
+    def test_sales_recover_after_the_contract_is_renewed_and_the_black_pepper_arrives(self):
         assert total(SEPTEMBER) > total(AUGUST)
         average = sum(total(m) for m in BASELINE) / len(BASELINE)
         assert abs(total(OCTOBER) - average) / average < Decimal("0.05")
@@ -58,47 +58,47 @@ class TestTheFall:
 
 class TestWhatExplainsTheFall:
     def test_the_three_parts_add_up_to_the_fall(self):
-        assert ACME_LOSS + SHORTAGE_LOSS + OTHER == FALL
+        assert STORY_CUSTOMER_LOSS + SHORTAGE_LOSS + OTHER == FALL
 
-    def test_acme_is_the_biggest_part(self):
-        assert 70 <= percent(ACME_LOSS, FALL) <= 90
-        assert ACME_LOSS > SHORTAGE_LOSS
+    def test_harborline_is_the_biggest_part(self):
+        assert 70 <= percent(STORY_CUSTOMER_LOSS, FALL) <= 90
+        assert STORY_CUSTOMER_LOSS > SHORTAGE_LOSS
 
-    def test_the_steel_plate_shortage_on_the_other_customers_is_the_second_part(self):
+    def test_the_piperine_shortage_on_the_other_customers_is_the_second_part(self):
         assert 30 <= percent(SHORTAGE_LOSS, FALL) <= 50
 
     def test_the_rest_of_the_business_grew_a_little_and_offsets_part_of_it(self):
         assert -30 <= percent(OTHER, FALL) <= -10
 
-    def test_acme_is_the_biggest_customer_over_the_normal_months_at_about_a_fifth_of_sales(self):
+    def test_harborline_is_the_biggest_customer_over_the_normal_months_at_about_a_fifth_of_sales(self):
         customers = {o.sold_to_party for o in LIVE}
         over_baseline = {c: sum(total(m, lambda o, c=c: o.sold_to_party == c) for m in BASELINE) for c in customers}
-        assert max(over_baseline, key=over_baseline.get) == ACME
-        assert 19 <= percent(over_baseline[ACME], sum(over_baseline.values())) <= 24
+        assert max(over_baseline, key=over_baseline.get) == HARBORLINE
+        assert 19 <= percent(over_baseline[HARBORLINE], sum(over_baseline.values())) <= 24
 
-    def test_acme_is_never_a_tiny_or_dominant_share_of_a_normal_month(self):
-        assert all(16 <= percent(total(m, lambda o: o.sold_to_party == ACME), total(m)) <= 26 for m in BASELINE)
+    def test_harborline_is_never_a_tiny_or_dominant_share_of_a_normal_month(self):
+        assert all(16 <= percent(total(m, lambda o: o.sold_to_party == HARBORLINE), total(m)) <= 26 for m in BASELINE)
 
-    def test_acme_has_almost_nothing_in_august(self):
-        assert percent(total(AUGUST, lambda o: o.sold_to_party == ACME), total(AUGUST)) < 2
+    def test_harborline_has_almost_nothing_in_august(self):
+        assert percent(total(AUGUST, lambda o: o.sold_to_party == HARBORLINE), total(AUGUST)) < 2
 
-    def test_steel_plate_is_a_sixth_of_normal_sales_and_falls_by_more_than_half_of_that_in_august(self):
-        normal = sum(percent(steel_plate_sales(m), total(m)) for m in BASELINE) / len(BASELINE)
+    def test_piperine_is_a_sixth_of_normal_sales_and_falls_by_more_than_half_of_that_in_august(self):
+        normal = sum(percent(piperine_sales(m), total(m)) for m in BASELINE) / len(BASELINE)
         assert 12 <= normal <= 22
-        assert steel_plate_sales(AUGUST) < Decimal("0.7") * steel_plate_sales(JUNE)
+        assert piperine_sales(AUGUST) < Decimal("0.7") * piperine_sales(JUNE)
 
 
 class TestTheDecoys:
-    def test_the_late_copper_rod_in_may_did_not_change_copper_wire_sales(self):
+    def test_the_late_frankincense_in_may_did_not_change_boswellia_sales(self):
         normal = sum(material_sales(m, "RM-1003") for m in BASELINE if m != (2026, 5)) / (len(BASELINE) - 1)
         assert abs(material_sales((2026, 5), "RM-1003") - normal) / normal < Decimal("0.12")
 
-    def test_the_bearing_machine_breakdown_in_may_did_not_change_bearing_sales(self):
+    def test_the_probiotic_capsule_machine_breakdown_in_may_did_not_change_probiotic_capsule_sales(self):
         normal = sum(material_sales(m, "RM-1005") for m in BASELINE if m != (2026, 5)) / (len(BASELINE) - 1)
         assert abs(material_sales((2026, 5), "RM-1005") - normal) / normal < Decimal("0.12")
 
     def test_the_decoys_are_real_events_in_the_data(self):
-        late = [d for d in SEED.deliveries if d.supplier_name == "Kalyani Wire Industries" and d.actual_delivery_date and (d.actual_delivery_date - d.promised_delivery_date).days == 4]
+        late = [d for d in SEED.deliveries if d.supplier_name == "Malnad Botanicals Pvt Ltd" and d.actual_delivery_date and (d.actual_delivery_date - d.promised_delivery_date).days == 4]
         broken = [p for p in SEED.production_orders if p.delay_reason == "MACHINE_BREAKDOWN"]
         assert len(late) == 1 and len(broken) == 1
 
@@ -112,14 +112,14 @@ class TestTheChainOfCauses:
         assert delivery.promised_delivery_date < production.planned_end_date < delivery.actual_delivery_date < production.actual_end_date
         assert production.planned_end_date == date(2026, 7, 20)
 
-    def test_acme_orders_stop_the_day_after_the_contract_ends(self):
-        last_regular = max(o.order_date for o in SEED.orders if o.sold_to_party == ACME and len(o.items) > 1 and o.order_date < date(2026, 9, 14))
+    def test_harborline_orders_stop_the_day_after_the_contract_ends(self):
+        last_regular = max(o.order_date for o in SEED.orders if o.sold_to_party == HARBORLINE and len(o.items) > 1 and o.order_date < date(2026, 9, 14))
         assert date(2026, 7, 10) <= last_regular <= date(2026, 7, 12)
 
-    def test_steel_plate_orders_drop_from_the_day_the_late_production_was_due_to_finish(self):
+    def test_piperine_orders_drop_from_the_day_the_late_production_was_due_to_finish(self):
         def per_day(start, end):
-            others = [o for o in SEED.orders if o.sold_to_party != ACME and start <= o.order_date <= end]
-            return sum(1 for o in others for i in o.items if i.material == STEEL_PLATE) / len({o.order_date for o in others})
+            others = [o for o in SEED.orders if o.sold_to_party != HARBORLINE and start <= o.order_date <= end]
+            return sum(1 for o in others for i in o.items if i.material == PIPERINE) / len({o.order_date for o in others})
 
         before = per_day(date(2026, 7, 1), date(2026, 7, 17))
         during = per_day(date(2026, 7, 20), date(2026, 7, 31))

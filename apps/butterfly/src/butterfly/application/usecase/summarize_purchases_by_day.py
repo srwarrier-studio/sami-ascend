@@ -13,7 +13,7 @@ class SummarizePurchasesByDay:
         for delivery in self.repo.deliveries():
             if delivery.delivery_status == "X":
                 continue
-            entry = totals.setdefault((delivery.order_date, delivery.transaction_currency), [Decimal("0.00"), 0])
+            entry = totals.setdefault((delivery.order_date, delivery.transaction_currency, delivery.company_code), [Decimal("0.00"), 0])
             entry[0] += delivery.net_amount
             entry[1] += 1
-        return [PurchaseSummaryByDay(day, amount, count, currency) for (day, currency), (amount, count) in sorted(totals.items())]
+        return [PurchaseSummaryByDay(day, amount, count, currency, company) for (day, currency, company), (amount, count) in sorted(totals.items())]

@@ -13,10 +13,10 @@ class SummarizeByDay:
         for order in self.repo.list_all():
             if order.overall_status == "X":
                 continue
-            key = (order.order_date, order.transaction_currency)
+            key = (order.order_date, order.transaction_currency, order.company_code)
             amount, count = totals.get(key, (Decimal("0.00"), 0))
             totals[key] = (amount + order.total_net_amount, count + 1)
         return [
-            SalesSummaryByDay(day, amount, count, currency)
-            for (day, currency), (amount, count) in sorted(totals.items())
+            SalesSummaryByDay(day, amount, count, currency, company)
+            for (day, currency, company), (amount, count) in sorted(totals.items())
         ]

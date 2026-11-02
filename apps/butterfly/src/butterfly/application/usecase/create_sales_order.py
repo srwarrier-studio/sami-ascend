@@ -45,7 +45,7 @@ class CreateSalesOrder:
                 material_description=item.material.description,
                 quantity=item.quantity,
                 quantity_unit=item.unit,
-                net_amount=(item.quantity * item.material.price).quantize(CENTS, ROUND_HALF_UP),
+                net_amount=(item.quantity * item.material.price_in(new_order.currency)).quantize(CENTS, ROUND_HALF_UP),
             )
             for position, item in enumerate(new_order.items)
         ]
@@ -63,4 +63,6 @@ class CreateSalesOrder:
             creation_date_time=moment,
             last_change_date_time=moment,
             items=items,
+            company_code=new_order.company_code,
+            country=new_order.customer.country,
         )

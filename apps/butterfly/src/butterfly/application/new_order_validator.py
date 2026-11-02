@@ -10,10 +10,11 @@ from butterfly.domain.entities.master_data import Customer, Material
 from butterfly.domain.errors import ValidationDetail
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 
-HEADER_FIELDS = ["SalesOrderType", "SoldToParty", "RequestedDeliveryDate", "TransactionCurrency"]
+HEADER_FIELDS = ["SalesOrderType", "SoldToParty", "RequestedDeliveryDate", "TransactionCurrency", "CompanyCode"]
 ITEM_FIELDS = ["Material", "Quantity", "QuantityUnit"]
 MAX_LENGTH = {
     "SalesOrderType": 4,
+    "CompanyCode": 4,
     "SoldToParty": 10,
     "TransactionCurrency": 5,
     "Material": 40,
@@ -32,6 +33,7 @@ class NewItem:
 @dataclass(frozen=True)
 class NewOrder:
     sales_order_type: str
+    company_code: str
     customer: Customer
     requested_delivery_date: date | None
     currency: str
@@ -43,21 +45,25 @@ class NewOrderValidator:
         self.master_data = master_data
         self.today = today
         self.details: list[ValidationDetail] = []
+        self.company_code: str | None = None
 
     def problem(self, code: str, message: str, target: str):
         self.details.append(ValidationDetail(code, message, target))
 
     def validate(self, body: dict[str, Any]) -> tuple[NewOrder | None, list[ValidationDetail]]:
         self.details = []
+        self.company_code = None
         self.check_not_allowed(body, HEADER_FIELDS + ["_Item"], "", SALES_ORDER_FIELDS)
         order_type = self.text(body, "SalesOrderType", "SalesOrderType")
         customer = self.customer(body)
         delivery_date = self.delivery_date(body)
         currency = self.currency(body)
+        company_code = self.company(body)
+        self.check_customer_company(customer)
         items = self.items(body)
         if self.details:
             return None, self.details
-        return NewOrder(order_type, customer, delivery_date, currency, items), []
+        return NewOrder(order_type, company_code, customer, delivery_date, currency, items), []
 
     def check_not_allowed(self, body: dict, allowed: list[str], prefix: str, known: dict):
         for name in body:
@@ -82,6 +88,18 @@ class NewOrderValidator:
             )
             return None
         return value
+
+    def company(self, body: dict) -> str | None:
+        company_code = self.text(body, "CompanyCode", "CompanyCode")
+        if company_code is not None and not self.master_data.company_exists(company_code):
+            self.problem("COMPANY_UNKNOWN", f"Company {company_code} does not exist.", "CompanyCode")
+            return company_code
+        self.company_code = company_code
+        return company_code
+
+    def check_customer_company(self, customer: Customer | None):
+        if customer is not None and self.company_code is not None and customer.company_code != self.company_code:
+            self.problem("CUSTOMER_UNKNOWN", f"Customer {customer.customer_id} does not exist in company {self.company_code}.", "SoldToParty")
 
     def customer(self, body: dict) -> Customer | None:
         customer_id = self.text(body, "SoldToParty", "SoldToParty")
@@ -145,6 +163,9 @@ class NewOrderValidator:
         material = self.master_data.get_material(material_id)
         if material is None:
             self.problem("MATERIAL_UNKNOWN", f"Material {material_id} does not exist.", prefix + "Material")
+        elif self.company_code is not None and material.company_code != self.company_code:
+            self.problem("MATERIAL_UNKNOWN", f"Material {material_id} does not exist in company {self.company_code}.", prefix + "Material")
+            return None
         return material
 
     def quantity(self, entry: dict, prefix: str) -> Decimal | None:
