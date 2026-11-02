@@ -14,7 +14,7 @@ describe('catalog fixtures', () => {
 
   it.each(fixtures)('$entry.id serves props the registry accepts', async ({ entry }) => {
     expect(registry.names()).toContain(entry.widget)
-    const props = await new MockCatalogClient().data(entry.id, null)
+    const props = await new MockCatalogClient().data(entry.id, null, 'USD')
     const { container } = render(<UiProvider palette={synapsePalette}>{registry.render(entry.widget, props)}</UiProvider>)
     expect(container).not.toHaveTextContent('Cannot show widget')
   })
@@ -42,6 +42,31 @@ describe('CatalogWidget', () => {
   })
 })
 
+describe('widget currency', () => {
+  const showing = (data: () => Promise<object>) => {
+    const spy = vi.fn(data)
+    render(
+      <UiProvider palette={synapsePalette}>
+        <CatalogWidget company="organica" entry={fixtureEntries[0]} client={{ list: vi.fn(), data: spy }} />
+      </UiProvider>,
+    )
+    return spy
+  }
+
+  it('asks for USD and shows the dollar sign on a money widget', async () => {
+    const mock = new MockCatalogClient()
+    const data = showing(() => mock.data('sales-today', null, 'USD'))
+    expect(await screen.findByText(/^\$/)).toBeInTheDocument()
+    expect(data).toHaveBeenCalledWith('sales-today', 'organica', 'USD')
+  })
+
+  it('leaves a widget that is not money alone', async () => {
+    showing(async () => ({ title: 'Orders', value: 12, valueFormat: 'number' }))
+    expect(await screen.findByText('12')).toBeInTheDocument()
+    expect(screen.queryByText(/^\$/)).not.toBeInTheDocument()
+  })
+})
+
 describe('Reports page', () => {
   it('shows a coming soon placeholder', async () => {
     render(
@@ -55,7 +80,7 @@ describe('Reports page', () => {
 
   it('shows one widget error on the board while the others still draw', async () => {
     const mock = new MockCatalogClient()
-    const client = { list: () => mock.list(null), data: (id: string) => (id === 'sales-today' ? Promise.reject(new Error('SAP is not reachable')) : mock.data(id, null)) }
+    const client = { list: () => mock.list(null), data: (id: string) => (id === 'sales-today' ? Promise.reject(new Error('SAP is not reachable')) : mock.data(id, null, 'USD')) }
     render(
       <UiProvider palette={synapsePalette}>
         <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={client} history={createMemoryHistory({ initialEntries: ['/'] })} />

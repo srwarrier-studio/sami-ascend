@@ -4,7 +4,7 @@ export type CatalogEntry = { id: string; title: string; description: string; cat
 
 export type CatalogClient = {
   list: (company: string | null) => Promise<CatalogEntry[]>
-  data: (id: string, company: string | null) => Promise<object>
+  data: (id: string, company: string | null, currency: string) => Promise<object>
 }
 
 export class CompanyNotAllowed extends Error {
@@ -13,8 +13,11 @@ export class CompanyNotAllowed extends Error {
   }
 }
 
-const get = async (path: string, company: string | null) => {
-  const query = company ? `?company=${encodeURIComponent(company)}` : ''
+const get = async (path: string, company: string | null, currency?: string) => {
+  const params = new URLSearchParams()
+  if (company) params.set('company', company)
+  if (currency) params.set('currency', currency)
+  const query = params.size > 0 ? `?${params}` : ''
   const response = await fetch(`${SYNAPSE_URL}/v1/synapse${path}${query}`, { credentials: 'include' })
   if (response.ok) return response.json()
   const body = await response.json().catch(() => ({}))
@@ -27,7 +30,7 @@ export class HttpCatalogClient implements CatalogClient {
     return (await get('/catalog', company)).entries as CatalogEntry[]
   }
 
-  async data(id: string, company: string | null) {
-    return (await get(`/catalog/${encodeURIComponent(id)}/data`, company)) as object
+  async data(id: string, company: string | null, currency: string) {
+    return (await get(`/catalog/${encodeURIComponent(id)}/data`, company, currency)) as object
   }
 }

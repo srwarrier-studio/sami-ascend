@@ -29,13 +29,13 @@ describe('listing the catalog', () => {
 describe('reading a widget', () => {
   it('returns the widget props for the id', async () => {
     const fetchMock = stub(respond(200, { title: 'Sales today', value: 5 }))
-    expect(await new HttpCatalogClient().data('sales-today', null)).toEqual({ title: 'Sales today', value: 5 })
-    expect((fetchMock.mock.calls[0] as unknown as [string])[0]).toBe('http://localhost:8004/v1/synapse/catalog/sales-today/data')
+    expect(await new HttpCatalogClient().data('sales-today', null, 'USD')).toEqual({ title: 'Sales today', value: 5 })
+    expect((fetchMock.mock.calls[0] as unknown as [string])[0]).toBe('http://localhost:8004/v1/synapse/catalog/sales-today/data?currency=USD')
   })
 
   it('throws the server code for an unknown id', async () => {
     stub(respond(404, { code: 'CATALOG_ENTRY_NOT_FOUND' }))
-    await expect(new HttpCatalogClient().data('nope', null)).rejects.toThrow('CATALOG_ENTRY_NOT_FOUND')
+    await expect(new HttpCatalogClient().data('nope', null, 'USD')).rejects.toThrow('CATALOG_ENTRY_NOT_FOUND')
   })
 })
 
@@ -43,9 +43,9 @@ describe('company scope', () => {
   it('sends the company on the list and the widget data', async () => {
     const fetchMock = stub(respond(200, { entries: [] }))
     await new HttpCatalogClient().list('organica')
-    await new HttpCatalogClient().data('sales-today', 'all')
+    await new HttpCatalogClient().data('sales-today', 'all', 'INR')
     const urls = fetchMock.mock.calls.map((call) => (call as unknown as [string])[0])
-    expect(urls).toEqual(['http://localhost:8004/v1/synapse/catalog?company=organica', 'http://localhost:8004/v1/synapse/catalog/sales-today/data?company=all'])
+    expect(urls).toEqual(['http://localhost:8004/v1/synapse/catalog?company=organica', 'http://localhost:8004/v1/synapse/catalog/sales-today/data?company=all&currency=INR'])
   })
 
   it('says the company is not allowed on COMPANY_NOT_ALLOWED', async () => {

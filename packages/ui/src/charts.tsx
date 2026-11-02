@@ -8,7 +8,7 @@ import { useMemo } from 'react'
 import { ChartCard } from './ChartCard'
 import { CHART_MIN_HEIGHT } from './sizes'
 import { helpText } from './help'
-import { formatCompact, formatValue } from './format'
+import { formatCompact, formatValue, isCurrency } from './format'
 import type { ValueFormat } from './format'
 
 export type ChartPointData = { label: string; value: number }
@@ -104,7 +104,7 @@ function barDefinition({ data, valueFormat, xLabel, yLabel, valueLabels = true }
         radius: { end: BAR_RADIUS },
         fill: (point) => (point === last ? 'var(--ts-chart-1)' : 'color-mix(in srgb, var(--ts-chart-1) 35%, transparent)'),
       }),
-      ...(labelled ? [text(data, { x: 'label', y: 'value', text: (point) => formatCompact(point.value, valueFormat === 'currency' ? 'number' : valueFormat, true), dy: LABEL_OFFSET, fontSize: LABEL_SIZE })] : []),
+      ...(labelled ? [text(data, { x: 'label', y: 'value', text: (point) => formatCompact(point.value, isCurrency(valueFormat) ? 'number' : valueFormat, true), dy: LABEL_OFFSET, fontSize: LABEL_SIZE })] : []),
     ],
     scales: scales('bar', valueFormat),
     tooltip: tooltipFor(xLabel, yLabel, valueFormat),
