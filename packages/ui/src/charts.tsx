@@ -83,7 +83,7 @@ function lineDefinition({ data, valueFormat, compare = [], label = 'This period'
   return defineChart({
     marks: [
       areaY(main, { ...options, fillOpacity: 0.12 }),
-      ...(previous.length > 0 ? [lineY(previous, { ...options, strokeWidth: 2 })] : []),
+      ...(previous.length > 0 ? [lineY(previous, { ...options, strokeWidth: 2, strokeDasharray: '5 4' })] : []),
       lineY(main, { ...options, strokeWidth: LINE_WIDTH }),
       dot(main.slice(-1), { ...options, r: LATEST_RADIUS, stroke: 'var(--mantine-color-body)', strokeWidth: 2 }),
     ],

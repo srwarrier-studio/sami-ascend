@@ -45,3 +45,12 @@
   fill: var(--mantine-primary-color-filled);
   opacity: 0.12;
 }
+
+.sami-chart .ts-chart__grid {
+  opacity: 0.4;
+}
+
+.sami-chart .ts-chart__axes text {
+  font-size: 0.75rem;
+  fill: var(--mantine-color-dimmed);
+}
