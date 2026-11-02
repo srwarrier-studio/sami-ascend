@@ -16,10 +16,10 @@ const draw = () =>
   )
 
 describe('the donut', () => {
-  it('shows only the main share inside the ring and leaves the others to the legend', () => {
+  it('names the main slice in the centre and leaves the others to the legend', () => {
     const { container } = draw()
     const labels = [...container.querySelectorAll('svg text')].map((text) => text.textContent)
-    expect(labels).toEqual(['42%'])
+    expect(labels).toEqual(['42%', 'Completed'])
   })
 
   it('has a legend entry per slice with its share', () => {
