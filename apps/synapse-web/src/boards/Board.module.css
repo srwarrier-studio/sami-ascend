@@ -41,7 +41,7 @@
   flex: 1;
   min-height: 0;
   width: 100%;
-  max-width: 52rem;
+  max-width: 68rem;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -160,6 +160,13 @@
   border-radius: var(--mantine-radius-xl);
   background: var(--mantine-color-body);
   box-shadow: 0 0.5rem 2rem color-mix(in srgb, var(--mantine-color-black) 10%, transparent);
+}
+
+.composer input,
+.composer input:focus {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .composer:focus-within {
