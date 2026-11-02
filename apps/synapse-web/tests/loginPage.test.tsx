@@ -35,3 +35,33 @@ describe('the Microsoft button', () => {
     expect(await screen.findByText('Microsoft sign-in is coming soon')).toBeInTheDocument()
   })
 })
+
+describe('signing in', () => {
+  const fill = async () => {
+    await userEvent.type(await screen.findByLabelText(/Work email/), 'manager@mock-sami.com')
+    await userEvent.type(screen.getByLabelText(/Password/), 'wrong-password')
+  }
+
+  it('says the password is wrong', async () => {
+    open('minimal')
+    await fill()
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    expect(await screen.findByText('Incorrect email or password')).toBeInTheDocument()
+  })
+
+  it('says the service cannot be reached, which is not a wrong password', async () => {
+    const client = new MockSessionClient()
+    client.login = async () => {
+      throw new Error('down')
+    }
+    render(
+      <UiProvider palette={synapsePalette}>
+        <App client={client} ui={{ palette: 'teal', motion: 'minimal' }} history={createMemoryHistory({ initialEntries: ['/login'] })} />
+      </UiProvider>,
+    )
+    await fill()
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    expect(await screen.findByText('Cannot reach the sign-in service. Try again in a moment.')).toBeInTheDocument()
+    expect(screen.queryByText('Incorrect email or password')).toBeNull()
+  })
+})

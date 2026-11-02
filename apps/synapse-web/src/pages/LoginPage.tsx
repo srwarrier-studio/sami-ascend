@@ -21,7 +21,20 @@ function MicrosoftMark() {
 
 export function LoginPage() {
   const { login, ui } = useRouteContext({ from: '/login' })
-  const [rejected, setRejected] = useState(false)
+  const [problem, setProblem] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const submit = async (email: string, password: string) => {
+    setBusy(true)
+    setProblem(null)
+    try {
+      if (!(await login(email, password))) setProblem('Incorrect email or password')
+    } catch {
+      setProblem('Cannot reach the sign-in service. Try again in a moment.')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <div className={classes.page}>
@@ -36,13 +49,14 @@ export function LoginPage() {
         </div>
         <SignInCard
           title={`Sign in to ${APP_NAME}`}
-          error={rejected ? 'Incorrect email or password' : undefined}
+          error={problem ?? undefined}
+          busy={busy}
           footer={
             <Button variant="default" className={classes.microsoft} leftSection={<MicrosoftMark />} onClick={() => notifications.show({ message: 'Microsoft sign-in is coming soon' })}>
               Sign in with Microsoft
             </Button>
           }
-          onSubmit={async (email, password) => setRejected(!(await login(email, password)))}
+          onSubmit={submit}
         />
       </div>
     </div>
