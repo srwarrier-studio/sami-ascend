@@ -167,3 +167,13 @@
 :global(:root[data-look='premium']) .bubble[data-from='you'] {
   box-shadow: 0 0.25rem 0.75rem color-mix(in srgb, var(--mantine-primary-color-filled) 35%, transparent);
 }
+
+.reading {
+  margin-top: var(--mantine-spacing-xs);
+}
+
+.reading summary {
+  cursor: pointer;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}

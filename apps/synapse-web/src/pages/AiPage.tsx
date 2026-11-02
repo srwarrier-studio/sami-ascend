@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SyntheticEvent } from 'react'
 import { useNavigate, useRouteContext } from '@tanstack/react-router'
-import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Modal, PageHeader, PaperPlaneRightIcon, SparkleIcon, Stack, Text, TextInput, Title, WidgetCell, WidgetGrid } from '@sami/ui'
+import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Loader, Modal, PageHeader, PaperPlaneRightIcon, SparkleIcon, Stack, Text, TextInput, Title, WidgetCell, WidgetGrid } from '@sami/ui'
 import { AnswerBlocks } from '../ai/AnswerBlocks'
 import type { AnswerBlock } from '../ai/answerBlocks'
 import { IntentCard } from '../ai/IntentCard'
@@ -15,12 +15,15 @@ import { buildWidgets } from '../boards/layout'
 import { CatalogWidget } from '../catalog/CatalogWidget'
 import classes from '../boards/Board.module.css'
 
-type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard; blocks?: AnswerBlock[]; intent?: IntentReading | null }
+type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard; blocks?: AnswerBlock[]; intent?: IntentReading | null; examples?: boolean }
 
 const NO_FIGURES = 'The figures are not available right now.'
 const unusablePeriod = (periods: string[]) => `I could not use the period in your question (I read ${periods.join(' and ')}). Ask for one period that has already started.`
 
-const examples = ['Show top customers and top materials', `${BUILDER} build me a sales board`, `${BUILDER} build an inventory board`]
+const OFF_TOPIC = 'I answer questions about our business figures, such as sales, customers and materials. Try one of these:'
+
+const questions = ['Show top customers and top materials', 'What were sales last month?', 'Why did sales change last month?']
+const builds = [`${BUILDER} build me a sales board`, `${BUILDER} build an inventory board`]
 
 export function AiPage() {
   const navigate = useNavigate()
@@ -34,7 +37,11 @@ export function AiPage() {
   const bottom = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (bottom.current) bottom.current.scrollTop = bottom.current.scrollHeight
+    const list = bottom.current
+    if (!list) return
+    const last = messages[messages.length - 1]
+    const answer = !busy && last?.from === 'ai' ? list.querySelector<HTMLElement>(`[data-index="${messages.length - 1}"]`) : null
+    list.scrollTop = answer ? Math.max(answer.offsetTop - list.offsetTop - 16, 0) : list.scrollHeight
   }, [messages, busy])
 
   const send = async (message: string) => {
@@ -58,6 +65,11 @@ export function AiPage() {
     }
     if (reply?.reason === 'period_not_supported') {
       setMessages((all) => [...all, { from: 'ai', text: unusablePeriod(reply.periods), intent }])
+      setBusy(false)
+      return
+    }
+    if (reply?.reading.reason === 'not_about_business') {
+      setMessages((all) => [...all, { from: 'ai', text: OFF_TOPIC, intent, examples: true }])
       setBusy(false)
       return
     }
@@ -91,15 +103,26 @@ export function AiPage() {
         }
       />
       <div className={classes.thread}>
-        <div className={classes.messages} ref={bottom}>
+        <div className={classes.messages} ref={bottom} role="log" aria-live="polite" aria-label="Conversation">
           {messages.length === 0 && (
             <Stack align="center" gap="sm" ta="center" py="xl">
               <SparkleIcon size={36} weight="duotone" />
               <Title order={4}>Ask for what you want to see</Title>
               <Text c="dimmed" size="sm">
-                Ask a question and the answer comes back with its charts. Start with {BUILDER} to build a whole board.
+                Ask about sales, customers or materials and the answer comes back with its charts. {BUILDER} turns a request into a whole board you can save.
               </Text>
-              {examples.map((example) => (
+              <Text size="xs" fw={600} c="dimmed" tt="uppercase" mt="sm">
+                Ask a question
+              </Text>
+              {questions.map((example) => (
+                <Button key={example} variant="light" size="xs" onClick={() => send(example)}>
+                  {example}
+                </Button>
+              ))}
+              <Text size="xs" fw={600} c="dimmed" tt="uppercase" mt="sm">
+                Build a board
+              </Text>
+              {builds.map((example) => (
                 <Button key={example} variant="light" size="xs" onClick={() => send(example)}>
                   {example}
                 </Button>
@@ -107,7 +130,7 @@ export function AiPage() {
             </Stack>
           )}
           {messages.map((message, index) => (
-            <div key={index} className={classes.bubble} data-from={message.from} data-wide={message.catalogIds?.length || message.blocks?.length ? true : undefined}>
+            <div key={index} className={classes.bubble} data-index={index} data-from={message.from} data-wide={message.catalogIds?.length || message.blocks?.length ? true : undefined}>
               {message.from === 'you' && message.text.toLowerCase().startsWith(BUILDER) ? (
                 <>
                   <span className={classes.mention}>{message.text.slice(0, BUILDER.length)}</span>
@@ -137,12 +160,21 @@ export function AiPage() {
                   Open board
                 </Button>
               )}
-              {message.intent && <IntentCard reading={message.intent} answered={Boolean(message.catalogIds?.length || message.board)} />}
+              {message.examples && (
+                <Group gap="xs" mt="xs">
+                  {questions.map((example) => (
+                    <Button key={example} size="xs" variant="light" onClick={() => send(example)}>
+                      {example}
+                    </Button>
+                  ))}
+                </Group>
+              )}
+              {message.intent && <IntentCard reading={message.intent} answered={Boolean(message.catalogIds?.length || message.board)} onAsk={send} />}
             </div>
           ))}
           {busy && (
-            <div className={classes.bubble} data-from="ai">
-              Thinking…
+            <div className={classes.bubble} data-from="ai" role="status" aria-label="Thinking">
+              <Loader type="dots" size="sm" />
             </div>
           )}
         </div>

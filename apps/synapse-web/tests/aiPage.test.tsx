@@ -183,7 +183,38 @@ describe('How the question was read', () => {
   it('suggests the nearest domains', async () => {
     open(new MockBoardStore(), new MockIntentClient(replyFor(refusal('not_sure', ['Sales', 'Purchase']))))
     await ask('zebra')
-    expect(await screen.findByText(/Did you mean Sales or Purchase\?/)).toBeInTheDocument()
+    expect(await screen.findByText(/Did you mean/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sales' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Purchase' })).toBeInTheDocument()
+  })
+
+  it('asks again when a suggested domain is pressed', async () => {
+    const intent = new MockIntentClient(replyFor(refusal('not_sure', ['Sales'])))
+    open(new MockBoardStore(), intent)
+    await ask('zebra')
+    await userEvent.click(await screen.findByRole('button', { name: 'Sales' }))
+    await waitFor(() => expect(intent.calls).toEqual(['zebra', 'Show Sales']))
+  })
+
+  it('keeps the reading closed under an answer and open under a refusal', async () => {
+    open(new MockBoardStore(), new MockIntentClient(replyFor(ANSWERED, [WHY])))
+    await ask('what were sales for august')
+    await screen.findByText('Understood as Sales (95%)')
+    expect(screen.getByText('How was this read?').closest('details')).not.toHaveAttribute('open')
+  })
+
+  it('stops at an explanation when the question is not about the business', async () => {
+    open(new MockBoardStore(), new MockIntentClient(replyFor(refusal('not_about_business'))))
+    await ask('what is the weather today')
+    expect(await screen.findByText(/I answer questions about our business figures/)).toBeInTheDocument()
+    expect(screen.queryByText(/^Here is/)).toBeNull()
+    expect(screen.getByRole('button', { name: 'What were sales last month?' })).toBeInTheDocument()
+  })
+
+  it('has a conversation log and shows the question', async () => {
+    open(new MockBoardStore(), new MockIntentClient(replyFor(ANSWERED, [WHY])))
+    await ask('what were sales for august')
+    expect(screen.getByRole('log', { name: 'Conversation' })).toHaveTextContent('what were sales for august')
   })
 
   it('draws the widget reply with no reading when intent-api is not reachable', async () => {
