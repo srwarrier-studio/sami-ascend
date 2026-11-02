@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { cleanup, render } from '@testing-library/react'
 import { DonutChart, GaugeChart, KpiCard, UiProvider, formatDelta, workspacePalette } from '../src'
 
 function show(element: React.ReactElement) {
@@ -114,5 +114,39 @@ describe('DonutChart with many slices', () => {
     const { container } = show(<DonutChart slices={many.slice(0, 6)} />)
     expect(container.querySelectorAll('li')).toHaveLength(6)
     expect(container.textContent).not.toContain('Other')
+  })
+})
+
+describe('KpiCard story', () => {
+  const colourOf = (delta: number, partial = false) => {
+    cleanup()
+    const { getByText } = show(<KpiCard title="Sales" value={10} delta={delta} partial={partial} />)
+    return getByText(/%$/).getAttribute('style') ?? ''
+  }
+
+  it('paints only a fall worse than 10% as needing attention', () => {
+    expect(colourOf(0.37)).not.toContain('--sami-negative')
+    expect(colourOf(0.05)).not.toContain('--sami-negative')
+    expect(colourOf(-0.05)).not.toContain('--sami-negative')
+    expect(colourOf(-0.12)).toContain('--sami-negative')
+  })
+
+  it('never paints a rise green', () => {
+    expect(colourOf(0.37)).not.toContain('--sami-positive')
+  })
+
+  it('keeps a partial period grey however far it fell and shows its note', () => {
+    expect(colourOf(-0.583, true)).not.toContain('--sami-negative')
+    expect(show(<KpiCard title="Sales" value={10} partial note="2 of 30 days so far" />).getByText('2 of 30 days so far')).toBeInTheDocument()
+  })
+
+  it('shows the time the figure was read, and nothing without it', () => {
+    expect(show(<KpiCard title="Sales" value={10} asOf="2026-11-02T17:11:00+00:00" />).getByText(/^as of \d/)).toBeInTheDocument()
+    cleanup()
+    expect(show(<KpiCard title="Orders" value={1} />).queryByText(/as of/)).toBeNull()
+  })
+
+  it('shows the gauge reading time too', () => {
+    expect(show(<GaugeChart value={1} target={2} asOf="2026-11-02T17:11:00+00:00" />).getByText(/^as of \d/)).toBeInTheDocument()
   })
 })

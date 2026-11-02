@@ -8,6 +8,7 @@ import { ChartCard } from './ChartCard'
 import { CHART_MIN_HEIGHT } from './sizes'
 import { helpText } from './help'
 import { formatValue } from './format'
+import { AsOf } from './widgets'
 import type { ValueFormat } from './format'
 import classes from './PolarCharts.module.css'
 
@@ -15,7 +16,7 @@ export type Tone = 'positive' | 'caution' | 'negative' | 'neutral'
 export type DonutSlice = { label: string; value: number; tone?: Tone }
 
 export type DonutChartProps = { slices: DonutSlice[]; title?: string; info?: string; measure?: string }
-export type GaugeChartProps = { value: number; target: number; title?: string; info?: string; measure?: string; valueFormat?: ValueFormat; caption?: string }
+export type GaugeChartProps = { value: number; target: number; title?: string; info?: string; measure?: string; valueFormat?: ValueFormat; caption?: string; asOf?: string }
 
 const DONUT_HEIGHT = CHART_MIN_HEIGHT
 const GAUGE_HEIGHT = CHART_MIN_HEIGHT
@@ -145,7 +146,7 @@ function gaugeDefinition(value: number, target: number) {
   })
 }
 
-export function GaugeChart({ value, target, title, info, measure, valueFormat, caption }: GaugeChartProps) {
+export function GaugeChart({ value, target, title, info, measure, valueFormat, caption, asOf }: GaugeChartProps) {
   const definition = useMemo(() => (target > 0 ? gaugeDefinition(value, target) : undefined), [value, target])
   return (
     <ChartCard
@@ -157,9 +158,12 @@ export function GaugeChart({ value, target, title, info, measure, valueFormat, c
       label="gauge"
       height={GAUGE_HEIGHT}
       footer={
-        <Text ta="center" c="dimmed">
-          {`${formatValue(value, valueFormat)} of ${formatValue(target, valueFormat)}${caption ? ` ${caption}` : ''}`}
-        </Text>
+        <>
+          <Text ta="center" c="dimmed">
+            {`${formatValue(value, valueFormat)} of ${formatValue(target, valueFormat)}${caption ? ` ${caption}` : ''}`}
+          </Text>
+          <AsOf at={asOf} />
+        </>
       }
     />
   )

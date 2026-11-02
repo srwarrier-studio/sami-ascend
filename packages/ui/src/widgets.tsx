@@ -17,14 +17,38 @@ export type KpiCardProps = {
   trend?: number[]
   info?: string
   measure?: string
+  note?: string
+  partial?: boolean
+  asOf?: string
 }
 
-export function KpiCard({ title, value, valueFormat, delta, caption, trend, info, measure }: KpiCardProps) {
+export const ATTENTION_FALL = 0.1
+
+export const clockTime = (iso: string) => {
+  const time = new Date(iso)
+  return Number.isNaN(time.getTime()) ? null : time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+export function AsOf({ at }: { at?: string }) {
+  const time = at ? clockTime(at) : null
+  return time ? (
+    <Text size="xs" c="dimmed" ta="right" className={classes.asOf}>
+      {`as of ${time}`}
+    </Text>
+  ) : null
+}
+
+export function KpiCard({ title, value, valueFormat, delta, caption, trend, info, measure, note, partial, asOf }: KpiCardProps) {
   const rising = delta !== undefined && delta >= 0
   const Arrow = rising ? ArrowUpIcon : ArrowDownIcon
+  const needsAttention = delta !== undefined && !partial && delta < -ATTENTION_FALL
+  const tone = needsAttention ? 'var(--sami-negative)' : 'var(--mantine-color-dimmed)'
   return (
     <Card className={classes.card}>
-      <WidgetTitle title={title} help={helpText('KpiCard', measure)} info={info} label />
+      <Group justify="space-between" wrap="nowrap" gap="xs">
+        <WidgetTitle title={title} help={helpText('KpiCard', measure)} info={info} label />
+        <AsOf at={asOf} />
+      </Group>
       <Group className={classes.kpiBody} justify="space-between" align="flex-end" wrap="nowrap">
         <Stack gap={0}>
           <Title order={2}>{formatValue(value, valueFormat)}</Title>
@@ -34,13 +58,18 @@ export function KpiCard({ title, value, valueFormat, delta, caption, trend, info
             </Text>
           ) : (
             <Group gap={4}>
-              <Arrow size={14} weight="bold" color={rising ? 'var(--sami-positive)' : 'var(--sami-negative)'} aria-hidden />
-              <Text c={rising ? 'var(--sami-positive)' : 'var(--sami-negative)'} fw={500}>
+              <Arrow size={14} weight="bold" color={tone} aria-hidden />
+              <Text c={tone} fw={500}>
                 {formatDelta(delta)}
               </Text>
             </Group>
           )}
           {caption && <Text c="dimmed">{caption}</Text>}
+          {note && (
+            <Text size="xs" c="dimmed">
+              {note}
+            </Text>
+          )}
         </Stack>
         {trend && trend.length > 1 && <Sparkline values={trend} />}
       </Group>
