@@ -3,8 +3,7 @@ import type { SyntheticEvent } from 'react'
 import { useNavigate, useRouteContext } from '@tanstack/react-router'
 import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Modal, PageHeader, PaperPlaneRightIcon, SparkleIcon, Stack, Text, TextInput, Title, WidgetCell, WidgetGrid } from '@sami/ui'
 import { AnswerBlocks } from '../ai/AnswerBlocks'
-import { SHOWN_PROBLEMS } from '../ai/agentsClient'
-import type { AgentAnswer, AgentContext, AnswerBlock } from '../ai/agentsClient'
+import type { AnswerBlock } from '../ai/answerBlocks'
 import { IntentCard } from '../ai/IntentCard'
 import { IntentDataUnavailable } from '../ai/intentClient'
 import type { IntentReading, IntentReply } from '../ai/intentClient'
@@ -16,9 +15,8 @@ import { buildWidgets } from '../boards/layout'
 import { CatalogWidget } from '../catalog/CatalogWidget'
 import classes from '../boards/Board.module.css'
 
-type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard; agent?: AgentAnswer; blocks?: AnswerBlock[]; intent?: IntentReading | null }
+type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard; blocks?: AnswerBlock[]; intent?: IntentReading | null }
 
-const UNAVAILABLE = 'The analysis service is not available right now.'
 const NO_FIGURES = 'The figures are not available right now.'
 const unusablePeriod = (periods: string[]) => `I could not use the period in your question (I read ${periods.join(' and ')}). Ask for one period that has already started.`
 
@@ -26,12 +24,11 @@ const examples = ['Show top customers and top materials', `${BUILDER} build me a
 
 export function AiPage() {
   const navigate = useNavigate()
-  const { catalog, catalogClient, chatPlanner, agentsClient, intentClient, boardStore, company } = useRouteContext({ from: '/ai' })
+  const { catalog, catalogClient, chatPlanner, intentClient, boardStore, company } = useRouteContext({ from: '/ai' })
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [building, setBuilding] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [remembered, setRemembered] = useState<AgentContext | null>(null)
   const [board, setBoard] = useState<ChatBoard | null>(null)
   const [saving, setSaving] = useState(false)
   const bottom = useRef<HTMLDivElement>(null)
@@ -64,24 +61,7 @@ export function AiPage() {
       setBusy(false)
       return
     }
-    const agent = forBoard ? null : await agentsClient.ask(asked, remembered ?? undefined).catch(() => undefined)
-    if (agent === undefined) {
-      setMessages((all) => [...all, { from: 'ai', text: UNAVAILABLE, intent }])
-      setBusy(false)
-      return
-    }
-    if (agent?.readable && agent.question) setRemembered(agent.question)
-    if (agent && (agent.readable || (agent.problem !== null && SHOWN_PROBLEMS.includes(agent.problem)))) {
-      setMessages((all) => [...all, { from: 'ai', text: '', agent, intent }])
-      setBusy(false)
-      return
-    }
     const answer = await chatPlanner.plan(asked, catalog)
-    if (agent && answer.catalogIds.length === 0 && !answer.board) {
-      setMessages((all) => [...all, { from: 'ai', text: '', agent, intent }])
-      setBusy(false)
-      return
-    }
     setMessages((all) => [...all, { from: 'ai', text: answer.reply, catalogIds: answer.catalogIds, board: answer.board, intent }])
     if (answer.board) setBoard(answer.board)
     setBusy(false)
@@ -127,16 +107,14 @@ export function AiPage() {
             </Stack>
           )}
           {messages.map((message, index) => (
-            <div key={index} className={classes.bubble} data-from={message.from} data-wide={message.catalogIds?.length || message.agent?.blocks.length || message.blocks?.length ? true : undefined}>
+            <div key={index} className={classes.bubble} data-from={message.from} data-wide={message.catalogIds?.length || message.blocks?.length ? true : undefined}>
               {message.from === 'you' && message.text.toLowerCase().startsWith(BUILDER) ? (
                 <>
                   <span className={classes.mention}>{message.text.slice(0, BUILDER.length)}</span>
                   {message.text.slice(BUILDER.length)}
                 </>
               ) : message.blocks ? (
-                <AnswerBlocks blocks={message.blocks} label={null} />
-              ) : message.agent ? (
-                <AnswerBlocks blocks={message.agent.blocks} label={message.agent.label} />
+                <AnswerBlocks blocks={message.blocks} />
               ) : (
                 message.text
               )}
@@ -159,7 +137,7 @@ export function AiPage() {
                   Open board
                 </Button>
               )}
-              {message.intent && <IntentCard reading={message.intent} answered={Boolean(message.catalogIds?.length || message.board || message.agent?.readable)} />}
+              {message.intent && <IntentCard reading={message.intent} answered={Boolean(message.catalogIds?.length || message.board)} />}
             </div>
           ))}
           {busy && (

@@ -29,6 +29,7 @@ export function CatalogWidget({ entry, client, company, refreshMs = REFRESH_MS }
 
   if (state.status === 'loading') return <Skeleton height="100%" radius="lg" aria-label={`Loading ${entry.title}`} />
   if (state.status === 'failed') return <Alert color="red" title={entry.title}>{state.message}</Alert>
-  const props = state.props.valueFormat === 'currency' ? { ...state.props, valueFormat: `currency:${CURRENCY}` } : state.props
+  const named = typeof state.props.currency === 'string' && /^[A-Z]{3}$/.test(state.props.currency) ? state.props.currency : null
+  const props = named && state.props.valueFormat === 'currency' ? { ...state.props, valueFormat: `currency:${named}` } : state.props
   return registry.render(entry.widget, props)
 }

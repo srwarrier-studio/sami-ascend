@@ -1,6 +1,6 @@
 import { INTENT_URL } from '../config'
-import { parseBlock } from './agentsClient'
-import type { AnswerBlock } from './agentsClient'
+import { parseBlock } from './answerBlocks'
+import type { AnswerBlock } from './answerBlocks'
 
 export type IntentReason = 'not_about_business' | 'not_sure' | 'no_scenarios' | 'nothing_matched'
 

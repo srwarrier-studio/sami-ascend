@@ -2,12 +2,13 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { UiProvider, synapsePalette } from '@sami/ui'
 import { AnswerBlocks } from '../src/ai/AnswerBlocks'
-import type { AnswerBlock } from '../src/ai/agentsClient'
+import type { AnswerBlock } from '../src/ai/answerBlocks'
+import { parseBlock } from '../src/ai/answerBlocks'
 
-const show = (blocks: AnswerBlock[], label: string | null = null) =>
+const show = (blocks: AnswerBlock[]) =>
   render(
     <UiProvider palette={synapsePalette}>
-      <AnswerBlocks blocks={blocks} label={label} />
+      <AnswerBlocks blocks={blocks} />
     </UiProvider>,
   )
 
@@ -45,12 +46,16 @@ describe('drawing the answer', () => {
     await userEvent.click(screen.getByText('no valid contract for 50 days'))
     expect(await screen.findByText('SalesContract: 0040000127 · ValidTo: 2026-07-12')).toBeInTheDocument()
   })
+})
 
-  it('shows the label only when there is one', () => {
-    const view = show([], 'Mock data (butterfly)')
-    expect(screen.getByText('Mock data (butterfly)')).toBeInTheDocument()
-    view.unmount()
-    show([], null)
-    expect(screen.queryByText('Mock data (butterfly)')).not.toBeInTheDocument()
+describe('reading a block', () => {
+  it('gives an evidence step with no rows an empty list', () => {
+    expect(parseBlock({ type: 'evidence', finding: 'A', steps: [{ summary: 's' }] })).toEqual({ type: 'evidence', finding: 'A', steps: [{ summary: 's', rows: [] }] })
+  })
+
+  it('refuses a block of an unknown or malformed shape', () => {
+    expect(parseBlock({ type: 'pie' })).toBeNull()
+    expect(parseBlock({ type: 'text', lines: 'no' })).toBeNull()
+    expect(parseBlock(5)).toBeNull()
   })
 })

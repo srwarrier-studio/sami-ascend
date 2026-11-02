@@ -52,18 +52,23 @@ describe('widget currency', () => {
     )
     return spy
   }
+  const money = { title: 'Sales today', value: 5000, valueFormat: 'currency' }
 
-  it('asks for USD and shows the dollar sign on a money widget', async () => {
-    const mock = new MockCatalogClient()
-    const data = showing(() => mock.data('sales-today', null, 'USD'))
-    expect(await screen.findByText(/^\$/)).toBeInTheDocument()
+  it('asks for USD and shows the rupee sign while the service names no currency', async () => {
+    const data = showing(async () => money)
+    expect(await screen.findByText(/^₹/)).toBeInTheDocument()
     expect(data).toHaveBeenCalledWith('sales-today', 'organica', 'USD')
   })
 
+  it('shows the sign of the currency the service names', async () => {
+    showing(async () => ({ ...money, currency: 'USD' }))
+    expect(await screen.findByText(/^\$/)).toBeInTheDocument()
+  })
+
   it('leaves a widget that is not money alone', async () => {
-    showing(async () => ({ title: 'Orders', value: 12, valueFormat: 'number' }))
+    showing(async () => ({ title: 'Orders', value: 12, valueFormat: 'number', currency: 'USD' }))
     expect(await screen.findByText('12')).toBeInTheDocument()
-    expect(screen.queryByText(/^\$/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^\$/)).toBeNull()
   })
 })
 
