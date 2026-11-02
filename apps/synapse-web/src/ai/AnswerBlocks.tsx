@@ -1,5 +1,5 @@
-import { Accordion, Badge, DataTable, LineChart, Stack, Text } from '@sami/ui'
-import type { AnswerBlock, EvidenceBlock, TableBlock, TrendBlock } from './agentsClient'
+import { Accordion, DataTable, LineChart, Stack, Text } from '@sami/ui'
+import type { AnswerBlock, EvidenceBlock, TableBlock, TrendBlock } from './answerBlocks'
 
 const COLUMN_KEYS: Record<string, { key: string; format: 'text' | 'currency' | 'percent' }> = {
   Name: { key: 'name', format: 'text' },
@@ -15,7 +15,7 @@ const asNumber = (value: string | null | undefined, divisor = 1) => (value === n
 
 function Trend({ block }: { block: TrendBlock }) {
   const marked = block.marked.length ? ` (${block.marked.join(' and ')} compared)` : ''
-  return <LineChart title={`${block.metric.charAt(0).toUpperCase()}${block.metric.slice(1)}, last ${block.points.length} months${marked}`} measure={block.currency} valueFormat="currency" data={block.points.map((point) => ({ label: point.month, value: Number(point.value) }))} />
+  return <LineChart title={`${block.metric.charAt(0).toUpperCase()}${block.metric.slice(1)}, last ${block.points.length} months${marked}`} measure={block.currency} valueFormat={/^[A-Z]{3}$/.test(block.currency) ? `currency:${block.currency}` : 'currency'} data={block.points.map((point) => ({ label: point.month, value: Number(point.value) }))} />
 }
 
 function Table({ block }: { block: TableBlock }) {
@@ -58,10 +58,9 @@ function Block({ block }: { block: AnswerBlock }) {
   return <Evidence block={block} />
 }
 
-export function AnswerBlocks({ blocks, label }: { blocks: AnswerBlock[]; label: string | null }) {
+export function AnswerBlocks({ blocks }: { blocks: AnswerBlock[] }) {
   return (
     <Stack gap="sm">
-      {label && <Badge variant="light" tt="none" w="fit-content">{label}</Badge>}
       {blocks.map((block, index) => <Block key={index} block={block} />)}
     </Stack>
   )

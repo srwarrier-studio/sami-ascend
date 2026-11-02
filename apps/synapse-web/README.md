@@ -35,4 +35,7 @@ If you are developing a production application, we recommend enabling type-aware
 See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
 
 ## AI Mode and intent-api
-AI Mode asks intent-api (`VITE_INTENT_URL`, default `http://localhost:8006`) first and draws its answer; questions it cannot answer fall through to sami-agents (`VITE_AGENTS_URL`) and the widget catalog; when widgets or the agent then answer, the reading card keeps "Understood as <domain>" and drops the refusal sentence. To see it, run Laya with the tuned checkpoint and intent-api (see `apps/intent-api/README.md`) with the same `JWT_SECRET`; `scripts/dev.sh start` starts the whole stack.
+AI Mode asks intent-api (`VITE_INTENT_URL`, default `http://localhost:8006`) first and draws its answer; questions it cannot answer (and every question when it is down) go to the widget catalog; when widgets then answer, the reading card keeps "Understood as <domain>" and drops the refusal sentence. To see it, run Laya with the tuned checkpoint and intent-api (see `apps/intent-api/README.md`) with the same `JWT_SECRET`; `scripts/dev.sh start` starts the whole stack.
+
+## Company and currency
+The company chosen in the picker (`all` for users with several companies) is sent as `company` on every synapse-api read and on intent-api answers; a 403 `COMPANY_NOT_ALLOWED` shows a "No access" message. Widget data is requested with `currency=USD`; a money widget draws the sign of the `currency` the data names, and `₹` when it names none.

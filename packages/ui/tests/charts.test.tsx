@@ -184,6 +184,12 @@ describe('formatCompact', () => {
     expect(formatCompact(950)).toBe('950')
   })
 
+  it('uses the sign of the named currency', () => {
+    expect(formatCompact(2000000, 'currency:USD')).toBe('$20L')
+    expect(formatCompact(2000000, 'currency:INR')).toBe('₹20L')
+    expect(formatValue(1234, 'currency:USD')).toBe('$1,234')
+  })
+
   it('keeps the rupee sign for currency', () => expect(formatCompact(2000000, 'currency')).toBe('₹20L'))
 
   describe('without decimals', () => {

@@ -41,4 +41,17 @@ describe('choosing a company', () => {
   it('has none when signed out', () => {
     expect(renderHook(() => useCompany(null)).result.current.company).toBeNull()
   })
+
+  it('accepts and remembers all companies for a user with several', () => {
+    const user = userWith(['sabinsa', 'organica'])
+    const first = renderHook(() => useCompany(user))
+    act(() => first.result.current.setCompany('all'))
+    expect(renderHook(() => useCompany(user)).result.current.company).toBe('all')
+  })
+
+  it('refuses all companies for a user with one', () => {
+    const { result } = renderHook(() => useCompany(userWith(['organica'])))
+    act(() => result.current.setCompany('all'))
+    expect(result.current.company).toBe('organica')
+  })
 })

@@ -11,7 +11,7 @@ import { sized } from './sizes'
 import type { SizeName } from './sizes'
 import { DataTable, KpiCard, RankedList } from './widgets'
 
-const valueFormat = z.enum(['number', 'currency', 'percent']).optional()
+const valueFormat = z.union([z.enum(['number', 'currency', 'percent']), z.string().regex(/^currency:[A-Z]{3}$/)]).optional()
 const point = z.object({ label: z.string(), value: z.number() })
 const info = z.string().optional()
 const measure = z.string().optional()
