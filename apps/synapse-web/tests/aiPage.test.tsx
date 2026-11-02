@@ -27,7 +27,7 @@ const ask = async (message: string) => {
 describe('AI chat', () => {
   it('starts with a welcome and example prompts that send themselves', async () => {
     open()
-    expect(await screen.findByText('Ask for what you want to see')).toBeInTheDocument()
+    expect(await screen.findByText('What would you like to see?')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Show top customers and top materials' }))
     expect(await screen.findByText(/^Here is Top customers/)).toBeInTheDocument()
   })

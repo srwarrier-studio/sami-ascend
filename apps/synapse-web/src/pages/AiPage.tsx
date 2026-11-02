@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SyntheticEvent } from 'react'
 import { useNavigate, useRouteContext } from '@tanstack/react-router'
-import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Loader, Modal, PageHeader, PaperPlaneRightIcon, SparkleIcon, Stack, Text, TextInput, Title, WidgetCell, WidgetGrid } from '@sami/ui'
+import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Loader, Modal, PageHeader, PaperPlaneRightIcon, SparkleIcon, Text, TextInput, Title, WidgetCell, WidgetGrid } from '@sami/ui'
 import { AnswerBlocks } from '../ai/AnswerBlocks'
 import type { AnswerBlock } from '../ai/answerBlocks'
 import { IntentCard } from '../ai/IntentCard'
@@ -105,32 +105,46 @@ export function AiPage() {
       <div className={classes.thread}>
         <div className={classes.messages} ref={bottom} role="log" aria-live="polite" aria-label="Conversation">
           {messages.length === 0 && (
-            <Stack align="center" gap="sm" ta="center" py="xl">
-              <SparkleIcon size={36} weight="duotone" />
-              <Title order={4}>Ask for what you want to see</Title>
-              <Text c="dimmed" size="sm">
+            <div className={classes.welcome}>
+              <span className={classes.hero} aria-hidden="true">
+                <SparkleIcon size={28} weight="fill" />
+              </span>
+              <Title order={2}>What would you like to see?</Title>
+              <Text c="dimmed">
                 Ask about sales, customers or materials and the answer comes back with its charts. {BUILDER} turns a request into a whole board you can save.
               </Text>
-              <Text size="xs" fw={600} c="dimmed" tt="uppercase" mt="sm">
-                Ask a question
-              </Text>
-              {questions.map((example) => (
-                <Button key={example} variant="light" size="xs" onClick={() => send(example)}>
-                  {example}
-                </Button>
-              ))}
-              <Text size="xs" fw={600} c="dimmed" tt="uppercase" mt="sm">
-                Build a board
-              </Text>
-              {builds.map((example) => (
-                <Button key={example} variant="light" size="xs" onClick={() => send(example)}>
-                  {example}
-                </Button>
-              ))}
-            </Stack>
+              <div className={classes.suggestions}>
+                <div>
+                  <Text size="xs" fw={600} c="dimmed" tt="uppercase" mb="xs">
+                    Ask a question
+                  </Text>
+                  {questions.map((example) => (
+                    <button key={example} type="button" className={classes.suggestion} onClick={() => send(example)}>
+                      {example}
+                    </button>
+                  ))}
+                </div>
+                <div>
+                  <Text size="xs" fw={600} c="dimmed" tt="uppercase" mb="xs">
+                    Build a board
+                  </Text>
+                  {builds.map((example) => (
+                    <button key={example} type="button" className={classes.suggestion} onClick={() => send(example)}>
+                      {example}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
           {messages.map((message, index) => (
             <div key={index} className={classes.bubble} data-index={index} data-from={message.from} data-wide={message.catalogIds?.length || message.blocks?.length ? true : undefined}>
+              {message.from === 'ai' && (
+                <span className={classes.avatar} aria-hidden="true">
+                  <SparkleIcon size={14} weight="fill" />
+                </span>
+              )}
+              <div className={classes.body}>
               {message.from === 'you' && message.text.toLowerCase().startsWith(BUILDER) ? (
                 <>
                   <span className={classes.mention}>{message.text.slice(0, BUILDER.length)}</span>
@@ -170,20 +184,24 @@ export function AiPage() {
                 </Group>
               )}
               {message.intent && !message.examples && <IntentCard reading={message.intent} answered={Boolean(message.catalogIds?.length || message.board)} onAsk={send} />}
+              </div>
             </div>
           ))}
           {busy && (
             <div className={classes.bubble} data-from="ai" role="status" aria-label="Thinking">
+              <span className={classes.avatar} aria-hidden="true">
+                <SparkleIcon size={14} weight="fill" />
+              </span>
               <Loader type="dots" size="sm" />
             </div>
           )}
         </div>
         <form className={classes.chat} onSubmit={submit}>
-          <Group wrap="nowrap">
+          <div className={classes.composer}>
             <TextInput
               flex={1}
               size="lg"
-              radius="xl"
+              variant="unstyled"
               aria-label="Message"
               placeholder={building ? 'What should the board show?' : `Ask the AI, or start with ${BUILDER} to build a board`}
               value={text}
@@ -195,10 +213,10 @@ export function AiPage() {
                 if (event.key === 'Backspace' && building && text === '') setBuilding(false)
               }}
             />
-            <ActionIcon type="submit" size={48} radius="xl" aria-label="Send" loading={busy} disabled={!text.trim() && !building}>
+            <ActionIcon type="submit" size={40} radius="xl" aria-label="Send" loading={busy} disabled={!text.trim() && !building}>
               <PaperPlaneRightIcon size={18} />
             </ActionIcon>
-          </Group>
+          </div>
         </form>
       </div>
       <Modal opened={board !== null} onClose={() => setBoard(null)} title={
