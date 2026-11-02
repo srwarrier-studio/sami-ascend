@@ -24,9 +24,9 @@ describe('the donut', () => {
 
   it('has a legend entry per slice with its share', () => {
     draw()
-    expect(screen.getByText('Open')).toBeInTheDocument()
-    expect(screen.getByText('In process')).toBeInTheDocument()
-    expect(screen.getByText('Completed')).toBeInTheDocument()
+    expect(screen.getByText('Open', { selector: 'li *' })).toBeInTheDocument()
+    expect(screen.getByText('In process', { selector: 'li *' })).toBeInTheDocument()
+    expect(screen.getByText('Completed', { selector: 'li *' })).toBeInTheDocument()
   })
 })
 
