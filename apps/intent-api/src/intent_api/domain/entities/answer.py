@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-RESPONSES = ("value", "compare", "trend", "ranking")
+RESPONSES = ("value", "compare", "trend", "ranking", "why")
 AGAINST = ("previous", "last_year")
 
 

@@ -3,6 +3,8 @@ from datetime import date
 
 from intent_api.application.answer_scenario import AnswerScenario
 from intent_api.application.match_question import MatchQuestion
+from intent_api.application.read_currency import read_currency
+from intent_api.application.read_direction import read_direction
 from intent_api.application.read_period import ReadPeriod
 from intent_api.domain.entities.answer import AnswerRule
 from intent_api.domain.entities.match import NOT_ANSWERABLE_YET, PERIOD_NOT_SUPPORTED
@@ -19,7 +21,7 @@ class AnswerQuestion:
         self.periods = periods
         self.log = log
 
-    def execute(self, question: str, token: str, today: date) -> Reply:
+    def execute(self, question: str, token: str, today: date, company: str = "all") -> Reply:
         match = self.matcher.match(question)
         if not match.answered:
             return self.refused(question, Reply(match, reason=match.reason))
@@ -32,7 +34,7 @@ class AnswerQuestion:
                 period = self.periods.execute(question, today, rule.against)
             except PeriodNotSupported as error:
                 return self.refused(question, Reply(match, reason=PERIOD_NOT_SUPPORTED, periods=tuple(error.periods)))
-            answers.append(self.scenarios.execute(rule, period, token))
+            answers.append(self.scenarios.execute(rule, period, token, company, read_currency(question), today, read_direction(question)))
         if not answers:
             return self.refused(question, Reply(match, reason=NOT_ANSWERABLE_YET))
         return Reply(match, tuple(answers))

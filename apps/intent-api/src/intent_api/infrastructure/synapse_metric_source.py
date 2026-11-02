@@ -6,7 +6,7 @@ from structured_logging import get_request_id
 from token_verification.fastapi_deps import ACCESS_TOKEN_COOKIE
 
 from intent_api.domain.entities.figures import Comparison, MonthFigure, Row, TrendPoint, Window
-from intent_api.domain.errors import MetricsUnavailable
+from intent_api.domain.errors import CompanyNotAllowed, MetricsUnavailable
 from intent_api.domain.gateways.metric_source import MetricSource
 from intent_api.infrastructure.settings import Settings
 
@@ -18,8 +18,14 @@ def decimal_of(value) -> Decimal | None:
 
 
 class SynapseMetricSource(MetricSource):
-    def __init__(self, settings: Settings, transport: httpx.BaseTransport | None = None):
-        self.client = httpx.Client(base_url=settings.synapse_url, timeout=settings.synapse_timeout_seconds, transport=transport)
+    def __init__(self, settings: Settings, transport: httpx.BaseTransport | None = None, company: str | None = None, client: httpx.Client | None = None):
+        self.settings = settings
+        self.transport = transport
+        self.company = company
+        self.client = client or httpx.Client(base_url=settings.synapse_url, timeout=settings.synapse_timeout_seconds, transport=transport)
+
+    def for_company(self, company: str | None) -> "SynapseMetricSource":
+        return SynapseMetricSource(self.settings, self.transport, company, self.client)
 
     def month(self, token: str, metric: str, month: date, trend: int) -> list[MonthFigure]:
         body = self.get(token, f"/v1/synapse/metrics/{metric}/month", {"month": month.strftime("%Y-%m"), "trend": trend})
@@ -58,12 +64,16 @@ class SynapseMetricSource(MetricSource):
 
     def get(self, token: str, path: str, params: dict) -> dict:
         headers = {"Cookie": f"{ACCESS_TOKEN_COOKIE}={token}"}
+        if self.company:
+            params = {**params, "company": self.company}
         if request_id := get_request_id():
             headers["X-Request-ID"] = request_id
         try:
             response = self.client.get(path, params=params, headers=headers)
         except httpx.TransportError as error:
             raise MetricsUnavailable(type(error).__name__) from error
+        if response.status_code == 403 and self.company:
+            raise CompanyNotAllowed(self.company)
         if response.status_code != 200:
             raise MetricsUnavailable(f"unexpected status {response.status_code}")
         try:

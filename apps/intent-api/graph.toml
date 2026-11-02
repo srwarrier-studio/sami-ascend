@@ -1,0 +1,94 @@
+[node.Customer]
+label = "customer"
+source = "metric:sales.customer"
+
+[node.Product]
+label = "product"
+source = "metric:sales.material"
+anomaly = { kind = "value_changed", min_percent = 10 }
+
+[node.PurchasedMaterial]
+label = "purchased material"
+source = "metric:purchases.material"
+anomaly = { kind = "value_changed", min_percent = 10 }
+
+[node.Contract]
+label = "contract"
+source = "record:contract"
+id = "SalesContract"
+anomaly = { kind = "coverage_gap", from = "ValidFrom", to = "ValidTo" }
+
+[node.ProductionOrder]
+label = "production order"
+source = "record:production_order"
+id = "ProductionOrder"
+anomaly = [
+  { kind = "later_than", due = "PlannedEndDate", done = "ActualEndDate", min_days = 3, reason = "DelayReason" },
+  { kind = "sum_changed", field = "PlannedQuantity", date = "PlannedStartDate", min_percent = 10 },
+]
+
+[node.Component]
+label = "component"
+source = "record:production_component"
+passthrough = true
+
+[node.PurchaseDelivery]
+label = "purchase delivery"
+source = "record:purchase_delivery"
+id = "PurchaseOrder"
+anomaly = [
+  { kind = "later_than", due = "PromisedDeliveryDate", done = "ActualDeliveryDate", min_days = 3 },
+  { kind = "sum_changed", field = "OrderedQuantity", date = "OrderDate", min_percent = 10 },
+  { kind = "set_changed", field = "Supplier", date = "OrderDate" },
+]
+
+[edge.customer_contracts]
+cause = "Contract"
+effect = "Customer"
+join = { cause = "SoldToParty", effect = "key" }
+carries = ["coverage_gap"]
+
+[edge.production_for_product]
+cause = "ProductionOrder"
+effect = "Product"
+join = { cause = "Material", effect = "key" }
+carries = ["later_than"]
+shows = ["value_changed"]
+
+[edge.components_of_production]
+cause = "Component"
+effect = "ProductionOrder"
+join = { cause = "ProductionOrder", effect = "ProductionOrder" }
+shows = ["later_than"]
+
+[edge.deliveries_of_component]
+cause = "PurchaseDelivery"
+effect = "Component"
+join = { cause = "Material", effect = "Material" }
+carries = ["later_than"]
+
+[edge.sales_drive_production]
+cause = "Product"
+effect = "ProductionOrder"
+join = { cause = "key", effect = "Material" }
+carries = ["value_changed"]
+shows = ["sum_changed"]
+
+[edge.production_drives_components]
+cause = "ProductionOrder"
+effect = "Component"
+join = { cause = "ProductionOrder", effect = "ProductionOrder" }
+carries = ["sum_changed"]
+
+[edge.components_drive_purchases]
+cause = "Component"
+effect = "PurchaseDelivery"
+join = { cause = "Material", effect = "Material" }
+shows = ["sum_changed"]
+
+[edge.purchases_of_material]
+cause = "PurchaseDelivery"
+effect = "PurchasedMaterial"
+join = { cause = "Material", effect = "key" }
+carries = ["sum_changed", "set_changed"]
+shows = ["value_changed"]

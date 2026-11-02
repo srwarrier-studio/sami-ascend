@@ -27,6 +27,16 @@ def main() -> None:
 
         training(sys.argv[2:])
         return
+    if sys.argv[1:2] == ["why-eval"]:
+        from intent_api.entrypoint.why_eval import main as why_eval
+
+        why_eval(sys.argv[2:])
+        return
+    if sys.argv[1:2] == ["graph"]:
+        from intent_api.entrypoint.graph import main as graph
+
+        graph(sys.argv[2:])
+        return
     if sys.argv[1:2] == ["unanswered"]:
         from intent_api.entrypoint.unanswered import main as unanswered
 

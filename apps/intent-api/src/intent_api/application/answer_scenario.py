@@ -1,6 +1,7 @@
 from datetime import date
 
 from intent_api.application import wording
+from intent_api.application.analysis.answer_why import AnswerWhy
 from intent_api.application.comparison_window import comparison_window, previous_month
 from intent_api.domain.entities.answer import Answer, AnswerRule, Block
 from intent_api.domain.entities.period import Period
@@ -17,12 +18,16 @@ def previous_month_start(day: date) -> date:
 
 
 class AnswerScenario:
-    def __init__(self, source: MetricSource, top: int = 5):
+    def __init__(self, source: MetricSource, top: int = 5, why: AnswerWhy | None = None):
         self.source = source
         self.top = top
+        self.why = why
 
-    def execute(self, rule: AnswerRule, period: Period, token: str) -> Answer:
-        build = {"value": self.value, "compare": self.compare, "trend": self.trend, "ranking": self.ranking}[rule.response]
+    def execute(self, rule: AnswerRule, period: Period, token: str, company: str = "all", currency: str | None = None, today: date | None = None, direction: str = "change") -> Answer:
+        if rule.response == "why":
+            return Answer(rule.scenario, tuple(self.why.execute(rule, period, token, today or date.today(), company, currency, direction)))
+        scoped = AnswerScenario(self.source.for_company(None if company == "all" else company), self.top)
+        build = {"value": scoped.value, "compare": scoped.compare, "trend": scoped.trend, "ranking": scoped.ranking}[rule.response]
         return Answer(rule.scenario, tuple(build(rule, period, token)))
 
     def value(self, rule: AnswerRule, period: Period, token: str) -> list[Block]:

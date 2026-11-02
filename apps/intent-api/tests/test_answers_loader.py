@@ -96,5 +96,5 @@ class TestRejectedEntries:
 class TestTheShippedFile:
     def test_every_answer_belongs_to_a_scenario_of_the_library(self):
         rules = load_answers(load_library())
-        assert len(rules) == 12
-        assert "sales_why" not in rules
+        assert len(rules) == 14
+        assert (rules["sales_why"].response, rules["purchases_why"].metric) == ("why", "purchases")

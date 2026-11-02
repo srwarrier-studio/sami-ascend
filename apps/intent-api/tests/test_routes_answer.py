@@ -10,11 +10,14 @@ from token_verification.fastapi_deps import ACCESS_TOKEN_COOKIE
 from intent_api.application.choose_scenarios import NOTHING, ChooseScenarios
 from intent_api.application.match_question import MatchQuestion
 from intent_api.application.read_domain import OTHER, ReadDomain
+from intent_api.domain.analysis.measure import Comparison as Comparison_, DimensionInfo, MetricInfo, MoverRow, TrendPoint as TrendPoint_
 from intent_api.domain.entities.decision import Decision
+from intent_api.domain.errors import CompanyNotAllowed
 from intent_api.domain.entities.figures import Comparison, MonthFigure, Row, TrendPoint
 from intent_api.entrypoint.app import create_app
 from intent_api.infrastructure.jsonl_unanswered_log import JsonlUnansweredLog
 from intent_api.infrastructure.library_loader import load_library
+from intent_api.infrastructure.mock_data_source import MockDataSource
 from intent_api.infrastructure.settings import Settings
 
 SECRET = "s" * 32
@@ -42,7 +45,7 @@ def trend() -> MonthFigure:
     return MonthFigure("INR", Decimal(600), None, True, (TrendPoint(2026, 5, Decimal(500)), TrendPoint(2026, 6, Decimal(600))))
 
 
-def client(decisions, source=None, roles=("management",), unanswered_log="/dev/null"):
+def client(decisions, source=None, roles=("management",), unanswered_log="/dev/null", analysis=None):
     classifier = FakeClassifier()
     queue = iter(decisions)
 
@@ -56,7 +59,7 @@ def client(decisions, source=None, roles=("management",), unanswered_log="/dev/n
     log = FakeUnansweredLog()
     matcher = MatchQuestion(ReadDomain(classifier, LIBRARY.domains), ChooseScenarios(classifier, LIBRARY), LIBRARY, 0.0, log)
     source = source or FakeMetricSource(comparisons=[comparison(customers())], months=[trend()])
-    app = create_app(Settings(jwt_secret=SECRET, unanswered_log=unanswered_log, _env_file=None), matcher, source, lambda: TODAY)
+    app = create_app(Settings(jwt_secret=SECRET, unanswered_log=unanswered_log, _env_file=None), matcher, source, lambda: TODAY, analysis)
     test = TestClient(app)
     if roles is not None:
         test.cookies.set(ACCESS_TOKEN_COOKIE, token_with(list(roles)))
@@ -109,6 +112,13 @@ class TestAnswered:
         assert source.calls[0][3].start == date(2025, 3, 1)
 
 
+def without_why(monkeypatch):
+    from intent_api.entrypoint import answerer
+
+    real = answerer.load_answers
+    monkeypatch.setattr(answerer, "load_answers", lambda library: {k: v for k, v in real(library).items() if k != "sales_why"})
+
+
 class TestRefused:
     def test_a_question_not_about_the_business_is_refused_as_before(self):
         test, _ = client([Decision(OTHER, 0.9, {**SALES, OTHER: 0.9})])
@@ -116,7 +126,8 @@ class TestRefused:
         assert (body["problem"], body["reason"], body["answers"]) == ("cannot_answer", "not_about_business", [])
         assert body["reading"]["problem"] == "cannot_answer"
 
-    def test_a_scenario_with_no_answer_is_not_answerable_yet(self):
+    def test_a_scenario_with_no_answer_is_not_answerable_yet(self, monkeypatch):
+        without_why(monkeypatch)
         test, source = client([IN_SALES, Decision("sales_why", 0.9)])
         body = test.post(URL, json={"question": "why did sales fall in June"}).json()
         assert (body["problem"], body["reason"], body["answers"]) == ("cannot_answer", "not_answerable_yet", [])
@@ -137,7 +148,8 @@ class TestRefused:
         test, _ = client([IN_SALES, Decision(NOTHING, 0.9)])
         assert test.post(URL, json={"question": "sales gossip"}).json()["reason"] == "nothing_matched"
 
-    def test_every_refusal_is_logged(self, tmp_path):
+    def test_every_refusal_is_logged(self, tmp_path, monkeypatch):
+        without_why(monkeypatch)
         path = tmp_path / "unanswered.jsonl"
         test, _ = client([IN_SALES, Decision("sales_why", 0.9)], unanswered_log=path)
         test.post(URL, json={"question": "why did sales fall in June"})
@@ -159,3 +171,75 @@ class TestOutages:
         test, _ = client([ClassifierUnavailable("down")])
         response = test.post(URL, json={"question": "sales in June"})
         assert (response.status_code, response.json()) == (503, {"problem": "cannot_classify_now"})
+
+
+class DeniedSource(MockDataSource):
+    def compare(self, token, metric, window, by, top):
+        raise CompanyNotAllowed(self.companies[-1])
+
+
+def august_data() -> MockDataSource:
+    rows = [MoverRow("A", "Name A", Decimal(100), Decimal(1000), Decimal(-900), Decimal(80))]
+    grand = Comparison_("INR", Decimal(900), Decimal(1000), Decimal(-100), Decimal("-10.00"))
+    return MockDataSource(
+        {"contract": [{"SalesContract": "C-A", "SoldToParty": "A", "ValidFrom": "2026-01-01", "ValidTo": "2027-01-01"}]}, None,
+        [MetricInfo("sales", "Sales", (DimensionInfo("customer", False),))],
+        {("sales", None): [grand], ("sales", "customer"): [Comparison_("INR", Decimal(900), Decimal(1000), Decimal(-100), Decimal("-10.00"), rows)]},
+        {"sales": [TrendPoint_("2026-07", Decimal(1000)), TrendPoint_("2026-08", Decimal(900))]},
+    )
+
+
+class TestWhy:
+    def ask(self, question="why did sales fall in August", company=None, analysis=None, source=None):
+        test, metrics = client([IN_SALES, Decision("sales_why", 0.9)], source, analysis=analysis or august_data())
+        body = {"question": question} if company is None else {"question": question, "company": company}
+        return test.post(URL, json=body), metrics
+
+    def test_a_why_question_is_answered_with_the_analysis_blocks(self):
+        response, _ = self.ask()
+        blocks = response.json()["answers"][0]["blocks"]
+        assert response.status_code == 200 and [b["type"] for b in blocks][:2] == ["text", "trend"]
+        assert blocks[0]["lines"][0].startswith("Sales of all your companies fell 10.0% in INR from July 2026 to August 2026")
+
+    def test_the_company_scopes_the_analysis(self):
+        analysis = august_data()
+        response, _ = self.ask(company="sabinsa", analysis=analysis)
+        assert analysis.companies == ["sabinsa"]
+        assert response.json()["answers"][0]["blocks"][0]["lines"][0].startswith("Sales of Sami-Sabinsa fell")
+
+    def test_a_currency_word_in_the_question_names_the_currency(self):
+        response, _ = self.ask("why did sales fall in August in USD")
+        assert "no data in USD" in response.json()["answers"][0]["blocks"][0]["lines"][0]
+
+    def test_a_month_not_over_yet_is_one_sentence(self):
+        response, _ = self.ask("why did sales fall in November")
+        assert response.json()["answers"][0]["blocks"] == [{"type": "text", "lines": ["A why-question needs one finished month, for example August 2026."]}]
+
+    def test_a_company_the_user_does_not_have_is_403(self):
+        denied = DeniedSource(infos=[MetricInfo("sales", "Sales", ())])
+        response, _ = self.ask(company="organica", analysis=denied)
+        assert (response.status_code, response.json()) == (403, {"problem": "company_not_allowed"})
+
+    def test_an_unknown_company_is_422(self):
+        assert self.ask(company="acme")[0].status_code == 422
+
+    def test_analysis_down_is_503(self):
+        down = august_data()
+        down.fail()
+        response, _ = self.ask(analysis=down)
+        assert (response.status_code, response.json()) == (503, {"problem": "cannot_fetch_now"})
+
+
+class TestTheCompanyOnTheOtherAnswers:
+    def ask(self, company=None):
+        test, source = client([IN_SALES, Decision("sales_value", 0.9)])
+        body = {"question": "sales in June"} if company is None else {"question": "sales in June", "company": company}
+        return test.post(URL, json=body), source
+
+    def test_a_company_is_sent_to_the_metric_reads(self):
+        _, source = self.ask("organica")
+        assert source.companies == ["organica"]
+
+    def test_all_is_the_default_and_sends_none(self):
+        _, source = self.ask()
+        assert source.companies == [None]
