@@ -188,3 +188,14 @@ describe('refresh', () => {
     expect(screen.queryByLabelText(/Loading/)).toBeNull()
   })
 })
+
+describe('editing banner', () => {
+  it('says changes save automatically while editing and goes away on Done', async () => {
+    open()
+    expect(screen.queryByText(/Changes save automatically/)).toBeNull()
+    await edit()
+    expect(await screen.findByText(/Changes save automatically/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+    expect(screen.queryByText(/Changes save automatically/)).toBeNull()
+  })
+})

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
-import { Button, EmptyBoard, Group, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, notifications, useColorScheme } from '@sami/ui'
+import { Alert, Button, EmptyBoard, Group, Menu, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, notifications, useColorScheme } from '@sami/ui'
 import { BoardGrid } from '../boards/BoardGrid'
 import { BoardsSkeleton } from '../boards/BoardsSkeleton'
 import { ExportFrame } from '../export/ExportFrame'
@@ -68,22 +68,29 @@ export function BoardsPage() {
         actions={
           <Group>
             {!editing && (
-              <Button variant="default" leftSection={<FilePdfIcon size={16} />} loading={exporting} onClick={exportPdf}>
-                Export PDF
-              </Button>
+              <Menu position="bottom-end">
+                <Menu.Target>
+                  <Button variant="default" loading={exporting}>
+                    More
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item leftSection={<FilePdfIcon size={16} />} onClick={exportPdf}>
+                    Export PDF
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
             )}
             {editing && (
               <Button variant="subtle" color="red" leftSection={<TrashIcon size={16} />} disabled={boards.length < 2} onClick={() => setDeleting(true)}>
                 Delete board
               </Button>
             )}
-            <Button variant={editing ? 'filled' : 'default'} leftSection={<PencilSimpleIcon size={16} />} onClick={() => setEditing(!editing)}>
-              {editing ? 'Done' : 'Edit'}
-            </Button>
             <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />} onClick={() => navigate({ to: '/ai' })}>
               AI Mode
             </Button>
             <Button
+              variant="default"
               leftSection={<PlusIcon size={16} />}
               onClick={() => {
                 setEditing(true)
@@ -92,9 +99,17 @@ export function BoardsPage() {
             >
               Add widget
             </Button>
+            <Button leftSection={<PencilSimpleIcon size={16} />} onClick={() => setEditing(!editing)}>
+              {editing ? 'Done' : 'Edit'}
+            </Button>
           </Group>
         }
       />
+      {editing && (
+        <Alert color="blue" mx="md" mb="xs" py="xs">
+          Editing. Changes save automatically. Press Done when finished.
+        </Alert>
+      )}
       <ExportFrame exporting={exporting} company={company} userName={session.status === 'signedIn' ? session.user.name : ''} generatedAt={generatedAt} frameRef={frame}>
         <BoardGrid widgets={active.widgets} catalog={catalog} client={catalogClient} company={company} editing={editing} onChange={setWidgets}
           empty={active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}

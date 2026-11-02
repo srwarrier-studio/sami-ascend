@@ -26,11 +26,16 @@ const open = (catalogClient = new MockCatalogClient()) => {
   return exporter
 }
 
-describe('Export PDF button', () => {
+const exportPdf = async () => {
+  await userEvent.click(await screen.findByRole('button', { name: 'More' }))
+  await userEvent.click(await screen.findByRole('menuitem', { name: 'Export PDF' }))
+}
+
+describe('Export PDF menu item', () => {
   it('exports the board frame once with a safe file name and the date', async () => {
     const exporter = open()
     await screen.findByText('Top customers')
-    await userEvent.click(screen.getByRole('button', { name: 'Export PDF' }))
+    await exportPdf()
     expect(exporter.exported).toHaveLength(1)
     expect(exporter.exported[0].fileName).toBe(`Sales - Q4-${new Date().toLocaleDateString('en-CA')}.pdf`)
     expect(exporter.exported[0].element).toContainElement(screen.getByText('Top customers'))
@@ -39,7 +44,7 @@ describe('Export PDF button', () => {
   it('is hidden in Edit mode', async () => {
     open()
     await userEvent.click(await screen.findByRole('button', { name: 'Edit' }))
-    expect(screen.queryByRole('button', { name: 'Export PDF' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'More' })).toBeNull()
   })
 
   it('shows the header and footer only while the export runs', async () => {
@@ -49,7 +54,7 @@ describe('Export PDF button', () => {
       seen.push(element.textContent ?? '')
     }
     await screen.findByText('Top customers')
-    await userEvent.click(screen.getByRole('button', { name: 'Export PDF' }))
+    await exportPdf()
     expect(seen[0]).toContain('Mock Manager')
     expect(screen.getByText(/Generated/)).not.toBeVisible()
   })
@@ -57,7 +62,7 @@ describe('Export PDF button', () => {
   it('does not export while a widget is still loading', async () => {
     const mock = new MockCatalogClient()
     const exporter = open({ list: () => mock.list(null), data: () => new Promise(() => undefined) } as unknown as MockCatalogClient)
-    await userEvent.click(await screen.findByRole('button', { name: 'Export PDF' }))
+    await exportPdf()
     expect(exporter.exported).toHaveLength(0)
     expect(await screen.findByText('Widgets are still loading')).toBeInTheDocument()
   })
