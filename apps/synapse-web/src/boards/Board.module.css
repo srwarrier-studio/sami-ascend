@@ -59,7 +59,7 @@
 .bubble {
   max-width: 85%;
   padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
-  border-radius: var(--mantine-radius-xl);
+  border-radius: var(--mantine-radius-lg);
   font-size: var(--mantine-font-size-lg);
   line-height: 1.5;
   background: var(--mantine-color-default-hover);

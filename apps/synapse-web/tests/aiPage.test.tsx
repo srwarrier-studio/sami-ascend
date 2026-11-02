@@ -169,7 +169,6 @@ describe('How the question was read', () => {
   })
 
   it.each([
-    ['not_about_business', 'This does not look like a question about our figures.'],
     ['not_sure', 'I am not sure what you mean.'],
     ['no_scenarios', 'This is about Finance, which I cannot answer yet.'],
     ['nothing_matched', 'I could not tell which figure you want from Finance.'],
@@ -208,6 +207,7 @@ describe('How the question was read', () => {
     await ask('what is the weather today')
     expect(await screen.findByText(/I answer questions about our business figures/)).toBeInTheDocument()
     expect(screen.queryByText(/^Here is/)).toBeNull()
+    expect(screen.queryByText('How was this read?')).toBeNull()
     expect(screen.getByRole('button', { name: 'What were sales last month?' })).toBeInTheDocument()
   })
 

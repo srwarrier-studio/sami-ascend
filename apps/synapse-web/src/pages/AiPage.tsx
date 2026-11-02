@@ -169,7 +169,7 @@ export function AiPage() {
                   ))}
                 </Group>
               )}
-              {message.intent && <IntentCard reading={message.intent} answered={Boolean(message.catalogIds?.length || message.board)} onAsk={send} />}
+              {message.intent && !message.examples && <IntentCard reading={message.intent} answered={Boolean(message.catalogIds?.length || message.board)} onAsk={send} />}
             </div>
           ))}
           {busy && (
