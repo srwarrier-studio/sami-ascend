@@ -7,3 +7,4 @@ Items from the review that need an owner decision or another app:
 - Gauge and day-sales chart (zero-valued closed days, heavy empty arc) live in `@sami/ui`.
 - AI Mode has no app shell (phase decision kept); the only exit is a button.
 - Microsoft sign-in button does nothing yet; no forgot-password link.
+- RankedList (@sami/ui): a long label no longer wraps the value onto its own line; the label is shortened with an ellipsis and keeps its full name on hover. Owner asked for it on 2026-11-02, so it is in this phase.

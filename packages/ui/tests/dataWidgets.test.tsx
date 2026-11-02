@@ -82,3 +82,12 @@ describe('statusTone', () => {
     expect(statusTone(status)).toBe(tone)
   })
 })
+
+describe('RankedList long labels', () => {
+  it('keeps the value on the label row and shortens the label with its full name on hover', () => {
+    show(<RankedList title="Top vendors" items={[{ label: 'Bharat Steel Supply and Allied Industrial Services Private Limited', value: 1240000 }]} valueFormat="currency" />)
+    const label = screen.getByTitle('Bharat Steel Supply and Allied Industrial Services Private Limited')
+    expect(label.parentElement).toContainElement(screen.getByText('₹12,40,000'))
+    expect(label.className).toMatch(/truncate|Text-root/)
+  })
+})

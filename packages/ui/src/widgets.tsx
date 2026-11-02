@@ -67,9 +67,11 @@ export function RankedList({ title, items, valueFormat, info, measure }: RankedL
         <Stack className={classes.body} gap="sm">
           {items.map((item, index) => (
             <Stack key={item.label} gap={4}>
-              <Group justify="space-between">
-                <Text>{`${index + 1}. ${item.label}`}</Text>
-                <Text fw={600}>{formatValue(item.value, valueFormat)}</Text>
+              <Group justify="space-between" wrap="nowrap" gap="xs">
+                <Text flex={1} miw={0} truncate="end" title={item.label}>{`${index + 1}. ${item.label}`}</Text>
+                <Text fw={600} flex="none">
+                  {formatValue(item.value, valueFormat)}
+                </Text>
               </Group>
               <Progress value={top > 0 ? (Math.max(0, item.value) / top) * 100 : 0} size="xs" radius="xl" aria-label={item.label} />
             </Stack>
