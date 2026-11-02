@@ -1,10 +1,18 @@
 # Notes
 
-Items from the review that need an owner decision or another app:
-- intent-api sentences use "INR 1,816,237.50" while tables use ₹ with Indian grouping.
-- "Sales this month -58.3%" compares two days with a full month; the comparison should be like for like or say so.
-- No "as of" time on the dashboard; synapse-api would have to return one.
-- Gauge and day-sales chart (zero-valued closed days, heavy empty arc) live in `@sami/ui`.
-- AI Mode has no app shell (phase decision kept); the only exit is a button.
-- Microsoft sign-in button does nothing yet; no forgot-password link.
-- RankedList (@sami/ui): a long label no longer wraps the value onto its own line; the label is shortened with an ellipsis and keeps its full name on hover. Owner asked for it on 2026-11-02, so it is in this phase.
+## Left for the owner or later phases
+- intent-api sentences use "INR 1,816,237.50" while tables use the rupee sign with Indian grouping (intent-api).
+- Day sales draws a zero for days with no sales, which makes a sawtooth; it needs gaps or dimmed closed days (synapse-api data and `@sami/ui` line chart).
+- The gauge still shows its value and target in small text under the ring; month-target pace colour is not drawn.
+- Heatmap cells and legends, the half-drawn current month bar, compact `89L` labels against full rupee amounts, table row hover.
+- AI Mode has no app shell (an earlier phase's test requires full screen). The only exit is a button.
+- The Microsoft sign-in button does nothing yet; no forgot-password link.
+- The summary strip is not in the exported PDF. `asOf` is the time synapse-api read the data, not an SAP posting time.
+- The summary uses the data endpoint's currency (USD by default).
+
+## Things to know
+- A running intent-api, synapse-api and Vite keep old code until restarted (`scripts/dev.sh`). An intent-api started before the `why` merge refuses `sales_why` with `not_answerable_yet`.
+- `@sami/ui` has two tests that fail without this phase's changes: `sizes.test.ts` (playground dashboard rows) and `theme-only.test.ts` (inline style in `playground/DashboardDemo.tsx`).
+- `tsc -b` in synapse-web reports three `search` errors on links to `/` that were there before this phase.
+- RankedList (`@sami/ui`): a long label no longer wraps the value onto its own line.
+- Donut: more than six slices group the smallest as Other.
