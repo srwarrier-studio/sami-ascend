@@ -98,3 +98,21 @@ describe('formatDelta', () => {
     expect(formatDelta(0)).toBe('0%')
   })
 })
+
+describe('DonutChart with many slices', () => {
+  const many = Array.from({ length: 9 }, (_, index) => ({ label: `Part ${index + 1}`, value: 10 - index }))
+
+  it('keeps the five largest and groups the rest as Other', () => {
+    const { container } = show(<DonutChart slices={many} />)
+    const names = [...container.querySelectorAll('li')].map((item) => item.textContent)
+    expect(names).toHaveLength(6)
+    expect(names[5]).toMatch(/^Other/)
+    expect(arcs(container)).toHaveLength(6)
+  })
+
+  it('shows up to six slices as they are', () => {
+    const { container } = show(<DonutChart slices={many.slice(0, 6)} />)
+    expect(container.querySelectorAll('li')).toHaveLength(6)
+    expect(container.textContent).not.toContain('Other')
+  })
+})

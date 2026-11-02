@@ -20,19 +20,27 @@ export type GaugeChartProps = { value: number; target: number; title?: string; i
 const DONUT_HEIGHT = CHART_MIN_HEIGHT
 const GAUGE_HEIGHT = CHART_MIN_HEIGHT
 const PALETTE_SIZE = 6
+const MAX_SLICES = 6
+const TWO_COLUMNS_FROM = 5
 const SLICE_GAP = 0.03
 const GAUGE_SWEEP = Math.PI * 0.75
 const tones: Record<Tone, string> = {
   positive: 'var(--sami-positive)',
   caution: 'var(--sami-caution)',
   negative: 'var(--sami-negative)',
-  neutral: 'var(--mantine-color-gray-5)',
+  neutral: 'var(--mantine-color-gray-3)',
 }
 
 const unitScales = { angle: { scale: scaleLinear().domain([0, 1]) }, radius: { scale: scaleLinear().domain([0, 1]) } }
 
 const colorKey = (slice: DonutSlice, index: number) => slice.tone ?? String((index % PALETTE_SIZE) + 1)
 const paint = (key: string) => (key in tones ? tones[key as Tone] : `var(--ts-chart-${key})`)
+const grouped = (slices: DonutSlice[]) => {
+  if (slices.length <= MAX_SLICES) return slices
+  const ranked = [...slices].sort((a, b) => b.value - a.value)
+  const rest = ranked.slice(MAX_SLICES - 1).reduce((sum, slice) => sum + slice.value, 0)
+  return [...ranked.slice(0, MAX_SLICES - 1), { label: 'Other', value: rest, tone: 'neutral' as const }]
+}
 const total = (slices: DonutSlice[]) => slices.reduce((sum, slice) => sum + slice.value, 0)
 const percent = (part: number, whole: number) => Math.round((part / whole) * 100)
 
@@ -75,7 +83,8 @@ function donutDefinition(slices: DonutSlice[]) {
   })
 }
 
-export function DonutChart({ slices, title, info, measure }: DonutChartProps) {
+export function DonutChart({ slices: all, title, info, measure }: DonutChartProps) {
+  const slices = useMemo(() => grouped(all), [all])
   const sum = total(slices)
   const definition = useMemo(() => (sum > 0 ? donutDefinition(slices) : undefined), [slices, sum])
   return (
@@ -88,7 +97,7 @@ export function DonutChart({ slices, title, info, measure }: DonutChartProps) {
       label="donut chart"
       height={DONUT_HEIGHT}
       footer={
-        <ul className={classes.legend}>
+        <ul className={classes.legend} data-columns={slices.length >= TWO_COLUMNS_FROM ? 2 : 1}>
           {slices.map((slice, index) => (
             <li key={slice.label}>
               <span className={classes.dot} data-color={colorKey(slice, index)} />

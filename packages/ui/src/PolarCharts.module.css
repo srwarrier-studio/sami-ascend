@@ -37,4 +37,16 @@
 .dot[data-color='positive'] { background: var(--sami-positive); }
 .dot[data-color='caution'] { background: var(--sami-caution); }
 .dot[data-color='negative'] { background: var(--sami-negative); }
-.dot[data-color='neutral'] { background: var(--mantine-color-gray-5); }
+.dot[data-color='neutral'] { background: var(--mantine-color-gray-3); }
+
+.legend[data-columns='2'] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.375rem 1.5rem;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
