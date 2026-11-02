@@ -106,7 +106,7 @@ describe('when the catalog cannot be loaded after sign-in', () => {
     const list = vi.fn().mockRejectedValueOnce(new Error('down')).mockResolvedValue(entries)
     render(
       <UiProvider palette={synapsePalette}>
-        <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={{ list, data: async () => ({}) }} history={createMemoryHistory({ initialEntries: ['/'] })} />
+        <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={{ list, data: async () => ({}), summary: async () => ({ asOf: '', currency: 'USD', sentences: [] }) }} history={createMemoryHistory({ initialEntries: ['/'] })} />
       </UiProvider>,
     )
     expect(await screen.findByText('Cannot reach the server')).toBeInTheDocument()

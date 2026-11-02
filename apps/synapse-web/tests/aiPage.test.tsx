@@ -335,3 +335,33 @@ describe('Answers from intent-api', () => {
     expect(intent.companies).toEqual(['sabinsa'])
   })
 })
+
+describe('Why questions', () => {
+  const WHY_READING: IntentReading = { ...ANSWERED, scenarios: [{ id: 'sales_why', probability: 1, clause: 'why sales changed' }] }
+
+  it('says it could not explain and draws no unrelated widgets when the why answer is missing', async () => {
+    open(new MockBoardStore(), new MockIntentClient(replyFor(WHY_READING, [], 'not_answerable_yet')))
+    await ask('why did sales change last month')
+    expect(await screen.findByText(/I could not explain that change right now/)).toBeInTheDocument()
+    expect(screen.queryByText(/^Here is/)).toBeNull()
+  })
+
+  it('still hands other unanswered questions to the widget planner', async () => {
+    open(new MockBoardStore(), new MockIntentClient(replyFor(ANSWERED, [], 'not_answerable_yet')))
+    await ask('show me top customers')
+    expect(await screen.findByText(/^Here is Top customers/)).toBeInTheDocument()
+  })
+
+  it('asks the question from the link once and drops it from the address', async () => {
+    const intent = new MockIntentClient(replyFor(ANSWERED, [WHY]))
+    const history = createMemoryHistory({ initialEntries: ['/ai?ask=Why%20did%20sales%20change%20last%20month%3F'] })
+    render(
+      <UiProvider palette={synapsePalette}>
+        <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={new MockCatalogClient()} intentClient={intent} boardStore={new MockBoardStore()} history={history} />
+      </UiProvider>,
+    )
+    expect(await screen.findByText('Sales fell 14.4% from July 2026 to August 2026.')).toBeInTheDocument()
+    expect(intent.calls).toEqual(['Why did sales change last month?'])
+    expect(history.location.search).not.toContain('ask')
+  })
+})

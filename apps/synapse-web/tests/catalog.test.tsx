@@ -32,7 +32,7 @@ describe('CatalogWidget', () => {
   })
 
   it('shows the error when loading fails', async () => {
-    const failing = { list: vi.fn(), data: () => Promise.reject(new Error('SAP is not reachable')) }
+    const failing = { list: vi.fn(), data: () => Promise.reject(new Error('SAP is not reachable')), summary: () => Promise.reject(new Error('no summary')) }
     render(
       <UiProvider palette={synapsePalette}>
         <CatalogWidget company={null} entry={fixtureEntries[0]} client={failing} />
@@ -47,7 +47,7 @@ describe('widget currency', () => {
     const spy = vi.fn(data)
     render(
       <UiProvider palette={synapsePalette}>
-        <CatalogWidget company="organica" entry={fixtureEntries[0]} client={{ list: vi.fn(), data: spy }} />
+        <CatalogWidget company="organica" entry={fixtureEntries[0]} client={{ list: vi.fn(), data: spy, summary: () => Promise.reject(new Error('no summary')) }} />
       </UiProvider>,
     )
     return spy
@@ -85,7 +85,7 @@ describe('Reports page', () => {
 
   it('shows one widget error on the board while the others still draw', async () => {
     const mock = new MockCatalogClient()
-    const client = { list: () => mock.list(null), data: (id: string) => (id === 'sales-today' ? Promise.reject(new Error('SAP is not reachable')) : mock.data(id, null, 'USD')) }
+    const client = { list: () => mock.list(null), data: (id: string) => (id === 'sales-today' ? Promise.reject(new Error('SAP is not reachable')) : mock.data(id, null, 'USD')), summary: () => Promise.reject(new Error('no summary')) }
     render(
       <UiProvider palette={synapsePalette}>
         <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={client} history={createMemoryHistory({ initialEntries: ['/'] })} />

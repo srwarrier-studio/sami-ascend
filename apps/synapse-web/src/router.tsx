@@ -104,6 +104,7 @@ const reportsRoute = createRoute({
 const aiRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/ai',
+  validateSearch: (search: Record<string, unknown>) => ({ ask: typeof search.ask === 'string' ? search.ask : undefined }),
   beforeLoad: requireCompany,
   component: AiPage,
 })

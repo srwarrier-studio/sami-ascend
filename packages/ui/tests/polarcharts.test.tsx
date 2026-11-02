@@ -144,6 +144,8 @@ describe('KpiCard story', () => {
     expect(show(<KpiCard title="Sales" value={10} asOf="2026-11-02T17:11:00+00:00" />).getByText(/^as of \d/)).toBeInTheDocument()
     cleanup()
     expect(show(<KpiCard title="Orders" value={1} />).queryByText(/as of/)).toBeNull()
+    cleanup()
+    expect(show(<KpiCard title="Sales" value={1} note="2 of 30 days so far" asOf="2026-11-02T17:11:00+00:00" />).getByText(/^2 of 30 days so far \u00b7 as of \d/)).toBeInTheDocument()
   })
 
   it('shows the gauge reading time too', () => {

@@ -177,7 +177,7 @@ describe('AI matching', () => {
 describe('refresh', () => {
   it('reloads the data after refreshMs without showing a skeleton again', async () => {
     const dataCall = vi.fn().mockResolvedValue({ title: 'Ticker', value: 1 })
-    const client = { list: vi.fn(), data: dataCall }
+    const client = { list: vi.fn(), data: dataCall, summary: () => Promise.reject(new Error('no summary')) }
     render(
       <UiProvider palette={synapsePalette}>
         <CatalogWidget company={null} entry={fixtureEntries[0]} client={client} refreshMs={40} />

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { ActionIcon, ArrowLeftIcon, ArrowRightIcon, ArrowsOutSimpleIcon, TrashIcon, WidgetCell, WidgetGrid, allowedSizes } from '@sami/ui'
 import { CatalogWidget } from '../catalog/CatalogWidget'
+import { DrillAction } from './DrillAction'
 import type { CatalogClient, CatalogEntry } from '../catalog/catalogClient'
 import type { BoardWidget } from './boardStore'
 import { dropWidget, moveWidget, removeWidget, resizeWidget } from './layout'
@@ -69,6 +70,7 @@ export function BoardGrid({ widgets, catalog, client, company, editing, onChange
                 </ActionIcon>
               </div>
             )}
+            {!editing && <DrillAction entry={entry} client={client} company={company} />}
             <CatalogWidget entry={entry} client={client} company={company} />
           </WidgetCell>
         )

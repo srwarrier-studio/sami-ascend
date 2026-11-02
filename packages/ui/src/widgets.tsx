@@ -42,13 +42,11 @@ export function KpiCard({ title, value, valueFormat, delta, caption, trend, info
   const rising = delta !== undefined && delta >= 0
   const Arrow = rising ? ArrowUpIcon : ArrowDownIcon
   const needsAttention = delta !== undefined && !partial && delta < -ATTENTION_FALL
+  const readAt = asOf ? clockTime(asOf) : null
   const tone = needsAttention ? 'var(--sami-negative)' : 'var(--mantine-color-dimmed)'
   return (
     <Card className={classes.card}>
-      <Group justify="space-between" wrap="nowrap" gap="xs">
-        <WidgetTitle title={title} help={helpText('KpiCard', measure)} info={info} label />
-        <AsOf at={asOf} />
-      </Group>
+      <WidgetTitle title={title} help={helpText('KpiCard', measure)} info={info} label />
       <Group className={classes.kpiBody} justify="space-between" align="flex-end" wrap="nowrap">
         <Stack gap={0}>
           <Title order={2}>{formatValue(value, valueFormat)}</Title>
@@ -65,9 +63,9 @@ export function KpiCard({ title, value, valueFormat, delta, caption, trend, info
             </Group>
           )}
           {caption && <Text c="dimmed">{caption}</Text>}
-          {note && (
+          {(note || readAt) && (
             <Text size="xs" c="dimmed">
-              {note}
+              {[note, readAt && `as of ${readAt}`].filter(Boolean).join(' \u00b7 ')}
             </Text>
           )}
         </Stack>

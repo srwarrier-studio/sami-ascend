@@ -41,13 +41,13 @@ Added 2026-11-02 at the owner's request, after a review that found the Sales ove
 
 ## B1. Honest comparisons (synapse-api, `@sami/ui`)
 - Each sales KPI returns `period` and `comparedWith` as readable day ranges (`1–2 Nov`, `1–2 Oct`; today is `Mon 2 Nov` against `Sun 1 Nov`; year is `1 Jan–2 Nov` against the same days a year earlier), and the card caption becomes `<period> vs <comparedWith>`.
-- A KPI is `partial` when fewer than 7 days of its month have passed, or fewer than 7 days are in the window for the month and year cards. A partial card returns `note: "2 of 31 days so far"`, draws its change in neutral grey, and shows the note under the caption.
+- A month KPI is `partial` while fewer than 7 days of the month have passed, and a year KPI while fewer than 7 days of the year have; the today card never is. A partial card returns `note: "2 of 31 days so far"`, draws its change in neutral grey, and shows the note under the caption.
 - When the month so far equals today (nothing earlier in the month), the month card says so through its labels (`1–2 Nov`, `Sun 1 Nov: no sales`) and not through a different number.
 - Acceptance: Nov 2 with a sale only on the 2nd gives the month card `period "1–2 Nov"`, `comparedWith "1–2 Oct"`, `partial true`, `note "2 of 30 days so far"`; the same data on Nov 20 is not partial.
 
 ## B2. As of and period on every headline widget (synapse-api, `@sami/ui`)
 - The catalog data endpoint adds `asOf` (UTC ISO time the figures were read, taken inside the cached load, so a cached answer keeps its original time). Headline widgets are the four KPI cards, month target and the two charts.
-- `KpiCard` and `GaugeChart` take `asOf` and show `as of 22:41` (local time) at the right of the title row; the period is in the caption (B1), the gauge already says `this month`.
+- `KpiCard` shows `as of 22:41` (local time) in its last line, after the partial note; `GaugeChart` shows it under its value line. The period is in the caption (B1), the gauge already says `this month`. (The top right corner of a card belongs to the `Why?` and `See all` buttons.)
 - Acceptance: a cached read returns the same `asOf` twice; the KPI shows the time; a card without `asOf` shows nothing.
 
 ## B3. A summary strip (synapse-api, synapse-web)
@@ -63,7 +63,7 @@ Added 2026-11-02 at the owner's request, after a review that found the Sales ove
 - The sales KPI cards, Day sales and Month-on-month sales get a `Why?` button that opens AI Mode with `Why did sales change last month?` already sent (route search `ask`, sent once).
 - Top customers, Top materials and Recent high-value sales get `See all`, which opens a modal with the first 20 rows (the data endpoint takes `top`, 1 to 20 for these three, default as today).
 - Neither shows while editing a board, and neither is drawn when the card fails to load.
-- Acceptance: `Why?` lands in AI Mode and the question is asked once, also after a reload of the same URL; `See all` asks for 20 rows and shows them.
+- Acceptance: `Why?` lands in AI Mode and the question is asked once; the `ask` is removed from the address so a reload does not ask again; `See all` asks for 20 rows and shows them.
 
 ## B5. Colour only for what needs attention (`@sami/ui`, synapse-api)
 - `KpiCard` draws a change in neutral grey; only a fall worse than 10% is drawn red with its arrow; a rise is never green. Partial cards (B1) are always neutral.

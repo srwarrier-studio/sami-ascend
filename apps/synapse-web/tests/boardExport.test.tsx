@@ -61,7 +61,7 @@ describe('Export PDF menu item', () => {
 
   it('does not export while a widget is still loading', async () => {
     const mock = new MockCatalogClient()
-    const exporter = open({ list: () => mock.list(null), data: () => new Promise(() => undefined) } as unknown as MockCatalogClient)
+    const exporter = open({ list: () => mock.list(null), data: () => new Promise(() => undefined), summary: () => Promise.reject(new Error('no summary')) } as unknown as MockCatalogClient)
     await exportPdf()
     expect(exporter.exported).toHaveLength(0)
     expect(await screen.findByText('Widgets are still loading')).toBeInTheDocument()

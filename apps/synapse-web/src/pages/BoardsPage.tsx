@@ -4,6 +4,7 @@ import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
 import { Alert, Button, EmptyBoard, Group, Menu, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, notifications, useColorScheme } from '@sami/ui'
 import { BoardGrid } from '../boards/BoardGrid'
 import { BoardsSkeleton } from '../boards/BoardsSkeleton'
+import { SummaryStrip } from '../boards/SummaryStrip'
 import { ExportFrame } from '../export/ExportFrame'
 import { SaveBoardModal } from '../boards/SaveBoardModal'
 import { listPresets } from '../boards/presets'
@@ -86,7 +87,7 @@ export function BoardsPage() {
                 Delete board
               </Button>
             )}
-            <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />} onClick={() => navigate({ to: '/ai' })}>
+            <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />} onClick={() => navigate({ to: '/ai', search: { ask: undefined } })}>
               AI Mode
             </Button>
             <Button
@@ -110,6 +111,7 @@ export function BoardsPage() {
           Editing. Changes save automatically. Press Done when finished.
         </Alert>
       )}
+      {!editing && <SummaryStrip client={catalogClient} company={company} />}
       <ExportFrame exporting={exporting} company={company} userName={session.status === 'signedIn' ? session.user.name : ''} generatedAt={generatedAt} frameRef={frame}>
         <BoardGrid widgets={active.widgets} catalog={catalog} client={catalogClient} company={company} editing={editing} onChange={setWidgets}
           empty={active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}

@@ -103,7 +103,7 @@ describe('the header', () => {
 describe('a company the service refuses', () => {
   it('says there is no access and offers another company', async () => {
     localStorage.setItem('synapse.company.u-test', 'organica')
-    const catalogClient = { ...new MockCatalogClient(), list: vi.fn().mockRejectedValueOnce(new CompanyNotAllowed()).mockResolvedValue([]), data: async () => ({}) }
+    const catalogClient = { ...new MockCatalogClient(), list: vi.fn().mockRejectedValueOnce(new CompanyNotAllowed()).mockResolvedValue([]), data: async () => ({}), summary: async () => ({ asOf: '', currency: 'USD', sentences: [] }) }
     render(
       <UiProvider palette={synapsePalette}>
         <App client={withCompanies(['sabinsa', 'organica'])} catalogClient={catalogClient} history={createMemoryHistory({ initialEntries: ['/'] })} />

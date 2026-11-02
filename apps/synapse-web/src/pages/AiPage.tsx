@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SyntheticEvent } from 'react'
-import { useNavigate, useRouteContext } from '@tanstack/react-router'
+import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
 import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Loader, Modal, PageHeader, PaperPlaneRightIcon, SparkleIcon, Text, TextInput, Title, WidgetCell, WidgetGrid } from '@sami/ui'
 import { AnswerBlocks } from '../ai/AnswerBlocks'
 import type { AnswerBlock } from '../ai/answerBlocks'
@@ -20,6 +20,7 @@ type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?
 const NO_FIGURES = 'The figures are not available right now.'
 const unusablePeriod = (periods: string[]) => `I could not use the period in your question (I read ${periods.join(' and ')}). Ask for one period that has already started.`
 
+const WHY_FAILED = 'I could not explain that change right now. Ask for a figure, such as what were sales last month, or try again in a moment.'
 const OFF_TOPIC = 'I answer questions about our business figures, such as sales, customers and materials. Try one of these:'
 
 const questions = ['Show top customers and top materials', 'What were sales last month?', 'Why did sales change last month?']
@@ -27,6 +28,7 @@ const builds = [`${BUILDER} build me a sales board`, `${BUILDER} build an invent
 
 export function AiPage() {
   const navigate = useNavigate()
+  const { ask } = useSearch({ from: '/ai' })
   const { catalog, catalogClient, chatPlanner, intentClient, boardStore, company } = useRouteContext({ from: '/ai' })
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
@@ -68,6 +70,11 @@ export function AiPage() {
       setBusy(false)
       return
     }
+    if (reply && reply.answers.length === 0 && reply.reading.scenarios.some((scenario) => scenario.id.endsWith('_why'))) {
+      setMessages((all) => [...all, { from: 'ai', text: WHY_FAILED, intent }])
+      setBusy(false)
+      return
+    }
     if (reply?.reading.reason === 'not_about_business') {
       setMessages((all) => [...all, { from: 'ai', text: OFF_TOPIC, intent, examples: true }])
       setBusy(false)
@@ -78,6 +85,14 @@ export function AiPage() {
     if (answer.board) setBoard(answer.board)
     setBusy(false)
   }
+
+  const asked = useRef(false)
+  useEffect(() => {
+    if (!ask || asked.current) return
+    asked.current = true
+    navigate({ to: '/ai', search: { ask: undefined }, replace: true })
+    send(ask)
+  })
 
   const submit = (event: SyntheticEvent) => {
     event.preventDefault()
