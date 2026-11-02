@@ -24,8 +24,9 @@ class ButterflySalesOrderGateway(SalesOrderGateway):
             raise SapUnavailable(f"unexpected status {response.status_code}")
         return order_from_json(response.json())
 
-    def list_recent(self, top: int, skip: int) -> SalesOrderPage:
-        query = f"$orderby=SalesOrder%20desc&$top={top}&$skip={skip}&$count=true&$expand=_Item"
+    def list_recent(self, top: int, skip: int, companies: list[str]) -> SalesOrderPage:
+        in_companies = "%20or%20".join(f"CompanyCode%20eq%20'{code}'" for code in companies)
+        query = f"$filter={in_companies}&$orderby=SalesOrder%20desc&$top={top}&$skip={skip}&$count=true&$expand=_Item"
         response = self.send("GET", f"SalesOrder?{query}")
         if response.status_code != 200:
             raise SapUnavailable(f"unexpected status {response.status_code}")

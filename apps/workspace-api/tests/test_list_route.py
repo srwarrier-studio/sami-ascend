@@ -49,7 +49,7 @@ class TestListRoute:
 
     def test_sap_unavailable_is_503(self):
         client, gateway = client_with_orders(0)
-        gateway.list_recent = lambda top, skip: (_ for _ in ()).throw(SapUnavailable())
+        gateway.list_recent = lambda top, skip, companies: (_ for _ in ()).throw(SapUnavailable())
         response = client.get(URL)
         assert response.status_code == 503
         assert response.json() == {"code": "SAP_UNAVAILABLE"}

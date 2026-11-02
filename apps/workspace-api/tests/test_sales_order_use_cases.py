@@ -13,7 +13,7 @@ from workspace_api.infrastructure.mock_sales_order_gateway import MockSalesOrder
 def new_order() -> NewSalesOrder:
     return NewSalesOrder(
         "OR", "0000100001", "INR", date(2026, 11, 5),
-        [NewSalesOrderItem("RM-1001", Decimal("50.000"), "KG")],
+        [NewSalesOrderItem("RM-1001", Decimal("50.000"), "KG")], "INA1",
     )
 
 
@@ -42,26 +42,26 @@ class TestListSalesOrders:
     def test_newest_first_with_total(self):
         gateway = MockSalesOrderGateway()
         create_orders(gateway, 3)
-        page = ListSalesOrders(gateway).execute()
+        page = ListSalesOrders(gateway).execute(["INA1"])
         assert [o.sales_order for o in page.orders] == ["0000000003", "0000000002", "0000000001"]
         assert page.total == 3
 
     def test_skip_and_top_page_but_total_stays(self):
         gateway = MockSalesOrderGateway()
         create_orders(gateway, 5)
-        page = ListSalesOrders(gateway).execute(top=2, skip=1)
+        page = ListSalesOrders(gateway).execute(["INA1"], top=2, skip=1)
         assert [o.sales_order for o in page.orders] == ["0000000004", "0000000003"]
         assert page.total == 5
 
     @pytest.mark.parametrize("top", [0, 101, -1])
     def test_top_outside_range_is_rejected(self, top):
         with pytest.raises(InvalidQuery):
-            ListSalesOrders(MockSalesOrderGateway()).execute(top=top)
+            ListSalesOrders(MockSalesOrderGateway()).execute(["INA1"], top=top)
 
     def test_negative_skip_is_rejected(self):
         with pytest.raises(InvalidQuery):
-            ListSalesOrders(MockSalesOrderGateway()).execute(skip=-1)
+            ListSalesOrders(MockSalesOrderGateway()).execute(["INA1"], skip=-1)
 
     def test_top_edges_are_accepted(self):
-        ListSalesOrders(MockSalesOrderGateway()).execute(top=1)
-        ListSalesOrders(MockSalesOrderGateway()).execute(top=100)
+        ListSalesOrders(MockSalesOrderGateway()).execute(["INA1"], top=1)
+        ListSalesOrders(MockSalesOrderGateway()).execute(["INA1"], top=100)

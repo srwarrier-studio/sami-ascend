@@ -19,32 +19,32 @@ class TestListRequest:
             seen["url"] = str(request.url)
             return httpx.Response(200, json=page())
 
-        gateway(handler).list_recent(top=5, skip=10)
+        gateway(handler).list_recent(top=5, skip=10, companies=["INA1", "INA2"])
         assert seen["method"] == "GET"
         assert seen["url"] == (
-            "http://sap/root/SalesOrder?$orderby=SalesOrder%20desc&$top=5&$skip=10&$count=true&$expand=_Item"
+            "http://sap/root/SalesOrder?$filter=CompanyCode%20eq%20'INA1'%20or%20CompanyCode%20eq%20'INA2'&$orderby=SalesOrder%20desc&$top=5&$skip=10&$count=true&$expand=_Item"
         )
 
 
 class TestListResponse:
     def test_maps_orders_items_and_total(self):
-        result = gateway(lambda r: httpx.Response(200, json=page(14))).list_recent(2, 0)
+        result = gateway(lambda r: httpx.Response(200, json=page(14))).list_recent(2, 0, ["INA1"])
         assert [o.sales_order for o in result.orders] == ["0000012031", "0000012030"]
         assert result.total == 14
         assert result.orders[0].items[0].material == "RM-1001"
 
     def test_empty_page(self):
-        result = gateway(lambda r: httpx.Response(200, json={"@odata.count": 0, "value": []})).list_recent(2, 0)
+        result = gateway(lambda r: httpx.Response(200, json={"@odata.count": 0, "value": []})).list_recent(2, 0, ["INA1"])
         assert result.orders == []
         assert result.total == 0
 
     def test_server_error_is_unavailable(self):
         with pytest.raises(SapUnavailable):
-            gateway(lambda r: httpx.Response(503)).list_recent(2, 0)
+            gateway(lambda r: httpx.Response(503)).list_recent(2, 0, ["INA1"])
 
     def test_unexpected_status_is_unavailable(self):
         with pytest.raises(SapUnavailable):
-            gateway(lambda r: httpx.Response(400, json={})).list_recent(2, 0)
+            gateway(lambda r: httpx.Response(400, json={})).list_recent(2, 0, ["INA1"])
 
 
 class TestRequestId:
@@ -59,7 +59,7 @@ class TestRequestId:
 
         token = request_id_var.set("req-123")
         try:
-            gateway(handler).list_recent(2, 0)
+            gateway(handler).list_recent(2, 0, ["INA1"])
             gateway(handler).create(new_order())
         finally:
             request_id_var.reset(token)
@@ -72,5 +72,5 @@ class TestRequestId:
             seen.append("X-Request-ID" in request.headers)
             return httpx.Response(200, json=page())
 
-        gateway(handler).list_recent(2, 0)
+        gateway(handler).list_recent(2, 0, ["INA1"])
         assert seen == [False]
