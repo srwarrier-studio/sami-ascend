@@ -44,13 +44,35 @@ class TestSalesKpis:
         assert props["value"] == 120.0
         assert props["delta"] == pytest.approx(0.2)
         assert props["trend"] == [50.0, 0.0, 0.0, 0.0, 0.0, 100.0, 120.0]
-        assert props["caption"] == "vs yesterday"
+        assert props["caption"] == "Tue 27 Oct vs Mon 26 Oct"
 
     def test_month_compares_with_the_same_days_last_month(self):
         catalog = make_catalog(daily=[day(date(2026, 10, 2), "300"), day(date(2026, 9, 2), "200"), day(date(2026, 9, 28), "999")])
         props = data(catalog, "sales-month")
         assert props["value"] == 300.0
         assert props["delta"] == pytest.approx(0.5)
+
+    def test_month_names_its_days_and_is_not_partial_late_in_the_month(self):
+        props = data(make_catalog(daily=[day(date(2026, 10, 2), "300")]), "sales-month")
+        assert props["caption"] == "1\u201327 Oct vs 1\u201327 Sep"
+        assert props["period"] == "1\u201327 Oct"
+        assert props["comparedWith"] == "1\u201327 Sep"
+        assert "note" not in props and "partial" not in props
+
+    def test_early_in_the_month_it_says_how_many_days_it_has(self):
+        today = date(2026, 11, 2)
+        catalog = make_catalog(daily=[day(today, "353720"), day(date(2026, 10, 2), "848000")])
+        props = GetWidgetData(catalog).execute("sales-month", today, "INR")
+        assert props["caption"] == "1\u20132 Nov vs 1\u20132 Oct"
+        assert props["note"] == "2 of 30 days so far"
+        assert props["partial"] is True
+        assert props["delta"] == pytest.approx(-0.583, abs=0.001)
+
+    def test_the_first_week_of_the_year_is_partial_too(self):
+        today = date(2026, 1, 3)
+        props = GetWidgetData(make_catalog(daily=[day(today, "1")])).execute("sales-year", today, "INR")
+        assert props["note"] == "3 of 365 days so far"
+        assert props["comparedWith"] == "1\u20133 Jan"
 
     def test_year_compares_with_the_same_period_last_year(self):
         catalog = make_catalog(daily=[day(date(2026, 3, 1), "400"), day(date(2025, 3, 1), "200"), day(date(2025, 12, 1), "999")])
@@ -106,4 +128,4 @@ class TestDayTargetAndStatus:
     def test_status_split_counts_this_months_orders_by_status_name(self):
         statuses = [OrderStatus(date(2026, 10, 2), "A"), OrderStatus(date(2026, 10, 3), "A"), OrderStatus(date(2026, 10, 4), "C"), OrderStatus(date(2026, 9, 30), "B")]
         slices = data(make_catalog(statuses=statuses), "status-split")["slices"]
-        assert slices == [{"label": "Open", "value": 2}, {"label": "Completed", "value": 1, "tone": "positive"}]
+        assert slices == [{"label": "Open", "value": 2}, {"label": "Completed", "value": 1}]

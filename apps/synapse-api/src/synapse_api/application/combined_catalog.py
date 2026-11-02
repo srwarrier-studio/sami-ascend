@@ -15,8 +15,8 @@ class CombinedCatalog(WidgetCatalog):
     def entries(self) -> list[CatalogEntry]:
         return [entry for catalog in self.catalogs for entry in catalog.entries()]
 
-    def data(self, entry_id: str, today: date, currency: str) -> dict:
+    def data(self, entry_id: str, today: date, currency: str, top: int = 5) -> dict:
         for catalog in self.catalogs:
             if any(entry.id == entry_id for entry in catalog.entries()):
-                return catalog.data(entry_id, today, currency)
+                return catalog.data(entry_id, today, currency, top)
         raise CatalogEntryNotFound(entry_id)

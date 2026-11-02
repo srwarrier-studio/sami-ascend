@@ -20,7 +20,7 @@ class MockLibraryCatalog(WidgetCatalog):
     def entries(self) -> list[CatalogEntry]:
         return [CatalogEntry(i["id"], i["title"], i["description"], i["category"], i["widget"]) for i in self.items.values()]
 
-    def data(self, entry_id: str, today: date, currency: str) -> dict:
+    def data(self, entry_id: str, today: date, currency: str, top: int = 5) -> dict:
         if entry_id not in self.items:
             raise CatalogEntryNotFound(entry_id)
         return self.items[entry_id]["props"]

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from fastapi.testclient import TestClient
 from test_routes_cache import Clock
@@ -5,6 +7,7 @@ from test_routes_totals import DAILY, SECRET, TODAY, make_client, token_with
 from token_verification.fastapi_deps import ACCESS_TOKEN_COOKIE
 
 from synapse_api.application.sales_cache import SalesCache
+from synapse_api.domain.entities.sales import CustomerSales
 from synapse_api.entrypoint.app import create_app
 from synapse_api.infrastructure.mock_sales_source import MockSalesSource
 from synapse_api.infrastructure.settings import Settings
@@ -95,3 +98,25 @@ class TestCurrency:
         source = MockSalesSource([day(TODAY, "30.5", currency="INR"), day(TODAY, "7.25", currency="USD")])
         http = make_client(source, ["management"])
         assert [http.get(f"{BASE}/sales-today/data?currency={c}").json()["value"] for c in ("USD", "INR", "USD")] == [7.25, 30.5, 7.25]
+
+
+class TestAsOf:
+    def test_a_widget_says_when_it_was_read(self):
+        body = make_client(MockSalesSource(DAILY), ["management"]).get(f"{BASE}/sales-today/data").json()
+        assert body["asOf"].endswith("+00:00")
+
+
+class TestTop:
+    def rows(self, query: str):
+        from test_sales_widgets import day  # noqa: F401
+
+        customers = [CustomerSales(str(n), f"Customer {n}", TODAY, Decimal(100 - n), 1, "USD") for n in range(1, 9)]
+        return make_client(MockSalesSource(DAILY, customers=customers), ["management"]).get(f"{BASE}/top-customers/data{query}")
+
+    def test_a_ranking_has_five_rows_unless_asked_for_more(self):
+        assert len(self.rows("").json()["items"]) == 5
+        assert len(self.rows("?top=8").json()["items"]) == 8
+
+    @pytest.mark.parametrize("bad", ["0", "21", "x"])
+    def test_a_bad_top_is_422(self, bad):
+        assert self.rows(f"?top={bad}").status_code == 422

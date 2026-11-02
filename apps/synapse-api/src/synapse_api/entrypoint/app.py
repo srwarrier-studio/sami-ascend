@@ -18,6 +18,7 @@ from synapse_api.domain.gateways.record_source import RecordSource
 from synapse_api.domain.gateways.sales_source import SalesSource
 from synapse_api.domain.gateways.widget_catalog import WidgetCatalog
 from synapse_api.infrastructure.api.catalog.router import create_catalog_router
+from synapse_api.infrastructure.api.summary.router import create_summary_router
 from synapse_api.infrastructure.api.metrics.router import create_metrics_router
 from synapse_api.infrastructure.api.records.router import create_records_router
 from synapse_api.infrastructure.api.sales.router import create_sales_router
@@ -75,6 +76,9 @@ def create_app(
     widgets = catalog or CombinedCatalog(SalesWidgetCatalog(source, settings.monthly_sales_target), MockLibraryCatalog())
     app.include_router(create_sales_router(source, auth, today, sales_cache), prefix="/v1/synapse", tags=["Sales"])
     app.include_router(create_catalog_router(widgets, auth, today, sales_cache, settings.default_currency), prefix="/v1/synapse", tags=["Catalog"])
+    app.include_router(
+        create_summary_router(source, settings.monthly_sales_target, auth, today, sales_cache, settings.default_currency), prefix="/v1/synapse", tags=["Summary"]
+    )
     known = (registry or load_registry(settings.registry_path)) if metrics is not None or records is not None else None
     if records is not None:
         app.include_router(create_records_router(records, known, auth, today, sales_cache), prefix="/v1/synapse", tags=["Records"])
