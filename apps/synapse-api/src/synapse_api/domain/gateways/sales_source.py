@@ -7,6 +7,9 @@ from synapse_api.domain.entities.sales import CustomerSales, DailySales, HighVal
 
 class SalesSource(ABC):
     @abstractmethod
+    def for_companies(self, companies: tuple[str, ...]) -> "SalesSource": ...
+
+    @abstractmethod
     def daily_sales(self, start: date, end: date) -> list[DailySales]: ...
 
     @abstractmethod

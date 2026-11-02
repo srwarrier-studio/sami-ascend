@@ -23,11 +23,12 @@ DAILY = [
 ]
 
 
-def token_with(roles: list[str]) -> str:
+def token_with(roles: list[str], companies: list[str] | None = None) -> str:
     payload = {
         "sub": "user-1",
         "sap_username": "SAP_USER",
         "roles": roles,
+        "companies": ["sabinsa", "neutraceuticals", "organica"] if companies is None else companies,
         "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
     }
     return jwt.encode(payload, SECRET, algorithm="HS256")

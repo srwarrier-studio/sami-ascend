@@ -4,16 +4,22 @@ from decimal import Decimal
 from synapse_api.domain.entities.metric_row import MetricRow
 from synapse_api.domain.entities.registry import Dimension, Metric
 from synapse_api.domain.gateways.metric_source import MetricSource
-from synapse_api.infrastructure.odata_reader import ODataReader
+from synapse_api.infrastructure.odata_reader import ODataReader, company_clause
 
 
 class RegistryMetricSource(MetricSource):
-    def __init__(self, readers: dict[str, ODataReader]):
+    def __init__(self, readers: dict[str, ODataReader], companies: tuple[str, ...] | None = None):
         self.readers = readers
+        self.companies = companies
+
+    def for_companies(self, companies: tuple[str, ...]) -> "RegistryMetricSource":
+        return RegistryMetricSource(self.readers, companies)
 
     def rows(self, metric: Metric, dimension: str, start: date, end: date) -> list[MetricRow]:
         spec = metric.dimensions[dimension]
         filter_ = f"{metric.date}%20ge%20{start.isoformat()}%20and%20{metric.date}%20le%20{end.isoformat()}"
+        if metric.company:
+            filter_ += company_clause(metric.company, self.companies)
         path = f"{spec.entity}?$filter={filter_}&$orderby={spec.order}"
         return [self.to_row(metric, spec, row) for row in self.readers[metric.service].all_rows(path)]
 

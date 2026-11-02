@@ -30,17 +30,21 @@ class InProcess(httpx.BaseTransport):
         return httpx.Response(answer.status_code, json=answer.json())
 
 
-def compare(scenario: str, by: str | None, current=AUGUST, previous=JULY, top: int = 10):
-    source = RegistryMetricSource({"sales": ODataReader(ROOT, 10, InProcess(scenario))})
-    [result] = CompareMetric(source, REGISTRY).execute("sales", *current, *previous, by, top)
-    return result
+STORY = ("INA1",)
+GROUP = ("INA1", "INA2", "INA3")
+
+
+def compare(scenario: str, by: str | None, current=AUGUST, previous=JULY, top: int = 10, companies=STORY, currency="USD"):
+    source = RegistryMetricSource({"sales": ODataReader(ROOT, 10, InProcess(scenario))}).for_companies(companies)
+    results = CompareMetric(source, REGISTRY).execute("sales", *current, *previous, by, top)
+    return next(result for result in results if result.currency == currency)
 
 
 class TestAugustContract:
     def test_august_is_14_percent_below_july(self):
         assert Decimal("-16") <= compare("august-contract", None).change_percent <= Decimal("-13")
 
-    def test_acme_is_about_80_percent_of_the_change_and_the_rows_add_up(self):
+    def test_harborline_is_about_80_percent_of_the_change_and_the_rows_add_up(self):
         result = compare("august-contract", "customer")
         assert result.rows[0].key == "0000100001"
         assert 70 <= result.rows[0].share_of_change_percent <= 90
@@ -48,10 +52,10 @@ class TestAugustContract:
 
 
 class TestPriceCut:
-    def test_steel_rod_shows_a_price_effect_and_a_small_volume_effect(self):
-        rod = next(r for r in compare("price-cut", "material").rows if r.key == "RM-1001")
-        assert Decimal("-16") <= rod.price_effect / rod.previous * 100 <= Decimal("-13")
-        assert abs(rod.volume_effect) / rod.previous < Decimal("0.08")
+    def test_curcumin_extract_shows_a_price_effect_and_a_small_volume_effect(self):
+        curcumin = next(r for r in compare("price-cut", "material").rows if r.key == "RM-1001")
+        assert Decimal("-16") <= curcumin.price_effect / curcumin.previous * 100 <= Decimal("-13")
+        assert abs(curcumin.volume_effect) / curcumin.previous < Decimal("0.08")
 
     def test_other_materials_have_almost_no_price_effect(self):
         others = [r for r in compare("price-cut", "material").rows if r.key != "RM-1001"]
@@ -60,7 +64,27 @@ class TestPriceCut:
 
 
 class TestCustomerLost:
-    def test_eastern_is_the_first_row_and_has_nothing_after_its_last_order(self):
+    def test_lakeshore_is_the_first_row_and_has_nothing_after_its_last_order(self):
         result = compare("customer-lost", "customer", current=(date(2026, 8, 15), date(2026, 8, 31)))
         assert result.rows[0].key == "0000100005"
         assert result.rows[0].current == Decimal(0)
+
+
+class TestTheGroup:
+    def test_the_story_is_diluted_when_the_quiet_companies_are_added(self):
+        story = compare("august-contract", None).change_percent
+        group = compare("august-contract", None, companies=GROUP).change_percent
+        assert Decimal("-10") <= group <= Decimal("-6") and story < group
+
+    def test_the_group_rows_add_up_and_the_story_customer_still_leads_the_fall(self):
+        result = compare("august-contract", "customer", companies=GROUP)
+        assert sum(r.change for r in result.rows) == result.change
+        assert min(result.rows, key=lambda r: r.change).key == "0000100001"
+
+    def test_rupees_are_a_separate_result_with_no_story(self):
+        inr = compare("august-contract", None, companies=GROUP, currency="INR")
+        assert inr.change_percent > 0
+
+    def test_a_company_without_the_story_has_none_of_it(self):
+        result = compare("august-contract", None, companies=("INA3",))
+        assert abs(result.change_percent) < Decimal("5")

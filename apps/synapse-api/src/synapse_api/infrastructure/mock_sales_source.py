@@ -23,6 +23,9 @@ class MockSalesSource(SalesSource):
         self.failing = False
         self.calls = 0
 
+    def for_companies(self, companies: tuple[str, ...]) -> "MockSalesSource":
+        return self
+
     def fail(self) -> None:
         self.failing = True
 

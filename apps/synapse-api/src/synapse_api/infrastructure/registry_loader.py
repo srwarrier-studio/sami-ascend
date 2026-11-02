@@ -4,9 +4,9 @@ from pathlib import Path
 from synapse_api.domain.entities.registry import Delay, Dimension, Interval, Metric, RecordType, Registry
 
 SERVICES = ("sales", "drivers")
-METRIC_KEYS = {"label", "service", "measure", "date", "currency", "by"}
+METRIC_KEYS = {"label", "service", "measure", "date", "currency", "by", "company"}
 DIMENSION_KEYS = {"entity", "order", "key", "name", "unit", "quantity", "count"}
-RECORD_KEYS = {"service", "entity", "key_fields", "order", "interval", "delay"}
+RECORD_KEYS = {"service", "entity", "key_fields", "order", "interval", "delay", "company"}
 INTERVAL_KEYS = {"from", "to", "fallback", "open_to_today"}
 DELAY_KEYS = {"due", "done"}
 
@@ -61,6 +61,7 @@ def build_metric(name: str, body: dict) -> Metric:
     return Metric(
         name, text(body, "label", where), service_of(body, where), text(body, "measure", where),
         text(body, "date", where), text(body, "currency", where), dimensions,
+        optional_text(body, "company", where),
     )
 
 
@@ -88,7 +89,8 @@ def build_record(name: str, body: dict) -> RecordType:
     interval = build_interval(body["interval"], where) if "interval" in body else None
     delay = build_delay(body["delay"], where) if "delay" in body else None
     return RecordType(
-        name, service_of(body, where), text(body, "entity", where), tuple(key_fields), text(body, "order", where), interval, delay
+        name, service_of(body, where), text(body, "entity", where), tuple(key_fields), text(body, "order", where), interval, delay,
+        optional_text(body, "company", where),
     )
 
 

@@ -12,6 +12,9 @@ class MockMetricSource(MetricSource):
         self.failing = False
         self.calls = 0
 
+    def for_companies(self, companies: tuple[str, ...]) -> "MockMetricSource":
+        return self
+
     def fail(self) -> None:
         self.failing = True
 

@@ -36,13 +36,13 @@ class TestMockLibrary:
     def test_every_entry_has_the_props_its_widget_needs(self):
         catalog = MockLibraryCatalog()
         for entry in catalog.entries():
-            props = catalog.data(entry.id, TODAY)
+            props = catalog.data(entry.id, TODAY, "INR")
             assert REQUIRED[entry.widget] <= props.keys(), entry.id
             assert props["title"] == entry.title
 
     def test_unknown_id_is_not_found(self):
         with pytest.raises(CatalogEntryNotFound):
-            MockLibraryCatalog().data("nope", TODAY)
+            MockLibraryCatalog().data("nope", TODAY, "INR")
 
 
 class TestCombinedCatalog:
@@ -54,9 +54,9 @@ class TestCombinedCatalog:
         assert ids[0] == "sales-today" and ids[11] == "fin-receivables"
 
     def test_serves_data_from_the_catalog_that_owns_the_id(self):
-        assert self.catalog.data("sales-today", TODAY)["measure"] == "sales"
-        assert self.catalog.data("inv-low", TODAY)["value"] == 14
+        assert self.catalog.data("sales-today", TODAY, "INR")["measure"] == "sales"
+        assert self.catalog.data("inv-low", TODAY, "INR")["value"] == 14
 
     def test_unknown_id_is_not_found(self):
         with pytest.raises(CatalogEntryNotFound):
-            self.catalog.data("nope", TODAY)
+            self.catalog.data("nope", TODAY, "INR")

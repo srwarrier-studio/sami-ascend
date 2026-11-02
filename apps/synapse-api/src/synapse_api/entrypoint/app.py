@@ -12,7 +12,7 @@ from synapse_api.application.combined_catalog import CombinedCatalog
 from synapse_api.application.sales_cache import SalesCache
 from synapse_api.application.sales_widgets import SalesWidgetCatalog
 from synapse_api.domain.entities.registry import Registry
-from synapse_api.domain.errors import CatalogEntryNotFound, InvalidQuery, MetricNotFound, RecordTypeNotFound, SapUnavailable
+from synapse_api.domain.errors import CatalogEntryNotFound, CompanyNotAllowed, InvalidQuery, MetricNotFound, RecordTypeNotFound, SapUnavailable
 from synapse_api.domain.gateways.metric_source import MetricSource
 from synapse_api.domain.gateways.record_source import RecordSource
 from synapse_api.domain.gateways.sales_source import SalesSource
@@ -43,6 +43,10 @@ def create_app(
     def invalid_query(request: Request, error: InvalidQuery) -> JSONResponse:
         return JSONResponse({"code": "INVALID_QUERY", "message": str(error)}, status_code=422)
 
+    @app.exception_handler(CompanyNotAllowed)
+    def company_not_allowed(request: Request, error: CompanyNotAllowed) -> JSONResponse:
+        return JSONResponse({"code": "COMPANY_NOT_ALLOWED"}, status_code=403)
+
     @app.exception_handler(CatalogEntryNotFound)
     def catalog_entry_not_found(request: Request, error: CatalogEntryNotFound) -> JSONResponse:
         return JSONResponse({"code": "CATALOG_ENTRY_NOT_FOUND"}, status_code=404)
@@ -70,7 +74,7 @@ def create_app(
     sales_cache = cache or SalesCache(settings.cache_seconds)
     widgets = catalog or CombinedCatalog(SalesWidgetCatalog(source, settings.monthly_sales_target), MockLibraryCatalog())
     app.include_router(create_sales_router(source, auth, today, sales_cache), prefix="/v1/synapse", tags=["Sales"])
-    app.include_router(create_catalog_router(widgets, auth, today, sales_cache), prefix="/v1/synapse", tags=["Catalog"])
+    app.include_router(create_catalog_router(widgets, auth, today, sales_cache, settings.default_currency), prefix="/v1/synapse", tags=["Catalog"])
     known = (registry or load_registry(settings.registry_path)) if metrics is not None or records is not None else None
     if records is not None:
         app.include_router(create_records_router(records, known, auth, today, sales_cache), prefix="/v1/synapse", tags=["Records"])

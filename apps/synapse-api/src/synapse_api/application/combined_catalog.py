@@ -9,11 +9,14 @@ class CombinedCatalog(WidgetCatalog):
     def __init__(self, *catalogs: WidgetCatalog):
         self.catalogs = catalogs
 
+    def for_companies(self, companies: tuple[str, ...]) -> "CombinedCatalog":
+        return CombinedCatalog(*(catalog.for_companies(companies) for catalog in self.catalogs))
+
     def entries(self) -> list[CatalogEntry]:
         return [entry for catalog in self.catalogs for entry in catalog.entries()]
 
-    def data(self, entry_id: str, today: date) -> dict:
+    def data(self, entry_id: str, today: date, currency: str) -> dict:
         for catalog in self.catalogs:
             if any(entry.id == entry_id for entry in catalog.entries()):
-                return catalog.data(entry_id, today)
+                return catalog.data(entry_id, today, currency)
         raise CatalogEntryNotFound(entry_id)
