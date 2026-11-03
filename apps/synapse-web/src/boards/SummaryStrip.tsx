@@ -5,17 +5,18 @@ import { REFRESH_MS, CURRENCY } from '../catalog/CatalogWidget'
 import type { CatalogClient, Summary } from '../catalog/catalogClient'
 import classes from './Board.module.css'
 
-type SummaryStripProps = { client: CatalogClient; company: string | null; refreshMs?: number }
+type SummaryStripProps = { client: CatalogClient; company: string | null; widgets: string[]; refreshMs?: number }
 
-export function SummaryStrip({ client, company, refreshMs = REFRESH_MS }: SummaryStripProps) {
+export function SummaryStrip({ client, company, widgets, refreshMs = REFRESH_MS }: SummaryStripProps) {
   const navigate = useNavigate()
   const [summary, setSummary] = useState<Summary | null>(null)
+  const ids = [...new Set(widgets)].sort().join(',')
 
   useEffect(() => {
     let current = true
     const load = () =>
       client
-        .summary(company, CURRENCY)
+        .summary(company, CURRENCY, ids === '' ? [] : ids.split(','))
         .then((next) => current && setSummary(next))
         .catch(() => current && setSummary(null))
     load()
@@ -24,7 +25,7 @@ export function SummaryStrip({ client, company, refreshMs = REFRESH_MS }: Summar
       current = false
       clearInterval(timer)
     }
-  }, [client, company, refreshMs])
+  }, [client, company, ids, refreshMs])
 
   if (!summary || summary.sentences.length === 0) return null
   return (

@@ -6,7 +6,7 @@ export class MockCatalogClient implements CatalogClient {
     return fixtureEntries
   }
 
-  async summary(_company: string | null, currency: string) {
+  async summary(_company: string | null, currency: string, _widgets: string[]) {
     return { currency, sentences: ['Sales this month are \u20b93,40,000 (1\u201320 Nov), up 6.3% on 1\u201320 Oct.', 'Acme Ltd moved most: \u20b950,000 more than on 1\u201320 Oct.'] }
   }
 

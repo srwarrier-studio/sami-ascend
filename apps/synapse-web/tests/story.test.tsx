@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryHistory } from '@tanstack/react-router'
 import { UiProvider, synapsePalette } from '@sami/ui'
@@ -62,5 +62,20 @@ describe('the board update time', () => {
     open(new MockCatalogClient())
     await userEvent.click(await screen.findByRole('button', { name: 'Ask AI for more' }))
     expect(await screen.findByLabelText('Message')).toBeInTheDocument()
+  })
+})
+
+describe('the overview follows the board', () => {
+  it('asks with the catalog ids of the board and asks again when a widget is added', async () => {
+    const client = new MockCatalogClient()
+    const summary = vi.spyOn(client, 'summary')
+    open(client)
+    await screen.findByText('Top customers')
+    await waitFor(() => expect(summary).toHaveBeenCalledWith(expect.anything(), 'INR', ['sales-month', 'stock-value', 'top-customers']))
+    await userEvent.click(screen.getByRole('button', { name: 'Add widget' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Add Sales today' }))
+    await userEvent.keyboard('{Escape}')
+    await userEvent.click(await screen.findByRole('button', { name: 'Done' }))
+    await waitFor(() => expect(summary).toHaveBeenLastCalledWith(expect.anything(), 'INR', ['sales-month', 'sales-today', 'stock-value', 'top-customers']))
   })
 })

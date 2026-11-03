@@ -7,7 +7,7 @@ export type Summary = { currency: string; sentences: string[] }
 export type CatalogClient = {
   list: (company: string | null) => Promise<CatalogEntry[]>
   data: (id: string, company: string | null, currency: string) => Promise<object>
-  summary: (company: string | null, currency: string) => Promise<Summary>
+  summary: (company: string | null, currency: string, widgets: string[]) => Promise<Summary>
 }
 
 export class CompanyNotAllowed extends Error {
@@ -16,10 +16,11 @@ export class CompanyNotAllowed extends Error {
   }
 }
 
-const get = async (path: string, company: string | null, currency?: string) => {
+const get = async (path: string, company: string | null, currency?: string, widgets?: string[]) => {
   const params = new URLSearchParams()
   if (company) params.set('company', company)
   if (currency) params.set('currency', currency)
+  if (widgets && widgets.length > 0) params.set('widgets', widgets.join(','))
   const query = params.size > 0 ? `?${params}` : ''
   const response = await fetch(`${SYNAPSE_URL}/v1/synapse${path}${query}`, { credentials: 'include' })
   if (response.ok) return response.json()
@@ -37,7 +38,7 @@ export class HttpCatalogClient implements CatalogClient {
     return (await get(`/catalog/${encodeURIComponent(id)}/data`, company, currency)) as object
   }
 
-  async summary(company: string | null, currency: string) {
-    return (await get('/summary', company, currency)) as Summary
+  async summary(company: string | null, currency: string, widgets: string[]) {
+    return (await get('/summary', company, currency, widgets)) as Summary
   }
 }

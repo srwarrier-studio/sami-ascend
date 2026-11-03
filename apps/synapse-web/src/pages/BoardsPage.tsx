@@ -117,7 +117,7 @@ export function BoardsPage() {
           Editing. Changes save automatically. Press Done when finished.
         </Alert>
       )}
-      {!editing && <SummaryStrip client={catalogClient} company={company} />}
+      {!editing && <SummaryStrip client={catalogClient} company={company} widgets={active.widgets.map((widget) => widget.catalogId)} />}
       <ExportFrame exporting={exporting} company={company} userName={session.status === 'signedIn' ? session.user.name : ''} generatedAt={generatedAt} frameRef={frame}>
         <BoardGrid widgets={active.widgets} catalog={catalog} client={catalogClient} company={company} editing={editing} onChange={setWidgets} onLoaded={setUpdatedAt}
           empty={active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
