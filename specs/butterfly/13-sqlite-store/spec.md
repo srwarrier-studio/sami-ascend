@@ -36,6 +36,6 @@ New entities and domains (inventory, shipments, production output, payments, mat
 ## Depends on
 butterfly 12 (merged). No app changes.
 
-## Open questions for the owner
-1. A file database (data survives restarts, `butterfly.db` is local and ignored) or in memory by default with the file optional? The proposal is the file, because persistence is the point.
-2. Is storing money as integer minor units fine? It is exact and fast; the alternative is `TEXT` with `Decimal` and slower sums.
+## Decisions (owner, 2026-11-03)
+1. The database is a file (`BUTTERFLY_DB`, default `butterfly.db`), so data survives restarts; `:memory:` stays available for tests.
+2. Money and quantities are stored as integers in minor units (cents, thousandths).
