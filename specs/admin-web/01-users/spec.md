@@ -4,7 +4,7 @@
 A new web app, the admin portal, where admins sign in and manage users. It is the first place a `production` or `accounts` user can be created without touching the database.
 
 ## Behavior
-- New app `apps/admin-web` (React, Vite, `@sami/ui`, TanStack Router), dev port 5176, its own palette. Same sign-in as the other apps through auth-api; only users with the `admin` role get in (`Not allowed` page otherwise).
+- New app `apps/admin-web` (React, Vite, `@sami/ui`, TanStack Router), dev port 5176, its own palette. Password sign-in through auth-api (the Microsoft button waits for auth-api 03 and a redirect setting for this app); only users with the `admin` role get in (`Not allowed` page otherwise).
 - Shell with a menu: Users, Audit log (empty placeholder until admin-web 02).
 - **Users page.** Table with name, email, SAP username, roles as badges, companies, status. Search box. Filter by role and by status.
 - **Create user.** Form: name, email, SAP username, roles (multi-select from `/roles`), companies (from `/companies`), optional Entra username (when it differs from the email), optional password (leave empty for Entra-only users). Clear messages for duplicate email and weak password.
