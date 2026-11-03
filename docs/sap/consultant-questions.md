@@ -61,3 +61,11 @@ None yet.
 37. Where does the arrival come from: proof of delivery (`PODAT`), a forwarder feed, or nowhere? Without it we cannot say a shipment is delivered.
 38. Which exchange rate converts the order value to rupees (the rate of the order or of the goods issue), so `NetAmount` is the same as finance books?
 39. Can the country name come from `T005T` in the CDS view without an extra call?
+
+### Finance cash (`finance-contract.md`)
+40. Service name, root path and namespace for cash: confirm or replace section 1 (`ZUI_FINANCE_O4`).
+41. Is "money in" the clearing of customer open items (the date and amount of the incoming payment), or the bank statement? Which is the source of truth for the cash position?
+42. Which accounts are running costs, and can they be mapped to `SALARIES`, `RENT`, `UTILITIES`, `FREIGHT`, `MAINTENANCE` and `MARKETING` (cost elements, or G/L account groups)? Who maintains the mapping?
+43. Are vendor payments identified by the clearing of vendor open items; can the purchase order be read from the clearing document?
+44. Which rate converts a foreign-currency payment into rupees: the rate of the payment date or of the invoice? `Amount` should be what finance books.
+45. Is there a monthly collection target in SAP (a plan version), or is it a number the business keeps outside SAP?
