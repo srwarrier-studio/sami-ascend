@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { Button, Card, Divider, Group, PasswordInput, Stack, Text, TextInput } from '@mantine/core'
-import { SparkleIcon } from '@phosphor-icons/react'
-import { Alert } from './Alert'
+import { SparkleIcon, WarningCircleIcon } from '@phosphor-icons/react'
 import classes from './launch.module.css'
 
 export function SplashScreen({ name, tagline, mark }: { name: string; tagline: string; mark?: ReactNode }) {
@@ -48,7 +47,12 @@ export function SignInCard({ title, error, busy, onSubmit, footer }: SignInCardP
             {title}
           </Text>
         </Group>
-        {error && <Alert color="red">{error}</Alert>}
+        {error && (
+          <div className={classes.problem} role="alert">
+            <WarningCircleIcon size={18} weight="fill" aria-hidden="true" />
+            <span>{error}</span>
+          </div>
+        )}
         <TextInput label="Work email" type="email" value={email} onChange={(event) => setEmail(event.currentTarget.value)} required />
         <PasswordInput label="Password" value={password} onChange={(event) => setPassword(event.currentTarget.value)} required />
         <Button type="submit" loading={busy}>

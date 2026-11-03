@@ -70,3 +70,15 @@
   width: min(100%, 22rem);
   margin: 0 auto;
 }
+
+.problem {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--mantine-radius-md);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--sami-negative);
+  background: color-mix(in srgb, var(--sami-negative) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sami-negative) 35%, transparent);
+}
