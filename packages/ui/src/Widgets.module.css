@@ -64,3 +64,8 @@
   font-weight: 500;
   letter-spacing: -0.03em;
 }
+
+.sparkEnd {
+  display: flex;
+  align-items: flex-end;
+}

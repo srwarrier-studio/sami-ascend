@@ -36,7 +36,7 @@ export function KpiCard({ title, value, valueFormat, delta, caption, trend, info
   return (
     <Card className={classes.card}>
       <WidgetTitle title={title} help={helpText('KpiCard', measure)} info={info} label />
-      <Group className={classes.kpiBody} justify="space-between" align="flex-end" wrap="nowrap">
+      <Group className={classes.kpiBody} justify="space-between" align="stretch" wrap="nowrap">
         <Stack gap={0}>
           <Title order={2}>{formatValue(value, valueFormat)}</Title>
           {delta === undefined ? (
@@ -58,7 +58,11 @@ export function KpiCard({ title, value, valueFormat, delta, caption, trend, info
             </Text>
           )}
         </Stack>
-        {trend && trend.length > 1 && <Sparkline values={trend} />}
+        {trend && trend.length > 1 && (
+          <div className={classes.sparkEnd}>
+            <Sparkline values={trend} />
+          </div>
+        )}
       </Group>
     </Card>
   )
