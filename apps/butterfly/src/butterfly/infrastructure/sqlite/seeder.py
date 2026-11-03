@@ -3,11 +3,13 @@ from datetime import date
 
 from butterfly.domain.entities.drivers import CustomerInvoice, ProductionOrder
 from butterfly.domain.entities.exports import ExportShipment
+from butterfly.domain.entities.finance import CashPayment
 from butterfly.domain.entities.master_data import LOCAL_CURRENCY, to_local
 from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.infrastructure.memory.companies import COMPANIES
 from butterfly.infrastructure.memory.export_seed import build_exports
 from butterfly.infrastructure.memory.invoices import CUSTOMERS, build_invoices
+from butterfly.infrastructure.memory.finance_seed import build_cash
 from butterfly.infrastructure.memory.inventory_master import GROUP_OF, GROUPS, LOCATIONS
 from butterfly.infrastructure.memory.inventory_seed import InventorySeed, build_inventory, items_of
 from butterfly.infrastructure.memory.production_master import WORK_CENTERS
@@ -21,8 +23,8 @@ from butterfly.infrastructure.sqlite.money import quantity_to_minor, to_minor
 from butterfly.infrastructure.sqlite.schema import REPLACED_ON_RESEED
 
 SEEDS = ("small", "story")
-LAYOUT = "5"
-DERIVED_TABLES = ["export_shipment", "stock_value_month", "stock_movement", "material_stock", "customer_invoice"]
+LAYOUT = "6"
+DERIVED_TABLES = ["cash_payment", "export_shipment", "stock_value_month", "stock_movement", "material_stock", "customer_invoice"]
 
 
 def iso(value) -> str | None:
@@ -118,6 +120,17 @@ def write_production(db: Database, production: ProductionSeed) -> None:
     )
 
 
+def write_cash(db: Database, payments: list[CashPayment]) -> None:
+    db.insert_many(
+        f"INSERT INTO cash_payment VALUES ({marks(13)})",
+        [
+            (p.payment_document, iso(p.posting_date), p.direction, p.payment_type, p.partner, p.partner_name, p.expense_category, p.reference, to_minor(p.amount), p.currency,
+             to_minor(p.document_amount), p.document_currency, p.company_code)
+            for p in payments
+        ],
+    )
+
+
 def write_exports(db: Database, shipments: list[ExportShipment]) -> None:
     db.insert_many(
         f"INSERT INTO export_shipment VALUES ({marks(16)})",
@@ -193,6 +206,7 @@ def derive_documents(db: Database, story: StorySeed, today: date) -> None:
     write_invoices(db, documents.invoices)
     write_inventory(db, build_inventory(documents, COMPANIES, today))
     write_exports(db, build_exports(documents, today))
+    write_cash(db, build_cash(documents.invoices, documents.deliveries, today))
 
 
 def write_drivers(db: Database, story: StorySeed, with_invoices: bool = True) -> None:

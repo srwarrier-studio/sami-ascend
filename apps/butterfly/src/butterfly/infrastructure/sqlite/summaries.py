@@ -10,6 +10,7 @@ from butterfly.domain.entities.inventory import (
     StockSummaryByWarehouse,
     StockValueMonth,
 )
+from butterfly.domain.entities.finance import CashSummaryByDay, ExpenseSummaryByDay
 from butterfly.domain.entities.exports import ExportSummaryByDay, ExportSummaryByDestination, ExportSummaryByMode
 from butterfly.domain.entities.production import DowntimeSummaryByDay, OutputSummaryByLineShift, ProductionSummaryByDay, ScrapSummaryByDay
 from butterfly.domain.entities.sales_summary import (
@@ -155,6 +156,15 @@ def export_mode(row):
     return ExportSummaryByMode(day(row["shipment_date"]), row["transport_mode"], row["shipment_count"], row["company_code"])
 
 
+def cash_day(row):
+    return CashSummaryByDay(day(row["posting_date"]), row["direction"], row["payment_count"], from_minor(row["amount"]), row["currency"], row["company_code"])
+
+
+def expense_day(row):
+    return ExpenseSummaryByDay(day(row["posting_date"]), row["expense_category"], row["payment_count"], from_minor(row["amount"]), row["currency"], row["company_code"])
+
+
+AMOUNT = {"amount": MONEY_SCALE}
 NET = {"net_amount": MONEY_SCALE}
 STOCK = {"stock_value": MONEY_SCALE}
 PRODUCTION = {"planned_hours": MONEY_SCALE, "downtime_hours": MONEY_SCALE, "target_value": MONEY_SCALE, "good_value": MONEY_SCALE, "scrap_value": MONEY_SCALE}
@@ -164,6 +174,8 @@ OUTPUT = {"good_value": MONEY_SCALE}
 FLOWS = {"receipt_value": MONEY_SCALE, "issue_value": MONEY_SCALE}
 
 VIEWS = {
+    "CashSummaryByDay": ("cash_summary_by_day", cash_day, AMOUNT, "posting_date, direction, currency, company_code"),
+    "ExpenseSummaryByDay": ("expense_summary_by_day", expense_day, AMOUNT, "posting_date, expense_category, currency, company_code"),
     "ExportSummaryByDay": ("export_summary_by_day", export_day, NET, "shipment_date, currency, company_code"),
     "ExportSummaryByDestination": ("export_summary_by_destination", export_destination, NET, "shipment_date, country, currency, company_code"),
     "ExportSummaryByMode": ("export_summary_by_mode", export_mode, {}, "shipment_date, transport_mode, company_code"),

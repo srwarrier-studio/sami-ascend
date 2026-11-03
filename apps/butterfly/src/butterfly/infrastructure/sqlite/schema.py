@@ -231,6 +231,23 @@ CREATE TABLE IF NOT EXISTS export_shipment (
     company_code TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS export_shipment_by_date ON export_shipment (shipment_date, company_code);
+
+CREATE TABLE IF NOT EXISTS cash_payment (
+    payment_document TEXT PRIMARY KEY,
+    posting_date TEXT NOT NULL,
+    direction TEXT NOT NULL,
+    payment_type TEXT NOT NULL,
+    partner TEXT,
+    partner_name TEXT,
+    expense_category TEXT,
+    reference TEXT,
+    amount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    document_amount INTEGER NOT NULL,
+    document_currency TEXT NOT NULL,
+    company_code TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS cash_payment_by_date ON cash_payment (posting_date, company_code);
 """
 
 ADDED_COLUMNS = [
@@ -249,6 +266,7 @@ BACKFILL = [
 ]
 
 REPLACED_ON_RESEED = [
+    "cash_payment",
     "export_shipment",
     "work_center_downtime",
     "production_confirmation",

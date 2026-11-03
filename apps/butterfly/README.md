@@ -43,6 +43,9 @@ Fifth read-only service on `/sap/opu/odata4/sap/zui_export_o4/srvd_a2x/sap/zexpo
 
 Shipments are generated with the seed from the orders that are not cancelled and not sold to `IN`: they ship on the requested delivery date, about 60% by sea, 25% by air, 15% by road, and a shipment whose arrival is after today is in transit. An order created through the API is part of the sales data at once (the sales summaries show it) but does not become a shipment, stock movement or invoice: those are generated from the seed's own orders only. `BUTTERFLY_SEED=small` has no shipments.
 
+## Finance service
+Sixth read-only service on `/sap/opu/odata4/sap/zui_finance_o4/srvd_a2x/sap/zfinance/0001/`, specified in `docs/sap/finance-contract.md`: `CashPayment` (money received from customers for cleared invoices, paid to vendors thirty to forty-five days after delivery, and the monthly running costs in six categories), with the summaries `CashSummaryByDay` and `ExpenseSummaryByDay`. Amounts are in rupees with the document amount beside them. Payments are derived from the invoices and purchase deliveries with the other documents, so they follow orders created through the API; the small seed has none.
+
 ## Storage
 Butterfly keeps its data in SQLite tables (orders, drivers, master data, stock) behind the repository interfaces, and answers `$filter`, `$orderby`, `$top`, `$skip`, `$count` and `$select` with SQL (values are bound parameters, column names come from the field whitelists). The summaries are SQL views and the receivables entities are queries with a bound `AsOfDate`; each is one file in `src/butterfly/infrastructure/sqlite/views/`, named after its OData entity.
 

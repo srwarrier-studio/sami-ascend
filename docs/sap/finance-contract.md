@@ -95,6 +95,110 @@ Filter and compare codes as written.
 All examples use the root path from section 1. `{root}` stands for it. The responses are real and are
 checked by a test against the data of 2026-10-31.
 
+### Payments of a day
+
+```
+GET {root}CashPayment?$filter=PostingDate eq 2026-10-30 and CompanyCode eq 'INA1'&$orderby=PaymentDocument&$top=3
+```
+
+```json
+{
+  "@odata.context": "$metadata#CashPayment",
+  "value": [
+    {
+      "PaymentDocument": "1500003564",
+      "PostingDate": "2026-10-30",
+      "Direction": "I",
+      "PaymentType": "C",
+      "Partner": "0000100003",
+      "PartnerName": "Nordic Botanicals AB",
+      "ExpenseCategory": null,
+      "Reference": "9000020950",
+      "Amount": "94544.00",
+      "Currency": "INR",
+      "DocumentAmount": "1181.80",
+      "DocumentCurrency": "USD",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PaymentDocument": "1500003565",
+      "PostingDate": "2026-10-30",
+      "Direction": "I",
+      "PaymentType": "C",
+      "Partner": "0000100001",
+      "PartnerName": "Harborline Nutrition LLC",
+      "ExpenseCategory": null,
+      "Reference": "9000021253",
+      "Amount": "87500.00",
+      "Currency": "INR",
+      "DocumentAmount": "1093.75",
+      "DocumentCurrency": "USD",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Cash in and out by day
+
+```
+GET {root}CashSummaryByDay?$filter=CompanyCode eq 'INA1' and PostingDate ge 2026-10-29&$orderby=PostingDate,Direction,Currency,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#CashSummaryByDay",
+  "value": [
+    {
+      "PostingDate": "2026-10-29",
+      "Direction": "I",
+      "PaymentCount": 2,
+      "Amount": "236744.80",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-30",
+      "Direction": "I",
+      "PaymentCount": 2,
+      "Amount": "182044.00",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-31",
+      "Direction": "I",
+      "PaymentCount": 3,
+      "Amount": "314556.80",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Running costs by day
+
+```
+GET {root}ExpenseSummaryByDay?$filter=PostingDate eq 2026-10-25 and CompanyCode eq 'INA1'&$orderby=PostingDate,ExpenseCategory,Currency,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#ExpenseSummaryByDay",
+  "value": [
+    {
+      "PostingDate": "2026-10-25",
+      "ExpenseCategory": "SALARIES",
+      "PaymentCount": 1,
+      "Amount": "691200.00",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
 ## 6. Notes for the SAP consultant
 
 These are the usual SAP sources; confirm them and expose each entity as a read-only CDS view entity

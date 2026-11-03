@@ -362,6 +362,37 @@ EXPORT_SUMMARY_BY_MODE_FIELDS = {
     "ShipmentCount": ("shipment_count", FieldType.DECIMAL),
     "CompanyCode": ("company_code", FieldType.STRING),
 }
+CASH_PAYMENT_FIELDS = {
+    "PaymentDocument": ("payment_document", FieldType.STRING),
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "Direction": ("direction", FieldType.STRING),
+    "PaymentType": ("payment_type", FieldType.STRING),
+    "Partner": ("partner", FieldType.STRING),
+    "PartnerName": ("partner_name", FieldType.STRING),
+    "ExpenseCategory": ("expense_category", FieldType.STRING),
+    "Reference": ("reference", FieldType.STRING),
+    "Amount": ("amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "DocumentAmount": ("document_amount", FieldType.DECIMAL),
+    "DocumentCurrency": ("document_currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+CASH_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "Direction": ("direction", FieldType.STRING),
+    "PaymentCount": ("payment_count", FieldType.DECIMAL),
+    "Amount": ("amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+EXPENSE_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "ExpenseCategory": ("expense_category", FieldType.STRING),
+    "PaymentCount": ("payment_count", FieldType.DECIMAL),
+    "Amount": ("amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
 PURCHASE_SUMMARY_BY_DAY_FIELDS = SALES_SUMMARY_BY_DAY_FIELDS
 
 PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {

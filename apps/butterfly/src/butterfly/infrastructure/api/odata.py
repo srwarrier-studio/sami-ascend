@@ -6,6 +6,7 @@ from butterfly.domain.entities.sales_order import SalesOrder, SalesOrderItem
 ROOT = "/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/0001/"
 DRIVERS_ROOT = "/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/"
 EXPORT_ROOT = "/sap/opu/odata4/sap/zui_export_o4/srvd_a2x/sap/zexport/0001/"
+FINANCE_ROOT = "/sap/opu/odata4/sap/zui_finance_o4/srvd_a2x/sap/zfinance/0001/"
 PRODUCTION_ROOT = "/sap/opu/odata4/sap/zui_production_o4/srvd_a2x/sap/zproduction/0001/"
 INVENTORY_ROOT = "/sap/opu/odata4/sap/zui_inventory_o4/srvd_a2x/sap/zinventory/0001/"
 

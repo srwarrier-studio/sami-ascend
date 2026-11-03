@@ -15,6 +15,9 @@ from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.filter.fields import (
     CUSTOMER_INVOICE_FIELDS,
     DOWNTIME_SUMMARY_BY_DAY_FIELDS,
+    CASH_PAYMENT_FIELDS,
+    CASH_SUMMARY_BY_DAY_FIELDS,
+    EXPENSE_SUMMARY_BY_DAY_FIELDS,
     EXPORT_SHIPMENT_FIELDS,
     EXPORT_SUMMARY_BY_DAY_FIELDS,
     EXPORT_SUMMARY_BY_DESTINATION_FIELDS,
@@ -61,6 +64,7 @@ from butterfly.application.usecase.summarize_purchases_by_material import Summar
 from butterfly.application.usecase.summarize_purchases_by_material_group import SummarizePurchasesByMaterialGroup
 from butterfly.application.usecase.summarize_purchases_by_supplier import SummarizePurchasesBySupplier
 from butterfly.application.usecase.summarize_exports import SummarizeExports
+from butterfly.application.usecase.summarize_finance import SummarizeFinance
 from butterfly.application.usecase.summarize_inventory import SummarizeInventory
 from butterfly.application.usecase.summarize_production import SummarizeProduction
 from butterfly.application.usecase.summarize_receivables import SummarizeReceivables
@@ -79,6 +83,7 @@ from butterfly.domain.errors import (
 )
 from butterfly.domain.repositories.driver_repo import DriverRepo
 from butterfly.domain.repositories.export_repo import ExportRepo
+from butterfly.domain.repositories.finance_repo import FinanceRepo
 from butterfly.domain.repositories.inventory_repo import InventoryRepo
 from butterfly.domain.repositories.production_repo import ProductionRepo
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
@@ -86,6 +91,7 @@ from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.api.odata import (
     DRIVERS_ROOT,
     EXPORT_ROOT,
+    FINANCE_ROOT,
     INVENTORY_ROOT,
     PRODUCTION_ROOT,
     ROOT,
@@ -96,6 +102,7 @@ from butterfly.infrastructure.api.odata import (
 )
 from butterfly.infrastructure.memory.in_memory_driver_repo import InMemoryDriverRepo
 from butterfly.infrastructure.memory.in_memory_export_repo import InMemoryExportRepo
+from butterfly.infrastructure.memory.in_memory_finance_repo import InMemoryFinanceRepo
 from butterfly.infrastructure.memory.in_memory_inventory_repo import InMemoryInventoryRepo
 from butterfly.infrastructure.memory.in_memory_production_repo import InMemoryProductionRepo
 from butterfly.infrastructure.memory.inventory_master import GROUP_OF, GROUPS
@@ -107,6 +114,7 @@ from butterfly.infrastructure.sqlite.database import Database
 from butterfly.infrastructure.sqlite.derivation import Derivation
 from butterfly.infrastructure.sqlite.driver_repo import SqliteDriverRepo
 from butterfly.infrastructure.sqlite.export_repo import SqliteExportRepo
+from butterfly.infrastructure.sqlite.finance_repo import SqliteFinanceRepo
 from butterfly.infrastructure.sqlite.inventory_repo import SqliteInventoryRepo
 from butterfly.infrastructure.sqlite.master_data_repo import SqliteMasterDataRepo
 from butterfly.infrastructure.sqlite.production_repo import SqliteProductionRepo
@@ -153,6 +161,7 @@ def create_app(
     inventory: InventoryRepo | None = None,
     production: ProductionRepo | None = None,
     exports: ExportRepo | None = None,
+    finance: FinanceRepo | None = None,
     now: Callable[[], datetime] = utc_now,
 ) -> FastAPI:
     master_data = master_data or InMemoryMasterDataRepo()
@@ -160,6 +169,7 @@ def create_app(
     inventory = inventory or InMemoryInventoryRepo()
     production = production or InMemoryProductionRepo()
     exports = exports or InMemoryExportRepo()
+    finance = finance or InMemoryFinanceRepo()
     app = FastAPI()
     router = APIRouter(prefix=ROOT.rstrip("/"))
 
@@ -367,6 +377,15 @@ def create_app(
     ):
         add_list_route(export_router, entity, lambda entity=entity, build=build: exports.summary_listing(entity) or build(), fields)
 
+    finance_router = APIRouter(prefix=FINANCE_ROOT.rstrip("/"))
+    add_list_route(finance_router, "CashPayment", lambda: finance.listing("payments"), CASH_PAYMENT_FIELDS)
+    cash = SummarizeFinance(finance)
+    for entity, build, fields in (
+        ("CashSummaryByDay", cash.cash_by_day, CASH_SUMMARY_BY_DAY_FIELDS),
+        ("ExpenseSummaryByDay", cash.expenses_by_day, EXPENSE_SUMMARY_BY_DAY_FIELDS),
+    ):
+        add_list_route(finance_router, entity, lambda entity=entity, build=build: finance.summary_listing(entity) or build(), fields)
+
     @app.exception_handler(SalesOrderNotFound)
     def not_found(request: Request, error: SalesOrderNotFound):
         return JSONResponse(
@@ -453,6 +472,7 @@ def create_app(
     app.include_router(inventory_router)
     app.include_router(production_router)
     app.include_router(export_router)
+    app.include_router(finance_router)
     return app
 
 
@@ -468,7 +488,7 @@ def build_default_app(today: date, seed_name: str | None = None, scenario_name: 
     db = Database(db_path if db_path is not None else os.environ.get("BUTTERFLY_DB", str(DEFAULT_DB)))
     prepare(db, name, scenario, today, story)
     derivation = Derivation(db, story, today) if story else None
-    return create_app(SqliteSalesOrderRepo(db, derivation.refresh if derivation else None), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db), inventory=SqliteInventoryRepo(db), production=SqliteProductionRepo(db), exports=SqliteExportRepo(db))
+    return create_app(SqliteSalesOrderRepo(db, derivation.refresh if derivation else None), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db), inventory=SqliteInventoryRepo(db), production=SqliteProductionRepo(db), exports=SqliteExportRepo(db), finance=SqliteFinanceRepo(db))
 
 
 setup_logging("butterfly")
