@@ -31,6 +31,16 @@ Answered with the answer and the date, and update the document that depended on 
 18. Are sales between the three companies (intercompany) booked as ordinary sales orders, or are they marked so they can be left out of group totals?
 19. Are customer invoices read from billing documents (`VBRK`/`VBRP`) and open items from `BSID`/`BSAD`, and which fields hold the due date (`FAEDT` or a baseline date plus terms) and the clearing date?
 
-## Answered
+### Inventory (`inventory-contract.md`)
+18. Service name, root path and namespace for stock: confirm or replace section 1 (`ZUI_INVENTORY_O4`).
+19. Is "warehouse" in the business a storage location of a plant, or a warehouse number of an extended warehouse management setup? The contract assumes storage locations.
+20. Which stock counts as "on hand": unrestricted-use only, or also quality inspection and blocked stock?
+21. Can `StockStatus` (and the reorder level it compares with) be derived in the CDS view? Where is the reorder point kept for the group's materials (plant data `MINBE`, or MRP groups)?
+22. Which valuation does `StockValue` use (moving average price or standard price), and in which currency is it returned for each plant?
+23. Can month-end stock value come from the valuation history (`MBEWH`), and from which month does it exist?
+24. Which movement types post receipts and issues in your system, and can reversals be left out with a stable rule? The contract uses `101`, `131`, `261` and `601`.
+25. Which timezone are the entry date and time of a material document stored in? `EntryDateTime` is UTC in the contract.
+26. Can the material group (`MATKL`) and its text be exposed on stock rows without an extra call?
+
 
 None yet.
