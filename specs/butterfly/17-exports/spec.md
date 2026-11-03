@@ -16,7 +16,7 @@ The seven Exports widgets (shipments, export revenue, revenue trend, top destina
   - `NetAmount` is the order total in rupees (dollar orders at butterfly's fixed rate of 80), `DocumentAmount` the order total in its own currency.
   - Country names are master data.
 - **Tables and views.** New table `export_shipment`, three `.sql` views; an older database is rebuilt (layout version) and keeps API orders.
-- **Orders created through the API** (workspace) are not shipments until the seed is rebuilt: shipments, like stock and production, are generated with the seed, not derived live (see notes).
+- **Orders created through the API** (workspace) are not shipments: shipments, like stock, production and invoices, are generated from the seed's own orders, not derived from orders created later. Deriving them is a separate phase (a document flow from order to delivery to invoice).
 - Nothing already served changes.
 
 ## Acceptance cases
