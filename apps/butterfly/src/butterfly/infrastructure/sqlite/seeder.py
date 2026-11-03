@@ -58,14 +58,14 @@ def write_master_data(db: Database) -> None:
     )
 
 
-def write_orders(db: Database, orders: list[SalesOrder]) -> None:
+def write_orders(db: Database, orders: list[SalesOrder], origin: str = "seed") -> None:
     db.insert_many(
         f"INSERT INTO sales_order (sales_order, sales_order_type, sold_to_party, customer_name, order_date, requested_delivery_date, transaction_currency, "
         f"total_net_amount, overall_status, created_by_user, creation_date_time, last_change_date_time, company_code, country, origin) VALUES ({marks(15)})",
         [
             (
                 o.sales_order, o.sales_order_type, o.sold_to_party, o.customer_name, iso(o.order_date), iso(o.requested_delivery_date), o.transaction_currency,
-                to_minor(o.total_net_amount), o.overall_status, o.created_by_user, iso(o.creation_date_time), iso(o.last_change_date_time), o.company_code, o.country, "seed",
+                to_minor(o.total_net_amount), o.overall_status, o.created_by_user, iso(o.creation_date_time), iso(o.last_change_date_time), o.company_code, o.country, origin,
             )
             for o in orders
         ],

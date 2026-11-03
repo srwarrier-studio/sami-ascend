@@ -129,3 +129,65 @@ class TestKeepingAndRebuilding:
     def test_an_unknown_seed_is_refused(self):
         with pytest.raises(ValueError):
             prepare(Database(), "huge", "august-contract", TODAY)
+
+
+class TestRepositories:
+    def order(self, number: str, status: str = "A"):
+        from datetime import datetime, timezone
+
+        from butterfly.domain.entities.sales_order import SalesOrder, SalesOrderItem
+
+        stamp = datetime(2026, 11, 3, 9, 0, tzinfo=timezone.utc)
+        item = SalesOrderItem(number, "000010", "RM-1001", "Steel", Decimal("12.500"), "KG", Decimal("1562.50"))
+        return SalesOrder(number, "OR", "0000100001", "Acme", TODAY, None, "INR", Decimal("1562.50"), status, "ME", stamp, stamp, [item])
+
+    def test_a_created_order_survives_a_restart_and_the_numbers_continue(self, tmp_path):
+        from butterfly.infrastructure.sqlite.sales_order_repo import SqliteSalesOrderRepo
+
+        path = str(tmp_path / "butterfly.db")
+        db = Database(path)
+        prepare(db, "small", "august-contract", TODAY)
+        repo = SqliteSalesOrderRepo(db)
+        number = repo.next_number()
+        repo.add(self.order(number))
+        db.close()
+        again = SqliteSalesOrderRepo(Database(path))
+        stored = again.get(number)
+        assert stored is not None and stored.items[0].quantity == Decimal("12.500") and stored.total_net_amount == Decimal("1562.50")
+        assert int(again.next_number()) == int(number) + 1
+
+    def test_a_change_replaces_the_order(self):
+        from dataclasses import replace
+
+        from butterfly.infrastructure.sqlite.sales_order_repo import SqliteSalesOrderRepo
+
+        repo = SqliteSalesOrderRepo.from_orders([self.order("0000000001")])
+        repo.update(replace(repo.get("0000000001"), requested_delivery_date=date(2026, 12, 1)))
+        assert repo.get("0000000001").requested_delivery_date == date(2026, 12, 1)
+        assert len(repo.get("0000000001").items) == 1
+
+    def test_unknown_order_is_none(self):
+        from butterfly.infrastructure.sqlite.sales_order_repo import SqliteSalesOrderRepo
+
+        assert SqliteSalesOrderRepo.from_orders([]).get("1") is None
+
+    def test_master_data_is_read_from_the_tables(self):
+        from butterfly.infrastructure.sqlite.master_data_repo import SqliteMasterDataRepo
+
+        repo = SqliteMasterDataRepo()
+        assert repo.get_customer("0000100001") is not None
+        assert repo.get_customer("nope") is None
+        assert repo.get_material("RM-1001").price == Decimal("1250.00")
+        assert repo.company_exists("INA1") and not repo.company_exists("ZZZZ")
+        assert repo.currency_exists("INR") and not repo.currency_exists("EUR")
+
+    def test_driver_rows_come_back_in_the_order_they_were_written(self):
+        from butterfly.infrastructure.sqlite.driver_repo import SqliteDriverRepo
+
+        story = build_story_seed(TODAY, find_scenario("august-contract"), COMPANIES)
+        repo = SqliteDriverRepo.from_lists(story.contracts, story.deliveries, story.production_orders, story.components, story.invoices)
+        assert repo.contracts() == story.contracts
+        assert repo.deliveries() == story.deliveries
+        assert repo.invoices() == story.invoices
+        assert repo.production_orders() == story.production_orders
+        assert repo.components() == story.components
