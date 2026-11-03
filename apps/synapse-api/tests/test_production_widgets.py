@@ -150,6 +150,10 @@ class TestOverview:
     def test_the_headline_compares_with_the_30_days_before(self):
         assert self.lines("prod-output") == ["Output over the last 30 days was ₹150, up 50.0% on the 30 days before."]
 
+    def test_level_output_says_level(self):
+        source = MockProductionSource(days=[day(date(2026, 10, 20), good="150"), day(date(2026, 9, 20), good="150")])
+        assert self.lines("prod-output", source=source) == ["Output over the last 30 days was \u20b9150, level with the 30 days before."]
+
     def test_without_a_window_before_it_only_gives_the_value(self):
         source = MockProductionSource(days=[day(date(2026, 10, 20), good="150")])
         assert self.lines("prod-output", source=source) == ["Output over the last 30 days was ₹150."]

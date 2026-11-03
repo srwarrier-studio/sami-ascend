@@ -32,6 +32,8 @@ class GetProductionSummary:
         if before == 0:
             return f"Output over the last {OUTPUT_DAYS} days was {money(now, currency)}."
         change = (now - before) / before
+        if round(abs(change) * 100, 1) == 0:
+            return f"Output over the last {OUTPUT_DAYS} days was {money(now, currency)}, level with the {OUTPUT_DAYS} days before."
         return f"Output over the last {OUTPUT_DAYS} days was {money(now, currency)}, {'up' if change >= 0 else 'down'} {abs(change) * 100:.1f}% on the {OUTPUT_DAYS} days before."
 
     def effectiveness(self, today: date, currency: str) -> str | None:
