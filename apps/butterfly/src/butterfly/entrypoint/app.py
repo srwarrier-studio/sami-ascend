@@ -34,6 +34,7 @@ from butterfly.application.filter.fields import (
     SALES_SUMMARY_BY_CUSTOMER_FIELDS,
     SALES_SUMMARY_BY_DAY_FIELDS,
     PURCHASE_SUMMARY_BY_DAY_FIELDS,
+    PURCHASE_SUMMARY_BY_MATERIAL_GROUP_FIELDS,
     PURCHASE_SUMMARY_BY_MATERIAL_FIELDS,
     PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS,
     SALES_SUMMARY_BY_MATERIAL_FIELDS,
@@ -47,6 +48,7 @@ from butterfly.application.usecase.list_sales_orders import ListSalesOrders
 from butterfly.application.usecase.list_sales_summary import ListSalesSummary
 from butterfly.application.usecase.summarize_purchases_by_day import SummarizePurchasesByDay
 from butterfly.application.usecase.summarize_purchases_by_material import SummarizePurchasesByMaterial
+from butterfly.application.usecase.summarize_purchases_by_material_group import SummarizePurchasesByMaterialGroup
 from butterfly.application.usecase.summarize_purchases_by_supplier import SummarizePurchasesBySupplier
 from butterfly.application.usecase.summarize_inventory import SummarizeInventory
 from butterfly.application.usecase.summarize_receivables import SummarizeReceivables
@@ -78,6 +80,7 @@ from butterfly.infrastructure.api.odata import (
 )
 from butterfly.infrastructure.memory.in_memory_driver_repo import InMemoryDriverRepo
 from butterfly.infrastructure.memory.in_memory_inventory_repo import InMemoryInventoryRepo
+from butterfly.infrastructure.memory.inventory_master import GROUP_OF, GROUPS
 from butterfly.infrastructure.memory.in_memory_master_data_repo import InMemoryMasterDataRepo
 from butterfly.infrastructure.memory.scenarios import find_scenario
 from butterfly.infrastructure.sqlite.database import Database
@@ -293,6 +296,12 @@ def create_app(
     add_list_route(drivers_router, "ProductionOrderComponent", lambda: drivers.listing("components"), PRODUCTION_ORDER_COMPONENT_FIELDS)
     add_list_route(drivers_router, "PurchaseSummaryByDay", lambda: drivers.summary_listing("PurchaseSummaryByDay") or SummarizePurchasesByDay(drivers).execute(), PURCHASE_SUMMARY_BY_DAY_FIELDS)
     add_list_route(drivers_router, "PurchaseSummaryBySupplier", lambda: drivers.summary_listing("PurchaseSummaryBySupplier") or SummarizePurchasesBySupplier(drivers).execute(), PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS)
+    add_list_route(
+        drivers_router,
+        "PurchaseSummaryByMaterialGroup",
+        lambda: drivers.summary_listing("PurchaseSummaryByMaterialGroup") or SummarizePurchasesByMaterialGroup(drivers, GROUP_OF, {g.code: g.name for g in GROUPS}).execute(),
+        PURCHASE_SUMMARY_BY_MATERIAL_GROUP_FIELDS,
+    )
     add_list_route(drivers_router, "PurchaseSummaryByMaterial", lambda: drivers.summary_listing("PurchaseSummaryByMaterial") or SummarizePurchasesByMaterial(drivers).execute(), PURCHASE_SUMMARY_BY_MATERIAL_FIELDS)
 
     inventory_router = APIRouter(prefix=INVENTORY_ROOT.rstrip("/"))

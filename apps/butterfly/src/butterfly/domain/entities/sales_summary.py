@@ -99,3 +99,14 @@ class ReceivablesAgeing:
     open_count: int
     currency: str
     company_code: str = "INA1"
+
+
+@dataclass(frozen=True)
+class PurchaseSummaryByMaterialGroup:
+    material_group: str
+    material_group_name: str | None
+    order_date: date
+    total_net_amount: Decimal
+    order_count: int
+    currency: str
+    company_code: str = "INA1"

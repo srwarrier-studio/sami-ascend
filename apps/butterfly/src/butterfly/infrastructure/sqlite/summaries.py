@@ -12,6 +12,7 @@ from butterfly.domain.entities.inventory import (
 )
 from butterfly.domain.entities.sales_summary import (
     PurchaseSummaryByDay,
+    PurchaseSummaryByMaterialGroup,
     PurchaseSummaryBySupplier,
     PurchaseSummaryByMaterial,
     ReceivablesAgeing,
@@ -60,6 +61,12 @@ def sales_by_customer(row):
 def purchases_by_supplier(row):
     return PurchaseSummaryBySupplier(
         row["supplier"], row["supplier_name"], day(row["order_date"]), from_minor(row["total_net_amount"]), row["order_count"], row["currency"], row["company_code"]
+    )
+
+
+def purchases_by_material_group(row):
+    return PurchaseSummaryByMaterialGroup(
+        row["material_group"], row["material_group_name"], day(row["order_date"]), from_minor(row["total_net_amount"]), row["order_count"], row["currency"], row["company_code"]
     )
 
 
@@ -126,6 +133,7 @@ VIEWS = {
     "SalesSummaryByMaterial": ("sales_summary_by_material", by_material(SalesSummaryByMaterial), MONEY_AND_QUANTITY, BY_MATERIAL),
     "PurchaseSummaryByDay": ("purchase_summary_by_day", purchases_by_day, MONEY, BY_DAY),
     "PurchaseSummaryBySupplier": ("purchase_summary_by_supplier", purchases_by_supplier, MONEY, BY_SUPPLIER),
+    "PurchaseSummaryByMaterialGroup": ("purchase_summary_by_material_group", purchases_by_material_group, MONEY, "order_date, material_group, currency, company_code"),
     "PurchaseSummaryByMaterial": ("purchase_summary_by_material", by_material(PurchaseSummaryByMaterial), MONEY_AND_QUANTITY, BY_MATERIAL),
 }
 

@@ -17,7 +17,7 @@ from butterfly.infrastructure.sqlite.mappers import (
     production_order_from_row,
 )
 from butterfly.infrastructure.sqlite.money import MONEY_SCALE, QUANTITY_SCALE
-from butterfly.infrastructure.sqlite.seeder import write_drivers
+from butterfly.infrastructure.sqlite.seeder import write_drivers, write_master_data
 from butterfly.infrastructure.sqlite.summaries import summary_table
 from butterfly.infrastructure.sqlite.table import SqliteTable
 from butterfly.infrastructure.memory.story_seed import StorySeed
@@ -53,6 +53,7 @@ class SqliteDriverRepo(DriverRepo):
         invoices: list[CustomerInvoice] | None = None,
     ) -> "SqliteDriverRepo":
         db = Database()
+        write_master_data(db)
         write_drivers(db, StorySeed([], contracts or [], deliveries or [], production_orders or [], components or [], invoices or []))
         return cls(db)
 

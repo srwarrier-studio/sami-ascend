@@ -182,6 +182,20 @@ in `$orderby` when paging.
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
 
+### PurchaseSummaryByMaterialGroup (key: `OrderDate`, `MaterialGroup`, `Currency`, `CompanyCode`)
+
+Spend by the group of the material (the material master's group, `inventory-contract.md`). Items whose material has no group are left out, so a group summary can be lower than the day summary only when a material has no group.
+
+| Field | Type | Nullable | Example |
+|-------|------|----------|---------|
+| `MaterialGroup` | `Edm.String` (9) | No | `"BOTANIC"` |
+| `MaterialGroupName` | `Edm.String` (60) | Yes | `"Botanical raw materials"` |
+| `OrderDate` | `Edm.Date` | No | `"2026-06-24"` |
+| `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"2163000.00"` |
+| `OrderCount` | `Edm.Int32` | No | `6` |
+| `Currency` | `Edm.String` (5) | No | `"INR"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
+
 ### Receivables summaries (read-only, measured on a day)
 
 Aggregated by SAP from `CustomerInvoice`, so a consumer never pages through invoices to total them. The day is the custom query
@@ -409,6 +423,38 @@ GET {root}PurchaseSummaryBySupplier?$filter=OrderDate ge 2026-06-01 and OrderDat
 }
 ```
 
+### Spend by material group
+
+```
+GET {root}PurchaseSummaryByMaterialGroup?$filter=MaterialGroup eq 'BOTANIC' and OrderDate ge 2026-06-01&$orderby=OrderDate,MaterialGroup&$top=2
+```
+
+```json
+{
+  "@odata.context": "$metadata#PurchaseSummaryByMaterialGroup",
+  "value": [
+    {
+      "MaterialGroup": "BOTANIC",
+      "MaterialGroupName": "Botanical raw materials",
+      "OrderDate": "2026-06-24",
+      "TotalNetAmount": "1949000.00",
+      "OrderCount": 4,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "MaterialGroup": "BOTANIC",
+      "MaterialGroupName": "Botanical raw materials",
+      "OrderDate": "2026-07-25",
+      "TotalNetAmount": "1949000.00",
+      "OrderCount": 4,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
 ## 6. Notes for the SAP consultant
 
 These are the usual SAP sources; confirm them and expose each entity as a read-only CDS view
@@ -420,7 +466,7 @@ entity with a projection, in the same service binding.
 | `PurchaseDelivery` | purchase order item and schedule line (`EKPO`, `EKET`) with goods receipt history (`EKBE`) |
 | `ProductionOrder` | production order header and item (`AFKO`, `AFPO`) with confirmations for the actual end and the variance reason |
 | `ProductionOrderComponent` | order reservations (`RESB`) |
-| `PurchaseSummaryByDay`, `BySupplier`, `ByMaterial` | aggregate CDS views over the `PurchaseDelivery` view (sum of `NetAmount`, count of items) grouped as above, so SAP does the totalling |
+| `PurchaseSummaryByDay`, `BySupplier`, `ByMaterial`, `ByMaterialGroup` | aggregate CDS views over the `PurchaseDelivery` view (sum of `NetAmount`, count of items) grouped as above, so SAP does the totalling (`ByMaterialGroup` joins the material group of the material master, `MARA-MATKL`) |
 
 The data is read with the shared management login, so the app limits who can ask for it (role
 `management` or `admin`). Large tables must be selective on the filter fields used above:

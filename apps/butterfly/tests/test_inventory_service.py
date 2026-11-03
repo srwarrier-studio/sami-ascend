@@ -206,3 +206,4 @@ class TestSummaryTotals:
         hours = rows("StockMovementSummaryByHour")
         assert {r["PostingHour"] for r in hours} <= set(range(8, 18))
         assert sum(r["MovementCount"] for r in hours) == sum(r["MovementCount"] for r in rows("StockMovementSummaryByDay"))
+

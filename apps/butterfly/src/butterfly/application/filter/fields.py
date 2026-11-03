@@ -250,4 +250,13 @@ PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {
     "CompanyCode": ("company_code", FieldType.STRING),
 }
 
+PURCHASE_SUMMARY_BY_MATERIAL_GROUP_FIELDS = {
+    "MaterialGroup": ("material_group", FieldType.STRING),
+    "MaterialGroupName": ("material_group_name", FieldType.STRING),
+    "OrderDate": ("order_date", FieldType.DATE),
+    "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
+    "OrderCount": ("order_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
 PURCHASE_SUMMARY_BY_MATERIAL_FIELDS = SALES_SUMMARY_BY_MATERIAL_FIELDS
