@@ -13,5 +13,5 @@ class ListSalesOrders:
 
     def execute(self, query: ListQuery | None = None, expand: str | None = None) -> ListResult:
         expanded = parse_expand(expand)
-        result = apply_list_query(self.repo.list_all(), query or ListQuery(), SALES_ORDER_FIELDS)
+        result = apply_list_query(self.repo.listing(), query or ListQuery(), SALES_ORDER_FIELDS)
         return replace(result, expand=expanded)

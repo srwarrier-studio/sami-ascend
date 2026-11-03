@@ -2,8 +2,11 @@ from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.sqlite.database import Database
 from butterfly.infrastructure.sqlite.mappers import item_from_row, order_from_row
-from butterfly.infrastructure.sqlite.money import quantity_to_minor, to_minor
+from butterfly.infrastructure.sqlite.money import MONEY_SCALE, quantity_to_minor, to_minor
 from butterfly.infrastructure.sqlite.seeder import iso, marks, write_orders
+from butterfly.infrastructure.sqlite.table import SqliteTable
+
+SCALES = {"total_net_amount": MONEY_SCALE}
 
 ORDER_UPDATE = (
     "UPDATE sales_order SET sales_order_type = ?, sold_to_party = ?, customer_name = ?, order_date = ?, requested_delivery_date = ?, transaction_currency = ?, "
@@ -26,6 +29,17 @@ class SqliteSalesOrderRepo(SalesOrderRepo):
         for row in self.db.query("SELECT * FROM sales_order_item ORDER BY rowid"):
             items.setdefault(row["sales_order"], []).append(item_from_row(row))
         return [order_from_row(row, items.get(row["sales_order"], [])) for row in self.db.query("SELECT * FROM sales_order ORDER BY rowid")]
+
+    def listing(self) -> SqliteTable:
+        return SqliteTable(self.db, "sales_order", self.with_items, SCALES)
+
+    def with_items(self, rows: list) -> list[SalesOrder]:
+        items: dict[str, list] = {}
+        if rows:
+            numbers = [row["sales_order"] for row in rows]
+            for row in self.db.query(f"SELECT * FROM sales_order_item WHERE sales_order IN ({marks(len(numbers))}) ORDER BY rowid", numbers):
+                items.setdefault(row["sales_order"], []).append(item_from_row(row))
+        return [order_from_row(row, items.get(row["sales_order"], [])) for row in rows]
 
     def get(self, sales_order: str) -> SalesOrder | None:
         rows = self.db.query("SELECT * FROM sales_order WHERE sales_order = ?", (sales_order,))

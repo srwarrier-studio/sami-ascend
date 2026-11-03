@@ -10,6 +10,9 @@ from butterfly.domain.entities.drivers import (
 
 
 class DriverRepo(ABC):
+    def listing(self, entity: str):
+        return getattr(self, entity)()
+
     @abstractmethod
     def contracts(self) -> list[SalesContract]: ...
 

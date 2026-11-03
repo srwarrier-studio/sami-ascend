@@ -25,6 +25,9 @@ def apply_list_query(rows: list, query: ListQuery, fields: dict) -> ListResult:
     count = parse_count(query.count)
     condition = None if query.filter is None else parse_filter(query.filter, fields)
 
+    if hasattr(rows, "fetch"):
+        page, total = rows.fetch(condition, orderby, skip, top, count, fields)
+        return ListResult(rows=page, total=total, select=select)
     if condition is not None:
         rows = [row for row in rows if condition.matches(row)]
     for name, descending in reversed(orderby):

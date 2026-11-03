@@ -14,11 +14,26 @@ from butterfly.infrastructure.sqlite.mappers import (
     invoice_from_row,
     production_order_from_row,
 )
+from butterfly.infrastructure.sqlite.money import MONEY_SCALE, QUANTITY_SCALE
 from butterfly.infrastructure.sqlite.seeder import write_drivers
+from butterfly.infrastructure.sqlite.table import SqliteTable
 from butterfly.infrastructure.memory.story_seed import StorySeed
 
 
+TABLES = {
+    "contracts": ("sales_contract", contract_from_row, {"contract_value": MONEY_SCALE}),
+    "deliveries": ("purchase_delivery", delivery_from_row, {"ordered_quantity": QUANTITY_SCALE, "delivered_quantity": QUANTITY_SCALE, "net_amount": MONEY_SCALE}),
+    "invoices": ("customer_invoice", invoice_from_row, {"net_amount": MONEY_SCALE, "cleared_amount": MONEY_SCALE}),
+    "production_orders": ("production_order", production_order_from_row, {"planned_quantity": QUANTITY_SCALE, "confirmed_quantity": QUANTITY_SCALE}),
+    "components": ("production_order_component", component_from_row, {"required_quantity": QUANTITY_SCALE}),
+}
+
+
 class SqliteDriverRepo(DriverRepo):
+    def listing(self, entity: str) -> SqliteTable:
+        table, mapper, scales = TABLES[entity]
+        return SqliteTable(self.db, table, lambda rows: [mapper(row) for row in rows], scales)
+
     def __init__(self, db: Database):
         self.db = db
 
