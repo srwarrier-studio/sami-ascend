@@ -23,12 +23,12 @@ class ButterflyReceivablesSource(ReceivablesSource):
 
     def totals(self, as_of: date) -> list[ReceivablesTotal]:
         rows = self.reader.all_rows(self.path("ReceivablesSummary", as_of, "AsOfDate,Currency,CompanyCode"))
-        return [ReceivablesTotal(r["Currency"], Decimal(r["OpenAmount"]), Decimal(r["OverdueAmount"]), r["OpenCount"], r["OverdueCount"]) for r in rows]
+        return [ReceivablesTotal(r["LocalCurrency"], Decimal(r["OpenAmountLocal"]), Decimal(r["OverdueAmountLocal"]), r["OpenCount"], r["OverdueCount"]) for r in rows]
 
     def by_customer(self, as_of: date) -> list[CustomerReceivable]:
         rows = self.reader.all_rows(self.path("ReceivablesByCustomer", as_of, "AsOfDate,SoldToParty,Currency,CompanyCode"))
-        return [CustomerReceivable(r["SoldToParty"], r["CustomerName"] or "", r["Currency"], Decimal(r["OpenAmount"]), Decimal(r["OverdueAmount"])) for r in rows]
+        return [CustomerReceivable(r["SoldToParty"], r["CustomerName"] or "", r["LocalCurrency"], Decimal(r["OpenAmountLocal"]), Decimal(r["OverdueAmountLocal"])) for r in rows]
 
     def ageing(self, as_of: date) -> list[AgeBucket]:
         rows = self.reader.all_rows(self.path("ReceivablesAgeing", as_of, "AsOfDate,AgeBucket,Currency,CompanyCode"))
-        return [AgeBucket(r["AgeBucket"], r["Currency"], Decimal(r["OpenAmount"]), r["OpenCount"]) for r in rows]
+        return [AgeBucket(r["AgeBucket"], r["LocalCurrency"], Decimal(r["OpenAmountLocal"]), r["OpenCount"]) for r in rows]

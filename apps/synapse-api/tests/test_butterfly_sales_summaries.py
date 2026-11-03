@@ -12,14 +12,14 @@ from synapse_api.infrastructure.settings import Settings
 START, END = date(2026, 10, 26), date(2026, 10, 27)
 ROOT = "http://sap/root/"
 
-DAY = {"OrderDate": "2026-10-26", "TotalNetAmount": "845000.00", "OrderCount": 14, "Currency": "INR"}
+DAY = {"OrderDate": "2026-10-26", "TotalNetAmount": "845000.00", "TotalNetAmountLocal": "845000.00", "LocalCurrency": "INR", "TotalNetAmountLocal": "845000.00", "LocalCurrency": "INR", "OrderCount": 14, "Currency": "INR"}
 CUSTOMER = {
     "SoldToParty": "0000100001", "CustomerName": "Acme Industries", "OrderDate": "2026-10-27",
-    "TotalNetAmount": "125000.00", "OrderCount": 2, "Currency": "INR",
+    "TotalNetAmount": "125000.00", "TotalNetAmountLocal": "125000.00", "LocalCurrency": "INR", "TotalNetAmountLocal": "125000.00", "LocalCurrency": "INR", "OrderCount": 2, "Currency": "INR",
 }
 MATERIAL = {
     "Material": "RM-1001", "MaterialDescription": "Steel rod 12mm", "OrderDate": "2026-10-27",
-    "TotalQuantity": "500.000", "QuantityUnit": "KG", "TotalNetAmount": "625000.00", "Currency": "INR",
+    "TotalQuantity": "500.000", "QuantityUnit": "KG", "TotalNetAmount": "625000.00", "TotalNetAmountLocal": "625000.00", "LocalCurrency": "INR", "TotalNetAmountLocal": "625000.00", "LocalCurrency": "INR", "Currency": "INR",
 }
 
 
@@ -123,3 +123,25 @@ class TestRequestId:
 
         source(handler).daily_sales(START, END)
         assert "x-request-id" not in seen
+
+
+class TestCompanyCurrency:
+    def test_a_dollar_row_is_read_as_its_rupee_amount(self):
+        row = {"OrderDate": "2026-10-26", "TotalNetAmount": "6250.00", "TotalNetAmountLocal": "500000.00", "LocalCurrency": "INR", "OrderCount": 2, "Currency": "USD"}
+        result = source(ok(row)).daily_sales(START, END)
+        assert (result[0].net_amount, result[0].currency) == (Decimal("500000.00"), "INR")
+
+    def test_the_customer_and_material_rows_too(self):
+        customer = {"SoldToParty": "1", "CustomerName": "Acme", "OrderDate": "2026-10-27", "TotalNetAmount": "10.00", "TotalNetAmountLocal": "800.00", "LocalCurrency": "INR", "OrderCount": 1, "Currency": "USD"}
+        material = {"Material": "M", "MaterialDescription": "Steel", "OrderDate": "2026-10-27", "TotalQuantity": "1.000", "QuantityUnit": "KG", "TotalNetAmount": "10.00", "TotalNetAmountLocal": "800.00", "LocalCurrency": "INR", "Currency": "USD"}
+        assert source(ok(customer)).customer_sales(START, END)[0].net_amount == Decimal("800.00")
+        assert source(ok(material)).material_sales(START, END)[0].currency == "INR"
+
+    def test_a_mixed_month_counts_both_currencies_in_the_rupee_widget(self):
+        from synapse_api.application.sales_widgets import SalesWidgetCatalog
+        from synapse_api.application.catalog import GetWidgetData
+        from synapse_api.domain.entities.sales import DailySales
+        from synapse_api.infrastructure.mock_sales_source import MockSalesSource
+
+        rows = [DailySales(date(2026, 10, 5), Decimal("500000.00"), 1, "INR"), DailySales(date(2026, 10, 6), Decimal("100.00"), 1, "INR")]
+        assert GetWidgetData(SalesWidgetCatalog(MockSalesSource(rows), Decimal(1))).execute("sales-month", date(2026, 10, 27), "INR")["value"] == 500100.0

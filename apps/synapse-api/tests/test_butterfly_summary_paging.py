@@ -19,9 +19,9 @@ CALLS = [
 ]
 
 ROWS = {
-    "SalesSummaryByDay": {"OrderDate": "2026-01-05", "TotalNetAmount": "100.00", "OrderCount": 1, "Currency": "INR"},
-    "SalesSummaryByCustomer": {"SoldToParty": "0000100001", "CustomerName": "Acme Industries", "OrderDate": "2026-01-05", "TotalNetAmount": "100.00", "OrderCount": 1, "Currency": "INR"},
-    "SalesSummaryByMaterial": {"Material": "RM-1001", "MaterialDescription": "Steel rod", "OrderDate": "2026-01-05", "TotalQuantity": "1.000", "QuantityUnit": "KG", "TotalNetAmount": "100.00", "Currency": "INR"},
+    "SalesSummaryByDay": {"OrderDate": "2026-01-05", "TotalNetAmount": "100.00", "TotalNetAmountLocal": "100.00", "LocalCurrency": "INR", "TotalNetAmountLocal": "100.00", "LocalCurrency": "INR", "OrderCount": 1, "Currency": "INR"},
+    "SalesSummaryByCustomer": {"SoldToParty": "0000100001", "CustomerName": "Acme Industries", "OrderDate": "2026-01-05", "TotalNetAmount": "100.00", "TotalNetAmountLocal": "100.00", "LocalCurrency": "INR", "TotalNetAmountLocal": "100.00", "LocalCurrency": "INR", "OrderCount": 1, "Currency": "INR"},
+    "SalesSummaryByMaterial": {"Material": "RM-1001", "MaterialDescription": "Steel rod", "OrderDate": "2026-01-05", "TotalQuantity": "1.000", "QuantityUnit": "KG", "TotalNetAmount": "100.00", "TotalNetAmountLocal": "100.00", "LocalCurrency": "INR", "TotalNetAmountLocal": "100.00", "LocalCurrency": "INR", "Currency": "INR"},
 }
 
 

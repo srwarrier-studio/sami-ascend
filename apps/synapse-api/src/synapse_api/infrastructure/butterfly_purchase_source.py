@@ -18,8 +18,8 @@ def item_from_json(row: dict) -> PurchaseItem:
         date.fromisoformat(row["OrderDate"]),
         date.fromisoformat(row["PromisedDeliveryDate"]),
         date.fromisoformat(row["ActualDeliveryDate"]) if row["ActualDeliveryDate"] else None,
-        Decimal(row["NetAmount"]),
-        row["TransactionCurrency"],
+        Decimal(row["NetAmountLocal"]),
+        row["LocalCurrency"],
         row["DeliveryStatus"],
     )
 
@@ -37,19 +37,19 @@ class ButterflyPurchaseSource(PurchaseSource):
 
     def daily_purchases(self, start: date, end: date) -> list[DailyPurchases]:
         path = f"PurchaseSummaryByDay?$filter={day_range('OrderDate', start, end)}{self.company()}&$orderby=OrderDate,Currency,CompanyCode"
-        return [DailyPurchases(date.fromisoformat(r["OrderDate"]), Decimal(r["TotalNetAmount"]), r["OrderCount"], r["Currency"]) for r in self.reader.all_rows(path)]
+        return [DailyPurchases(date.fromisoformat(r["OrderDate"]), Decimal(r["TotalNetAmountLocal"]), r["OrderCount"], r["LocalCurrency"]) for r in self.reader.all_rows(path)]
 
     def supplier_purchases(self, start: date, end: date) -> list[SupplierPurchases]:
         path = f"PurchaseSummaryBySupplier?$filter={day_range('OrderDate', start, end)}{self.company()}&$orderby=OrderDate,Supplier,Currency,CompanyCode"
         return [
-            SupplierPurchases(r["Supplier"], r["SupplierName"] or "", date.fromisoformat(r["OrderDate"]), Decimal(r["TotalNetAmount"]), r["OrderCount"], r["Currency"])
+            SupplierPurchases(r["Supplier"], r["SupplierName"] or "", date.fromisoformat(r["OrderDate"]), Decimal(r["TotalNetAmountLocal"]), r["OrderCount"], r["LocalCurrency"])
             for r in self.reader.all_rows(path)
         ]
 
     def group_purchases(self, start: date, end: date) -> list[GroupPurchases]:
         path = f"PurchaseSummaryByMaterialGroup?$filter={day_range('OrderDate', start, end)}{self.company()}&$orderby=OrderDate,MaterialGroup,Currency,CompanyCode"
         return [
-            GroupPurchases(r["MaterialGroup"], r["MaterialGroupName"] or r["MaterialGroup"], date.fromisoformat(r["OrderDate"]), Decimal(r["TotalNetAmount"]), r["OrderCount"], r["Currency"])
+            GroupPurchases(r["MaterialGroup"], r["MaterialGroupName"] or r["MaterialGroup"], date.fromisoformat(r["OrderDate"]), Decimal(r["TotalNetAmountLocal"]), r["OrderCount"], r["LocalCurrency"])
             for r in self.reader.all_rows(path)
         ]
 

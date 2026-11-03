@@ -15,7 +15,7 @@ START, END = date(2026, 10, 1), date(2026, 10, 27)
 
 ITEM = {
     "PurchaseOrder": "4500001207", "PurchaseOrderItem": "00010", "SupplierName": "Deccan Agro", "OrderDate": "2026-06-24",
-    "PromisedDeliveryDate": "2026-07-14", "ActualDeliveryDate": None, "NetAmount": "260000.00", "TransactionCurrency": "INR", "DeliveryStatus": "O",
+    "PromisedDeliveryDate": "2026-07-14", "ActualDeliveryDate": None, "NetAmount": "260000.00", "NetAmountLocal": "260000.00", "LocalCurrency": "INR", "TransactionCurrency": "INR", "DeliveryStatus": "O",
 }
 
 
@@ -34,7 +34,7 @@ def seen(rows, store):
 class TestPurchases:
     def test_daily_purchases_ask_the_summary_for_the_range_and_company(self):
         urls = []
-        row = {"OrderDate": "2026-10-02", "TotalNetAmount": "2163000.00", "OrderCount": 6, "Currency": "INR"}
+        row = {"OrderDate": "2026-10-02", "TotalNetAmount": "2163000.00", "TotalNetAmountLocal": "2163000.00", "LocalCurrency": "INR", "TotalNetAmountLocal": "2163000.00", "LocalCurrency": "INR", "OrderCount": 6, "Currency": "INR"}
         result = ButterflyPurchaseSource(reader(seen([row], urls))).for_companies(("INA1", "INA2")).daily_purchases(START, END)
         assert result[0].net_amount == Decimal("2163000.00") and result[0].order_count == 6
         assert "PurchaseSummaryByDay?$filter=OrderDate ge 2026-10-01 and OrderDate le 2026-10-27 and (CompanyCode eq 'INA1' or CompanyCode eq 'INA2')" in urls[0]
@@ -42,14 +42,14 @@ class TestPurchases:
 
     def test_supplier_purchases_read_the_supplier_summary(self):
         urls = []
-        row = {"Supplier": "0000200001", "SupplierName": None, "OrderDate": "2026-10-02", "TotalNetAmount": "444000.00", "OrderCount": 2, "Currency": "INR"}
+        row = {"Supplier": "0000200001", "SupplierName": None, "OrderDate": "2026-10-02", "TotalNetAmount": "444000.00", "TotalNetAmountLocal": "444000.00", "LocalCurrency": "INR", "TotalNetAmountLocal": "444000.00", "LocalCurrency": "INR", "OrderCount": 2, "Currency": "INR"}
         result = ButterflyPurchaseSource(reader(seen([row], urls))).supplier_purchases(START, END)
         assert (result[0].supplier, result[0].name) == ("0000200001", "")
         assert "PurchaseSummaryBySupplier?" in urls[0] and "OrderDate,Supplier,Currency,CompanyCode" in urls[0]
 
     def test_group_purchases_read_the_material_group_summary(self):
         urls = []
-        row = {"MaterialGroup": "BOTANIC", "MaterialGroupName": None, "OrderDate": "2026-10-02", "TotalNetAmount": "1949000.00", "OrderCount": 4, "Currency": "INR"}
+        row = {"MaterialGroup": "BOTANIC", "MaterialGroupName": None, "OrderDate": "2026-10-02", "TotalNetAmount": "1949000.00", "TotalNetAmountLocal": "1949000.00", "LocalCurrency": "INR", "TotalNetAmountLocal": "1949000.00", "LocalCurrency": "INR", "OrderCount": 4, "Currency": "INR"}
         result = ButterflyPurchaseSource(reader(seen([row], urls))).for_companies(("INA1",)).group_purchases(START, END)
         assert (result[0].group, result[0].name, result[0].net_amount) == ("BOTANIC", "BOTANIC", Decimal("1949000.00"))
         assert "PurchaseSummaryByMaterialGroup?$filter=OrderDate ge 2026-10-01 and OrderDate le 2026-10-27 and (CompanyCode eq 'INA1')&$orderby=OrderDate,MaterialGroup,Currency,CompanyCode" in urls[0]
@@ -85,7 +85,7 @@ class TestPurchases:
 
 
 class TestReceivables:
-    TOTAL = {"AsOfDate": "2026-11-03", "Currency": "INR", "CompanyCode": "INA1", "OpenAmount": "1840000.00", "OverdueAmount": "450000.00", "OpenCount": 12, "OverdueCount": 3}
+    TOTAL = {"AsOfDate": "2026-11-03", "Currency": "INR", "CompanyCode": "INA1", "OpenAmount": "1840000.00", "OverdueAmount": "450000.00", "OpenAmountLocal": "1840000.00", "OverdueAmountLocal": "450000.00", "LocalCurrency": "INR", "OpenCount": 12, "OverdueCount": 3}
 
     def test_totals_ask_for_the_day_and_company(self):
         urls = []
@@ -100,8 +100,8 @@ class TestReceivables:
 
     def test_by_customer_and_ageing_read_their_entities(self):
         urls = []
-        customer = {"SoldToParty": "0000100001", "CustomerName": "Kestrel", "Currency": "INR", "OpenAmount": "10.00", "OverdueAmount": "5.00"}
-        bucket = {"AgeBucket": "1-30", "Currency": "INR", "OpenAmount": "7.00", "OpenCount": 2}
+        customer = {"SoldToParty": "0000100001", "CustomerName": "Kestrel", "Currency": "INR", "OpenAmount": "10.00", "OverdueAmount": "5.00", "OpenAmountLocal": "10.00", "OverdueAmountLocal": "5.00", "LocalCurrency": "INR"}
+        bucket = {"AgeBucket": "1-30", "Currency": "INR", "OpenAmount": "7.00", "OpenAmountLocal": "7.00", "LocalCurrency": "INR", "OpenCount": 2}
         source = ButterflyReceivablesSource(reader(seen([customer], urls)))
         assert source.by_customer(date(2026, 11, 3))[0].overdue_amount == Decimal("5.00")
         assert "ReceivablesByCustomer?" in urls[0]
@@ -109,3 +109,18 @@ class TestReceivables:
         source = ButterflyReceivablesSource(reader(seen([bucket], urls)))
         assert source.ageing(date(2026, 11, 3))[0].bucket == "1-30"
         assert "ReceivablesAgeing?" in urls[0]
+
+
+class TestCompanyCurrency:
+    def test_purchase_rows_in_dollars_are_read_as_rupees(self):
+        urls = []
+        day = {"OrderDate": "2026-10-02", "TotalNetAmount": "100.00", "TotalNetAmountLocal": "8000.00", "LocalCurrency": "INR", "OrderCount": 1, "Currency": "USD"}
+        result = ButterflyPurchaseSource(reader(seen([day], urls))).daily_purchases(START, END)
+        assert (result[0].net_amount, result[0].currency) == (Decimal("8000.00"), "INR")
+        item = {**ITEM, "NetAmount": "100.00", "NetAmountLocal": "8000.00", "LocalCurrency": "INR", "TransactionCurrency": "USD"}
+        assert ButterflyPurchaseSource(reader(seen([item], urls))).recent_items(5)[0].net_amount == Decimal("8000.00")
+
+    def test_receivables_in_dollars_are_read_as_rupees(self):
+        total = {"AsOfDate": "2026-11-03", "Currency": "USD", "CompanyCode": "INA1", "OpenAmount": "100.00", "OverdueAmount": "40.00", "OpenAmountLocal": "8000.00", "OverdueAmountLocal": "3200.00", "LocalCurrency": "INR", "OpenCount": 1, "OverdueCount": 1}
+        result = ButterflyReceivablesSource(reader(seen([total], []))).totals(date(2026, 11, 3))
+        assert (result[0].currency, result[0].open_amount, result[0].overdue_amount) == ("INR", Decimal("8000.00"), Decimal("3200.00"))

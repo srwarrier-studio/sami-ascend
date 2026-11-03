@@ -7,9 +7,9 @@ from synapse_api.domain.entities.sales import CustomerSales, DailySales, HighVal
 def daily_from_json(row: dict) -> DailySales:
     return DailySales(
         date.fromisoformat(row["OrderDate"]),
-        Decimal(row["TotalNetAmount"]),
+        Decimal(row["TotalNetAmountLocal"]),
         row["OrderCount"],
-        row["Currency"],
+        row["LocalCurrency"],
     )
 
 
@@ -18,9 +18,9 @@ def customer_from_json(row: dict) -> CustomerSales:
         row["SoldToParty"],
         row["CustomerName"] or "",
         date.fromisoformat(row["OrderDate"]),
-        Decimal(row["TotalNetAmount"]),
+        Decimal(row["TotalNetAmountLocal"]),
         row["OrderCount"],
-        row["Currency"],
+        row["LocalCurrency"],
     )
 
 
@@ -31,8 +31,8 @@ def material_from_json(row: dict) -> MaterialSales:
         date.fromisoformat(row["OrderDate"]),
         Decimal(row["TotalQuantity"]),
         row["QuantityUnit"],
-        Decimal(row["TotalNetAmount"]),
-        row["Currency"],
+        Decimal(row["TotalNetAmountLocal"]),
+        row["LocalCurrency"],
     )
 
 
@@ -41,8 +41,8 @@ def order_from_json(row: dict) -> HighValueOrder:
         row["SalesOrder"],
         row["CustomerName"] or "",
         date.fromisoformat(row["OrderDate"]),
-        Decimal(row["TotalNetAmount"]),
-        row["TransactionCurrency"],
+        Decimal(row["TotalNetAmountLocal"]),
+        row["LocalCurrency"],
         row["OverallStatus"],
     )
 

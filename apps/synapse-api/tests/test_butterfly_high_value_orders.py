@@ -12,7 +12,7 @@ ROOT = "http://sap/root/"
 
 ORDER = {
     "SalesOrder": "0000012345", "CustomerName": "Acme Industries", "OrderDate": "2026-10-27",
-    "TransactionCurrency": "INR", "TotalNetAmount": "125000.00", "OverallStatus": "A",
+    "TransactionCurrency": "INR", "TotalNetAmount": "125000.00", "TotalNetAmountLocal": "125000.00", "LocalCurrency": "INR", "TotalNetAmountLocal": "125000.00", "LocalCurrency": "INR", "OverallStatus": "A",
 }
 
 
@@ -30,7 +30,7 @@ class TestQuery:
 
         source(handler).high_value_orders(Decimal("100000.00"), 5)
         assert seen == [
-            f"{ROOT}SalesOrder?$filter=TotalNetAmount%20ge%20100000.00%20and%20OverallStatus%20ne%20'X'"
+            f"{ROOT}SalesOrder?$filter=TotalNetAmountLocal%20ge%20100000.00%20and%20OverallStatus%20ne%20'X'"
             "&$orderby=CreationDateTime%20desc&$top=5"
         ]
 

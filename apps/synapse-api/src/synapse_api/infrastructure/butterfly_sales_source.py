@@ -42,7 +42,7 @@ class ButterflySalesSource(SalesSource):
         return [status_from_json(row) for row in rows]
 
     def high_value_orders(self, minimum: Decimal, top: int) -> list[HighValueOrder]:
-        filter_ = f"TotalNetAmount%20ge%20{minimum}%20and%20OverallStatus%20ne%20'X'{company_clause('CompanyCode', self.companies)}"
+        filter_ = f"TotalNetAmountLocal%20ge%20{minimum}%20and%20OverallStatus%20ne%20'X'{company_clause('CompanyCode', self.companies)}"
         path = f"SalesOrder?$filter={filter_}&$orderby=CreationDateTime%20desc&$top={top}"
         return [order_from_json(row) for row in self.reader.get_rows(path)]
 
