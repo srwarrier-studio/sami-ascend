@@ -163,9 +163,53 @@ CREATE TABLE IF NOT EXISTS stock_value_month (
     posting_period TEXT NOT NULL, currency TEXT NOT NULL, company_code TEXT NOT NULL, stock_value INTEGER NOT NULL,
     PRIMARY KEY (posting_period, currency, company_code)
 );
+
+CREATE TABLE IF NOT EXISTS work_center (
+    plant TEXT NOT NULL, code TEXT NOT NULL, name TEXT NOT NULL, company_code TEXT NOT NULL, PRIMARY KEY (plant, code)
+);
+
+CREATE TABLE IF NOT EXISTS production_confirmation (
+    confirmation_number TEXT NOT NULL,
+    confirmation_counter TEXT NOT NULL,
+    production_order TEXT NOT NULL,
+    material TEXT NOT NULL,
+    material_description TEXT,
+    plant TEXT NOT NULL,
+    work_center TEXT NOT NULL,
+    shift TEXT NOT NULL,
+    posting_date TEXT NOT NULL,
+    yield_quantity INTEGER NOT NULL,
+    scrap_quantity INTEGER NOT NULL,
+    target_quantity INTEGER NOT NULL,
+    quantity_unit TEXT NOT NULL,
+    scrap_reason TEXT,
+    run_hours INTEGER NOT NULL,
+    yield_value INTEGER NOT NULL,
+    scrap_value INTEGER NOT NULL,
+    target_value INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    company_code TEXT NOT NULL,
+    PRIMARY KEY (confirmation_number, confirmation_counter)
+);
+CREATE INDEX IF NOT EXISTS production_confirmation_by_date ON production_confirmation (posting_date, company_code);
+
+CREATE TABLE IF NOT EXISTS work_center_downtime (
+    downtime_number TEXT PRIMARY KEY,
+    production_order TEXT,
+    plant TEXT NOT NULL,
+    work_center TEXT NOT NULL,
+    posting_date TEXT NOT NULL,
+    downtime_hours INTEGER NOT NULL,
+    downtime_cause TEXT NOT NULL,
+    company_code TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS work_center_downtime_by_date ON work_center_downtime (posting_date, company_code);
 """
 
 REPLACED_ON_RESEED = [
+    "work_center_downtime",
+    "production_confirmation",
+    "work_center",
     "stock_value_month",
     "stock_movement",
     "material_stock",

@@ -5,6 +5,8 @@ from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.infrastructure.memory.companies import COMPANIES
 from butterfly.infrastructure.memory.inventory_master import GROUP_OF, GROUPS, LOCATIONS
 from butterfly.infrastructure.memory.inventory_seed import InventorySeed, build_inventory
+from butterfly.infrastructure.memory.production_master import WORK_CENTERS
+from butterfly.infrastructure.memory.production_seed import ProductionSeed, build_production
 from butterfly.infrastructure.memory.scenarios import find_scenario
 from butterfly.infrastructure.memory.seed import build_seed
 from butterfly.infrastructure.memory.story_seed import StorySeed, build_story_seed
@@ -13,7 +15,7 @@ from butterfly.infrastructure.sqlite.money import quantity_to_minor, to_minor
 from butterfly.infrastructure.sqlite.schema import REPLACED_ON_RESEED
 
 SEEDS = ("small", "story")
-LAYOUT = "2"
+LAYOUT = "3"
 
 
 def iso(value) -> str | None:
@@ -46,6 +48,7 @@ def prepare(db: Database, seed: str, scenario: str, today: date) -> bool:
         if story:
             write_drivers(db, story)
             write_inventory(db, build_inventory(story, COMPANIES, today))
+            write_production(db, build_production(story, COMPANIES, today))
         db.insert_many("INSERT INTO meta (key, value) VALUES (?, ?)", list(wanted.items()))
     return True
 
@@ -53,6 +56,7 @@ def prepare(db: Database, seed: str, scenario: str, today: date) -> bool:
 def write_master_data(db: Database) -> None:
     db.insert_many("INSERT INTO material_group (code, name) VALUES (?, ?)", [(group.code, group.name) for group in GROUPS])
     db.insert_many("INSERT INTO material_group_of (material, material_group) VALUES (?, ?)", list(GROUP_OF.items()))
+    db.insert_many("INSERT INTO work_center (plant, code, name, company_code) VALUES (?, ?, ?, ?)", [(w.plant, w.code, w.name, w.company_code) for w in WORK_CENTERS])
     db.insert_many("INSERT INTO storage_location (plant, code, name, company_code) VALUES (?, ?, ?, ?)", [(l.plant, l.code, l.name, l.company_code) for l in LOCATIONS])
     db.insert_many("INSERT INTO company (code, name) VALUES (?, ?)", [(company.code, company.name) for company in COMPANIES])
     db.insert_many(
@@ -85,6 +89,22 @@ def write_inventory(db: Database, inventory: InventorySeed) -> None:
     db.insert_many(
         f"INSERT INTO stock_value_month VALUES ({marks(4)})",
         [(v.posting_period, v.currency, v.company_code, to_minor(v.stock_value)) for v in inventory.monthly],
+    )
+
+
+def write_production(db: Database, production: ProductionSeed) -> None:
+    db.insert_many(
+        f"INSERT INTO production_confirmation VALUES ({marks(20)})",
+        [
+            (c.confirmation_number, c.confirmation_counter, c.production_order, c.material, c.material_description, c.plant, c.work_center, c.shift, iso(c.posting_date),
+             quantity_to_minor(c.yield_quantity), quantity_to_minor(c.scrap_quantity), quantity_to_minor(c.target_quantity), c.quantity_unit, c.scrap_reason, to_minor(c.run_hours),
+             to_minor(c.yield_value), to_minor(c.scrap_value), to_minor(c.target_value), c.currency, c.company_code)
+            for c in production.confirmations
+        ],
+    )
+    db.insert_many(
+        f"INSERT INTO work_center_downtime VALUES ({marks(8)})",
+        [(d.downtime_number, d.production_order, d.plant, d.work_center, iso(d.posting_date), to_minor(d.downtime_hours), d.downtime_cause, d.company_code) for d in production.downtimes],
     )
 
 
