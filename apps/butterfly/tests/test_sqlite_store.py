@@ -191,3 +191,67 @@ class TestRepositories:
         assert repo.invoices() == story.invoices
         assert repo.production_orders() == story.production_orders
         assert repo.components() == story.components
+
+
+class TestDefaultApp:
+    PAYLOAD = {
+        "SalesOrderType": "OR",
+        "CompanyCode": "INA1",
+        "SoldToParty": "0000100001",
+        "RequestedDeliveryDate": "2030-01-01",
+        "TransactionCurrency": "INR",
+        "_Item": [{"Material": "RM-1001", "Quantity": "50.000", "QuantityUnit": "KG"}],
+    }
+
+    def start(self, path: str, day: date = TODAY):
+        from fastapi.testclient import TestClient
+
+        from butterfly.entrypoint.app import build_default_app
+
+        return TestClient(build_default_app(day, "small", "august-contract", path))
+
+    def orders(self, client) -> list[str]:
+        from butterfly.infrastructure.api.odata import ROOT
+
+        rows = client.get(ROOT.rstrip("/") + "/SalesOrder?$top=1000&$orderby=SalesOrder").json()["value"]
+        return [row["SalesOrder"] for row in rows]
+
+    def test_an_order_created_over_http_is_still_there_after_a_restart(self, tmp_path):
+        from butterfly.infrastructure.api.odata import ROOT
+
+        path = str(tmp_path / "butterfly.db")
+        first = self.start(path)
+        response = first.post(ROOT.rstrip("/") + "/SalesOrder", json=self.PAYLOAD)
+        assert response.status_code == 201, response.text
+        number = response.json()["SalesOrder"]
+        assert number in self.orders(first)
+        second = self.start(path)
+        assert number in self.orders(second)
+        again = second.post(ROOT.rstrip("/") + "/SalesOrder", json=self.PAYLOAD)
+        assert int(again.json()["SalesOrder"]) == int(number) + 1
+
+    def test_an_order_survives_the_seed_moving_to_a_new_day(self, tmp_path):
+        from butterfly.infrastructure.api.odata import ROOT
+
+        path = str(tmp_path / "butterfly.db")
+        number = self.start(path).post(ROOT.rstrip("/") + "/SalesOrder", json=self.PAYLOAD).json()["SalesOrder"]
+        assert number in self.orders(self.start(path, TODAY + timedelta(days=1)))
+
+    def test_a_different_seed_on_the_same_file_is_rebuilt(self, tmp_path):
+        from fastapi.testclient import TestClient
+
+        from butterfly.entrypoint.app import build_default_app
+        from butterfly.infrastructure.api.odata import DRIVERS_ROOT
+
+        path = str(tmp_path / "butterfly.db")
+        self.start(path)
+        story = TestClient(build_default_app(TODAY, "story", "august-contract", path))
+        assert story.get(DRIVERS_ROOT.rstrip("/") + "/SalesContract?$top=1").json()["value"]
+
+    def test_an_unknown_seed_or_scenario_stops_the_start(self, tmp_path):
+        from butterfly.entrypoint.app import build_default_app
+
+        with pytest.raises(SystemExit):
+            build_default_app(TODAY, "huge", "august-contract", str(tmp_path / "a.db"))
+        with pytest.raises(BaseException):
+            build_default_app(TODAY, "story", "no-such-scenario", str(tmp_path / "b.db"))

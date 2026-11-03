@@ -1,4 +1,6 @@
 import os
+
+os.environ.setdefault("BUTTERFLY_DB", ":memory:")
 import sys
 from datetime import date, datetime, timezone
 

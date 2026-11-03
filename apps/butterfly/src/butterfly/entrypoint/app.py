@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from pathlib import Path
 from datetime import date, datetime
 from typing import Callable
 
@@ -66,11 +67,12 @@ from butterfly.infrastructure.api.odata import (
 )
 from butterfly.infrastructure.memory.in_memory_driver_repo import InMemoryDriverRepo
 from butterfly.infrastructure.memory.in_memory_master_data_repo import InMemoryMasterDataRepo
-from butterfly.infrastructure.memory.in_memory_sales_order_repo import InMemorySalesOrderRepo
-from butterfly.infrastructure.memory.seed import build_seed
 from butterfly.infrastructure.memory.scenarios import find_scenario
-from butterfly.infrastructure.memory.companies import COMPANIES
-from butterfly.infrastructure.memory.story_seed import build_story_seed
+from butterfly.infrastructure.sqlite.database import Database
+from butterfly.infrastructure.sqlite.driver_repo import SqliteDriverRepo
+from butterfly.infrastructure.sqlite.master_data_repo import SqliteMasterDataRepo
+from butterfly.infrastructure.sqlite.sales_order_repo import SqliteSalesOrderRepo
+from butterfly.infrastructure.sqlite.seeder import SEEDS, prepare
 
 logger = logging.getLogger("butterfly")
 
@@ -364,16 +366,19 @@ def create_app(
     return app
 
 
-def build_default_app(today: date, seed_name: str | None = None, scenario_name: str | None = None) -> FastAPI:
+DEFAULT_DB = Path(__file__).resolve().parents[3] / "butterfly.db"
+
+
+def build_default_app(today: date, seed_name: str | None = None, scenario_name: str | None = None, db_path: str | None = None) -> FastAPI:
     name = seed_name if seed_name is not None else os.environ.get("BUTTERFLY_SEED", "story")
     scenario = scenario_name if scenario_name is not None else os.environ.get("BUTTERFLY_SCENARIO", "august-contract")
-    if name == "small":
-        return create_app(InMemorySalesOrderRepo(build_seed(today)))
+    if name not in SEEDS:
+        raise SystemExit(f"BUTTERFLY_SEED must be 'story' or 'small', not '{name}'")
     if name == "story":
-        story = build_story_seed(today, find_scenario(scenario), COMPANIES)
-        drivers = InMemoryDriverRepo(story.contracts, story.deliveries, story.production_orders, story.components, story.invoices)
-        return create_app(InMemorySalesOrderRepo(story.orders), drivers=drivers)
-    raise SystemExit(f"BUTTERFLY_SEED must be 'story' or 'small', not '{name}'")
+        find_scenario(scenario)
+    db = Database(db_path if db_path is not None else os.environ.get("BUTTERFLY_DB", str(DEFAULT_DB)))
+    prepare(db, name, scenario, today)
+    return create_app(SqliteSalesOrderRepo(db), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db))
 
 
 setup_logging("butterfly")
