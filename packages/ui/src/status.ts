@@ -1,8 +1,8 @@
 import type { Tone } from './polarCharts'
 
 const positive = ['paid', 'complete', 'completed', 'delivered', 'approved', 'done']
-const negative = ['overdue', 'blocked', 'failed', 'cancelled', 'canceled', 'rejected']
-const caution = ['due', 'pending', 'partial', 'on hold', 'waiting']
+const negative = ['overdue', 'blocked', 'failed', 'cancelled', 'canceled', 'rejected', 'out of stock']
+const caution = ['due', 'pending', 'partial', 'on hold', 'waiting', 'low']
 
 export function statusTone(status: string): Tone {
   const name = status.trim().toLowerCase()

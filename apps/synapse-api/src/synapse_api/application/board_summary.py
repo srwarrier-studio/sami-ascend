@@ -1,9 +1,11 @@
 from datetime import date
 from decimal import Decimal
 
+from synapse_api.application.inventory_summary import INVENTORY_IDS, GetInventorySummary
 from synapse_api.application.purchase_summary import PURCHASE_IDS, GetPurchaseSummary
 from synapse_api.application.receivables_summary import RECEIVABLES_IDS, GetReceivablesSummary
 from synapse_api.application.sales_summary import GetSalesSummary
+from synapse_api.domain.gateways.inventory_source import InventorySource
 from synapse_api.domain.gateways.purchase_source import PurchaseSource
 from synapse_api.domain.gateways.receivables_source import ReceivablesSource
 from synapse_api.domain.gateways.sales_source import SalesSource
@@ -13,11 +15,12 @@ PER_TOPIC = 2
 
 
 class GetBoardSummary:
-    def __init__(self, sales: SalesSource, target: Decimal, purchases: PurchaseSource | None = None, receivables: ReceivablesSource | None = None):
+    def __init__(self, sales: SalesSource, target: Decimal, purchases: PurchaseSource | None = None, receivables: ReceivablesSource | None = None, inventory: InventorySource | None = None):
         self.sales = sales
         self.target = target
         self.purchases = purchases
         self.receivables = receivables
+        self.inventory = inventory
 
     def execute(self, today: date, currency: str, widgets: set[str]) -> list[str]:
         topics = []
@@ -27,4 +30,6 @@ class GetBoardSummary:
             topics.append(lambda: GetPurchaseSummary(self.purchases).execute(today, currency, widgets))
         if self.receivables is not None and widgets & RECEIVABLES_IDS:
             topics.append(lambda: GetReceivablesSummary(self.receivables).execute(today, currency, widgets))
+        if self.inventory is not None and widgets & INVENTORY_IDS:
+            topics.append(lambda: GetInventorySummary(self.inventory).execute(today, currency, widgets))
         return [sentence for write in topics for sentence in write()[:PER_TOPIC]]

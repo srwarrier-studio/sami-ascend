@@ -10,6 +10,7 @@ from token_verification.fastapi_deps import AuthDependencies
 from synapse_api.application.sales_cache import SalesCache
 from synapse_api.application.board_summary import GetBoardSummary
 from synapse_api.domain.errors import InvalidQuery
+from synapse_api.domain.gateways.inventory_source import InventorySource
 from synapse_api.domain.gateways.purchase_source import PurchaseSource
 from synapse_api.domain.gateways.receivables_source import ReceivablesSource
 from synapse_api.domain.gateways.sales_source import SalesSource
@@ -28,6 +29,7 @@ def create_summary_router(
     default_currency: str = "INR",
     purchases: PurchaseSource | None = None,
     receivables: ReceivablesSource | None = None,
+    inventory: InventorySource | None = None,
 ) -> APIRouter:
     router = APIRouter(dependencies=[Depends(auth.require_roles(Role.MANAGEMENT, Role.ADMIN))])
     Scoped = Annotated[tuple[str, ...], Depends(company_scope(auth))]
@@ -49,6 +51,7 @@ def create_summary_router(
                     target,
                     purchases.for_companies(companies) if purchases else None,
                     receivables.for_companies(companies) if receivables else None,
+                    inventory.for_companies(companies) if inventory else None,
                 ).execute(today(), shown, set(ids)),
             ),
         )

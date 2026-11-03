@@ -76,6 +76,8 @@ describe('statusTone', () => {
     ['Cancelled', 'negative'],
     ['Pending', 'caution'],
     ['On hold', 'caution'],
+    ['Out of stock', 'negative'],
+    ['Low', 'caution'],
     ['Open', 'neutral'],
     ['Something new', 'neutral'],
   ])('reads %s as %s', (status, tone) => {
