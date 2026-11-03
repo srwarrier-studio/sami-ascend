@@ -41,8 +41,8 @@ synapse-api 04 and any missing dashboard routes, which are designed then. worksp
 
 ## auth-api
 - 00 auth-foundation: password and Entra login, JWT cookie, roles, SQLite store, create-admin CLI. done (commits `0486a36`, `04312fe`)
-- 01 login-audit: record login success and failure in `audit_log`. todo
-- 02 admin-endpoints: list, create, disable users and change roles, admin only. todo
+- 01 login-audit: record login success and failure in `audit_log` (with a `detail` column and no hint to the caller). todo (spec written).
+- 02 admin-endpoints: list, create, update and disable users, change roles and companies, role and company lists, paged and filtered audit-log read, last-admin safety, all admin only. todo (spec written).
 - 03 entra-only-admins: allow users without a password so admins sign in through Entra (MFA). todo
 - 04 user-companies: each user has the companies they may see (Sami Sabinsa Group Company, Sami Neutraceuticals Private Limited, Organica Aromatic; most users one, a CFO several), carried by `/me` and the token. done (tag `auth-api-phase-04-done`, 2026-10-30).
 - Later, not scheduled: filter SAP data and boards by company (each company maps to an SAP company code).
@@ -102,5 +102,7 @@ All three phases use mock data (session, sales data and board store behind inter
 ## ai-dashboard (POC, later, local-first)
 - Not scheduled. Starts after synapse-web 03. See `notes.md` for the constraints. todo
 
-## admin page
-Lives in a web app, to be placed once the web apps are further along. Depends on auth-api 02.
+## admin-web (admin portal, new app, port 5176)
+- 01 users: sign-in for admins only, users table with search and filters, create and edit users, roles and companies, disable and enable. Depends on auth-api 02. todo (spec written).
+- 02 audit-log: audit log viewer with filters in the URL, quick views, refresh, CSV export. Depends on admin-web 01. todo (spec written).
+- Open: service application logs (JSON lines on stdout) have no store; a log viewer for them needs a collector first.
