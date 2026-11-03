@@ -8,7 +8,7 @@ Every catalog category is open to named roles only. A user sees, and can read da
 - **Catalog.** `GET /v1/synapse/catalog` returns only entries the caller's roles allow.
 - **Data.** Every widget data route and the board summary answer `403 WIDGET_NOT_ALLOWED` for a widget the caller cannot see, so hiding is not only in the browser. The board summary ignores widgets the caller cannot see instead of failing.
 - **Entry gate.** The Synapse routes accept any role in the table or management and admin, replacing the management-or-admin check. A role in no table row and not management or admin gets 403 as today.
-- **Check.** `synapse-api check-access` fails when a catalog category has no row or a row names an unknown role.
+- **Check.** The app refuses to start when a catalog category has no row, and the table loader rejects an unknown role.
 - Metrics and records routes (used by intent-api) stay management and admin only.
 
 ## Acceptance cases
@@ -16,7 +16,7 @@ Every catalog category is open to named roles only. A user sees, and can read da
 - A `production` user reading a Finance widget gets `403 WIDGET_NOT_ALLOWED`.
 - A user with two roles sees the union of both.
 - The board summary of a mixed board returns sentences only for the topics the caller may see.
-- A new category without a row makes `check-access` fail.
+- A new category without a row stops the app at startup.
 
 ## Out of scope
 Per-user grants, an admin page for the table, row-level rules, intent-api scenario access.

@@ -4,11 +4,12 @@ from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
-from token_verification import Role
 from token_verification.fastapi_deps import AuthDependencies
+from token_verification.token_claims import TokenClaims
 
 from synapse_api.application.sales_cache import SalesCache
 from synapse_api.application.board_summary import GetBoardSummary
+from synapse_api.domain.entities.widget_access import WidgetAccess
 from synapse_api.domain.errors import InvalidQuery
 from synapse_api.domain.gateways.export_source import ExportSource
 from synapse_api.domain.gateways.finance_source import FinanceSource
@@ -17,6 +18,7 @@ from synapse_api.domain.gateways.production_source import ProductionSource
 from synapse_api.domain.gateways.purchase_source import PurchaseSource
 from synapse_api.domain.gateways.receivables_source import ReceivablesSource
 from synapse_api.domain.gateways.sales_source import SalesSource
+from synapse_api.domain.gateways.widget_catalog import WidgetCatalog
 from synapse_api.infrastructure.api.scope import company_scope
 from synapse_api.infrastructure.api.summary.schemas import SummaryResponse
 
@@ -37,13 +39,20 @@ def create_summary_router(
     exports: ExportSource | None = None,
     finance: FinanceSource | None = None,
     collection_target: Decimal = Decimal(0),
+    catalog: WidgetCatalog | None = None,
+    access: WidgetAccess | None = None,
 ) -> APIRouter:
-    router = APIRouter(dependencies=[Depends(auth.require_roles(Role.MANAGEMENT, Role.ADMIN))])
-    Scoped = Annotated[tuple[str, ...], Depends(company_scope(auth))]
+    router = APIRouter()
+    entry_roles = access.entry_roles() if access else ()
+    claims_of = Depends(auth.require_roles(*entry_roles))
+    Scoped = Annotated[tuple[str, ...], Depends(company_scope(auth, *entry_roles))]
+    categories = {entry.id: entry.category for entry in catalog.entries()} if catalog else {}
 
     @router.get("/summary")
-    def summary(companies: Scoped, widgets: Annotated[str, Query(max_length=1000)] = "", currency: str | None = None) -> SummaryResponse:
+    def summary(claims: Annotated[TokenClaims, claims_of], companies: Scoped, widgets: Annotated[str, Query(max_length=1000)] = "", currency: str | None = None) -> SummaryResponse:
         ids = sorted({part for part in widgets.split(",") if part})
+        if access:
+            ids = [part for part in ids if part not in categories or access.allows(claims.roles, categories[part])]
         if len(ids) > MAX_WIDGETS:
             raise InvalidQuery(f"at most {MAX_WIDGETS} widgets")
         shown = (currency or default_currency).upper()

@@ -11,8 +11,8 @@ from synapse_api.domain.errors import CompanyNotAllowed, InvalidQuery
 ALL = "all"
 
 
-def company_scope(auth: AuthDependencies) -> Callable[..., tuple[str, ...]]:
-    management = Depends(auth.require_roles(Role.MANAGEMENT, Role.ADMIN))
+def company_scope(auth: AuthDependencies, *roles: Role) -> Callable[..., tuple[str, ...]]:
+    management = Depends(auth.require_roles(*(roles or (Role.MANAGEMENT, Role.ADMIN))))
 
     def scope(claims: Annotated[TokenClaims, management], company: str = ALL) -> tuple[str, ...]:
         own = sorted(c.code for c in claims.companies)

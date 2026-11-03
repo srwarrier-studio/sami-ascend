@@ -4,6 +4,7 @@ from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = Path(__file__).resolve().parents[5] / ".env"
+WIDGET_ACCESS_PATH = Path(__file__).resolve().parents[3] / "widget_access.toml"
 REGISTRY_PATH = Path(__file__).resolve().parents[3] / "registry.toml"
 DEFAULT_DRIVERS_BASE_URL = "http://localhost:8003/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/"
 DEFAULT_INVENTORY_BASE_URL = "http://localhost:8003/sap/opu/odata4/sap/zui_inventory_o4/srvd_a2x/sap/zinventory/0001/"
@@ -22,6 +23,7 @@ class Settings(BaseSettings):
     export_base_url: str = DEFAULT_EXPORT_BASE_URL
     finance_base_url: str = DEFAULT_FINANCE_BASE_URL
     registry_path: Path = REGISTRY_PATH
+    widget_access_path: Path = WIDGET_ACCESS_PATH
     sap_timeout_seconds: float = 10.0
     cache_seconds: float = 300
     monthly_sales_target: Decimal = Decimal(5000000)

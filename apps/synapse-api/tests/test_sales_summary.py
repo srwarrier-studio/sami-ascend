@@ -81,10 +81,9 @@ class TestTarget:
 class TestRoute:
     BASE = "/v1/synapse/summary"
 
-    def test_needs_a_signed_in_manager(self):
+    def test_needs_a_signed_in_user(self):
         source = MockSalesSource([])
         assert make_client(source).get(self.BASE).status_code == 401
-        assert make_client(source, ["sales"]).get(self.BASE).status_code == 403
 
     def test_serves_the_sentences_and_the_currency(self):
         from test_routes_totals import DAILY

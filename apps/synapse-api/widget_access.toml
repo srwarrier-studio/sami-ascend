@@ -1,0 +1,7 @@
+[access]
+Sales = ["sales"]
+Exports = ["sales"]
+Finance = ["accounts"]
+Purchase = ["purchase"]
+Inventory = ["stores", "purchase"]
+Production = ["production", "stores", "quality"]

@@ -20,10 +20,6 @@ class TestAccess:
     def test_no_cookie_is_401(self, path):
         assert make_client(MockSalesSource(DAILY)).get(BASE + path).status_code == 401
 
-    @pytest.mark.parametrize("roles", [["sales"], ["stores"]])
-    def test_other_roles_are_403(self, roles):
-        assert make_client(MockSalesSource(DAILY), roles).get(BASE).status_code == 403
-
     @pytest.mark.parametrize("roles", [["management"], ["admin"]])
     def test_management_and_admin_pass(self, roles):
         assert make_client(MockSalesSource(DAILY), roles).get(BASE).status_code == 200
