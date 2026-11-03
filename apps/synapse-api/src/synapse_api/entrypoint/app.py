@@ -19,7 +19,7 @@ from synapse_api.application.receivables_widgets import receivables_catalog
 from synapse_api.application.sales_cache import SalesCache
 from synapse_api.application.sales_widgets import SalesWidgetCatalog
 from synapse_api.domain.entities.registry import Registry
-from synapse_api.domain.errors import CatalogEntryNotFound, CompanyNotAllowed, InvalidQuery, MetricNotFound, RecordTypeNotFound, SapUnavailable, WidgetNotAllowed
+from synapse_api.domain.errors import CatalogEntryNotFound, CompanyNotAllowed, InvalidQuery, MetricNotFound, RecordTypeNotFound, SapUnavailable, WidgetNotAllowed, BoardLimit, BoardNotFound, BoardNotOwned
 from synapse_api.domain.gateways.export_source import ExportSource
 from synapse_api.domain.gateways.finance_source import FinanceSource
 from synapse_api.domain.gateways.inventory_source import InventorySource
@@ -37,6 +37,9 @@ from synapse_api.infrastructure.api.records.router import create_records_router
 from synapse_api.infrastructure.api.sales.router import create_sales_router
 from synapse_api.infrastructure.mock_library_catalog import MockLibraryCatalog
 from synapse_api.infrastructure.registry_loader import load_registry
+from synapse_api.domain.gateways.board_store import BoardStore
+from synapse_api.infrastructure.api.boards.router import create_boards_router
+from synapse_api.infrastructure.sqlite_board_store import SqliteBoardStore
 from synapse_api.domain.entities.widget_access import WidgetAccess
 from synapse_api.infrastructure.settings import Settings
 from synapse_api.infrastructure.widget_access_loader import load_widget_access
@@ -76,6 +79,7 @@ def create_app(
     exports: ExportSource | None = None,
     finance: FinanceSource | None = None,
     access: WidgetAccess | None = None,
+    boards: BoardStore | None = None,
 ) -> FastAPI:
     auth = AuthDependencies(TokenVerifier(settings.jwt_secret))
     app = FastAPI()
@@ -91,6 +95,18 @@ def create_app(
     @app.exception_handler(WidgetNotAllowed)
     def widget_not_allowed(request: Request, error: WidgetNotAllowed) -> JSONResponse:
         return JSONResponse({"code": "WIDGET_NOT_ALLOWED"}, status_code=403)
+
+    @app.exception_handler(BoardNotFound)
+    def board_not_found(request: Request, error: BoardNotFound) -> JSONResponse:
+        return JSONResponse({"code": "BOARD_NOT_FOUND"}, status_code=404)
+
+    @app.exception_handler(BoardNotOwned)
+    def board_not_owned(request: Request, error: BoardNotOwned) -> JSONResponse:
+        return JSONResponse({"code": "BOARD_NOT_OWNED"}, status_code=403)
+
+    @app.exception_handler(BoardLimit)
+    def board_limit(request: Request, error: BoardLimit) -> JSONResponse:
+        return JSONResponse({"code": "BOARD_LIMIT"}, status_code=409)
 
     @app.exception_handler(CatalogEntryNotFound)
     def catalog_entry_not_found(request: Request, error: CatalogEntryNotFound) -> JSONResponse:
@@ -127,6 +143,7 @@ def create_app(
     app.include_router(
         create_summary_router(source, settings.monthly_sales_target, auth, today, sales_cache, settings.default_currency, purchases, receivables, inventory, production, exports, finance, settings.monthly_collection_target, widgets, widget_access), prefix="/v1/synapse", tags=["Summary"]
     )
+    app.include_router(create_boards_router(boards or SqliteBoardStore(":memory:"), widgets, widget_access, auth), prefix="/v1/synapse", tags=["Boards"])
     known = (registry or load_registry(settings.registry_path)) if metrics is not None or records is not None else None
     if records is not None:
         app.include_router(create_records_router(records, known, auth, today, sales_cache), prefix="/v1/synapse", tags=["Records"])

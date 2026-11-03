@@ -4,7 +4,7 @@
 Each user's boards are saved on the server, and a user can mark a board public so others can copy it. This is the former board-storage phase 04.
 
 ## Behavior
-- **Store.** SQLite behind a repo port: board id, owner user id, owner name, name, `is_public`, widgets (id, catalog id, size, position), timestamps. A user has at most 3 boards, as in the web app.
+- **Store.** SQLite behind a repo port: board id, owner user id, owner name (the token has only the SAP username, so that is the name shown), name, `is_public`, widgets (id, catalog id, size, position), timestamps. A user has at most 3 boards, as in the web app.
 - **Routes** under `/v1/synapse/boards`, any Synapse user (synapse-api 18 gate):
   - `GET` the caller's boards, each widget kept as saved.
   - `POST` create (name, `is_public`, optional widgets), `PATCH {id}` rename or set `is_public`, `PUT {id}/widgets` save layout, `DELETE {id}`. Only the owner may change or delete (`403` otherwise).

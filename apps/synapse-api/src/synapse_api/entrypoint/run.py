@@ -12,6 +12,7 @@ from synapse_api.infrastructure.odata_reader import ODataReader
 from synapse_api.infrastructure.registry_record_source import RegistryRecordSource
 from synapse_api.infrastructure.registry_metric_source import RegistryMetricSource
 from synapse_api.infrastructure.settings import Settings
+from synapse_api.infrastructure.sqlite_board_store import SqliteBoardStore
 
 
 def main() -> None:
@@ -37,5 +38,6 @@ def main() -> None:
         production=ButterflyProductionSource(readers["production"], readers["drivers"]),
         exports=ButterflyExportSource(readers["export"]),
         finance=ButterflyFinanceSource(readers["finance"]),
+        boards=SqliteBoardStore(str(settings.boards_db_path)),
     )
     uvicorn.run(app, host="0.0.0.0", port=8004, log_config=None)
