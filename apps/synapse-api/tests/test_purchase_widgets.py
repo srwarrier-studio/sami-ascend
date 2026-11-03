@@ -28,9 +28,9 @@ def data(source: MockPurchaseSource, entry_id: str, today: date = TODAY, currenc
 
 
 class TestList:
-    def test_lists_six_purchase_widgets_under_their_old_ids(self):
+    def test_lists_the_purchase_widgets_under_their_old_ids(self):
         entries = ListCatalog(purchase_catalog(MockPurchaseSource())).execute()
-        assert [e.id for e in entries] == ["pur-spend", "pur-open", "pur-trend", "pur-vendors", "pur-recent", "pur-ontime"]
+        assert [e.id for e in entries] == ["pur-spend", "pur-open", "pur-trend", "pur-vendors", "pur-recent", "pur-ontime", "pur-categories", "pur-by-category-month"]
         assert {e.category for e in entries} == {"Purchase"}
 
 
@@ -112,3 +112,60 @@ class TestOnTime:
     def test_nothing_due_says_so(self):
         props = data(MockPurchaseSource(), "pur-ontime")
         assert (props["value"], props["caption"]) == (0.0, "nothing due in 90 days")
+
+
+def group(code: str, name: str, d: date, amount: str, currency: str = "INR"):
+    from synapse_api.domain.entities.purchases import GroupPurchases
+
+    return GroupPurchases(code, name, d, Decimal(amount), 1, currency)
+
+
+class TestCategories:
+    def source(self):
+        return MockPurchaseSource(
+            groups=[
+                group("B", "Botanical", date(2026, 10, 24), "700"),
+                group("B", "Botanical", date(2026, 9, 24), "300"),
+                group("P", "Packing", date(2026, 9, 24), "200"),
+                group("B", "Botanical", date(2026, 7, 24), "9999"),
+                group("P", "Packing", date(2026, 10, 24), "50", "USD"),
+                group("Z", "Empty", date(2026, 10, 24), "0"),
+            ]
+        )
+
+    def test_the_donut_shares_the_last_three_months_biggest_first(self):
+        slices = data(self.source(), "pur-categories")["slices"]
+        assert slices == [{"label": "Botanical", "value": 1000.0}, {"label": "Packing", "value": 200.0}]
+
+    def test_the_stacked_chart_has_six_months_ending_this_one_and_zeros_for_quiet_ones(self):
+        props = data(self.source(), "pur-by-category-month")
+        assert [p["label"] for p in props["series"][0]["data"]] == ["May", "Jun", "Jul", "Aug", "Sep", "Oct"]
+        series = {s["name"]: [p["value"] for p in s["data"]] for s in props["series"]}
+        assert series["Botanical"] == [0.0, 0.0, 9999.0, 0.0, 300.0, 700.0]
+        assert series["Packing"] == [0.0, 0.0, 0.0, 0.0, 200.0, 0.0] and "Empty" not in series
+        assert props["valueFormat"] == "currency"
+
+    def test_no_groups_gives_empty_widgets(self):
+        assert data(MockPurchaseSource(), "pur-categories")["slices"] == []
+        assert data(MockPurchaseSource(), "pur-by-category-month")["series"] == []
+
+
+class TestCategoryOverview:
+    def lines(self, *ids):
+        from synapse_api.application.purchase_summary import GetPurchaseSummary
+
+        source = TestCategories().source()
+        source.daily = [day(date(2026, 10, 2), "10")]
+        return GetPurchaseSummary(source).execute(TODAY, "INR", set(ids))
+
+    def test_names_the_biggest_category(self):
+        assert self.lines("pur-spend", "pur-categories")[1] == "Botanical is the biggest category over the last 3 months: ₹1,000 (83% of purchases)."
+
+    def test_the_cap_of_two_per_topic_applies_in_the_board_summary(self):
+        from synapse_api.application.board_summary import GetBoardSummary
+        from synapse_api.infrastructure.mock_sales_source import MockSalesSource
+
+        source = TestCategories().source()
+        source.daily = [day(date(2026, 10, 2), "10")]
+        lines = GetBoardSummary(MockSalesSource(), Decimal(0), purchases=source).execute(TODAY, "INR", {"pur-spend", "pur-categories", "pur-vendors"})
+        assert len(lines) == 2

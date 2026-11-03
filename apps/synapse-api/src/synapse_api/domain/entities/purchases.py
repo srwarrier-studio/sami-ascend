@@ -32,3 +32,13 @@ class PurchaseItem:
     net_amount: Decimal
     currency: str
     status: str
+
+
+@dataclass(frozen=True)
+class GroupPurchases:
+    group: str
+    name: str
+    date: date
+    net_amount: Decimal
+    order_count: int
+    currency: str

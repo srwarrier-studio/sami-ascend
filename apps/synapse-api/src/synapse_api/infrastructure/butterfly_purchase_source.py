@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from synapse_api.domain.entities.purchases import DailyPurchases, PurchaseItem, SupplierPurchases
+from synapse_api.domain.entities.purchases import DailyPurchases, GroupPurchases, PurchaseItem, SupplierPurchases
 from synapse_api.domain.gateways.purchase_source import PurchaseSource
 from synapse_api.infrastructure.odata_reader import ODataReader, company_clause
 
@@ -43,6 +43,13 @@ class ButterflyPurchaseSource(PurchaseSource):
         path = f"PurchaseSummaryBySupplier?$filter={day_range('OrderDate', start, end)}{self.company()}&$orderby=OrderDate,Supplier,Currency,CompanyCode"
         return [
             SupplierPurchases(r["Supplier"], r["SupplierName"] or "", date.fromisoformat(r["OrderDate"]), Decimal(r["TotalNetAmount"]), r["OrderCount"], r["Currency"])
+            for r in self.reader.all_rows(path)
+        ]
+
+    def group_purchases(self, start: date, end: date) -> list[GroupPurchases]:
+        path = f"PurchaseSummaryByMaterialGroup?$filter={day_range('OrderDate', start, end)}{self.company()}&$orderby=OrderDate,MaterialGroup,Currency,CompanyCode"
+        return [
+            GroupPurchases(r["MaterialGroup"], r["MaterialGroupName"] or r["MaterialGroup"], date.fromisoformat(r["OrderDate"]), Decimal(r["TotalNetAmount"]), r["OrderCount"], r["Currency"])
             for r in self.reader.all_rows(path)
         ]
 

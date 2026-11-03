@@ -1,14 +1,15 @@
 from datetime import date
 
-from synapse_api.domain.entities.purchases import DailyPurchases, PurchaseItem, SupplierPurchases
+from synapse_api.domain.entities.purchases import DailyPurchases, GroupPurchases, PurchaseItem, SupplierPurchases
 from synapse_api.domain.gateways.purchase_source import PurchaseSource
 
 
 class MockPurchaseSource(PurchaseSource):
-    def __init__(self, daily: list[DailyPurchases] | None = None, suppliers: list[SupplierPurchases] | None = None, items: list[PurchaseItem] | None = None):
+    def __init__(self, daily: list[DailyPurchases] | None = None, suppliers: list[SupplierPurchases] | None = None, items: list[PurchaseItem] | None = None, groups: list[GroupPurchases] | None = None):
         self.daily = daily or []
         self.suppliers = suppliers or []
         self.items = items or []
+        self.groups = groups or []
 
     def for_companies(self, companies: tuple[str, ...]) -> "MockPurchaseSource":
         return self
@@ -18,6 +19,9 @@ class MockPurchaseSource(PurchaseSource):
 
     def supplier_purchases(self, start: date, end: date) -> list[SupplierPurchases]:
         return [row for row in self.suppliers if start <= row.date <= end]
+
+    def group_purchases(self, start: date, end: date) -> list[GroupPurchases]:
+        return [row for row in self.groups if start <= row.date <= end]
 
     def recent_items(self, top: int) -> list[PurchaseItem]:
         live = [item for item in self.items if item.status != "X"]

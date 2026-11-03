@@ -11,6 +11,8 @@ TREND_MONTHS = 12
 KPI_TREND_MONTHS = 6
 ON_TIME_TARGET = 1.0
 ON_TIME_DAYS = 90
+CATEGORY_MONTHS = 3
+CATEGORY_MONTHS_CHART = 6
 
 
 def month_totals(source: PurchaseSource, today: date, months: int, currency: str) -> list[tuple[date, float]]:
@@ -98,6 +100,54 @@ class OnTimeDeliveryWidget:
         return {"title": self.entry.title, "measure": "on-time deliveries", "value": share, "target": ON_TIME_TARGET, "valueFormat": "percent", "caption": caption}
 
 
+class CategoryDonutWidget:
+    def __init__(self, source: PurchaseSource, entry: CatalogEntry):
+        self.source = source
+        self.entry = entry
+
+    def props(self, today: date, currency: str, top: int = TOP) -> dict:
+        totals = category_totals(self.source, today, currency)
+        slices = [{"label": name, "value": float(value)} for name, value in sorted(totals.values(), key=lambda item: (-item[1], item[0])) if value > 0]
+        return {"title": self.entry.title, "measure": "purchases", "slices": slices}
+
+
+class CategoryByMonthWidget:
+    def __init__(self, source: PurchaseSource, entry: CatalogEntry):
+        self.source = source
+        self.entry = entry
+
+    def props(self, today: date, currency: str, top: int = TOP) -> dict:
+        first = months_start(today, CATEGORY_MONTHS_CHART - 1)
+        sums: dict[tuple[str, int, int], Decimal] = {}
+        names: dict[str, str] = {}
+        for row in self.source.group_purchases(first, today):
+            if row.currency == currency:
+                names[row.group] = row.name
+                key = (row.group, row.date.year, row.date.month)
+                sums[key] = sums.get(key, Decimal(0)) + row.net_amount
+        months = [(first.year * 12 + first.month - 1 + n) for n in range(CATEGORY_MONTHS_CHART)]
+        series = []
+        for group in sorted(names):
+            values = [sums.get((group, index // 12, index % 12 + 1), Decimal(0)) for index in months]
+            if any(value > 0 for value in values):
+                series.append({"name": names[group], "data": [{"label": MONTH_NAMES[index % 12], "value": float(value)} for index, value in zip(months, values)]})
+        return {"title": self.entry.title, "measure": "purchases", "valueFormat": "currency", "series": series}
+
+
+def months_start(today: date, back: int) -> date:
+    index = today.year * 12 + today.month - 1 - back
+    return date(index // 12, index % 12 + 1, 1)
+
+
+def category_totals(source: PurchaseSource, today: date, currency: str) -> dict[str, tuple[str, Decimal]]:
+    totals: dict[str, tuple[str, Decimal]] = {}
+    for row in source.group_purchases(months_start(today, CATEGORY_MONTHS - 1), today):
+        if row.currency == currency:
+            name, value = totals.get(row.group, (row.name, Decimal(0)))
+            totals[row.group] = (name, value + row.net_amount)
+    return totals
+
+
 def trend_for(source: PurchaseSource):
     def monthly(today: date, currency: str) -> list[float]:
         return [value for _, value in month_totals(source, today, KPI_TREND_MONTHS, currency)]
@@ -116,6 +166,8 @@ def build_purchase_widgets(source: PurchaseSource) -> list:
         PurchaseVendorsWidget(source, entry("pur-vendors", "Top vendors", "Suppliers ranked by purchase order value this month.", "RankedList")),
         PurchaseRecentWidget(source, entry("pur-recent", "Recent purchase orders", "The latest purchase order items and where they stand.", "DataTable")),
         OnTimeDeliveryWidget(source, entry("pur-ontime", "On-time delivery", "Share of purchase order items due this month that arrived by the promised date.", "GaugeChart")),
+        CategoryDonutWidget(source, entry("pur-categories", "Spend by category", "How purchase value is shared between material groups over the last three months.", "DonutChart")),
+        CategoryByMonthWidget(source, entry("pur-by-category-month", "Spend by category per month", "Purchase value each month split by material group.", "StackedBarChart")),
     ]
 
 

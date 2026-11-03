@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import date
 
-from synapse_api.domain.entities.purchases import DailyPurchases, PurchaseItem, SupplierPurchases
+from synapse_api.domain.entities.purchases import DailyPurchases, GroupPurchases, PurchaseItem, SupplierPurchases
 
 
 class PurchaseSource(ABC):
@@ -13,6 +13,9 @@ class PurchaseSource(ABC):
 
     @abstractmethod
     def supplier_purchases(self, start: date, end: date) -> list[SupplierPurchases]: ...
+
+    @abstractmethod
+    def group_purchases(self, start: date, end: date) -> list[GroupPurchases]: ...
 
     @abstractmethod
     def recent_items(self, top: int) -> list[PurchaseItem]: ...

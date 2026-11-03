@@ -47,6 +47,13 @@ class TestPurchases:
         assert (result[0].supplier, result[0].name) == ("0000200001", "")
         assert "PurchaseSummaryBySupplier?" in urls[0] and "OrderDate,Supplier,Currency,CompanyCode" in urls[0]
 
+    def test_group_purchases_read_the_material_group_summary(self):
+        urls = []
+        row = {"MaterialGroup": "BOTANIC", "MaterialGroupName": None, "OrderDate": "2026-10-02", "TotalNetAmount": "1949000.00", "OrderCount": 4, "Currency": "INR"}
+        result = ButterflyPurchaseSource(reader(seen([row], urls))).for_companies(("INA1",)).group_purchases(START, END)
+        assert (result[0].group, result[0].name, result[0].net_amount) == ("BOTANIC", "BOTANIC", Decimal("1949000.00"))
+        assert "PurchaseSummaryByMaterialGroup?$filter=OrderDate ge 2026-10-01 and OrderDate le 2026-10-27 and (CompanyCode eq 'INA1')&$orderby=OrderDate,MaterialGroup,Currency,CompanyCode" in urls[0]
+
     def test_recent_items_leave_cancelled_out_and_take_the_latest(self):
         urls = []
         items = ButterflyPurchaseSource(reader(seen([ITEM], urls))).recent_items(5)

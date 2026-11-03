@@ -130,11 +130,11 @@ class TestRealSourcesReplaceTheMockLibrary:
     def test_each_id_is_listed_once_and_the_rest_of_the_library_stays(self):
         ids = [e["id"] for e in self.client().get(BASE).json()["entries"]]
         assert len(ids) == len(set(ids)) == 50
-        assert {"pur-spend", "fin-receivables", "pur-categories", "inv-value"} <= set(ids)
+        assert {"pur-spend", "fin-receivables", "pur-categories", "exp-revenue"} <= set(ids)
 
     def test_a_replaced_id_is_served_by_the_real_source(self):
         body = self.client().get(f"{BASE}/pur-spend/data").json()
         assert body["measure"] == "purchases" and body["value"] == 0.0 and "period" in body
 
     def test_an_id_with_no_real_source_still_comes_from_the_library(self):
-        assert self.client().get(f"{BASE}/pur-categories/data").json()["title"] == "Spend by category"
+        assert self.client().get(f"{BASE}/exp-revenue/data").json()["title"] == "Export revenue"
