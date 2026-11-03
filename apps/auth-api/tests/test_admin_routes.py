@@ -199,3 +199,10 @@ class TestAuditLog:
         assert [r["detail"] for r in failed] == ["bad_password"]
         assert api.get(BASE + "/audit-log?outcome=failed&action=user.create").json()["items"] == []
         assert [r["actor"] for r in api.get(BASE + "/audit-log?actor=BOB@sami.com").json()["items"]] == ["bob@sami.com"]
+
+    def test_an_action_ending_in_a_star_matches_a_prefix(self, uow, api):
+        api.post(BASE + "/users", json=NEW)
+        with pytest.raises(InvalidCredentials):
+            LoginWithPassword(uow, hasher, tokens).execute(LoginWithPasswordDTO("bob@sami.com", "wrong"))
+        assert [r["action"] for r in api.get(BASE + "/audit-log?action=user.*").json()["items"]] == ["user.create"]
+        assert [r["action"] for r in api.get(BASE + "/audit-log?action=login.*").json()["items"]] == ["login.password"]

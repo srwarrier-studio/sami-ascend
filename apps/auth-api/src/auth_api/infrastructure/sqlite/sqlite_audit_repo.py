@@ -17,10 +17,16 @@ class SqliteAuditRepo(AuditRepo):
 
     def list(self, filters: AuditFilter, limit: int, before: int | None) -> list[AuditEvent]:
         clauses, args = [], []
-        for column, value in (("actor", filters.actor), ("action", filters.action), ("outcome", filters.outcome)):
+        for column, value in (("actor", filters.actor), ("outcome", filters.outcome)):
             if value:
                 clauses.append(f"{column} = ?")
                 args.append(value)
+        if filters.action and filters.action.endswith("*"):
+            clauses.append("action LIKE ? ESCAPE '\\'")
+            args.append(filters.action[:-1].replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%")
+        elif filters.action:
+            clauses.append("action = ?")
+            args.append(filters.action)
         if filters.start:
             clauses.append("at >= ?")
             args.append(filters.start)

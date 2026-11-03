@@ -7,6 +7,7 @@ import { NotAllowedPage } from './pages/NotAllowedPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { UsersPage } from './pages/UsersPage'
 import { AuditPage } from './pages/AuditPage'
+import type { AuditSearch } from './pages/AuditPage'
 import { Shell } from './Shell'
 
 export type RouterContext = {
@@ -61,7 +62,21 @@ const notAllowedRoute = createRoute({
 
 const usersRoute = createRoute({ getParentRoute: () => rootRoute, path: '/users', beforeLoad: requireAdmin, component: UsersPage })
 
-const auditRoute = createRoute({ getParentRoute: () => rootRoute, path: '/audit', beforeLoad: requireAdmin, component: AuditPage })
+const text = (value: unknown) => (typeof value === 'string' && value !== '' ? value : undefined)
+
+const auditRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/audit',
+  validateSearch: (search: Record<string, unknown>): AuditSearch => ({
+    actor: text(search.actor),
+    action: text(search.action),
+    outcome: text(search.outcome),
+    from: text(search.from),
+    to: text(search.to),
+  }),
+  beforeLoad: requireAdmin,
+  component: AuditPage,
+})
 
 const routeTree = rootRoute.addChildren([loginRoute, homeRoute, notAllowedRoute, usersRoute, auditRoute])
 
