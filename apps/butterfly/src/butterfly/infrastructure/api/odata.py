@@ -5,6 +5,7 @@ from butterfly.domain.entities.sales_order import SalesOrder, SalesOrderItem
 
 ROOT = "/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/0001/"
 DRIVERS_ROOT = "/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/"
+INVENTORY_ROOT = "/sap/opu/odata4/sap/zui_inventory_o4/srvd_a2x/sap/zinventory/0001/"
 
 
 def timestamp(value: datetime) -> str:
@@ -56,6 +57,8 @@ def summary_to_json(row, fields: dict, select: list[str] | None = None) -> dict:
         value = getattr(row, attribute)
         if isinstance(value, Decimal):
             value = str(value)
+        elif isinstance(value, datetime):
+            value = timestamp(value)
         elif isinstance(value, date):
             value = value.isoformat()
         values[name] = value

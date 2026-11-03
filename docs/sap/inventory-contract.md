@@ -132,12 +132,110 @@ they are; the apps read only these.
 
 ## 5. Reads
 
-All examples use the root path from section 1. The examples with their real responses are added
-when butterfly serves this contract.
+All examples use the root path from section 1. `{root}` stands for it. The responses are real and are
+checked by a test against the data of 2026-10-31.
 
-- Low stock: `{root}MaterialStock?$filter=StockStatus ne 'O'&$orderby=Material,Plant,StorageLocation`
+### Items below the reorder level
+
+```
+GET {root}MaterialStock?$filter=StockStatus ne 'O'&$orderby=Material,Plant,StorageLocation&$top=2
+```
+
+```json
+{
+  "@odata.context": "$metadata#MaterialStock",
+  "value": [
+    {
+      "Material": "NRAW-2005",
+      "MaterialDescription": "Vitamin C and zinc premix",
+      "MaterialGroup": "ACTIVE",
+      "MaterialGroupName": "Active ingredients and premixes",
+      "Plant": "2000",
+      "StorageLocation": "0001",
+      "StorageLocationName": "Raw material store",
+      "StockQuantity": "0.000",
+      "QuantityUnit": "KG",
+      "StockValue": "0.00",
+      "Currency": "INR",
+      "ReorderLevel": "2840.905",
+      "StockStatus": "Z",
+      "LastMovementDate": "2026-10-31",
+      "CompanyCode": "INA2"
+    },
+    {
+      "Material": "NU-1004",
+      "MaterialDescription": "Turmeric complex softgel 500mg",
+      "MaterialGroup": "DOSAGE",
+      "MaterialGroupName": "Finished dosage forms",
+      "Plant": "2000",
+      "StorageLocation": "0002",
+      "StorageLocationName": "Finished goods store",
+      "StockQuantity": "11685.885",
+      "QuantityUnit": "EA",
+      "StockValue": "98161.43",
+      "Currency": "INR",
+      "ReorderLevel": "58429.427",
+      "StockStatus": "L",
+      "LastMovementDate": "2026-10-30",
+      "CompanyCode": "INA2"
+    }
+  ]
+}
+```
+
+### Movements of a material in a period
+
+```
+GET {root}StockMovement?$filter=Material eq 'RAW-2002' and PostingDate ge 2026-10-01 and PostingDate le 2026-10-31&$orderby=PostingDate,MaterialDocument,MaterialDocumentItem,MaterialDocumentYear&$top=2
+```
+
+```json
+{
+  "@odata.context": "$metadata#StockMovement",
+  "value": [
+    {
+      "MaterialDocument": "4900009696",
+      "MaterialDocumentItem": "0001",
+      "MaterialDocumentYear": "2026",
+      "PostingDate": "2026-10-06",
+      "EntryDateTime": "2026-10-06T10:48:00Z",
+      "Material": "RAW-2002",
+      "MaterialDescription": "Black pepper, whole",
+      "Plant": "1000",
+      "StorageLocation": "0001",
+      "MovementType": "261",
+      "DebitCreditCode": "H",
+      "Quantity": "4400.000",
+      "QuantityUnit": "KG",
+      "Amount": "228800.00",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "MaterialDocument": "4900009954",
+      "MaterialDocumentItem": "0001",
+      "MaterialDocumentYear": "2026",
+      "PostingDate": "2026-10-16",
+      "EntryDateTime": "2026-10-16T16:42:00Z",
+      "Material": "RAW-2002",
+      "MaterialDescription": "Black pepper, whole",
+      "Plant": "1000",
+      "StorageLocation": "0001",
+      "MovementType": "101",
+      "DebitCreditCode": "S",
+      "Quantity": "5000.000",
+      "QuantityUnit": "KG",
+      "Amount": "260000.00",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Further reads (examples are added with the summaries)
+
 - Stock of one group: `{root}StockSummaryByMaterialGroup?$filter=CompanyCode eq 'INA1'&$orderby=MaterialGroup,Currency,CompanyCode`
-- Movements of a material in a period: `{root}StockMovement?$filter=Material eq 'RAW-2002' and PostingDate ge 2026-10-01 and PostingDate le 2026-10-31&$orderby=PostingDate,MaterialDocument,MaterialDocumentItem,MaterialDocumentYear`
 - Receipts and issues per day: `{root}StockMovementSummaryByDay?$filter=PostingDate ge 2026-10-01&$orderby=PostingDate,Currency,CompanyCode`
 - Stock value at each month end: `{root}StockValueByMonth?$orderby=PostingPeriod,Currency,CompanyCode`
 

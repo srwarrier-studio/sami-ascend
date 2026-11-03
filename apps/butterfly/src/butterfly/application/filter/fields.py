@@ -159,6 +159,41 @@ PRODUCTION_ORDER_COMPONENT_FIELDS = {
     "CompanyCode": ("company_code", FieldType.STRING),
 }
 
+MATERIAL_STOCK_FIELDS = {
+    "Material": ("material", FieldType.STRING),
+    "MaterialDescription": ("material_description", FieldType.STRING),
+    "MaterialGroup": ("material_group", FieldType.STRING),
+    "MaterialGroupName": ("material_group_name", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "StorageLocation": ("storage_location", FieldType.STRING),
+    "StorageLocationName": ("storage_location_name", FieldType.STRING),
+    "StockQuantity": ("stock_quantity", FieldType.DECIMAL),
+    "QuantityUnit": ("quantity_unit", FieldType.STRING),
+    "StockValue": ("stock_value", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "ReorderLevel": ("reorder_level", FieldType.DECIMAL),
+    "StockStatus": ("stock_status", FieldType.STRING),
+    "LastMovementDate": ("last_movement_date", FieldType.DATE),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_MOVEMENT_FIELDS = {
+    "MaterialDocument": ("material_document", FieldType.STRING),
+    "MaterialDocumentItem": ("material_document_item", FieldType.STRING),
+    "MaterialDocumentYear": ("material_document_year", FieldType.STRING),
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "EntryDateTime": ("entry_date_time", FieldType.DATETIME),
+    "Material": ("material", FieldType.STRING),
+    "MaterialDescription": ("material_description", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "StorageLocation": ("storage_location", FieldType.STRING),
+    "MovementType": ("movement_type", FieldType.STRING),
+    "DebitCreditCode": ("debit_credit_code", FieldType.STRING),
+    "Quantity": ("quantity", FieldType.DECIMAL),
+    "QuantityUnit": ("quantity_unit", FieldType.STRING),
+    "Amount": ("amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
 PURCHASE_SUMMARY_BY_DAY_FIELDS = SALES_SUMMARY_BY_DAY_FIELDS
 
 PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {
