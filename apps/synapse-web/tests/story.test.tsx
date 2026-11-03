@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryHistory } from '@tanstack/react-router'
 import { UiProvider, synapsePalette } from '@sami/ui'
@@ -20,17 +20,17 @@ const open = (client: MockCatalogClient) => {
 }
 
 describe('the summary strip', () => {
-  it('shows the sentences and when they were read', async () => {
+  it('shows the sentences and a way into AI Mode', async () => {
     open(new MockCatalogClient())
     const strip = await screen.findByLabelText('Summary')
     expect(within(strip).getByText(/Sales this month are/)).toBeInTheDocument()
     expect(within(strip).getByText(/Acme Ltd moved most/)).toBeInTheDocument()
-    expect(within(strip).getByText(/^as of \d/)).toBeInTheDocument()
+    expect(within(strip).getByRole('button', { name: 'Ask AI for more' })).toBeInTheDocument()
   })
 
   it('draws nothing when there are no sentences or the request fails', async () => {
     const empty = new MockCatalogClient()
-    empty.summary = async (): Promise<Summary> => ({ asOf: '', currency: 'USD', sentences: [] })
+    empty.summary = async (): Promise<Summary> => ({ currency: 'INR', sentences: [] })
     open(empty)
     await screen.findByText('Top customers')
     expect(screen.queryByLabelText('Summary')).toBeNull()
@@ -45,32 +45,22 @@ describe('the summary strip', () => {
   })
 })
 
-describe('opening a widget into the answer', () => {
-  it('offers Why? on the sales cards and See all on the rankings, and nothing on other widgets', async () => {
+describe('the board update time', () => {
+  it('shows when the board last asked for its data, and nothing before the first answer', async () => {
     open(new MockCatalogClient())
-    expect(await screen.findByRole('button', { name: 'Why did Sales this month change?' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'See all Top customers' })).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: /^(Why did|See all)/ })).toHaveLength(2)
+    expect(screen.queryByText(/^Updated /)).toBeNull()
+    expect(await screen.findByText(/^Updated \d/)).toBeInTheDocument()
   })
 
-  it('asks for twenty rows when See all is pressed', async () => {
-    const client = new MockCatalogClient()
-    const data = vi.spyOn(client, 'data')
-    open(client)
-    await userEvent.click(await screen.findByRole('button', { name: 'See all Top customers' }))
-    await waitFor(() => expect(data).toHaveBeenCalledWith('top-customers', expect.anything(), 'USD', 20))
+  it('has no buttons on the widgets themselves', async () => {
+    open(new MockCatalogClient())
+    await screen.findByText('Top customers')
+    expect(screen.queryByRole('button', { name: /^(Why did|See all)/ })).toBeNull()
   })
 
-  it('hides both while the board is edited', async () => {
+  it('opens AI Mode from the summary', async () => {
     open(new MockCatalogClient())
-    await userEvent.click(await screen.findByRole('button', { name: 'Edit' }))
-    expect(screen.queryByRole('button', { name: /^Why did/ })).toBeNull()
-    expect(screen.queryByRole('button', { name: /^See all/ })).toBeNull()
-  })
-
-  it('opens AI Mode with the why question', async () => {
-    open(new MockCatalogClient())
-    await userEvent.click(await screen.findByRole('button', { name: 'Why did Sales this month change?' }))
-    expect(await screen.findByText('Why did sales change last month?')).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: 'Ask AI for more' }))
+    expect(await screen.findByLabelText('Message')).toBeInTheDocument()
   })
 })

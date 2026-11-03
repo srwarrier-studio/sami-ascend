@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from datetime import UTC, date, datetime
+from datetime import date
 from decimal import Decimal
 from typing import Annotated
 
@@ -21,8 +21,7 @@ def create_summary_router(
     auth: AuthDependencies,
     today: Callable[[], date],
     cache: SalesCache,
-    default_currency: str = "USD",
-    now: Callable[[], datetime] = lambda: datetime.now(UTC),
+    default_currency: str = "INR",
 ) -> APIRouter:
     router = APIRouter(dependencies=[Depends(auth.require_roles(Role.MANAGEMENT, Role.ADMIN))])
     Scoped = Annotated[tuple[str, ...], Depends(company_scope(auth))]
@@ -35,7 +34,6 @@ def create_summary_router(
         return cache.get(
             ("summary", companies, shown, today()),
             lambda: SummaryResponse(
-                asOf=now().isoformat(timespec="seconds"),
                 currency=shown,
                 sentences=GetSalesSummary(source.for_companies(companies), target).execute(today(), shown),
             ),

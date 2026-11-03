@@ -5,18 +5,23 @@ import type { CatalogClient, CatalogEntry } from './catalogClient'
 type State = { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; props: Record<string, unknown> }
 
 export const REFRESH_MS = 300000
-export const CURRENCY = 'USD'
+export const CURRENCY = 'INR'
 
-type CatalogWidgetProps = { entry: CatalogEntry; client: CatalogClient; company: string | null; refreshMs?: number; top?: number }
+type CatalogWidgetProps = { entry: CatalogEntry; client: CatalogClient; company: string | null; refreshMs?: number; onLoaded?: (at: Date) => void }
 
-export function CatalogWidget({ entry, client, company, refreshMs = REFRESH_MS, top }: CatalogWidgetProps) {
+export function CatalogWidget({ entry, client, company, refreshMs = REFRESH_MS, onLoaded }: CatalogWidgetProps) {
   const [state, setState] = useState<State>({ status: 'loading' })
 
   useEffect(() => {
     let current = true
     const load = () =>
-      (top === undefined ? client.data(entry.id, company, CURRENCY) : client.data(entry.id, company, CURRENCY, top))
-        .then((props) => current && setState({ status: 'ready', props: props as Record<string, unknown> }))
+      client
+        .data(entry.id, company, CURRENCY)
+        .then((props) => {
+          if (!current) return
+          setState({ status: 'ready', props: props as Record<string, unknown> })
+          onLoaded?.(new Date())
+        })
         .catch((error: unknown) => current && setState({ status: 'failed', message: error instanceof Error ? error.message : 'Could not load' }))
     load()
     const timer = setInterval(load, refreshMs)
@@ -24,7 +29,7 @@ export function CatalogWidget({ entry, client, company, refreshMs = REFRESH_MS, 
       current = false
       clearInterval(timer)
     }
-  }, [entry, client, company, refreshMs, top])
+  }, [entry, client, company, refreshMs, onLoaded])
 
   if (state.status === 'loading') return <Skeleton height="100%" radius="lg" aria-label={`Loading ${entry.title}`} />
   if (state.status === 'failed') return <Alert color="red" title={entry.title}>{state.message}</Alert>

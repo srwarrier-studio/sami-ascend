@@ -2,7 +2,6 @@ import { useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { ActionIcon, ArrowLeftIcon, ArrowRightIcon, ArrowsOutSimpleIcon, TrashIcon, WidgetCell, WidgetGrid, allowedSizes } from '@sami/ui'
 import { CatalogWidget } from '../catalog/CatalogWidget'
-import { DrillAction } from './DrillAction'
 import type { CatalogClient, CatalogEntry } from '../catalog/catalogClient'
 import type { BoardWidget } from './boardStore'
 import { dropWidget, moveWidget, removeWidget, resizeWidget } from './layout'
@@ -16,9 +15,10 @@ type BoardGridProps = {
   editing: boolean
   onChange: (widgets: BoardWidget[]) => void
   empty?: ReactNode
+  onLoaded?: (at: Date) => void
 }
 
-export function BoardGrid({ widgets, catalog, client, company, editing, onChange, empty }: BoardGridProps) {
+export function BoardGrid({ widgets, catalog, client, company, editing, onChange, empty, onLoaded }: BoardGridProps) {
   const [dragging, setDragging] = useState<string | null>(null)
   const [preview, setPreview] = useState<BoardWidget[] | null>(null)
   const shown = preview ?? widgets
@@ -70,8 +70,7 @@ export function BoardGrid({ widgets, catalog, client, company, editing, onChange
                 </ActionIcon>
               </div>
             )}
-            {!editing && <DrillAction entry={entry} client={client} company={company} />}
-            <CatalogWidget entry={entry} client={client} company={company} />
+            <CatalogWidget entry={entry} client={client} company={company} onLoaded={onLoaded} />
           </WidgetCell>
         )
       })}

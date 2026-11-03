@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from datetime import UTC, date, datetime
+from datetime import date
 
 from typing import Annotated
 
@@ -20,8 +20,7 @@ def create_catalog_router(
     auth: AuthDependencies,
     today: Callable[[], date],
     cache: SalesCache,
-    default_currency: str = "USD",
-    now: Callable[[], datetime] = lambda: datetime.now(UTC),
+    default_currency: str = "INR",
 ) -> APIRouter:
     router = APIRouter(dependencies=[Depends(auth.require_roles(Role.MANAGEMENT, Role.ADMIN))])
     Scoped = Annotated[tuple[str, ...], Depends(company_scope(auth))]
@@ -37,7 +36,7 @@ def create_catalog_router(
             raise InvalidQuery("currency must be a 3-letter code such as USD or INR")
         return cache.get(
             ("catalog-data", companies, shown, entry_id, today(), top),
-            lambda: {**GetWidgetData(catalog.for_companies(companies)).execute(entry_id, today(), shown, top), "asOf": now().isoformat(timespec="seconds")},
+            lambda: GetWidgetData(catalog.for_companies(companies)).execute(entry_id, today(), shown, top),
         )
 
     return router

@@ -38,7 +38,6 @@ const entries: Record<string, Entry> = {
       trend: z.array(z.number()).optional(),
       note: z.string().optional(),
       partial: z.boolean().optional(),
-      asOf: z.string().optional(),
     }),
     sizes: ['kpi'],
     component: KpiCard,
@@ -141,7 +140,7 @@ const entries: Record<string, Entry> = {
   },
   GaugeChart: {
     description: 'One value against a target as a progress ring, such as month-to-date sales against the monthly target.',
-    schema: z.object({ title: z.string().optional(), info, measure, value: z.number(), target: z.number().positive(), valueFormat, caption: z.string().optional(), asOf: z.string().optional() }),
+    schema: z.object({ title: z.string().optional(), info, measure, value: z.number(), target: z.number().positive(), valueFormat, caption: z.string().optional() }),
     sizes: ['small', 'medium'],
     component: GaugeChart,
   },

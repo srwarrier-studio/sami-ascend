@@ -85,14 +85,15 @@ class SalesKpiWidget:
         current, previous = self.periods(today)
         now, _ = sales_in(self.source, current, currency)
         before, _ = sales_in(self.source, previous, currency)
+        compared = str(previous[0].year) if current[0].month == 1 and current[0].day == 1 and current[1].year != previous[1].year else range_label(previous)
         props = {
             "title": self.entry.title,
             "measure": "sales",
             "value": float(now),
             "valueFormat": "currency",
-            "caption": f"{range_label(current)} vs {range_label(previous)}",
+            "caption": f"{range_label(current)} vs {compared}",
             "period": range_label(current),
-            "comparedWith": range_label(previous),
+            "comparedWith": compared,
             "trend": self.trend(today, currency),
         }
         note = self.note(today)

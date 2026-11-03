@@ -87,8 +87,8 @@ type Row = { widgets: { name: string; props: object }[] }
 export const dashboardRows: Row[] = [
   {
     widgets: [
-      { name: 'KpiCard', props: { title: 'Sales this month', measure: 'sales', value: 353720, valueFormat: 'currency', delta: -0.583, caption: '1\u20132 Nov vs 1\u20132 Oct', note: '2 of 30 days so far', partial: true, asOf: new Date().toISOString(), trend: [2.1, 2.3, 2.2, 2.6, 2.8, 2.7, 3.0, 3.4], info: 'Net invoiced sales since the 1st of this month.' } },
-      { name: 'KpiCard', props: { title: 'Invoices', measure: 'invoices', value: 1284, delta: -0.14, asOf: new Date().toISOString(), caption: 'Raised this month', trend: [1100, 1150, 1120, 1210, 1180, 1250, 1284] } },
+      { name: 'KpiCard', props: { title: 'Sales this month', measure: 'sales', value: 353720, valueFormat: 'currency', delta: -0.583, caption: '1\u20132 Nov vs 1\u20132 Oct', note: '2 of 30 days so far', partial: true, trend: [2.1, 2.3, 2.2, 2.6, 2.8, 2.7, 3.0, 3.4], info: 'Net invoiced sales since the 1st of this month.' } },
+      { name: 'KpiCard', props: { title: 'Invoices', measure: 'invoices', value: 1284, delta: -0.14, caption: 'Raised this month', trend: [1100, 1150, 1120, 1210, 1180, 1250, 1284] } },
       { name: 'KpiCard', props: { title: 'Active customers', measure: 'customers', value: 312, caption: '9 new this month', trend: [290, 296, 301, 303, 308, 312] } },
       { name: 'KpiCard', props: { title: 'Average invoice', measure: 'the average invoice value', value: 2648, valueFormat: 'currency', delta: -0.014, caption: 'vs last month', trend: [2750, 2700, 2720, 2680, 2660, 2648] } },
     ],

@@ -54,10 +54,10 @@ describe('widget currency', () => {
   }
   const money = { title: 'Sales today', value: 5000, valueFormat: 'currency' }
 
-  it('asks for USD and shows the rupee sign while the service names no currency', async () => {
+  it('asks for INR and shows the rupee sign while the service names no currency', async () => {
     const data = showing(async () => money)
     expect(await screen.findByText(/^₹/)).toBeInTheDocument()
-    expect(data).toHaveBeenCalledWith('sales-today', 'organica', 'USD')
+    expect(data).toHaveBeenCalledWith('sales-today', 'organica', 'INR')
   })
 
   it('shows the sign of the currency the service names', async () => {

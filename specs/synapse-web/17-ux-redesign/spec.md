@@ -45,25 +45,24 @@ Added 2026-11-02 at the owner's request, after a review that found the Sales ove
 - When the month so far equals today (nothing earlier in the month), the month card says so through its labels (`1–2 Nov`, `Sun 1 Nov: no sales`) and not through a different number.
 - Acceptance: Nov 2 with a sale only on the 2nd gives the month card `period "1–2 Nov"`, `comparedWith "1–2 Oct"`, `partial true`, `note "2 of 30 days so far"`; the same data on Nov 20 is not partial.
 
-## B2. As of and period on every headline widget (synapse-api, `@sami/ui`)
-- The catalog data endpoint adds `asOf` (UTC ISO time the figures were read, taken inside the cached load, so a cached answer keeps its original time). Headline widgets are the four KPI cards, month target and the two charts.
-- `KpiCard` shows `as of 22:41` (local time) in its last line, after the partial note; `GaugeChart` shows it under its value line. The period is in the caption (B1), the gauge already says `this month`. (The top right corner of a card belongs to the `Why?` and `See all` buttons.)
-- Acceptance: a cached read returns the same `asOf` twice; the KPI shows the time; a card without `asOf` shows nothing.
+## B2. One update time for the board (synapse-web)
+Changed 2026-11-03 at the owner's request: a time on every card crowded the cards and clipped their numbers, and the server's read time is not what a manager needs.
+- The board shows `Updated 06:17` beside its title: the time the board last got an answer for any of its widgets (each widget load reports it; the latest wins). Nothing shows before the first answer. No widget draws a time; `asOf` is removed from the widgets and the summary.
+- The period of each headline card stays in its caption (B1).
+- Acceptance: the text appears after the first widget loads and not before.
 
 ## B3. A summary strip (synapse-api, synapse-web)
-- `GET /v1/summary` (same roles and company scope as the catalog, same cache) returns `{asOf, currency, sentences: [...]}` with at most three sentences made by fixed templates from the same data, no model:
+- `GET /v1/summary` (same roles and company scope as the catalog, same cache) returns `{currency, sentences: [...]}` with at most three sentences made by fixed templates from the same data, no model:
   1. Headline: sales so far this month against the same days last month, with `(2 of 30 days)` while partial.
   2. Biggest mover: the customer with the largest absolute change this month so far against the same days last month, with the amount.
   3. Behind or ahead of target: share of the target reached against share of the month gone, only when a target is set.
 - A sentence whose data is missing is left out; no data at all returns an empty list and the strip is not drawn.
-- The web draws the strip above the board with `as of <time>`; a failed request draws nothing.
+- The web draws the strip above the board with an `Ask AI for more` button that opens AI Mode; a failed request draws nothing.
+- The currency default of synapse-api and of the web is INR (changed 2026-11-03).
 - Acceptance: with data the endpoint returns the three sentences in that order; no target gives two; a customer-less month gives two; the company scope applies.
 
-## B4. Key widgets open into the answer (synapse-web)
-- The sales KPI cards, Day sales and Month-on-month sales get a `Why?` button that opens AI Mode with `Why did sales change last month?` already sent (route search `ask`, sent once).
-- Top customers, Top materials and Recent high-value sales get `See all`, which opens a modal with the first 20 rows (the data endpoint takes `top`, 1 to 20 for these three, default as today).
-- Neither shows while editing a board, and neither is drawn when the card fails to load.
-- Acceptance: `Why?` lands in AI Mode and the question is asked once; the `ask` is removed from the address so a reload does not ask again; `See all` asks for 20 rows and shows them.
+## B4. Key widgets open into the answer (dropped)
+Dropped 2026-11-03: a `Why?` or `See all` button over each widget looked bad, and the board itself should tell the story. The deeper story is asked for in AI Mode, through the `Ask AI for more` button in the summary strip. The `top` parameter (1 to 20) stays in synapse-api's data endpoint, unused by the web for now.
 
 ## B5. Colour only for what needs attention (`@sami/ui`, synapse-api)
 - `KpiCard` draws a change in neutral grey; only a fall worse than 10% is drawn red with its arrow; a rise is never green. Partial cards (B1) are always neutral.

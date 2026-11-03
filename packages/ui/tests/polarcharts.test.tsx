@@ -139,16 +139,4 @@ describe('KpiCard story', () => {
     expect(colourOf(-0.583, true)).not.toContain('--sami-negative')
     expect(show(<KpiCard title="Sales" value={10} partial note="2 of 30 days so far" />).getByText('2 of 30 days so far')).toBeInTheDocument()
   })
-
-  it('shows the time the figure was read, and nothing without it', () => {
-    expect(show(<KpiCard title="Sales" value={10} asOf="2026-11-02T17:11:00+00:00" />).getByText(/^as of \d/)).toBeInTheDocument()
-    cleanup()
-    expect(show(<KpiCard title="Orders" value={1} />).queryByText(/as of/)).toBeNull()
-    cleanup()
-    expect(show(<KpiCard title="Sales" value={1} note="2 of 30 days so far" asOf="2026-11-02T17:11:00+00:00" />).getByText(/^2 of 30 days so far \u00b7 as of \d/)).toBeInTheDocument()
-  })
-
-  it('shows the gauge reading time too', () => {
-    expect(show(<GaugeChart value={1} target={2} asOf="2026-11-02T17:11:00+00:00" />).getByText(/^as of \d/)).toBeInTheDocument()
-  })
 })

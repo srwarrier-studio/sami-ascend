@@ -7,8 +7,8 @@
 - Heatmap cells and legends, the half-drawn current month bar, compact `89L` labels against full rupee amounts, table row hover.
 - AI Mode has no app shell (an earlier phase's test requires full screen). The only exit is a button.
 - The Microsoft sign-in button does nothing yet; no forgot-password link.
-- The summary strip is not in the exported PDF. `asOf` is the time synapse-api read the data, not an SAP posting time.
-- The summary uses the data endpoint's currency (USD by default).
+- The summary strip and the update time are not in the exported PDF. `Updated` is when the web last got an answer, not an SAP posting time.
+- `top` on the catalog data endpoint is no longer used by the web.
 
 ## Things to know
 - A running intent-api, synapse-api and Vite keep old code until restarted (`scripts/dev.sh`). An intent-api started before the `why` merge refuses `sales_why` with `not_answerable_yet`.

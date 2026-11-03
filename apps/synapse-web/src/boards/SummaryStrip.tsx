@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Card, Stack, Text, clockTime } from '@sami/ui'
+import { useNavigate } from '@tanstack/react-router'
+import { Button, Card, Group, SparkleIcon, Stack, Text } from '@sami/ui'
 import { REFRESH_MS, CURRENCY } from '../catalog/CatalogWidget'
 import type { CatalogClient, Summary } from '../catalog/catalogClient'
 import classes from './Board.module.css'
@@ -7,6 +8,7 @@ import classes from './Board.module.css'
 type SummaryStripProps = { client: CatalogClient; company: string | null; refreshMs?: number }
 
 export function SummaryStrip({ client, company, refreshMs = REFRESH_MS }: SummaryStripProps) {
+  const navigate = useNavigate()
   const [summary, setSummary] = useState<Summary | null>(null)
 
   useEffect(() => {
@@ -25,19 +27,18 @@ export function SummaryStrip({ client, company, refreshMs = REFRESH_MS }: Summar
   }, [client, company, refreshMs])
 
   if (!summary || summary.sentences.length === 0) return null
-  const time = clockTime(summary.asOf)
   return (
     <Card className={classes.summary} aria-label="Summary">
-      <Stack gap={4}>
-        {summary.sentences.map((sentence) => (
-          <Text key={sentence}>{sentence}</Text>
-        ))}
-        {time && (
-          <Text size="xs" c="dimmed">
-            {`as of ${time}`}
-          </Text>
-        )}
-      </Stack>
+      <Group justify="space-between" align="flex-start" wrap="nowrap">
+        <Stack gap={4}>
+          {summary.sentences.map((sentence) => (
+            <Text key={sentence}>{sentence}</Text>
+          ))}
+        </Stack>
+        <Button variant="subtle" size="compact-sm" leftSection={<SparkleIcon size={14} weight="fill" />} onClick={() => navigate({ to: '/ai' })}>
+          Ask AI for more
+        </Button>
+      </Group>
     </Card>
   )
 }

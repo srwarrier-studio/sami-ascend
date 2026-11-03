@@ -17,6 +17,6 @@ class Settings(BaseSettings):
     sap_timeout_seconds: float = 10.0
     cache_seconds: float = 300
     monthly_sales_target: Decimal = Decimal(5000000)
-    default_currency: str = "USD"
+    default_currency: str = "INR"
     jwt_secret: str = ""
     frontend_url: str = "http://localhost:5173"

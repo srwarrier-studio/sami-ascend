@@ -72,7 +72,8 @@ class TestSalesKpis:
         today = date(2026, 1, 3)
         props = GetWidgetData(make_catalog(daily=[day(today, "1")])).execute("sales-year", today, "INR")
         assert props["note"] == "3 of 365 days so far"
-        assert props["comparedWith"] == "1\u20133 Jan"
+        assert props["comparedWith"] == "2025"
+        assert props["caption"] == "1\u20133 Jan vs 2025"
 
     def test_year_compares_with_the_same_period_last_year(self):
         catalog = make_catalog(daily=[day(date(2026, 3, 1), "400"), day(date(2025, 3, 1), "200"), day(date(2025, 12, 1), "999")])

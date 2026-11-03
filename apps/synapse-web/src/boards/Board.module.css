@@ -263,10 +263,3 @@
   margin: 0 var(--mantine-spacing-md);
   border-left: 0.25rem solid var(--mantine-primary-color-filled);
 }
-
-.drill {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  z-index: 2;
-}

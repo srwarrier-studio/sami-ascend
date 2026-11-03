@@ -351,17 +351,4 @@ describe('Why questions', () => {
     await ask('show me top customers')
     expect(await screen.findByText(/^Here is Top customers/)).toBeInTheDocument()
   })
-
-  it('asks the question from the link once and drops it from the address', async () => {
-    const intent = new MockIntentClient(replyFor(ANSWERED, [WHY]))
-    const history = createMemoryHistory({ initialEntries: ['/ai?ask=Why%20did%20sales%20change%20last%20month%3F'] })
-    render(
-      <UiProvider palette={synapsePalette}>
-        <App client={new MockSessionClient('manager@mock-sami.com')} catalogClient={new MockCatalogClient()} intentClient={intent} boardStore={new MockBoardStore()} history={history} />
-      </UiProvider>,
-    )
-    expect(await screen.findByText('Sales fell 14.4% from July 2026 to August 2026.')).toBeInTheDocument()
-    expect(intent.calls).toEqual(['Why did sales change last month?'])
-    expect(history.location.search).not.toContain('ask')
-  })
 })

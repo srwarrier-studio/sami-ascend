@@ -86,13 +86,13 @@ class TestRoute:
         assert make_client(source).get(self.BASE).status_code == 401
         assert make_client(source, ["sales"]).get(self.BASE).status_code == 403
 
-    def test_serves_the_sentences_with_the_time_and_currency(self):
+    def test_serves_the_sentences_and_the_currency(self):
         from test_routes_totals import DAILY
 
         body = make_client(MockSalesSource(DAILY), ["management"]).get(self.BASE + "?currency=INR").json()
         assert body["currency"] == "INR"
         assert body["sentences"][0].startswith("Sales this month are")
-        assert body["asOf"].endswith("+00:00")
+        assert "asOf" not in body
 
     def test_a_bad_currency_is_422(self):
         assert make_client(MockSalesSource([]), ["management"]).get(self.BASE + "?currency=US").status_code == 422

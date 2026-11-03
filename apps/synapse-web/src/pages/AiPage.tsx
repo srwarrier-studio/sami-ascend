@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SyntheticEvent } from 'react'
-import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
+import { useNavigate, useRouteContext } from '@tanstack/react-router'
 import { ActionIcon, ArrowLeftIcon, Badge, Button, Group, Loader, Modal, PageHeader, PaperPlaneRightIcon, SparkleIcon, Text, TextInput, Title, WidgetCell, WidgetGrid } from '@sami/ui'
 import { AnswerBlocks } from '../ai/AnswerBlocks'
 import type { AnswerBlock } from '../ai/answerBlocks'
@@ -28,7 +28,6 @@ const builds = [`${BUILDER} build me a sales board`, `${BUILDER} build an invent
 
 export function AiPage() {
   const navigate = useNavigate()
-  const { ask } = useSearch({ from: '/ai' })
   const { catalog, catalogClient, chatPlanner, intentClient, boardStore, company } = useRouteContext({ from: '/ai' })
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
@@ -85,14 +84,6 @@ export function AiPage() {
     if (answer.board) setBoard(answer.board)
     setBusy(false)
   }
-
-  const asked = useRef(false)
-  useEffect(() => {
-    if (!ask || asked.current) return
-    asked.current = true
-    navigate({ to: '/ai', search: { ask: undefined }, replace: true })
-    send(ask)
-  })
 
   const submit = (event: SyntheticEvent) => {
     event.preventDefault()

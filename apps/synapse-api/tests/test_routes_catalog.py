@@ -78,8 +78,8 @@ class TestCurrency:
     def widget(self, query: str = "", daily=None):
         return make_client(MockSalesSource(daily or DAILY), ["management"]).get(f"{BASE}/sales-today/data{query}")
 
-    def test_the_default_currency_is_dollars_and_the_widget_names_it(self):
-        assert self.widget().json()["currency"] == "USD"
+    def test_the_default_currency_is_rupees_and_the_widget_names_it(self):
+        assert self.widget().json()["currency"] == "INR"
 
     def test_a_widget_shows_only_the_asked_currency(self):
         from test_sales_widgets import day
@@ -100,17 +100,11 @@ class TestCurrency:
         assert [http.get(f"{BASE}/sales-today/data?currency={c}").json()["value"] for c in ("USD", "INR", "USD")] == [7.25, 30.5, 7.25]
 
 
-class TestAsOf:
-    def test_a_widget_says_when_it_was_read(self):
-        body = make_client(MockSalesSource(DAILY), ["management"]).get(f"{BASE}/sales-today/data").json()
-        assert body["asOf"].endswith("+00:00")
-
-
 class TestTop:
     def rows(self, query: str):
         from test_sales_widgets import day  # noqa: F401
 
-        customers = [CustomerSales(str(n), f"Customer {n}", TODAY, Decimal(100 - n), 1, "USD") for n in range(1, 9)]
+        customers = [CustomerSales(str(n), f"Customer {n}", TODAY, Decimal(100 - n), 1, "INR") for n in range(1, 9)]
         return make_client(MockSalesSource(DAILY, customers=customers), ["management"]).get(f"{BASE}/top-customers/data{query}")
 
     def test_a_ranking_has_five_rows_unless_asked_for_more(self):

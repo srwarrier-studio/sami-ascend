@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
-import { Alert, Button, EmptyBoard, Group, Menu, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, notifications, useColorScheme } from '@sami/ui'
+import { Alert, Button, EmptyBoard, Group, Menu, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, clockTime, notifications, useColorScheme } from '@sami/ui'
 import { BoardGrid } from '../boards/BoardGrid'
 import { BoardsSkeleton } from '../boards/BoardsSkeleton'
 import { SummaryStrip } from '../boards/SummaryStrip'
@@ -23,6 +23,7 @@ export function BoardsPage() {
   const [deleting, setDeleting] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [generatedAt, setGeneratedAt] = useState(() => new Date())
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null)
   const frame = useRef<HTMLDivElement>(null)
 
   if (!boards) return <BoardsSkeleton />
@@ -68,6 +69,11 @@ export function BoardsPage() {
         onTitleChange={rename}
         actions={
           <Group>
+            {updatedAt && (
+              <Text size="sm" c="dimmed">
+                {`Updated ${clockTime(updatedAt.toISOString())}`}
+              </Text>
+            )}
             {!editing && (
               <Menu position="bottom-end">
                 <Menu.Target>
@@ -87,7 +93,7 @@ export function BoardsPage() {
                 Delete board
               </Button>
             )}
-            <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />} onClick={() => navigate({ to: '/ai', search: { ask: undefined } })}>
+            <Button variant="light" leftSection={<SparkleIcon size={16} weight="fill" />} onClick={() => navigate({ to: '/ai' })}>
               AI Mode
             </Button>
             <Button
@@ -113,7 +119,7 @@ export function BoardsPage() {
       )}
       {!editing && <SummaryStrip client={catalogClient} company={company} />}
       <ExportFrame exporting={exporting} company={company} userName={session.status === 'signedIn' ? session.user.name : ''} generatedAt={generatedAt} frameRef={frame}>
-        <BoardGrid widgets={active.widgets} catalog={catalog} client={catalogClient} company={company} editing={editing} onChange={setWidgets}
+        <BoardGrid widgets={active.widgets} catalog={catalog} client={catalogClient} company={company} editing={editing} onChange={setWidgets} onLoaded={setUpdatedAt}
           empty={active.widgets.length === 0 && <EmptyBoard editing={editing} onEdit={() => setEditing(true)} onAdd={() => setPicking(true)} />}
         />
       </ExportFrame>

@@ -19,7 +19,6 @@ export type KpiCardProps = {
   measure?: string
   note?: string
   partial?: boolean
-  asOf?: string
 }
 
 export const ATTENTION_FALL = 0.1
@@ -29,20 +28,10 @@ export const clockTime = (iso: string) => {
   return Number.isNaN(time.getTime()) ? null : time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-export function AsOf({ at }: { at?: string }) {
-  const time = at ? clockTime(at) : null
-  return time ? (
-    <Text size="xs" c="dimmed" ta="right" className={classes.asOf}>
-      {`as of ${time}`}
-    </Text>
-  ) : null
-}
-
-export function KpiCard({ title, value, valueFormat, delta, caption, trend, info, measure, note, partial, asOf }: KpiCardProps) {
+export function KpiCard({ title, value, valueFormat, delta, caption, trend, info, measure, note, partial }: KpiCardProps) {
   const rising = delta !== undefined && delta >= 0
   const Arrow = rising ? ArrowUpIcon : ArrowDownIcon
   const needsAttention = delta !== undefined && !partial && delta < -ATTENTION_FALL
-  const readAt = asOf ? clockTime(asOf) : null
   const tone = needsAttention ? 'var(--sami-negative)' : 'var(--mantine-color-dimmed)'
   return (
     <Card className={classes.card}>
@@ -63,9 +52,9 @@ export function KpiCard({ title, value, valueFormat, delta, caption, trend, info
             </Group>
           )}
           {caption && <Text c="dimmed">{caption}</Text>}
-          {(note || readAt) && (
+          {note && (
             <Text size="xs" c="dimmed">
-              {[note, readAt && `as of ${readAt}`].filter(Boolean).join(' \u00b7 ')}
+              {note}
             </Text>
           )}
         </Stack>
