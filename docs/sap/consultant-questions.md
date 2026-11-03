@@ -53,3 +53,11 @@ None yet.
 31. Is the planned output of a shift (`TargetQuantity`) available, or only the order total? We spread the order quantity over its shifts.
 32. How are shifts defined (hours of morning, afternoon and night), and is `RunHours` the scheduled hours of the shift?
 33. Which standard price values the yield and scrap, and in which currency?
+
+### Exports (`export-contract.md`)
+34. Service name, root path and namespace for export shipments: confirm or replace section 1 (`ZUI_EXPORT_O4`).
+35. Is an export "a sales order whose ship-to country is not India", or is there an export flag or sales area (distribution channel) that defines it?
+36. Is one outbound delivery one shipment, or can several deliveries travel together (a shipment document `VTTK`)? Where is the transport mode kept (shipping condition, shipment type, forwarding)?
+37. Where does the arrival come from: proof of delivery (`PODAT`), a forwarder feed, or nowhere? Without it we cannot say a shipment is delivered.
+38. Which exchange rate converts the order value to rupees (the rate of the order or of the goods issue), so `NetAmount` is the same as finance books?
+39. Can the country name come from `T005T` in the CDS view without an extra call?
