@@ -32,34 +32,33 @@ def customer_totals(source: SalesSource, period: tuple[date, date], currency: st
     return totals
 
 
+def headline(noun: str, today: date, current, previous, now: Decimal, before: Decimal, currency: str) -> str | None:
+    if now == 0 and before == 0:
+        return None
+    note = month_note(today)
+    days = f"{range_label(current)}, {note}" if note else range_label(current)
+    if before == 0:
+        return f"{noun} this month are {money(now, currency)} ({days}); there were none on the same days last month."
+    change = (now - before) / before
+    way = "up" if change >= 0 else "down"
+    return f"{noun} this month are {money(now, currency)} ({days}), {way} {abs(change) * 100:.1f}% on {range_label(previous)}."
+
+
 class GetSalesSummary:
     def __init__(self, source: SalesSource, target: Decimal):
         self.source = source
         self.target = target
 
-    def execute(self, today: date, currency: str) -> list[str]:
+    def execute(self, today: date, currency: str, show: set[str] | None = None) -> list[str]:
         current, previous = month_periods(today)
         now, _ = sales_in(self.source, current, currency)
         before, _ = sales_in(self.source, previous, currency)
-        sentences = [self.headline(today, current, previous, now, before, currency)]
-        mover = self.mover(current, previous, currency)
-        if mover:
-            sentences.append(mover)
-        target = self.pace(today, now, currency)
-        if target:
-            sentences.append(target)
+        sentences = [headline("Sales", today, current, previous, now, before, currency)]
+        if show is None or "month-target" in show:
+            sentences.append(self.pace(today, now, currency))
+        if show is None or "top-customers" in show:
+            sentences.append(self.mover(current, previous, currency))
         return [sentence for sentence in sentences if sentence]
-
-    def headline(self, today: date, current, previous, now: Decimal, before: Decimal, currency: str) -> str | None:
-        if now == 0 and before == 0:
-            return None
-        note = month_note(today)
-        days = f"{range_label(current)}, {note}" if note else range_label(current)
-        if before == 0:
-            return f"Sales this month are {money(now, currency)} ({days}); there were none on the same days last month."
-        change = (now - before) / before
-        way = "up" if change >= 0 else "down"
-        return f"Sales this month are {money(now, currency)} ({days}), {way} {abs(change) * 100:.1f}% on {range_label(previous)}."
 
     def mover(self, current, previous, currency: str) -> str | None:
         now = customer_totals(self.source, current, currency)

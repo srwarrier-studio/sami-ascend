@@ -93,7 +93,7 @@ def create_app(
     app.include_router(create_sales_router(source, auth, today, sales_cache), prefix="/v1/synapse", tags=["Sales"])
     app.include_router(create_catalog_router(widgets, auth, today, sales_cache, settings.default_currency), prefix="/v1/synapse", tags=["Catalog"])
     app.include_router(
-        create_summary_router(source, settings.monthly_sales_target, auth, today, sales_cache, settings.default_currency), prefix="/v1/synapse", tags=["Summary"]
+        create_summary_router(source, settings.monthly_sales_target, auth, today, sales_cache, settings.default_currency, purchases, receivables), prefix="/v1/synapse", tags=["Summary"]
     )
     known = (registry or load_registry(settings.registry_path)) if metrics is not None or records is not None else None
     if records is not None:

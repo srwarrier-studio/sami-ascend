@@ -57,11 +57,11 @@ class TestMover:
             [day(TODAY, "300"), day(date(2026, 10, 2), "100")],
             [customer("1", "Eastern Castings", TODAY, "250"), customer("2", "Bharat Steels", TODAY, "50"), customer("2", "Bharat Steels", date(2026, 10, 2), "100")],
         )
-        assert lines[1] == "Eastern Castings moved most: ₹250 more than on 1–2 Oct."
+        assert lines[-1] == "Eastern Castings moved most: ₹250 more than on 1–2 Oct."
 
     def test_a_customer_who_stopped_buying_counts_as_less(self):
         lines = summary([day(TODAY, "10"), day(date(2026, 10, 2), "500")], [customer("2", "Bharat Steels", date(2026, 10, 2), "500")])
-        assert lines[1] == "Bharat Steels moved most: ₹500 less than on 1–2 Oct."
+        assert lines[-1] == "Bharat Steels moved most: ₹500 less than on 1–2 Oct."
 
     def test_left_out_without_customers(self):
         assert len(summary([day(TODAY, "10")], target="0")) == 1
@@ -89,7 +89,7 @@ class TestRoute:
     def test_serves_the_sentences_and_the_currency(self):
         from test_routes_totals import DAILY
 
-        body = make_client(MockSalesSource(DAILY), ["management"]).get(self.BASE + "?currency=INR").json()
+        body = make_client(MockSalesSource(DAILY), ["management"]).get(self.BASE + "?currency=INR&widgets=sales-month").json()
         assert body["currency"] == "INR"
         assert body["sentences"][0].startswith("Sales this month are")
         assert "asOf" not in body
