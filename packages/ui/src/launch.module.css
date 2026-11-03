@@ -78,12 +78,12 @@
   padding: 0.5rem 0.75rem;
   border-radius: var(--mantine-radius-md);
   font-size: var(--mantine-font-size-sm);
-  color: light-dark(var(--mantine-color-red-9), var(--mantine-color-red-1));
-  background: color-mix(in srgb, var(--sami-negative) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sami-negative) 35%, transparent);
+  color: #ffe3e3;
+  background: #4a1620;
+  border: 1px solid #a8323f;
 }
 
 .problem svg {
   flex: none;
-  color: var(--sami-negative);
+  color: #ff8787;
 }
