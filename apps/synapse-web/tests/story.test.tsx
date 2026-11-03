@@ -28,6 +28,19 @@ describe('the summary strip', () => {
     expect(within(strip).getByRole('button', { name: 'Ask AI for more' })).toBeInTheDocument()
   })
 
+  it('leads with the first sentence and folds the rest after three', async () => {
+    const many = new MockCatalogClient()
+    many.summary = async (): Promise<Summary> => ({ currency: 'INR', sentences: ['One.', 'Two.', 'Three.', 'Four.', 'Five.'] })
+    open(many)
+    const strip = await screen.findByLabelText('Summary')
+    expect(within(strip).getByText('Three.')).toBeInTheDocument()
+    expect(within(strip).queryByText('Four.')).toBeNull()
+    await userEvent.click(within(strip).getByRole('button', { name: 'Show 2 more' }))
+    expect(within(strip).getByText('Five.')).toBeInTheDocument()
+    await userEvent.click(within(strip).getByRole('button', { name: 'Show less' }))
+    expect(within(strip).queryByText('Four.')).toBeNull()
+  })
+
   it('draws nothing when there are no sentences or the request fails', async () => {
     const empty = new MockCatalogClient()
     empty.summary = async (): Promise<Summary> => ({ currency: 'INR', sentences: [] })
