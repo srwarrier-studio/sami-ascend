@@ -11,11 +11,12 @@ Butterfly is the one source of data and is replaced by the real SAP OData V4 ser
 |--------|---------|--------|-------|
 | Purchase | spend, open orders, trend, top vendors, recent orders, on-time delivery | existing butterfly entities | this phase |
 | Finance | receivables outstanding, ageing, most overdue | existing butterfly receivables entities | this phase |
+| Store | butterfly keeps its data in SQLite tables behind the existing repository interfaces, summaries as SQL views (proposed 2026-11-03, owner to confirm) | before the new domains below | butterfly 13 |
 | Purchase | spend by category, by category per month | needs a material group in the contract | butterfly 14 |
-| Inventory | all 9 | new stock service (contract in `docs/sap/` first) | butterfly 13 |
-| Exports | all 7 | new shipment entity and destination | butterfly 15 |
-| Production | output, effectiveness, plan, downtime, scrap, heat, open orders | `ProductionOrder` exists; output, downtime and scrap are new | butterfly 16 |
-| Finance | collections, target, cash in and out, payments, expenses | new payment and expense entities | butterfly 17 |
+| Inventory | all 9 | new stock service (contract in `docs/sap/` first) | butterfly 15 |
+| Exports | all 7 | new shipment entity and destination | butterfly 16 |
+| Production | output, effectiveness, plan, downtime, scrap, heat, open orders | `ProductionOrder` exists; output, downtime and scrap are new | butterfly 17 |
+| Finance | collections, target, cash in and out, payments, expenses | new payment and expense entities | butterfly 18 |
 Each butterfly phase writes its contract in `docs/sap/` first (the document the ABAP team builds from), then serves it with the same OData V4 shapes, query options and naming as the existing services, then synapse-api reads it. Widgets that are not moved yet keep their mock values until their phase.
 
 ## Behavior
