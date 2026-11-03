@@ -3,19 +3,21 @@ import { createRoot } from 'react-dom/client'
 import { UiProvider, presets } from '@sami/ui'
 import App from './App.tsx'
 import type { UiSettings } from './router'
+import { HttpBoardStore } from './boards/httpBoardStore'
 import { HttpCatalogClient } from './catalog/catalogClient'
 import { PdfBoardExporter } from './export/boardExporter'
 import { HttpSessionClient } from './session/httpSessionClient'
 
 const client = new HttpSessionClient()
 const catalogClient = new HttpCatalogClient()
+const boardStore = new HttpBoardStore()
 const boardExporter = new PdfBoardExporter()
 
 function Root() {
   const [ui, setUi] = useState<UiSettings>({ palette: 'midnight', motion: 'full' })
   return (
     <UiProvider palette={presets[ui.palette]} motion={ui.motion} look="premium">
-      <App client={client} catalogClient={catalogClient} boardExporter={boardExporter} ui={ui} onUiChange={setUi} />
+      <App client={client} catalogClient={catalogClient} boardStore={boardStore} boardExporter={boardExporter} ui={ui} onUiChange={setUi} />
     </UiProvider>
   )
 }

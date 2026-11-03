@@ -5,8 +5,8 @@ Boards are loaded and saved through synapse-api instead of the mock store, a boa
 
 ## Behavior
 - **Store.** An HTTP `BoardStore` replaces `MockBoardStore` (same port, plus `setPublic`, `listShared`, `copyShared`). Layout changes save as today (debounced), with a small failure message and no lost edit on error.
-- **Public.** A `Public` switch in the board's Edit mode and in the save-as-board modal. A public board shows a small `Public` tag on its tab.
-- **Drawer.** A `Layouts` section in the Add widget drawer next to Preset boards: shared boards as cards with the board name, `Shared` tag, owner name and widget count. One click copies it with the same replace flow at 3 boards. Empty state: "No shared boards yet".
+- **Public.** A `Public` switch in the board's Edit mode and in the AI save-as-board modal. A public board shows a `Public` badge in the header (not on its tab).
+- **Drawer.** A `Layouts` tab in the Add widget drawer next to Preset boards (a small addition to `WidgetLibrary` in `@sami/ui`): shared boards as cards with the board name, `Shared` tag, owner name and widget count. One click opens the save modal (same replace flow at 3 boards) and saves a private copy through the normal create and save calls. Empty state: "No shared boards yet".
 - **Access.** The catalog and boards already arrive filtered; the app shows a department user the widgets they may use, no placeholders for hidden ones. The app gate (`access.ts`) allows every role synapse-api 18 allows.
 - Signed-out or a 403 on a board shows the existing "No access" message.
 

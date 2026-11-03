@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
-import { Alert, Button, EmptyBoard, Group, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, clockTime, notifications, useColorScheme } from '@sami/ui'
+import { Alert, Badge, Button, EmptyBoard, Group, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Switch, Text, TrashIcon, WidgetLibrary, clockTime, notifications, useColorScheme } from '@sami/ui'
 import { BoardGrid } from '../boards/BoardGrid'
 import { BoardsSkeleton } from '../boards/BoardsSkeleton'
 import { SummaryStrip } from '../boards/SummaryStrip'
@@ -9,6 +9,7 @@ import { ExportFrame } from '../export/ExportFrame'
 import { SaveBoardModal } from '../boards/SaveBoardModal'
 import { listPresets } from '../boards/presets'
 import { MAX_WIDGETS, arrangeWidgets, buildWidgets, insertWidget, removeWidget } from '../boards/layout'
+import type { SharedBoard } from '../boards/boardStore'
 import { useBoards } from '../boards/useBoards'
 
 export function BoardsPage() {
@@ -20,17 +21,29 @@ export function BoardsPage() {
   const [editing, setEditing] = useState(false)
   const [picking, setPicking] = useState(false)
   const [presetId, setPresetId] = useState<string | null>(null)
+  const [shared, setShared] = useState<SharedBoard[]>([])
+  const [sharedId, setSharedId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [generatedAt, setGeneratedAt] = useState(() => new Date())
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null)
   const frame = useRef<HTMLDivElement>(null)
 
+  useEffect(() => {
+    if (picking) boardStore.listShared().then(setShared, () => setShared([]))
+  }, [picking, boardStore])
+
   if (!boards) return <BoardsSkeleton />
   if (!active) return null
 
   const presets = listPresets(catalog)
   const chosenPreset = presets.find((preset) => preset.id === presetId)
+  const chosenShared = shared.find((board) => board.id === sharedId)
+  const chosen = chosenPreset ? { name: chosenPreset.name, widgets: buildWidgets(chosenPreset.catalogIds, catalog) } : chosenShared ? { name: chosenShared.name, widgets: chosenShared.widgets } : null
+  const setPublic = async (isPublic: boolean) => {
+    await boardStore.setPublic(active.id, isPublic)
+    await reload(active.id)
+  }
 
   const insert = (catalogId: string, beforeId: string | null) => {
     if (active.widgets.some((widget) => widget.catalogId === catalogId)) return
@@ -74,6 +87,8 @@ export function BoardsPage() {
                 {`Updated ${clockTime(updatedAt.toISOString())}`}
               </Text>
             )}
+            {!editing && active.isPublic && <Badge variant="light">Public</Badge>}
+            {editing && <Switch label="Public" checked={!!active.isPublic} onChange={(event) => setPublic(event.currentTarget.checked)} />}
             {!editing && (
               <Button variant="default" leftSection={<FilePdfIcon size={16} />} loading={exporting} onClick={exportPdf}>
                 Export PDF
@@ -134,17 +149,23 @@ export function BoardsPage() {
         counts={active.widgets.reduce<Record<string, number>>((all, widget) => ({ ...all, [widget.catalogId]: (all[widget.catalogId] ?? 0) + 1 }), {})}
         presets={presets.map((preset) => ({ id: preset.id, name: preset.name, description: preset.description, count: preset.catalogIds.length }))}
         onUsePreset={setPresetId}
+        layouts={shared.map((board) => ({ id: board.id, name: board.name, owner: board.owner, count: board.widgets.length }))}
+        onUseLayout={setSharedId}
         onPick={(catalogId) => insert(catalogId, null)}
         onRemove={(catalogId) => setWidgets(removeWidget(active.widgets, active.widgets.find((widget) => widget.catalogId === catalogId)?.id ?? ''))}
       />
       <SaveBoardModal
-        opened={!!chosenPreset}
-        onClose={() => setPresetId(null)}
+        opened={!!chosen}
+        onClose={() => {
+          setPresetId(null)
+          setSharedId(null)
+        }}
         store={boardStore}
-        name={chosenPreset?.name ?? ''}
-        widgets={chosenPreset ? buildWidgets(chosenPreset.catalogIds, catalog) : []}
+        name={chosen?.name ?? ''}
+        widgets={chosen?.widgets ?? []}
         onSaved={async (boardId) => {
           setPresetId(null)
+          setSharedId(null)
           setPicking(false)
           setEditing(false)
           await reload(boardId)

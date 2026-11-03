@@ -20,6 +20,8 @@ import classes from './WidgetLibrary.module.css'
 
 export type LibraryPreset = { id: string; name: string; description: string; count: number }
 
+export type LibraryLayout = { id: string; name: string; owner: string; count: number }
+
 export type LibraryItem = { id: string; title: string; category: string; widget: string }
 
 const kinds: Record<string, { label: string; icon: Icon }> = {
@@ -36,9 +38,9 @@ const kinds: Record<string, { label: string; icon: Icon }> = {
   DataTable: { label: 'Table', icon: TableIcon },
 }
 
-type WidgetLibraryProps = { opened: boolean; onClose: () => void; items: LibraryItem[]; onPick: (id: string) => void; onRemove: (id: string) => void; counts?: Record<string, number>; limit?: { used: number; max: number }; presets?: LibraryPreset[]; onUsePreset?: (id: string) => void }
+type WidgetLibraryProps = { opened: boolean; onClose: () => void; items: LibraryItem[]; onPick: (id: string) => void; onRemove: (id: string) => void; counts?: Record<string, number>; limit?: { used: number; max: number }; presets?: LibraryPreset[]; onUsePreset?: (id: string) => void; layouts?: LibraryLayout[]; onUseLayout?: (id: string) => void }
 
-export function WidgetLibrary({ opened, onClose, items, onPick, onRemove, counts = {}, limit, presets, onUsePreset }: WidgetLibraryProps) {
+export function WidgetLibrary({ opened, onClose, items, onPick, onRemove, counts = {}, limit, presets, onUsePreset, layouts, onUseLayout }: WidgetLibraryProps) {
   const [tab, setTab] = useState('widgets')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
@@ -80,10 +82,34 @@ export function WidgetLibrary({ opened, onClose, items, onPick, onRemove, counts
           data={[
             { value: 'widgets', label: 'Widgets' },
             { value: 'presets', label: 'Preset boards' },
+            ...(layouts ? [{ value: 'layouts', label: 'Layouts' }] : []),
           ]}
         />
       )}
-      {presets && tab === 'presets' ? (
+      {layouts && tab === 'layouts' ? (
+        <Stack gap="md" className={classes.list}>
+          {layouts.length === 0 && <Text c="dimmed">No shared boards yet</Text>}
+          {layouts.map((layout) => (
+            <Card key={layout.id} withBorder>
+              <Stack gap="xs">
+                <Group justify="space-between">
+                  <Text fw={600}>{layout.name}</Text>
+                  <Badge variant="light">Shared</Badge>
+                </Group>
+                <Text size="sm" c="dimmed">{`By ${layout.owner}`}</Text>
+                <Group justify="space-between">
+                  <Text size="xs" c="dimmed">
+                    {layout.count} widgets
+                  </Text>
+                  <Button size="xs" aria-label={`Use ${layout.name}`} onClick={() => onUseLayout?.(layout.id)}>
+                    Use this board
+                  </Button>
+                </Group>
+              </Stack>
+            </Card>
+          ))}
+        </Stack>
+      ) : presets && tab === 'presets' ? (
         <Stack gap="md" className={classes.list}>
           {presets.map((preset) => (
             <Card key={preset.id} withBorder>

@@ -70,3 +70,12 @@ describe('seed board packing', () => {
     expect(filled).toBe(0)
   })
 })
+
+describe('MockBoardStore sharing', () => {
+  it('marks a board public and lists the shared boards it was given', async () => {
+    const store = new MockBoardStore(undefined, [{ id: 's1', name: 'Plant', owner: 'BOB', widgets: [] }])
+    await store.setPublic('board-1', true)
+    expect((await store.list())[0].isPublic).toBe(true)
+    expect((await store.listShared()).map((board) => board.name)).toEqual(['Plant'])
+  })
+})

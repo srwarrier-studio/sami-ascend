@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Button, Group, Modal, Radio, Stack, Text, TextInput } from '@sami/ui'
+import { Button, Group, Modal, Radio, Stack, Switch, Text, TextInput } from '@sami/ui'
 import type { Board, BoardStore, BoardWidget } from './boardStore'
 import { MAX_BOARDS } from './useBoards'
 
@@ -10,17 +10,20 @@ type SaveBoardModalProps = {
   name: string
   widgets: BoardWidget[]
   onSaved: (boardId: string) => void
+  canShare?: boolean
 }
 
-export function SaveBoardModal({ opened, onClose, store, name, widgets, onSaved }: SaveBoardModalProps) {
+export function SaveBoardModal({ opened, onClose, store, name, widgets, onSaved, canShare = false }: SaveBoardModalProps) {
   const [boards, setBoards] = useState<Board[] | null>(null)
   const [title, setTitle] = useState(name)
   const [replaceId, setReplaceId] = useState('')
+  const [isPublic, setIsPublic] = useState(false)
 
   useEffect(() => {
     if (!opened) return
     setTitle(name)
     setReplaceId('')
+    setIsPublic(false)
     store.list().then(setBoards)
   }, [opened, store, name])
 
@@ -31,11 +34,13 @@ export function SaveBoardModal({ opened, onClose, store, name, widgets, onSaved 
     if (full && target) {
       await store.rename(target.id, title.trim() || target.name)
       await store.saveWidgets(target.id, widgets)
+      if (canShare) await store.setPublic(target.id, isPublic)
       onSaved(target.id)
       return
     }
     const created = await store.create(title.trim() || name)
     await store.saveWidgets(created.id, widgets)
+    if (canShare && isPublic) await store.setPublic(created.id, true)
     onSaved(created.id)
   }
 
@@ -44,6 +49,7 @@ export function SaveBoardModal({ opened, onClose, store, name, widgets, onSaved 
       {boards && (
         <Stack>
           <TextInput label="Board name" maxLength={30} value={title} onChange={(event) => setTitle(event.currentTarget.value)} />
+          {canShare && <Switch label="Public: other people can copy this board" checked={isPublic} onChange={(event) => setIsPublic(event.currentTarget.checked)} />}
           {full && (
             <Radio.Group label="You have 3 boards. Pick one to replace" value={replaceId} onChange={setReplaceId}>
               <Stack gap="xs" mt="xs">

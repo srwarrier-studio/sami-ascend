@@ -243,6 +243,7 @@ export function AiPage() {
           opened={saving}
           onClose={() => setSaving(false)}
           store={boardStore}
+          canShare
           name={board.name}
           widgets={buildWidgets(board.catalogIds, catalog)}
           onSaved={(id) => navigate({ to: '/', search: { board: id } })}

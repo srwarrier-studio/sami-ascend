@@ -1,3 +1,4 @@
+import { canUseSynapse } from '../src/access'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryHistory } from '@tanstack/react-router'
@@ -53,10 +54,16 @@ describe('signing in', () => {
     expect(await screen.findByRole('heading', { name: 'Sales overview' })).toBeInTheDocument()
   })
 
-  it('sends a sales user to not allowed', async () => {
+  it('lets a department user in', async () => {
     open('/login', new MockSessionClient())
     await signIn('sales@mock-sami.com')
-    expect(await screen.findByRole('heading', { name: 'Not allowed' })).toBeInTheDocument()
+    expect(await screen.findByText('Mock Sales')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Not allowed' })).not.toBeInTheDocument()
+  })
+
+  it('keeps out a user with no known role', () => {
+    expect(canUseSynapse(['visitor'])).toBe(false)
+    expect(canUseSynapse(['production'])).toBe(true)
   })
 })
 

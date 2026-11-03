@@ -1,7 +1,8 @@
 import type { SizeName } from '@sami/ui'
 
 export type BoardWidget = { id: string; catalogId: string; size?: SizeName }
-export type Board = { id: string; name: string; widgets: BoardWidget[] }
+export type Board = { id: string; name: string; widgets: BoardWidget[]; isPublic?: boolean }
+export type SharedBoard = { id: string; name: string; owner: string; widgets: BoardWidget[] }
 
 export type BoardStore = {
   list: () => Promise<Board[]>
@@ -9,6 +10,8 @@ export type BoardStore = {
   rename: (id: string, name: string) => Promise<void>
   remove: (id: string) => Promise<void>
   saveWidgets: (id: string, widgets: BoardWidget[]) => Promise<void>
+  setPublic: (id: string, isPublic: boolean) => Promise<void>
+  listShared: () => Promise<SharedBoard[]>
 }
 
 const seed = (): Board[] => [
@@ -24,9 +27,11 @@ const seed = (): Board[] => [
 export class MockBoardStore implements BoardStore {
   private boards: Board[]
   private nextId = 2
+  private shared: SharedBoard[]
 
-  constructor(boards: Board[] = seed()) {
+  constructor(boards: Board[] = seed(), shared: SharedBoard[] = []) {
     this.boards = boards
+    this.shared = shared
   }
 
   private find(id: string) {
@@ -56,5 +61,13 @@ export class MockBoardStore implements BoardStore {
 
   async saveWidgets(id: string, widgets: BoardWidget[]) {
     this.find(id).widgets = [...widgets]
+  }
+
+  async setPublic(id: string, isPublic: boolean) {
+    this.find(id).isPublic = isPublic
+  }
+
+  async listShared() {
+    return this.shared
   }
 }
