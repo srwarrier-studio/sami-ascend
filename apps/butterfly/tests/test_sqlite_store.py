@@ -1,0 +1,257 @@
+from datetime import date, timedelta
+from decimal import Decimal
+
+import pytest
+
+from butterfly.infrastructure.memory.companies import COMPANIES
+from butterfly.infrastructure.memory.scenarios import find_scenario
+from butterfly.infrastructure.memory.seed import build_seed
+from butterfly.infrastructure.memory.story_seed import build_story_seed
+from butterfly.infrastructure.sqlite.database import Database
+from butterfly.infrastructure.sqlite.money import from_minor, quantity_from_minor, quantity_to_minor, to_minor
+from butterfly.infrastructure.sqlite.seeder import prepare
+
+TODAY = date(2026, 11, 3)
+
+
+def count(db: Database, table: str, where: str = "1 = 1") -> int:
+    return db.query(f"SELECT COUNT(*) AS n FROM {table} WHERE {where}")[0]["n"]
+
+
+class TestMoney:
+    def test_keeps_money_exact_in_cents(self):
+        assert to_minor(Decimal("1250.05")) == 125005
+        assert from_minor(125005) == Decimal("1250.05")
+
+    def test_keeps_quantities_in_thousandths(self):
+        assert quantity_to_minor(Decimal("5000.250")) == 5000250
+        assert quantity_from_minor(5000250) == Decimal("5000.250")
+
+    def test_refuses_more_decimals_than_the_store_keeps(self):
+        with pytest.raises(ValueError):
+            to_minor(Decimal("1.005"))
+
+    def test_zero_and_negative_round_trip(self):
+        assert from_minor(to_minor(Decimal("0.00"))) == Decimal("0.00")
+        assert from_minor(to_minor(Decimal("-12.50"))) == Decimal("-12.50")
+
+
+class TestSchema:
+    def test_creates_every_table(self):
+        names = {row["name"] for row in Database().query("SELECT name FROM sqlite_master WHERE type = 'table'")}
+        assert {"sales_order", "sales_order_item", "sales_contract", "purchase_delivery", "customer_invoice", "production_order", "production_order_component", "customer", "material", "company", "meta"} <= names
+
+    def test_an_item_needs_its_order(self):
+        with pytest.raises(Exception):
+            Database().execute("INSERT INTO sales_order_item VALUES ('1', '10', 'M', NULL, 1000, 'KG', 100)")
+
+    def test_a_failed_transaction_leaves_nothing(self):
+        db = Database()
+        with pytest.raises(RuntimeError):
+            with db.transaction():
+                db.execute("INSERT INTO company VALUES ('A', 'a')")
+                raise RuntimeError("stop")
+        assert count(db, "company") == 0
+
+
+class TestSmallSeed:
+    def test_writes_the_orders_with_their_items_and_the_master_data(self):
+        db = Database()
+        assert prepare(db, "small", "august-contract", TODAY) is True
+        expected = build_seed(TODAY)
+        assert count(db, "sales_order") == len(expected)
+        assert count(db, "sales_order_item") == sum(len(o.items) for o in expected)
+        assert count(db, "customer") == sum(len(c.customers) for c in COMPANIES)
+        assert count(db, "sales_contract") == 0
+
+    def test_totals_are_exact(self):
+        db = Database()
+        prepare(db, "small", "august-contract", TODAY)
+        stored = from_minor(db.query("SELECT SUM(total_net_amount) AS s FROM sales_order")[0]["s"])
+        assert stored == sum((o.total_net_amount for o in build_seed(TODAY)), Decimal("0.00"))
+
+
+class TestStorySeed:
+    def test_writes_every_entity_of_the_story(self):
+        db = Database()
+        prepare(db, "story", "august-contract", TODAY)
+        story = build_story_seed(TODAY, find_scenario("august-contract"), COMPANIES)
+        assert count(db, "sales_order") == len(story.orders)
+        assert count(db, "sales_order_item") == sum(len(o.items) for o in story.orders)
+        assert count(db, "sales_contract") == len(story.contracts)
+        assert count(db, "purchase_delivery") == len(story.deliveries)
+        assert count(db, "customer_invoice") == len(story.invoices)
+        assert count(db, "production_order") == len(story.production_orders)
+        assert count(db, "production_order_component") == len(story.components)
+
+    def test_open_deliveries_keep_their_empty_actual_date(self):
+        db = Database()
+        prepare(db, "story", "august-contract", TODAY)
+        open_rows = count(db, "purchase_delivery", "delivery_status = 'O' AND actual_delivery_date IS NULL")
+        assert open_rows == count(db, "purchase_delivery", "delivery_status = 'O'") > 0
+
+
+class TestKeepingAndRebuilding:
+    def test_the_same_settings_on_the_same_day_keep_the_data(self, tmp_path):
+        path = str(tmp_path / "butterfly.db")
+        first = Database(path)
+        assert prepare(first, "small", "august-contract", TODAY) is True
+        first.execute("INSERT INTO sales_order VALUES ('0000099999', 'OR', '1', NULL, '2026-11-03', NULL, 'INR', 100, 'A', 'ME', '2026-11-03T09:00:00+00:00', '2026-11-03T09:00:00+00:00', 'INA1', 'IN', 'api', 100, 'INR')")
+        first.close()
+        second = Database(path)
+        assert prepare(second, "small", "august-contract", TODAY) is False
+        assert count(second, "sales_order", "origin = 'api'") == 1
+        assert count(second, "sales_order") == len(build_seed(TODAY)) + 1
+
+    def test_another_seed_rebuilds_the_seeded_data(self):
+        db = Database()
+        prepare(db, "small", "august-contract", TODAY)
+        assert prepare(db, "story", "august-contract", TODAY) is True
+        assert count(db, "sales_contract") > 0
+        assert count(db, "sales_order") > len(build_seed(TODAY))
+
+    def test_another_scenario_rebuilds(self):
+        db = Database()
+        prepare(db, "story", "august-contract", TODAY)
+        before = count(db, "sales_contract")
+        assert prepare(db, "story", "price-cut", TODAY) is True
+        assert before > 0
+
+    def test_a_new_day_moves_the_seed_but_keeps_orders_written_through_the_api(self):
+        db = Database()
+        prepare(db, "small", "august-contract", TODAY)
+        db.execute("INSERT INTO sales_order VALUES ('0000099999', 'OR', '1', NULL, '2026-11-03', NULL, 'INR', 100, 'A', 'ME', '2026-11-03T09:00:00+00:00', '2026-11-03T09:00:00+00:00', 'INA1', 'IN', 'api', 100, 'INR')")
+        assert prepare(db, "small", "august-contract", TODAY + timedelta(days=1)) is True
+        assert count(db, "sales_order", "origin = 'api'") == 1
+        assert count(db, "sales_order", "origin = 'seed'") == len(build_seed(TODAY))
+        assert db.query("SELECT MAX(order_date) AS d FROM sales_order WHERE origin = 'seed'")[0]["d"] == (TODAY + timedelta(days=1)).isoformat()
+
+    def test_an_unknown_seed_is_refused(self):
+        with pytest.raises(ValueError):
+            prepare(Database(), "huge", "august-contract", TODAY)
+
+
+class TestRepositories:
+    def order(self, number: str, status: str = "A"):
+        from datetime import datetime, timezone
+
+        from butterfly.domain.entities.sales_order import SalesOrder, SalesOrderItem
+
+        stamp = datetime(2026, 11, 3, 9, 0, tzinfo=timezone.utc)
+        item = SalesOrderItem(number, "000010", "RM-1001", "Steel", Decimal("12.500"), "KG", Decimal("1562.50"))
+        return SalesOrder(number, "OR", "0000100001", "Acme", TODAY, None, "INR", Decimal("1562.50"), status, "ME", stamp, stamp, [item])
+
+    def test_a_created_order_survives_a_restart_and_the_numbers_continue(self, tmp_path):
+        from butterfly.infrastructure.sqlite.sales_order_repo import SqliteSalesOrderRepo
+
+        path = str(tmp_path / "butterfly.db")
+        db = Database(path)
+        prepare(db, "small", "august-contract", TODAY)
+        repo = SqliteSalesOrderRepo(db)
+        number = repo.next_number()
+        repo.add(self.order(number))
+        db.close()
+        again = SqliteSalesOrderRepo(Database(path))
+        stored = again.get(number)
+        assert stored is not None and stored.items[0].quantity == Decimal("12.500") and stored.total_net_amount == Decimal("1562.50")
+        assert int(again.next_number()) == int(number) + 1
+
+    def test_a_change_replaces_the_order(self):
+        from dataclasses import replace
+
+        from butterfly.infrastructure.sqlite.sales_order_repo import SqliteSalesOrderRepo
+
+        repo = SqliteSalesOrderRepo.from_orders([self.order("0000000001")])
+        repo.update(replace(repo.get("0000000001"), requested_delivery_date=date(2026, 12, 1)))
+        assert repo.get("0000000001").requested_delivery_date == date(2026, 12, 1)
+        assert len(repo.get("0000000001").items) == 1
+
+    def test_unknown_order_is_none(self):
+        from butterfly.infrastructure.sqlite.sales_order_repo import SqliteSalesOrderRepo
+
+        assert SqliteSalesOrderRepo.from_orders([]).get("1") is None
+
+    def test_master_data_is_read_from_the_tables(self):
+        from butterfly.infrastructure.sqlite.master_data_repo import SqliteMasterDataRepo
+
+        repo = SqliteMasterDataRepo()
+        assert repo.get_customer("0000100001") is not None
+        assert repo.get_customer("nope") is None
+        assert repo.get_material("RM-1001").price == Decimal("1250.00")
+        assert repo.company_exists("INA1") and not repo.company_exists("ZZZZ")
+        assert repo.currency_exists("INR") and not repo.currency_exists("EUR")
+
+    def test_driver_rows_come_back_in_the_order_they_were_written(self):
+        from butterfly.infrastructure.sqlite.driver_repo import SqliteDriverRepo
+
+        story = build_story_seed(TODAY, find_scenario("august-contract"), COMPANIES)
+        repo = SqliteDriverRepo.from_lists(story.contracts, story.deliveries, story.production_orders, story.components, story.invoices)
+        assert repo.contracts() == story.contracts
+        assert repo.deliveries() == story.deliveries
+        assert repo.invoices() == story.invoices
+        assert repo.production_orders() == story.production_orders
+        assert repo.components() == story.components
+
+
+class TestDefaultApp:
+    PAYLOAD = {
+        "SalesOrderType": "OR",
+        "CompanyCode": "INA1",
+        "SoldToParty": "0000100001",
+        "RequestedDeliveryDate": "2030-01-01",
+        "TransactionCurrency": "INR",
+        "_Item": [{"Material": "RM-1001", "Quantity": "50.000", "QuantityUnit": "KG"}],
+    }
+
+    def start(self, path: str, day: date = TODAY):
+        from fastapi.testclient import TestClient
+
+        from butterfly.entrypoint.app import build_default_app
+
+        return TestClient(build_default_app(day, "small", "august-contract", path))
+
+    def orders(self, client) -> list[str]:
+        from butterfly.infrastructure.api.odata import ROOT
+
+        rows = client.get(ROOT.rstrip("/") + "/SalesOrder?$top=1000&$orderby=SalesOrder").json()["value"]
+        return [row["SalesOrder"] for row in rows]
+
+    def test_an_order_created_over_http_is_still_there_after_a_restart(self, tmp_path):
+        from butterfly.infrastructure.api.odata import ROOT
+
+        path = str(tmp_path / "butterfly.db")
+        first = self.start(path)
+        response = first.post(ROOT.rstrip("/") + "/SalesOrder", json=self.PAYLOAD)
+        assert response.status_code == 201, response.text
+        number = response.json()["SalesOrder"]
+        assert number in self.orders(first)
+        second = self.start(path)
+        assert number in self.orders(second)
+        again = second.post(ROOT.rstrip("/") + "/SalesOrder", json=self.PAYLOAD)
+        assert int(again.json()["SalesOrder"]) == int(number) + 1
+
+    def test_an_order_survives_the_seed_moving_to_a_new_day(self, tmp_path):
+        from butterfly.infrastructure.api.odata import ROOT
+
+        path = str(tmp_path / "butterfly.db")
+        number = self.start(path).post(ROOT.rstrip("/") + "/SalesOrder", json=self.PAYLOAD).json()["SalesOrder"]
+        assert number in self.orders(self.start(path, TODAY + timedelta(days=1)))
+
+    def test_a_different_seed_on_the_same_file_is_rebuilt(self, tmp_path):
+        from fastapi.testclient import TestClient
+
+        from butterfly.entrypoint.app import build_default_app
+        from butterfly.infrastructure.api.odata import DRIVERS_ROOT
+
+        path = str(tmp_path / "butterfly.db")
+        self.start(path)
+        story = TestClient(build_default_app(TODAY, "story", "august-contract", path))
+        assert story.get(DRIVERS_ROOT.rstrip("/") + "/SalesContract?$top=1").json()["value"]
+
+    def test_an_unknown_seed_or_scenario_stops_the_start(self, tmp_path):
+        from butterfly.entrypoint.app import build_default_app
+
+        with pytest.raises(SystemExit):
+            build_default_app(TODAY, "huge", "august-contract", str(tmp_path / "a.db"))
+        with pytest.raises(BaseException):
+            build_default_app(TODAY, "story", "no-such-scenario", str(tmp_path / "b.db"))

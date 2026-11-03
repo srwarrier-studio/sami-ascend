@@ -31,6 +31,41 @@ Answered with the answer and the date, and update the document that depended on 
 18. Are sales between the three companies (intercompany) booked as ordinary sales orders, or are they marked so they can be left out of group totals?
 19. Are customer invoices read from billing documents (`VBRK`/`VBRP`) and open items from `BSID`/`BSAD`, and which fields hold the due date (`FAEDT` or a baseline date plus terms) and the clearing date?
 
-## Answered
+### Inventory (`inventory-contract.md`)
+18. Service name, root path and namespace for stock: confirm or replace section 1 (`ZUI_INVENTORY_O4`).
+19. Is "warehouse" in the business a storage location of a plant, or a warehouse number of an extended warehouse management setup? The contract assumes storage locations.
+20. Which stock counts as "on hand": unrestricted-use only, or also quality inspection and blocked stock?
+21. Can `StockStatus` (and the reorder level it compares with) be derived in the CDS view? Where is the reorder point kept for the group's materials (plant data `MINBE`, or MRP groups)?
+22. Which valuation does `StockValue` use (moving average price or standard price), and in which currency is it returned for each plant?
+23. Can month-end stock value come from the valuation history (`MBEWH`), and from which month does it exist?
+24. Which movement types post receipts and issues in your system, and can reversals be left out with a stable rule? The contract uses `101`, `131`, `261`, `601`, `561` and `702`.
+25. Which timezone are the entry date and time of a material document stored in? `EntryDateTime` is UTC in the contract.
+26. Can the material group (`MATKL`) and its text be exposed on stock rows without an extra call?
+
 
 None yet.
+
+### Production (`production-contract.md`)
+27. Service name, root path and namespace for production confirmations: confirm or replace section 1 (`ZUI_PRODUCTION_O4`).
+28. Does the plant confirm output per shift and work center (one `AFRU` row per shift), or per order and day? The contract assumes per shift.
+29. Where is downtime kept: work center downtime in PM (maintenance notifications), a confirmation with a downtime reason, or an MES? What are the cause codes, and can they be mapped to `BREAKDOWN`, `CHANGEOVER`, `NO_MATERIAL`, `MAINTENANCE` and `OTHER`?
+30. How are scrap and its reason recorded (scrap quantity and variance reason on the confirmation, or a quality notification)? Which reasons exist?
+31. Is the planned output of a shift (`TargetQuantity`) available, or only the order total? We spread the order quantity over its shifts.
+32. How are shifts defined (hours of morning, afternoon and night), and is `RunHours` the scheduled hours of the shift?
+33. Which standard price values the yield and scrap, and in which currency?
+
+### Exports (`export-contract.md`)
+34. Service name, root path and namespace for export shipments: confirm or replace section 1 (`ZUI_EXPORT_O4`).
+35. Is an export "a sales order whose ship-to country is not India", or is there an export flag or sales area (distribution channel) that defines it?
+36. Is one outbound delivery one shipment, or can several deliveries travel together (a shipment document `VTTK`)? Where is the transport mode kept (shipping condition, shipment type, forwarding)?
+37. Where does the arrival come from: proof of delivery (`PODAT`), a forwarder feed, or nowhere? Without it we cannot say a shipment is delivered.
+38. Which exchange rate converts the order value to rupees (the rate of the order or of the goods issue), so `NetAmount` is the same as finance books?
+39. Can the country name come from `T005T` in the CDS view without an extra call?
+
+### Finance cash (`finance-contract.md`)
+40. Service name, root path and namespace for cash: confirm or replace section 1 (`ZUI_FINANCE_O4`).
+41. Is "money in" the clearing of customer open items (the date and amount of the incoming payment), or the bank statement? Which is the source of truth for the cash position?
+42. Which accounts are running costs, and can they be mapped to `SALARIES`, `RENT`, `UTILITIES`, `FREIGHT`, `MAINTENANCE` and `MARKETING` (cost elements, or G/L account groups)? Who maintains the mapping?
+43. Are vendor payments identified by the clearing of vendor open items; can the purchase order be read from the clearing document?
+44. Which rate converts a foreign-currency payment into rupees: the rate of the payment date or of the invoice? `Amount` should be what finance books.
+45. Is there a monthly collection target in SAP (a plan version), or is it a number the business keeps outside SAP?

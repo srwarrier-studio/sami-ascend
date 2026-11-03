@@ -1,6 +1,6 @@
 # butterfly
 
-Mock SAP. Serves the Sales OData V4 contract in `docs/sap/sales-contract.md` and the drivers contract in `docs/sap/drivers-contract.md` from seed data, so the apps can be built before the real RAP services exist. No auth, no database; data resets on restart. All data is invented.
+Mock SAP. Serves the Sales OData V4 contract in `docs/sap/sales-contract.md` and the drivers contract in `docs/sap/drivers-contract.md` from seed data, so the apps can be built before the real RAP services exist. No auth. Data lives in a SQLite file (see Storage). All data is invented.
 
 ## Run
 ```
@@ -27,6 +27,32 @@ Second read-only service on `/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdr
 ```
 curl "http://localhost:8003/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/PurchaseDelivery?\$filter=Material%20eq%20'RAW-2002'&\$orderby=PromisedDeliveryDate%20desc&\$top=3"
 ```
+
+## Inventory service
+Third read-only service on `/sap/opu/odata4/sap/zui_inventory_o4/srvd_a2x/sap/zinventory/0001/`, specified in `docs/sap/inventory-contract.md`: `MaterialStock` (stock on hand per material and storage location, with a derived `StockStatus` of `O`, `L` or `Z`) and `StockMovement` (goods movements with their entry time), plus the summaries `StockSummaryByWarehouse`, `StockSummaryByMaterialGroup`, `StockSummaryByStatus`, `StockValueByMonth`, `StockMovementSummaryByDay` and `StockMovementSummaryByHour`. Same query options as the other services; `$expand` and writes are refused.
+
+The stock is generated from the data butterfly already holds, so every number can be explained: raw material receipts are the purchase deliveries, finished product receipts are the production orders, issues are the production order components and the sales order items, opening stock is posted as an initial entry (`561`), and about one material in nine is counted down to zero today (`702`). Stock is valued at a standard price per material in rupees. `BUTTERFLY_SEED=small` has no stock. The material groups and storage locations are master data and are always present.
+
+## Production service
+Fourth read-only service on `/sap/opu/odata4/sap/zui_production_o4/srvd_a2x/sap/zproduction/0001/`, specified in `docs/sap/production-contract.md`: `ProductionConfirmation` (what one work center produced in one shift: yield, scrap, target, scrap reason, valued at the standard price) and `WorkCenterDowntime` (stoppages by cause), plus the summaries `ProductionSummaryByDay`, `DowntimeSummaryByDay`, `ScrapSummaryByDay` and `OutputSummaryByLineShift`. Equipment effectiveness is worked out by the consumer from `ProductionSummaryByDay`. Same query options as the other services; `$expand` and writes are refused.
+
+The shop floor is generated from the production orders, so it ties out: the yields of a completed order add up to its confirmed quantity and the targets to its planned quantity, every delayed order has a stoppage of its cause with 8 hours for each day it ran late, each order changes over on its first day and each line is maintained once a month. Orders that have not started have no confirmations. `BUTTERFLY_SEED=small` has no shop floor; the work centers are master data and are always present.
+
+## Export service
+Fifth read-only service on `/sap/opu/odata4/sap/zui_export_o4/srvd_a2x/sap/zexport/0001/`, specified in `docs/sap/export-contract.md`: `ExportShipment` (one outbound delivery of an order sold abroad, with destination country, transport mode, expected and actual arrival, and the value in rupees and in the order currency) and the summaries `ExportSummaryByDay`, `ExportSummaryByDestination` and `ExportSummaryByMode`. Same query options as the other services; `$expand` and writes are refused.
+
+Shipments are generated with the seed from the orders that are not cancelled and not sold to `IN`: they ship on the requested delivery date, about 60% by sea, 25% by air, 15% by road, and a shipment whose arrival is after today is in transit. An order created through the API is part of the sales data at once (the sales summaries show it) but does not become a shipment, stock movement or invoice: those are generated from the seed's own orders only. `BUTTERFLY_SEED=small` has no shipments.
+
+## Finance service
+Sixth read-only service on `/sap/opu/odata4/sap/zui_finance_o4/srvd_a2x/sap/zfinance/0001/`, specified in `docs/sap/finance-contract.md`: `CashPayment` (money received from customers for cleared invoices, paid to vendors thirty to forty-five days after delivery, and the monthly running costs in six categories), with the summaries `CashSummaryByDay` and `ExpenseSummaryByDay`. Amounts are in rupees with the document amount beside them. Payments are derived from the invoices and purchase deliveries with the other documents, so they follow orders created through the API; the small seed has none.
+
+## Storage
+Butterfly keeps its data in SQLite tables (orders, drivers, master data, stock) behind the repository interfaces, and answers `$filter`, `$orderby`, `$top`, `$skip`, `$count` and `$select` with SQL (values are bound parameters, column names come from the field whitelists). The summaries are SQL views and the receivables entities are queries with a bound `AsOfDate`; each is one file in `src/butterfly/infrastructure/sqlite/views/`, named after its OData entity.
+
+- `BUTTERFLY_DB` is the file, default `apps/butterfly/butterfly.db` (ignored by git). `:memory:` keeps nothing between restarts.
+- Money is stored as integer cents and quantities as integer thousandths, so sums are exact; the repositories convert to and from `Decimal`.
+- At start the seed (`BUTTERFLY_SEED`, `BUTTERFLY_SCENARIO`) is written into the file when the file is empty, or the seed, the scenario or the day changed. The seeds are built relative to today, so a new day moves the seeded data; orders created through the API are kept and the numbers continue after them. Delete the file to start clean.
+- The in-memory repositories remain as test doubles. `BUTTERFLY_STORE=sqlite pytest apps/butterfly/tests` runs every test against SQLite instead.
 
 ## Seeds
 `BUTTERFLY_SEED=story` (the default) serves 14 months of data (about 4,100 orders from 2025-09-01 to today) for the three group companies `INA1` (Sami-Sabinsa Group, herbal extracts, exports in USD), `INA2` (Sami Nutraceuticals, probiotics and finished products, USD and INR) and `INA3` (Organica Aromatics, aroma chemicals, USD and INR), each with its own customers, products, suppliers and numbers, plus contracts, invoices, purchase deliveries, production orders and components. The story and every scenario event belong to `INA1`; the other two companies stay quiet. In the story, sales of `INA1` fall in August 2026 for known reasons: Harborline Nutrition LLC's contract ended on 12 July and was not renewed until 14 September, and Deccan Agro Growers Cooperative delivered Black pepper, whole 12 days late, which delayed Piperine extract 95% production. Two events (a late Frankincense resin delivery and a Probiotic capsule machine breakdown, both in May) did not affect sales. Amounts are in each customer's currency (`USD` or `INR`) and every row has a `CompanyCode`; read one company with `$filter=CompanyCode eq 'INA1'`. The story is described in `docs/ai-analysis.md` section 7 and pinned by `tests/test_story_ground_truth.py`. `BUTTERFLY_SEED=small` serves the old 30 orders and an empty drivers service; anything else stops the start with a message. New orders continue after the last seeded number.

@@ -23,6 +23,8 @@ SALES_ORDER_FIELDS = {
     "LastChangeDateTime": ("last_change_date_time", FieldType.DATETIME),
     "CompanyCode": ("company_code", FieldType.STRING),
     "Country": ("country", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 SALES_ORDER_ITEM_FIELDS = {
@@ -41,6 +43,8 @@ SALES_SUMMARY_BY_DAY_FIELDS = {
     "OrderCount": ("order_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 SALES_SUMMARY_BY_CUSTOMER_FIELDS = {
@@ -51,6 +55,8 @@ SALES_SUMMARY_BY_CUSTOMER_FIELDS = {
     "OrderCount": ("order_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 SALES_SUMMARY_BY_MATERIAL_FIELDS = {
@@ -62,6 +68,8 @@ SALES_SUMMARY_BY_MATERIAL_FIELDS = {
     "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 SALES_CONTRACT_FIELDS = {
@@ -94,6 +102,8 @@ PURCHASE_DELIVERY_FIELDS = {
     "ActualDeliveryDate": ("actual_delivery_date", FieldType.DATE),
     "DeliveryStatus": ("delivery_status", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "NetAmountLocal": ("net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 CUSTOMER_INVOICE_FIELDS = {
@@ -118,6 +128,9 @@ RECEIVABLES_SUMMARY_FIELDS = {
     "OverdueCount": ("overdue_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "OpenAmountLocal": ("open_amount_local", FieldType.DECIMAL),
+    "OverdueAmountLocal": ("overdue_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 RECEIVABLES_BY_CUSTOMER_FIELDS = {
@@ -133,6 +146,8 @@ RECEIVABLES_AGEING_FIELDS = {
     "OpenCount": ("open_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "OpenAmountLocal": ("open_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 PRODUCTION_ORDER_FIELDS = {
@@ -159,6 +174,225 @@ PRODUCTION_ORDER_COMPONENT_FIELDS = {
     "CompanyCode": ("company_code", FieldType.STRING),
 }
 
+MATERIAL_STOCK_FIELDS = {
+    "Material": ("material", FieldType.STRING),
+    "MaterialDescription": ("material_description", FieldType.STRING),
+    "MaterialGroup": ("material_group", FieldType.STRING),
+    "MaterialGroupName": ("material_group_name", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "StorageLocation": ("storage_location", FieldType.STRING),
+    "StorageLocationName": ("storage_location_name", FieldType.STRING),
+    "StockQuantity": ("stock_quantity", FieldType.DECIMAL),
+    "QuantityUnit": ("quantity_unit", FieldType.STRING),
+    "StockValue": ("stock_value", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "ReorderLevel": ("reorder_level", FieldType.DECIMAL),
+    "StockStatus": ("stock_status", FieldType.STRING),
+    "LastMovementDate": ("last_movement_date", FieldType.DATE),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_MOVEMENT_FIELDS = {
+    "MaterialDocument": ("material_document", FieldType.STRING),
+    "MaterialDocumentItem": ("material_document_item", FieldType.STRING),
+    "MaterialDocumentYear": ("material_document_year", FieldType.STRING),
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "EntryDateTime": ("entry_date_time", FieldType.DATETIME),
+    "Material": ("material", FieldType.STRING),
+    "MaterialDescription": ("material_description", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "StorageLocation": ("storage_location", FieldType.STRING),
+    "MovementType": ("movement_type", FieldType.STRING),
+    "DebitCreditCode": ("debit_credit_code", FieldType.STRING),
+    "Quantity": ("quantity", FieldType.DECIMAL),
+    "QuantityUnit": ("quantity_unit", FieldType.STRING),
+    "Amount": ("amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_SUMMARY_BY_WAREHOUSE_FIELDS = {
+    "Plant": ("plant", FieldType.STRING),
+    "StorageLocation": ("storage_location", FieldType.STRING),
+    "StorageLocationName": ("storage_location_name", FieldType.STRING),
+    "StockValue": ("stock_value", FieldType.DECIMAL),
+    "MaterialCount": ("material_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_SUMMARY_BY_MATERIAL_GROUP_FIELDS = {
+    "MaterialGroup": ("material_group", FieldType.STRING),
+    "MaterialGroupName": ("material_group_name", FieldType.STRING),
+    "StockValue": ("stock_value", FieldType.DECIMAL),
+    "MaterialCount": ("material_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_SUMMARY_BY_STATUS_FIELDS = {
+    "StockStatus": ("stock_status", FieldType.STRING),
+    "StockValue": ("stock_value", FieldType.DECIMAL),
+    "MaterialCount": ("material_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_VALUE_BY_MONTH_FIELDS = {
+    "PostingPeriod": ("posting_period", FieldType.STRING),
+    "StockValue": ("stock_value", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_MOVEMENT_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "ReceiptValue": ("receipt_value", FieldType.DECIMAL),
+    "IssueValue": ("issue_value", FieldType.DECIMAL),
+    "MovementCount": ("movement_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_MOVEMENT_SUMMARY_BY_HOUR_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "PostingHour": ("posting_hour", FieldType.DECIMAL),
+    "MovementCount": ("movement_count", FieldType.DECIMAL),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+PRODUCTION_CONFIRMATION_FIELDS = {
+    "ConfirmationNumber": ("confirmation_number", FieldType.STRING),
+    "ConfirmationCounter": ("confirmation_counter", FieldType.STRING),
+    "ProductionOrder": ("production_order", FieldType.STRING),
+    "Material": ("material", FieldType.STRING),
+    "MaterialDescription": ("material_description", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "WorkCenter": ("work_center", FieldType.STRING),
+    "WorkCenterName": ("work_center_name", FieldType.STRING),
+    "Shift": ("shift", FieldType.STRING),
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "YieldQuantity": ("yield_quantity", FieldType.DECIMAL),
+    "ScrapQuantity": ("scrap_quantity", FieldType.DECIMAL),
+    "TargetQuantity": ("target_quantity", FieldType.DECIMAL),
+    "QuantityUnit": ("quantity_unit", FieldType.STRING),
+    "ScrapReason": ("scrap_reason", FieldType.STRING),
+    "RunHours": ("run_hours", FieldType.DECIMAL),
+    "YieldValue": ("yield_value", FieldType.DECIMAL),
+    "ScrapValue": ("scrap_value", FieldType.DECIMAL),
+    "TargetValue": ("target_value", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+WORK_CENTER_DOWNTIME_FIELDS = {
+    "DowntimeNumber": ("downtime_number", FieldType.STRING),
+    "ProductionOrder": ("production_order", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "WorkCenter": ("work_center", FieldType.STRING),
+    "WorkCenterName": ("work_center_name", FieldType.STRING),
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "DowntimeHours": ("downtime_hours", FieldType.DECIMAL),
+    "DowntimeCause": ("downtime_cause", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+PRODUCTION_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "PlannedHours": ("planned_hours", FieldType.DECIMAL),
+    "DowntimeHours": ("downtime_hours", FieldType.DECIMAL),
+    "TargetValue": ("target_value", FieldType.DECIMAL),
+    "GoodValue": ("good_value", FieldType.DECIMAL),
+    "ScrapValue": ("scrap_value", FieldType.DECIMAL),
+    "ConfirmationCount": ("confirmation_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+DOWNTIME_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "DowntimeCause": ("downtime_cause", FieldType.STRING),
+    "DowntimeHours": ("downtime_hours", FieldType.DECIMAL),
+    "EventCount": ("event_count", FieldType.DECIMAL),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+SCRAP_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "ScrapReason": ("scrap_reason", FieldType.STRING),
+    "ScrapValue": ("scrap_value", FieldType.DECIMAL),
+    "ConfirmationCount": ("confirmation_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+OUTPUT_SUMMARY_BY_LINE_SHIFT_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "WorkCenter": ("work_center", FieldType.STRING),
+    "Shift": ("shift", FieldType.STRING),
+    "WorkCenterName": ("work_center_name", FieldType.STRING),
+    "GoodValue": ("good_value", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+EXPORT_SHIPMENT_FIELDS = {
+    "Shipment": ("shipment", FieldType.STRING),
+    "SalesOrder": ("sales_order", FieldType.STRING),
+    "SoldToParty": ("sold_to_party", FieldType.STRING),
+    "CustomerName": ("customer_name", FieldType.STRING),
+    "Country": ("country", FieldType.STRING),
+    "CountryName": ("country_name", FieldType.STRING),
+    "TransportMode": ("transport_mode", FieldType.STRING),
+    "ShipmentDate": ("shipment_date", FieldType.DATE),
+    "ExpectedArrivalDate": ("expected_arrival_date", FieldType.DATE),
+    "ActualArrivalDate": ("actual_arrival_date", FieldType.DATE),
+    "ShipmentStatus": ("shipment_status", FieldType.STRING),
+    "NetAmount": ("net_amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "DocumentAmount": ("document_amount", FieldType.DECIMAL),
+    "DocumentCurrency": ("document_currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+EXPORT_SUMMARY_BY_DAY_FIELDS = {
+    "ShipmentDate": ("shipment_date", FieldType.DATE),
+    "ShipmentCount": ("shipment_count", FieldType.DECIMAL),
+    "NetAmount": ("net_amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+EXPORT_SUMMARY_BY_DESTINATION_FIELDS = {
+    "ShipmentDate": ("shipment_date", FieldType.DATE),
+    "Country": ("country", FieldType.STRING),
+    "CountryName": ("country_name", FieldType.STRING),
+    "ShipmentCount": ("shipment_count", FieldType.DECIMAL),
+    "NetAmount": ("net_amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+EXPORT_SUMMARY_BY_MODE_FIELDS = {
+    "ShipmentDate": ("shipment_date", FieldType.DATE),
+    "TransportMode": ("transport_mode", FieldType.STRING),
+    "ShipmentCount": ("shipment_count", FieldType.DECIMAL),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+CASH_PAYMENT_FIELDS = {
+    "PaymentDocument": ("payment_document", FieldType.STRING),
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "Direction": ("direction", FieldType.STRING),
+    "PaymentType": ("payment_type", FieldType.STRING),
+    "Partner": ("partner", FieldType.STRING),
+    "PartnerName": ("partner_name", FieldType.STRING),
+    "ExpenseCategory": ("expense_category", FieldType.STRING),
+    "Reference": ("reference", FieldType.STRING),
+    "Amount": ("amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "DocumentAmount": ("document_amount", FieldType.DECIMAL),
+    "DocumentCurrency": ("document_currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+CASH_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "Direction": ("direction", FieldType.STRING),
+    "PaymentCount": ("payment_count", FieldType.DECIMAL),
+    "Amount": ("amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+EXPENSE_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "ExpenseCategory": ("expense_category", FieldType.STRING),
+    "PaymentCount": ("payment_count", FieldType.DECIMAL),
+    "Amount": ("amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
 PURCHASE_SUMMARY_BY_DAY_FIELDS = SALES_SUMMARY_BY_DAY_FIELDS
 
 PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {
@@ -169,6 +403,19 @@ PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {
     "OrderCount": ("order_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
+PURCHASE_SUMMARY_BY_MATERIAL_GROUP_FIELDS = {
+    "MaterialGroup": ("material_group", FieldType.STRING),
+    "MaterialGroupName": ("material_group_name", FieldType.STRING),
+    "OrderDate": ("order_date", FieldType.DATE),
+    "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
+    "OrderCount": ("order_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
+}
 PURCHASE_SUMMARY_BY_MATERIAL_FIELDS = SALES_SUMMARY_BY_MATERIAL_FIELDS

@@ -14,10 +14,11 @@ class SummarizePurchasesBySupplier:
             if delivery.delivery_status == "X":
                 continue
             key = (delivery.order_date, delivery.supplier, delivery.transaction_currency, delivery.company_code)
-            entry = totals.setdefault(key, [delivery.supplier_name, Decimal("0.00"), 0])
+            entry = totals.setdefault(key, [delivery.supplier_name, Decimal("0.00"), 0, Decimal("0.00")])
             entry[1] += delivery.net_amount
             entry[2] += 1
+            entry[3] += delivery.net_amount_local
         return [
-            PurchaseSummaryBySupplier(supplier, name, day, amount, count, currency, company)
-            for (day, supplier, currency, company), (name, amount, count) in sorted(totals.items())
+            PurchaseSummaryBySupplier(supplier, name, day, amount, count, currency, company, local)
+            for (day, supplier, currency, company), (name, amount, count, local) in sorted(totals.items())
         ]

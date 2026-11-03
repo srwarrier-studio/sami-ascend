@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from pathlib import Path
 from datetime import date, datetime
 from typing import Callable
 
@@ -13,6 +14,27 @@ from structured_logging import RequestIdMiddleware, get_request_id, setup_loggin
 from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.filter.fields import (
     CUSTOMER_INVOICE_FIELDS,
+    DOWNTIME_SUMMARY_BY_DAY_FIELDS,
+    CASH_PAYMENT_FIELDS,
+    CASH_SUMMARY_BY_DAY_FIELDS,
+    EXPENSE_SUMMARY_BY_DAY_FIELDS,
+    EXPORT_SHIPMENT_FIELDS,
+    EXPORT_SUMMARY_BY_DAY_FIELDS,
+    EXPORT_SUMMARY_BY_DESTINATION_FIELDS,
+    EXPORT_SUMMARY_BY_MODE_FIELDS,
+    MATERIAL_STOCK_FIELDS,
+    OUTPUT_SUMMARY_BY_LINE_SHIFT_FIELDS,
+    PRODUCTION_CONFIRMATION_FIELDS,
+    PRODUCTION_SUMMARY_BY_DAY_FIELDS,
+    SCRAP_SUMMARY_BY_DAY_FIELDS,
+    WORK_CENTER_DOWNTIME_FIELDS,
+    STOCK_MOVEMENT_FIELDS,
+    STOCK_MOVEMENT_SUMMARY_BY_DAY_FIELDS,
+    STOCK_MOVEMENT_SUMMARY_BY_HOUR_FIELDS,
+    STOCK_SUMMARY_BY_MATERIAL_GROUP_FIELDS,
+    STOCK_SUMMARY_BY_STATUS_FIELDS,
+    STOCK_SUMMARY_BY_WAREHOUSE_FIELDS,
+    STOCK_VALUE_BY_MONTH_FIELDS,
     PRODUCTION_ORDER_COMPONENT_FIELDS,
     PRODUCTION_ORDER_FIELDS,
     PURCHASE_DELIVERY_FIELDS,
@@ -25,6 +47,7 @@ from butterfly.application.filter.fields import (
     SALES_SUMMARY_BY_CUSTOMER_FIELDS,
     SALES_SUMMARY_BY_DAY_FIELDS,
     PURCHASE_SUMMARY_BY_DAY_FIELDS,
+    PURCHASE_SUMMARY_BY_MATERIAL_GROUP_FIELDS,
     PURCHASE_SUMMARY_BY_MATERIAL_FIELDS,
     PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS,
     SALES_SUMMARY_BY_MATERIAL_FIELDS,
@@ -38,7 +61,12 @@ from butterfly.application.usecase.list_sales_orders import ListSalesOrders
 from butterfly.application.usecase.list_sales_summary import ListSalesSummary
 from butterfly.application.usecase.summarize_purchases_by_day import SummarizePurchasesByDay
 from butterfly.application.usecase.summarize_purchases_by_material import SummarizePurchasesByMaterial
+from butterfly.application.usecase.summarize_purchases_by_material_group import SummarizePurchasesByMaterialGroup
 from butterfly.application.usecase.summarize_purchases_by_supplier import SummarizePurchasesBySupplier
+from butterfly.application.usecase.summarize_exports import SummarizeExports
+from butterfly.application.usecase.summarize_finance import SummarizeFinance
+from butterfly.application.usecase.summarize_inventory import SummarizeInventory
+from butterfly.application.usecase.summarize_production import SummarizeProduction
 from butterfly.application.usecase.summarize_receivables import SummarizeReceivables
 from butterfly.application.usecase.summarize_receivables_ageing import SummarizeReceivablesAgeing
 from butterfly.application.usecase.summarize_receivables_by_customer import SummarizeReceivablesByCustomer
@@ -54,10 +82,18 @@ from butterfly.domain.errors import (
     ValidationFailed,
 )
 from butterfly.domain.repositories.driver_repo import DriverRepo
+from butterfly.domain.repositories.export_repo import ExportRepo
+from butterfly.domain.repositories.finance_repo import FinanceRepo
+from butterfly.domain.repositories.inventory_repo import InventoryRepo
+from butterfly.domain.repositories.production_repo import ProductionRepo
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.api.odata import (
     DRIVERS_ROOT,
+    EXPORT_ROOT,
+    FINANCE_ROOT,
+    INVENTORY_ROOT,
+    PRODUCTION_ROOT,
     ROOT,
     error_body,
     item_to_json,
@@ -65,12 +101,25 @@ from butterfly.infrastructure.api.odata import (
     summary_to_json,
 )
 from butterfly.infrastructure.memory.in_memory_driver_repo import InMemoryDriverRepo
+from butterfly.infrastructure.memory.in_memory_export_repo import InMemoryExportRepo
+from butterfly.infrastructure.memory.in_memory_finance_repo import InMemoryFinanceRepo
+from butterfly.infrastructure.memory.in_memory_inventory_repo import InMemoryInventoryRepo
+from butterfly.infrastructure.memory.in_memory_production_repo import InMemoryProductionRepo
+from butterfly.infrastructure.memory.inventory_master import GROUP_OF, GROUPS
 from butterfly.infrastructure.memory.in_memory_master_data_repo import InMemoryMasterDataRepo
-from butterfly.infrastructure.memory.in_memory_sales_order_repo import InMemorySalesOrderRepo
-from butterfly.infrastructure.memory.seed import build_seed
-from butterfly.infrastructure.memory.scenarios import find_scenario
 from butterfly.infrastructure.memory.companies import COMPANIES
+from butterfly.infrastructure.memory.scenarios import find_scenario
 from butterfly.infrastructure.memory.story_seed import build_story_seed
+from butterfly.infrastructure.sqlite.database import Database
+from butterfly.infrastructure.sqlite.derivation import Derivation
+from butterfly.infrastructure.sqlite.driver_repo import SqliteDriverRepo
+from butterfly.infrastructure.sqlite.export_repo import SqliteExportRepo
+from butterfly.infrastructure.sqlite.finance_repo import SqliteFinanceRepo
+from butterfly.infrastructure.sqlite.inventory_repo import SqliteInventoryRepo
+from butterfly.infrastructure.sqlite.master_data_repo import SqliteMasterDataRepo
+from butterfly.infrastructure.sqlite.production_repo import SqliteProductionRepo
+from butterfly.infrastructure.sqlite.sales_order_repo import SqliteSalesOrderRepo
+from butterfly.infrastructure.sqlite.seeder import SEEDS, prepare
 
 logger = logging.getLogger("butterfly")
 
@@ -109,10 +158,18 @@ def create_app(
     repo: SalesOrderRepo,
     master_data: MasterDataRepo | None = None,
     drivers: DriverRepo | None = None,
+    inventory: InventoryRepo | None = None,
+    production: ProductionRepo | None = None,
+    exports: ExportRepo | None = None,
+    finance: FinanceRepo | None = None,
     now: Callable[[], datetime] = utc_now,
 ) -> FastAPI:
     master_data = master_data or InMemoryMasterDataRepo()
     drivers = drivers or InMemoryDriverRepo()
+    inventory = inventory or InMemoryInventoryRepo()
+    production = production or InMemoryProductionRepo()
+    exports = exports or InMemoryExportRepo()
+    finance = finance or InMemoryFinanceRepo()
     app = FastAPI()
     router = APIRouter(prefix=ROOT.rstrip("/"))
 
@@ -251,7 +308,7 @@ def create_app(
             reject_unsupported(request, LIST_OPTIONS)
             day = as_of_date(as_of)
             query = ListQuery(filter_text, select, orderby, top, skip, count)
-            result = ListSalesSummary(lambda: summarize(drivers).execute(day), fields).execute(query)
+            result = ListSalesSummary(lambda: drivers.summary_listing(entity, day) or summarize(drivers).execute(day), fields).execute(query)
             body = {"@odata.context": context_for(entity, result.select, fields, False)}
             if result.total is not None:
                 body["@odata.count"] = result.total
@@ -259,24 +316,75 @@ def create_app(
             return body
 
     def add_summary_route(entity: str, summarize, fields: dict):
-        add_list_route(router, entity, lambda: summarize(repo).execute(), fields)
+        add_list_route(router, entity, lambda: repo.summary_listing(entity) or summarize(repo).execute(), fields)
 
     add_summary_route("SalesSummaryByDay", SummarizeByDay, SALES_SUMMARY_BY_DAY_FIELDS)
     add_summary_route("SalesSummaryByCustomer", SummarizeByCustomer, SALES_SUMMARY_BY_CUSTOMER_FIELDS)
     add_summary_route("SalesSummaryByMaterial", SummarizeByMaterial, SALES_SUMMARY_BY_MATERIAL_FIELDS)
 
     drivers_router = APIRouter(prefix=DRIVERS_ROOT.rstrip("/"))
-    add_list_route(drivers_router, "SalesContract", drivers.contracts, SALES_CONTRACT_FIELDS)
-    add_list_route(drivers_router, "PurchaseDelivery", drivers.deliveries, PURCHASE_DELIVERY_FIELDS)
-    add_list_route(drivers_router, "CustomerInvoice", drivers.invoices, CUSTOMER_INVOICE_FIELDS)
+    add_list_route(drivers_router, "SalesContract", lambda: drivers.listing("contracts"), SALES_CONTRACT_FIELDS)
+    add_list_route(drivers_router, "PurchaseDelivery", lambda: drivers.listing("deliveries"), PURCHASE_DELIVERY_FIELDS)
+    add_list_route(drivers_router, "CustomerInvoice", lambda: drivers.listing("invoices"), CUSTOMER_INVOICE_FIELDS)
     add_receivables_route(drivers_router, "ReceivablesSummary", SummarizeReceivables, RECEIVABLES_SUMMARY_FIELDS)
     add_receivables_route(drivers_router, "ReceivablesByCustomer", SummarizeReceivablesByCustomer, RECEIVABLES_BY_CUSTOMER_FIELDS)
     add_receivables_route(drivers_router, "ReceivablesAgeing", SummarizeReceivablesAgeing, RECEIVABLES_AGEING_FIELDS)
-    add_list_route(drivers_router, "ProductionOrder", drivers.production_orders, PRODUCTION_ORDER_FIELDS)
-    add_list_route(drivers_router, "ProductionOrderComponent", drivers.components, PRODUCTION_ORDER_COMPONENT_FIELDS)
-    add_list_route(drivers_router, "PurchaseSummaryByDay", lambda: SummarizePurchasesByDay(drivers).execute(), PURCHASE_SUMMARY_BY_DAY_FIELDS)
-    add_list_route(drivers_router, "PurchaseSummaryBySupplier", lambda: SummarizePurchasesBySupplier(drivers).execute(), PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS)
-    add_list_route(drivers_router, "PurchaseSummaryByMaterial", lambda: SummarizePurchasesByMaterial(drivers).execute(), PURCHASE_SUMMARY_BY_MATERIAL_FIELDS)
+    add_list_route(drivers_router, "ProductionOrder", lambda: drivers.listing("production_orders"), PRODUCTION_ORDER_FIELDS)
+    add_list_route(drivers_router, "ProductionOrderComponent", lambda: drivers.listing("components"), PRODUCTION_ORDER_COMPONENT_FIELDS)
+    add_list_route(drivers_router, "PurchaseSummaryByDay", lambda: drivers.summary_listing("PurchaseSummaryByDay") or SummarizePurchasesByDay(drivers).execute(), PURCHASE_SUMMARY_BY_DAY_FIELDS)
+    add_list_route(drivers_router, "PurchaseSummaryBySupplier", lambda: drivers.summary_listing("PurchaseSummaryBySupplier") or SummarizePurchasesBySupplier(drivers).execute(), PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS)
+    add_list_route(
+        drivers_router,
+        "PurchaseSummaryByMaterialGroup",
+        lambda: drivers.summary_listing("PurchaseSummaryByMaterialGroup") or SummarizePurchasesByMaterialGroup(drivers, GROUP_OF, {g.code: g.name for g in GROUPS}).execute(),
+        PURCHASE_SUMMARY_BY_MATERIAL_GROUP_FIELDS,
+    )
+    add_list_route(drivers_router, "PurchaseSummaryByMaterial", lambda: drivers.summary_listing("PurchaseSummaryByMaterial") or SummarizePurchasesByMaterial(drivers).execute(), PURCHASE_SUMMARY_BY_MATERIAL_FIELDS)
+
+    inventory_router = APIRouter(prefix=INVENTORY_ROOT.rstrip("/"))
+    add_list_route(inventory_router, "MaterialStock", lambda: inventory.listing("stocks"), MATERIAL_STOCK_FIELDS)
+    add_list_route(inventory_router, "StockMovement", lambda: inventory.listing("movements"), STOCK_MOVEMENT_FIELDS)
+    stock_summaries = SummarizeInventory(inventory)
+    for entity, build, fields in (
+        ("StockSummaryByWarehouse", stock_summaries.by_warehouse, STOCK_SUMMARY_BY_WAREHOUSE_FIELDS),
+        ("StockSummaryByMaterialGroup", stock_summaries.by_material_group, STOCK_SUMMARY_BY_MATERIAL_GROUP_FIELDS),
+        ("StockSummaryByStatus", stock_summaries.by_status, STOCK_SUMMARY_BY_STATUS_FIELDS),
+        ("StockValueByMonth", stock_summaries.value_by_month, STOCK_VALUE_BY_MONTH_FIELDS),
+        ("StockMovementSummaryByDay", stock_summaries.movements_by_day, STOCK_MOVEMENT_SUMMARY_BY_DAY_FIELDS),
+        ("StockMovementSummaryByHour", stock_summaries.movements_by_hour, STOCK_MOVEMENT_SUMMARY_BY_HOUR_FIELDS),
+    ):
+        add_list_route(inventory_router, entity, lambda entity=entity, build=build: inventory.summary_listing(entity) or build(), fields)
+
+    production_router = APIRouter(prefix=PRODUCTION_ROOT.rstrip("/"))
+    add_list_route(production_router, "ProductionConfirmation", lambda: production.listing("confirmations"), PRODUCTION_CONFIRMATION_FIELDS)
+    add_list_route(production_router, "WorkCenterDowntime", lambda: production.listing("downtimes"), WORK_CENTER_DOWNTIME_FIELDS)
+    shop_floor = SummarizeProduction(production)
+    for entity, build, fields in (
+        ("ProductionSummaryByDay", shop_floor.by_day, PRODUCTION_SUMMARY_BY_DAY_FIELDS),
+        ("DowntimeSummaryByDay", shop_floor.downtime_by_day, DOWNTIME_SUMMARY_BY_DAY_FIELDS),
+        ("ScrapSummaryByDay", shop_floor.scrap_by_day, SCRAP_SUMMARY_BY_DAY_FIELDS),
+        ("OutputSummaryByLineShift", shop_floor.output_by_line_shift, OUTPUT_SUMMARY_BY_LINE_SHIFT_FIELDS),
+    ):
+        add_list_route(production_router, entity, lambda entity=entity, build=build: production.summary_listing(entity) or build(), fields)
+
+    export_router = APIRouter(prefix=EXPORT_ROOT.rstrip("/"))
+    add_list_route(export_router, "ExportShipment", lambda: exports.listing("shipments"), EXPORT_SHIPMENT_FIELDS)
+    export_summaries = SummarizeExports(exports)
+    for entity, build, fields in (
+        ("ExportSummaryByDay", export_summaries.by_day, EXPORT_SUMMARY_BY_DAY_FIELDS),
+        ("ExportSummaryByDestination", export_summaries.by_destination, EXPORT_SUMMARY_BY_DESTINATION_FIELDS),
+        ("ExportSummaryByMode", export_summaries.by_mode, EXPORT_SUMMARY_BY_MODE_FIELDS),
+    ):
+        add_list_route(export_router, entity, lambda entity=entity, build=build: exports.summary_listing(entity) or build(), fields)
+
+    finance_router = APIRouter(prefix=FINANCE_ROOT.rstrip("/"))
+    add_list_route(finance_router, "CashPayment", lambda: finance.listing("payments"), CASH_PAYMENT_FIELDS)
+    cash = SummarizeFinance(finance)
+    for entity, build, fields in (
+        ("CashSummaryByDay", cash.cash_by_day, CASH_SUMMARY_BY_DAY_FIELDS),
+        ("ExpenseSummaryByDay", cash.expenses_by_day, EXPENSE_SUMMARY_BY_DAY_FIELDS),
+    ):
+        add_list_route(finance_router, entity, lambda entity=entity, build=build: finance.summary_listing(entity) or build(), fields)
 
     @app.exception_handler(SalesOrderNotFound)
     def not_found(request: Request, error: SalesOrderNotFound):
@@ -361,19 +469,26 @@ def create_app(
     app.add_middleware(RequestIdMiddleware)
     app.include_router(router)
     app.include_router(drivers_router)
+    app.include_router(inventory_router)
+    app.include_router(production_router)
+    app.include_router(export_router)
+    app.include_router(finance_router)
     return app
 
 
-def build_default_app(today: date, seed_name: str | None = None, scenario_name: str | None = None) -> FastAPI:
+DEFAULT_DB = Path(__file__).resolve().parents[3] / "butterfly.db"
+
+
+def build_default_app(today: date, seed_name: str | None = None, scenario_name: str | None = None, db_path: str | None = None) -> FastAPI:
     name = seed_name if seed_name is not None else os.environ.get("BUTTERFLY_SEED", "story")
     scenario = scenario_name if scenario_name is not None else os.environ.get("BUTTERFLY_SCENARIO", "august-contract")
-    if name == "small":
-        return create_app(InMemorySalesOrderRepo(build_seed(today)))
-    if name == "story":
-        story = build_story_seed(today, find_scenario(scenario), COMPANIES)
-        drivers = InMemoryDriverRepo(story.contracts, story.deliveries, story.production_orders, story.components, story.invoices)
-        return create_app(InMemorySalesOrderRepo(story.orders), drivers=drivers)
-    raise SystemExit(f"BUTTERFLY_SEED must be 'story' or 'small', not '{name}'")
+    if name not in SEEDS:
+        raise SystemExit(f"BUTTERFLY_SEED must be 'story' or 'small', not '{name}'")
+    story = build_story_seed(today, find_scenario(scenario), COMPANIES) if name == "story" else None
+    db = Database(db_path if db_path is not None else os.environ.get("BUTTERFLY_DB", str(DEFAULT_DB)))
+    prepare(db, name, scenario, today, story)
+    derivation = Derivation(db, story, today) if story else None
+    return create_app(SqliteSalesOrderRepo(db, derivation.refresh if derivation else None), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db), inventory=SqliteInventoryRepo(db), production=SqliteProductionRepo(db), exports=SqliteExportRepo(db), finance=SqliteFinanceRepo(db))
 
 
 setup_logging("butterfly")

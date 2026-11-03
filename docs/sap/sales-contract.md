@@ -36,6 +36,8 @@ Nullable `No` means the field is always present in responses.
 | `LastChangeDateTime` | `Edm.DateTimeOffset` | No | `"2026-10-27T09:15:30Z"` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
 | `Country` | `Edm.String` (2) | No | `"IN"` |
+| `TotalNetAmountLocal` | `Edm.Decimal` (15,2) | No | `"125000.00"` |
+| `LocalCurrency` | `Edm.String` (5) | No | `"INR"` |
 
 Navigation: `_Item` (collection of `SalesOrderItem`).
 
@@ -57,6 +59,13 @@ Navigation: none. Items are read through `SalesOrder(...)/_Item` or `$expand=_It
 
 Used for dashboard totals. No create, change or delete.
 
+**Amounts in the company code currency.** `SalesOrder` and the three sales summaries also carry
+`TotalNetAmountLocal` and `LocalCurrency`: the amount converted to the company code currency (rupees,
+`INR`) at the rate of the document (butterfly uses 80 for a dollar document and 1 for a rupee one;
+SAP has its own rate). `TotalNetAmount` and `Currency` are unchanged and a summary still has one row
+per document `Currency`; to show the whole business in rupees, add up `TotalNetAmountLocal` over all
+rows. The two fields are filled by the service; a create request must not send them.
+
 **SalesSummaryByDay** (key: `OrderDate`, `CompanyCode`)
 
 | Field | Type | Nullable | Example |
@@ -66,6 +75,8 @@ Used for dashboard totals. No create, change or delete.
 | `OrderCount` | `Edm.Int32` | No | `14` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
+| `TotalNetAmountLocal` | `Edm.Decimal` (15,2) | No | `"845000.00"` |
+| `LocalCurrency` | `Edm.String` (5) | No | `"INR"` |
 
 **SalesSummaryByCustomer** (key: `SoldToParty`, `OrderDate`, `CompanyCode`)
 
@@ -78,6 +89,8 @@ Used for dashboard totals. No create, change or delete.
 | `OrderCount` | `Edm.Int32` | No | `2` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
+| `TotalNetAmountLocal` | `Edm.Decimal` (15,2) | No | `"125000.00"` |
+| `LocalCurrency` | `Edm.String` (5) | No | `"INR"` |
 
 **SalesSummaryByMaterial** (key: `Material`, `OrderDate`, `CompanyCode`)
 
@@ -91,6 +104,8 @@ Used for dashboard totals. No create, change or delete.
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"625000.00"` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
+| `TotalNetAmountLocal` | `Edm.Decimal` (15,2) | No | `"625000.00"` |
+| `LocalCurrency` | `Edm.String` (5) | No | `"INR"` |
 
 `CompanyCode` is part of every summary key: a summary returns one row per company, and a consumer that wants the group adds the companies up. Summaries are per day. Month-to-date and year-to-date are sums over a `$filter` on
 `OrderDate`, done by synapse-api. Each summary has one row per currency per key; synapse-api
@@ -203,7 +218,9 @@ GET {root}SalesOrder('0000012345')
   "CreationDateTime": "2026-10-27T09:15:30Z",
   "LastChangeDateTime": "2026-10-27T09:15:30Z",
   "CompanyCode": "INA1",
-  "Country": "IN"
+  "Country": "IN",
+  "TotalNetAmountLocal": "125000.00",
+  "LocalCurrency": "INR"
 }
 ```
 
@@ -233,6 +250,8 @@ GET {root}SalesOrder('0000012345')?$expand=_Item
   "LastChangeDateTime": "2026-10-27T09:15:30Z",
   "CompanyCode": "INA1",
   "Country": "IN",
+  "TotalNetAmountLocal": "125000.00",
+  "LocalCurrency": "INR",
   "_Item": [
     {
       "SalesOrder": "0000012345",
@@ -279,14 +298,18 @@ GET {root}SalesSummaryByDay?$filter=OrderDate ge 2026-10-26 and OrderDate le 202
       "TotalNetAmount": "712000.00",
       "OrderCount": 11,
       "Currency": "INR",
-      "CompanyCode": "INA1"
+      "CompanyCode": "INA1",
+      "TotalNetAmountLocal": "712000.00",
+      "LocalCurrency": "INR"
     },
     {
       "OrderDate": "2026-10-27",
       "TotalNetAmount": "845000.00",
       "OrderCount": 14,
       "Currency": "INR",
-      "CompanyCode": "INA1"
+      "CompanyCode": "INA1",
+      "TotalNetAmountLocal": "845000.00",
+      "LocalCurrency": "INR"
     }
   ]
 }

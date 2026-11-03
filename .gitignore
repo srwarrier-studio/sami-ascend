@@ -9,3 +9,5 @@ Training/intent-tuned/
 Training/*.zip
 Training/sap-intent-v2/
 Training/*.jsonl
+*.db-wal
+*.db-shm

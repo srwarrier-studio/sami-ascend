@@ -64,6 +64,8 @@ the first goods receipt that completed the item; it is empty while the item is o
 | `ActualDeliveryDate` | `Edm.Date` | Yes | `"2026-07-26"` |
 | `DeliveryStatus` | `Edm.String` (1) | No | `"D"` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
+| `NetAmountLocal` | `Edm.Decimal` (15,2) | No | `"260000.00"` |
+| `LocalCurrency` | `Edm.String` (5) | No | `"INR"` |
 
 ### CustomerInvoice (key: `Invoice`)
 
@@ -138,6 +140,13 @@ The materials an order consumes.
 | `QuantityUnit` | `Edm.String` (3) | No | `"KG"` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
 
+**Amounts in the company code currency.** `PurchaseDelivery`, the four purchase summaries and the three
+receivables summaries also carry the amount converted to the company code currency (rupees, `INR`) at the
+rate of the document, as `NetAmountLocal`, `TotalNetAmountLocal`, `OpenAmountLocal` and `OverdueAmountLocal`,
+with `LocalCurrency`. The existing amounts and `Currency` are unchanged and the summaries still have one row
+per document `Currency`; to show the whole business in rupees, add up the `...Local` fields over all rows.
+Butterfly converts a dollar document at 80; SAP has its own rate.
+
 ### Purchase summaries (read-only, one row per day and key)
 
 Aggregated by SAP so a consumer never pages through purchase items to total them. Rows are the
@@ -156,6 +165,8 @@ in `$orderby` when paging.
 | `OrderCount` | `Edm.Int32` | No | `6` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
+| `TotalNetAmountLocal` | `Edm.Decimal` (15,2) | No | `"2163000.00"` |
+| `LocalCurrency` | `Edm.String` (5) | No | `"INR"` |
 
 ### PurchaseSummaryBySupplier (key: `OrderDate`, `Supplier`, `Currency`, `CompanyCode`)
 
@@ -168,6 +179,8 @@ in `$orderby` when paging.
 | `OrderCount` | `Edm.Int32` | No | `2` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
+| `TotalNetAmountLocal` | `Edm.Decimal` (15,2) | No | `"444000.00"` |
+| `LocalCurrency` | `Edm.String` (5) | No | `"INR"` |
 
 ### PurchaseSummaryByMaterial (key: `OrderDate`, `Material`, `Currency`, `CompanyCode`)
 
@@ -181,6 +194,24 @@ in `$orderby` when paging.
 | `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"260000.00"` |
 | `Currency` | `Edm.String` (5) | No | `"INR"` |
 | `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
+| `TotalNetAmountLocal` | `Edm.Decimal` (15,2) | No | `"260000.00"` |
+| `LocalCurrency` | `Edm.String` (5) | No | `"INR"` |
+
+### PurchaseSummaryByMaterialGroup (key: `OrderDate`, `MaterialGroup`, `Currency`, `CompanyCode`)
+
+Spend by the group of the material (the material master's group, `inventory-contract.md`). Items whose material has no group are left out, so a group summary can be lower than the day summary only when a material has no group.
+
+| Field | Type | Nullable | Example |
+|-------|------|----------|---------|
+| `MaterialGroup` | `Edm.String` (9) | No | `"BOTANIC"` |
+| `MaterialGroupName` | `Edm.String` (60) | Yes | `"Botanical raw materials"` |
+| `OrderDate` | `Edm.Date` | No | `"2026-06-24"` |
+| `TotalNetAmount` | `Edm.Decimal` (15,2) | No | `"2163000.00"` |
+| `OrderCount` | `Edm.Int32` | No | `6` |
+| `Currency` | `Edm.String` (5) | No | `"INR"` |
+| `CompanyCode` | `Edm.String` (4) | No | `"INA1"` |
+| `TotalNetAmountLocal` | `Edm.Decimal` (15,2) | No | `"2163000.00"` |
+| `LocalCurrency` | `Edm.String` (5) | No | `"INR"` |
 
 ### Receivables summaries (read-only, measured on a day)
 
@@ -192,9 +223,9 @@ Invoices with nothing open are left out. An invoice is overdue when `DueDate` is
 
 | Entity | Key | Fields besides the key |
 |--------|-----|------------------------|
-| `ReceivablesSummary` | `AsOfDate`, `Currency`, `CompanyCode` | `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount` |
-| `ReceivablesByCustomer` | `AsOfDate`, `SoldToParty`, `Currency`, `CompanyCode` | `CustomerName`, `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount` |
-| `ReceivablesAgeing` | `AsOfDate`, `AgeBucket`, `Currency`, `CompanyCode` | `OpenAmount`, `OpenCount` |
+| `ReceivablesSummary` | `AsOfDate`, `Currency`, `CompanyCode` | `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount`, `OpenAmountLocal`, `OverdueAmountLocal`, `LocalCurrency` |
+| `ReceivablesByCustomer` | `AsOfDate`, `SoldToParty`, `Currency`, `CompanyCode` | `CustomerName`, `OpenAmount`, `OverdueAmount`, `OpenCount`, `OverdueCount`, `OpenAmountLocal`, `OverdueAmountLocal`, `LocalCurrency` |
+| `ReceivablesAgeing` | `AsOfDate`, `AgeBucket`, `Currency`, `CompanyCode` | `OpenAmount`, `OpenCount`, `OpenAmountLocal`, `LocalCurrency` |
 
 `AgeBucket` is the days past `DueDate` on `AsOfDate`: `current` (not yet due), `1-30`, `31-60`, `61-90` or `90+`. Buckets with nothing open have no row.
 
@@ -298,7 +329,9 @@ GET {root}PurchaseDelivery?$filter=Material eq 'RAW-2002' and PromisedDeliveryDa
       "PromisedDeliveryDate": "2026-07-14",
       "ActualDeliveryDate": "2026-07-26",
       "DeliveryStatus": "D",
-      "CompanyCode": "INA1"
+      "CompanyCode": "INA1",
+      "NetAmountLocal": "260000.00",
+      "LocalCurrency": "INR"
     }
   ]
 }
@@ -385,7 +418,9 @@ GET {root}PurchaseSummaryBySupplier?$filter=OrderDate ge 2026-06-01 and OrderDat
       "TotalNetAmount": "444000.00",
       "OrderCount": 2,
       "Currency": "INR",
-      "CompanyCode": "INA1"
+      "CompanyCode": "INA1",
+      "TotalNetAmountLocal": "444000.00",
+      "LocalCurrency": "INR"
     },
     {
       "Supplier": "0000200002",
@@ -394,7 +429,9 @@ GET {root}PurchaseSummaryBySupplier?$filter=OrderDate ge 2026-06-01 and OrderDat
       "TotalNetAmount": "1505000.00",
       "OrderCount": 2,
       "Currency": "INR",
-      "CompanyCode": "INA1"
+      "CompanyCode": "INA1",
+      "TotalNetAmountLocal": "1505000.00",
+      "LocalCurrency": "INR"
     },
     {
       "Supplier": "0000200003",
@@ -403,7 +440,45 @@ GET {root}PurchaseSummaryBySupplier?$filter=OrderDate ge 2026-06-01 and OrderDat
       "TotalNetAmount": "214000.00",
       "OrderCount": 2,
       "Currency": "INR",
-      "CompanyCode": "INA1"
+      "CompanyCode": "INA1",
+      "TotalNetAmountLocal": "214000.00",
+      "LocalCurrency": "INR"
+    }
+  ]
+}
+```
+
+### Spend by material group
+
+```
+GET {root}PurchaseSummaryByMaterialGroup?$filter=MaterialGroup eq 'BOTANIC' and OrderDate ge 2026-06-01&$orderby=OrderDate,MaterialGroup&$top=2
+```
+
+```json
+{
+  "@odata.context": "$metadata#PurchaseSummaryByMaterialGroup",
+  "value": [
+    {
+      "MaterialGroup": "BOTANIC",
+      "MaterialGroupName": "Botanical raw materials",
+      "OrderDate": "2026-06-24",
+      "TotalNetAmount": "1949000.00",
+      "OrderCount": 4,
+      "Currency": "INR",
+      "CompanyCode": "INA1",
+      "TotalNetAmountLocal": "1949000.00",
+      "LocalCurrency": "INR"
+    },
+    {
+      "MaterialGroup": "BOTANIC",
+      "MaterialGroupName": "Botanical raw materials",
+      "OrderDate": "2026-07-25",
+      "TotalNetAmount": "1949000.00",
+      "OrderCount": 4,
+      "Currency": "INR",
+      "CompanyCode": "INA1",
+      "TotalNetAmountLocal": "1949000.00",
+      "LocalCurrency": "INR"
     }
   ]
 }
@@ -420,7 +495,7 @@ entity with a projection, in the same service binding.
 | `PurchaseDelivery` | purchase order item and schedule line (`EKPO`, `EKET`) with goods receipt history (`EKBE`) |
 | `ProductionOrder` | production order header and item (`AFKO`, `AFPO`) with confirmations for the actual end and the variance reason |
 | `ProductionOrderComponent` | order reservations (`RESB`) |
-| `PurchaseSummaryByDay`, `BySupplier`, `ByMaterial` | aggregate CDS views over the `PurchaseDelivery` view (sum of `NetAmount`, count of items) grouped as above, so SAP does the totalling |
+| `PurchaseSummaryByDay`, `BySupplier`, `ByMaterial`, `ByMaterialGroup` | aggregate CDS views over the `PurchaseDelivery` view (sum of `NetAmount`, count of items) grouped as above, so SAP does the totalling (`ByMaterialGroup` joins the material group of the material master, `MARA-MATKL`) |
 
 The data is read with the shared management login, so the app limits who can ask for it (role
 `management` or `admin`). Large tables must be selective on the filter fields used above:

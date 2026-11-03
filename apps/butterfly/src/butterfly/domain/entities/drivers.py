@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
+from butterfly.domain.entities.master_data import LOCAL_CURRENCY, to_local
+
 
 @dataclass(frozen=True)
 class SalesContract:
@@ -36,6 +38,14 @@ class PurchaseDelivery:
     transaction_currency: str = "INR"
     company_code: str = "INA1"
 
+    @property
+    def net_amount_local(self) -> Decimal:
+        return to_local(self.net_amount, self.transaction_currency)
+
+    @property
+    def local_currency(self) -> str:
+        return LOCAL_CURRENCY
+
 
 @dataclass(frozen=True)
 class CustomerInvoice:
@@ -50,6 +60,14 @@ class CustomerInvoice:
     clearing_date: date | None
     company_code: str = "INA1"
     country: str = "IN"
+
+    @property
+    def net_amount_local(self) -> Decimal:
+        return to_local(self.net_amount, self.transaction_currency)
+
+    @property
+    def cleared_amount_local(self) -> Decimal:
+        return to_local(self.cleared_amount, self.transaction_currency)
 
 
 @dataclass(frozen=True)
