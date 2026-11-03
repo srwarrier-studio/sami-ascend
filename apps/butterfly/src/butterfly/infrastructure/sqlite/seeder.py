@@ -3,6 +3,8 @@ from datetime import date
 from butterfly.domain.entities.drivers import ProductionOrder
 from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.infrastructure.memory.companies import COMPANIES
+from butterfly.infrastructure.memory.inventory_master import GROUP_OF, GROUPS, LOCATIONS
+from butterfly.infrastructure.memory.inventory_seed import InventorySeed, build_inventory
 from butterfly.infrastructure.memory.scenarios import find_scenario
 from butterfly.infrastructure.memory.seed import build_seed
 from butterfly.infrastructure.memory.story_seed import StorySeed, build_story_seed
@@ -11,6 +13,7 @@ from butterfly.infrastructure.sqlite.money import quantity_to_minor, to_minor
 from butterfly.infrastructure.sqlite.schema import REPLACED_ON_RESEED
 
 SEEDS = ("small", "story")
+LAYOUT = "2"
 
 
 def iso(value) -> str | None:
@@ -28,7 +31,7 @@ def settings_of(db: Database) -> dict[str, str]:
 def prepare(db: Database, seed: str, scenario: str, today: date) -> bool:
     if seed not in SEEDS:
         raise ValueError(f"unknown seed {seed}")
-    wanted = {"seed": seed, "scenario": scenario, "built_on": today.isoformat()}
+    wanted = {"seed": seed, "scenario": scenario, "built_on": today.isoformat(), "layout": LAYOUT}
     if settings_of(db) == wanted:
         return False
     story = build_story_seed(today, find_scenario(scenario), COMPANIES) if seed == "story" else None
@@ -42,11 +45,15 @@ def prepare(db: Database, seed: str, scenario: str, today: date) -> bool:
         write_orders(db, orders)
         if story:
             write_drivers(db, story)
+            write_inventory(db, build_inventory(story, COMPANIES, today))
         db.insert_many("INSERT INTO meta (key, value) VALUES (?, ?)", list(wanted.items()))
     return True
 
 
 def write_master_data(db: Database) -> None:
+    db.insert_many("INSERT INTO material_group (code, name) VALUES (?, ?)", [(group.code, group.name) for group in GROUPS])
+    db.insert_many("INSERT INTO material_group_of (material, material_group) VALUES (?, ?)", list(GROUP_OF.items()))
+    db.insert_many("INSERT INTO storage_location (plant, code, name, company_code) VALUES (?, ?, ?, ?)", [(l.plant, l.code, l.name, l.company_code) for l in LOCATIONS])
     db.insert_many("INSERT INTO company (code, name) VALUES (?, ?)", [(company.code, company.name) for company in COMPANIES])
     db.insert_many(
         "INSERT INTO customer (customer_id, name, country, company_code) VALUES (?, ?, ?, ?)",
@@ -55,6 +62,29 @@ def write_master_data(db: Database) -> None:
     db.insert_many(
         "INSERT INTO material (material_id, description, unit, price, company_code) VALUES (?, ?, ?, ?, ?)",
         [(material_id, description, unit, to_minor(price), company.code) for company in COMPANIES for material_id, description, unit, price in company.materials],
+    )
+
+
+def write_inventory(db: Database, inventory: InventorySeed) -> None:
+    db.insert_many(
+        f"INSERT INTO material_stock VALUES ({marks(12)})",
+        [
+            (s.material, s.material_description, s.material_group, s.plant, s.storage_location, quantity_to_minor(s.stock_quantity), s.quantity_unit, to_minor(s.stock_value),
+             s.currency, quantity_to_minor(s.reorder_level), iso(s.last_movement_date), s.company_code)
+            for s in inventory.stocks
+        ],
+    )
+    db.insert_many(
+        f"INSERT INTO stock_movement VALUES ({marks(16)})",
+        [
+            (m.material_document, m.material_document_item, m.material_document_year, iso(m.posting_date), m.entry_date_time.isoformat(), m.material, m.material_description,
+             m.plant, m.storage_location, m.movement_type, m.debit_credit_code, quantity_to_minor(m.quantity), m.quantity_unit, to_minor(m.amount), m.currency, m.company_code)
+            for m in inventory.movements
+        ],
+    )
+    db.insert_many(
+        f"INSERT INTO stock_value_month VALUES ({marks(4)})",
+        [(v.posting_period, v.currency, v.company_code, to_minor(v.stock_value)) for v in inventory.monthly],
     )
 
 

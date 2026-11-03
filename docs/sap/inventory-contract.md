@@ -112,10 +112,12 @@ month the value now; months before the first valuation have no row.
 | | `131` | Goods receipt from production |
 | | `261` | Goods issue to a production order |
 | | `601` | Goods issue for a delivery to a customer |
+| | `561` | Initial entry of stock balances |
+| | `702` | Inventory difference, issue (stock count) |
 
 Filter and compare codes as written. `StockStatus` is derived by SAP because a `$filter` cannot
 compare one field with another. Other movement types may appear in real data and are returned as
-they are; the apps read only the four above.
+they are; the apps read only these.
 
 ## 4. How the entities connect
 

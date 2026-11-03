@@ -113,9 +113,65 @@ CREATE TABLE IF NOT EXISTS production_order_component (
     company_code TEXT NOT NULL,
     PRIMARY KEY (production_order, material)
 );
+
+CREATE TABLE IF NOT EXISTS material_group (code TEXT PRIMARY KEY, name TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS material_group_of (material TEXT PRIMARY KEY, material_group TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS storage_location (
+    plant TEXT NOT NULL, code TEXT NOT NULL, name TEXT NOT NULL, company_code TEXT NOT NULL, PRIMARY KEY (plant, code)
+);
+
+CREATE TABLE IF NOT EXISTS material_stock (
+    material TEXT NOT NULL,
+    material_description TEXT,
+    material_group TEXT NOT NULL,
+    plant TEXT NOT NULL,
+    storage_location TEXT NOT NULL,
+    stock_quantity INTEGER NOT NULL,
+    quantity_unit TEXT NOT NULL,
+    stock_value INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    reorder_level INTEGER NOT NULL,
+    last_movement_date TEXT,
+    company_code TEXT NOT NULL,
+    PRIMARY KEY (material, plant, storage_location)
+);
+
+CREATE TABLE IF NOT EXISTS stock_movement (
+    material_document TEXT NOT NULL,
+    material_document_item TEXT NOT NULL,
+    material_document_year TEXT NOT NULL,
+    posting_date TEXT NOT NULL,
+    entry_date_time TEXT NOT NULL,
+    material TEXT NOT NULL,
+    material_description TEXT,
+    plant TEXT NOT NULL,
+    storage_location TEXT NOT NULL,
+    movement_type TEXT NOT NULL,
+    debit_credit_code TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    quantity_unit TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    company_code TEXT NOT NULL,
+    PRIMARY KEY (material_document, material_document_item, material_document_year)
+);
+CREATE INDEX IF NOT EXISTS stock_movement_by_date ON stock_movement (posting_date, company_code);
+
+CREATE TABLE IF NOT EXISTS stock_value_month (
+    posting_period TEXT NOT NULL, currency TEXT NOT NULL, company_code TEXT NOT NULL, stock_value INTEGER NOT NULL,
+    PRIMARY KEY (posting_period, currency, company_code)
+);
 """
 
 REPLACED_ON_RESEED = [
+    "stock_value_month",
+    "stock_movement",
+    "material_stock",
+    "material_group_of",
+    "material_group",
+    "storage_location",
     "production_order_component",
     "production_order",
     "customer_invoice",

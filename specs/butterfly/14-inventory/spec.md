@@ -15,9 +15,11 @@ The nine Inventory widgets of the catalog (stock value, items below reorder leve
   - Goods receipts from production (`131`) for finished products are the production orders, posted on the `ActualEndDate` for the confirmed quantity.
   - Goods issues to production (`261`) are the order components, posted on the production order's end date.
   - Goods issues for deliveries (`601`) are the quantities of the sales order items that are not cancelled, posted on the requested delivery date (the order date when there is none).
-  - Opening stock at the start of the history is chosen, deterministically, so stock never goes below zero; current stock is opening plus receipts minus issues. Valuation prices come from the material price lists (raw materials at their purchase price, products at a fixed share of the sales price); `StockValue` is quantity times price, in the company's currency.
-  - Reorder levels come from average monthly issues, so a few materials are low or at zero by construction and the same seed gives the same stock.
-  - Posting hour comes from the document number, between 08:00 and 17:59 on working days.
+  - Opening stock at the start of the history is posted as an initial entry (`561`) the day before the first movement and is chosen, deterministically, so stock never goes below zero; current stock is opening plus receipts minus issues.
+  - A few materials (about one in nine, chosen by their position in the material list) are counted down to zero today with an inventory-difference issue (`702`), so the stock-out case exists in the data.
+  - Valuation is at a standard price per material, in rupees (the plants are Indian; the dollar prices of some raw materials are converted at the fixed rate of 80 that butterfly already uses). Raw materials use their purchase price list, products 60% of the sales price. A movement's `Amount` and `StockValue` are quantity times that price. The buying price of an individual purchase order is not used.
+  - Reorder level is one month of average issues, so a few materials are low by construction and the same seed gives the same stock.
+  - Posting dates are those of the source data; the entry hour comes from the document number, between 08:00 and 17:59 UTC.
 - **Tables and views.** New tables `material_group`, `storage_location`, `material_stock`, `stock_movement` and a month-end valuation table; `StockSummaryBy*` and `StockMovementSummaryBy*` are SQL views (one `.sql` file each, like butterfly 13); `StockValueByMonth` reads the valuation table. `StockStatus` is derived in the view, not stored.
 - **Existing services do not change.** Nothing already served changes shape; the 1,033 butterfly tests keep passing.
 

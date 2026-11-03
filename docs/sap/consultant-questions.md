@@ -38,7 +38,7 @@ Answered with the answer and the date, and update the document that depended on 
 21. Can `StockStatus` (and the reorder level it compares with) be derived in the CDS view? Where is the reorder point kept for the group's materials (plant data `MINBE`, or MRP groups)?
 22. Which valuation does `StockValue` use (moving average price or standard price), and in which currency is it returned for each plant?
 23. Can month-end stock value come from the valuation history (`MBEWH`), and from which month does it exist?
-24. Which movement types post receipts and issues in your system, and can reversals be left out with a stable rule? The contract uses `101`, `131`, `261` and `601`.
+24. Which movement types post receipts and issues in your system, and can reversals be left out with a stable rule? The contract uses `101`, `131`, `261`, `601`, `561` and `702`.
 25. Which timezone are the entry date and time of a material document stored in? `EntryDateTime` is UTC in the contract.
 26. Can the material group (`MATKL`) and its text be exposed on stock rows without an extra call?
 
