@@ -4,8 +4,8 @@
 Every sign-in and every refusal is recorded in `audit_log`, so the admin portal has something to show and security can see who got in.
 
 ## Behavior
-- One `audit_log` row per event with `at` (UTC), `actor` (email, or the attempted email when unknown), `action`, `target`, `outcome` (`ok` or `failed`) and `detail` (short reason, never a password or token). New column `detail`, added to existing databases without losing rows.
-- Actions: `login.password`, `login.entra`, `logout`. A failed login records `outcome=failed` with `detail` such as `bad_password`, `unknown_user`, `disabled`, `no_entra_match`.
+- One `audit_log` row per event with `at` (UTC), `actor` (email, or the attempted email when unknown), `action`, `target`, `outcome` (`success` or `failed`, as `create_user` already writes) and `detail` (short reason, never a password or token). New column `detail`, added to existing databases without losing rows.
+- Actions: `login.password` and `login.entra`. A failed login records `outcome=failed` with `detail` `bad_email`, `unknown_user`, `bad_password`, `disabled` or (Entra) `no_entra_match`. Logout is not recorded: it only clears the cookie, so there is nothing to prove. An Entra error before an email is known (cancelled or failed at Microsoft) is not recorded either.
 - The response to the caller stays the same for every failure kind (no hint whether the email exists).
 - Writing the row never blocks the login: if the audit write fails the login result is unchanged and the failure is logged.
 

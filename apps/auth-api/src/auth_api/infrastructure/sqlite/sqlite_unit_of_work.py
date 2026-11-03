@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS audit_log (
     actor TEXT NOT NULL,
     action TEXT NOT NULL,
     target TEXT NOT NULL,
-    outcome TEXT NOT NULL
+    outcome TEXT NOT NULL,
+    detail TEXT NOT NULL DEFAULT ''
 );
 """
 
@@ -40,6 +41,9 @@ class SqliteAuthUnitOfWork(AuthUnitOfWork):
         self.database_path = database_path
         conn = self._connect()
         conn.executescript(SCHEMA)
+        if "detail" not in [column["name"] for column in conn.execute("PRAGMA table_info(audit_log)")]:
+            conn.execute("ALTER TABLE audit_log ADD COLUMN detail TEXT NOT NULL DEFAULT ''")
+            conn.commit()
         conn.close()
         os.chmod(database_path, 0o600)
 

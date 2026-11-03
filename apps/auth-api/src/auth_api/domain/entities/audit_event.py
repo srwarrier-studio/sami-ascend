@@ -8,4 +8,5 @@ class AuditEvent:
     action: str
     target: str
     outcome: str
+    detail: str = ""
     at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

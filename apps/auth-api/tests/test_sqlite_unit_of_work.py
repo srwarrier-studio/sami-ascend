@@ -94,3 +94,31 @@ def test_database_file_is_owner_only(tmp_path):
     SqliteAuthUnitOfWork(str(path))
 
     assert stat.S_IMODE(path.stat().st_mode) == 0o600
+
+
+def test_an_old_audit_table_gains_detail_and_keeps_its_rows(tmp_path):
+    import sqlite3
+
+    path = str(tmp_path / "auth.db")
+    conn = sqlite3.connect(path)
+    conn.execute("CREATE TABLE audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT NOT NULL, actor TEXT NOT NULL, action TEXT NOT NULL, target TEXT NOT NULL, outcome TEXT NOT NULL)")
+    conn.execute("INSERT INTO audit_log (at, actor, action, target, outcome) VALUES ('2026-01-01', 'old', 'user_created', 'a@b.com', 'success')")
+    conn.commit()
+    conn.close()
+
+    uow = SqliteAuthUnitOfWork(path)
+
+    with uow:
+        row = uow.conn.execute("SELECT actor, detail FROM audit_log").fetchone()
+    assert (row["actor"], row["detail"]) == ("old", "")
+
+
+def test_a_login_audit_event_keeps_its_detail(tmp_path):
+    uow = SqliteAuthUnitOfWork(str(tmp_path / "auth.db"))
+
+    with uow:
+        uow.audit_repo.add(AuditEvent("a@b.com", "login.password", "a@b.com", "failed", "bad_password"))
+        uow.commit()
+
+    with uow:
+        assert uow.conn.execute("SELECT detail FROM audit_log").fetchone()["detail"] == "bad_password"

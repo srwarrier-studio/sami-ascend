@@ -4,7 +4,7 @@
 Admins read the audit log in the portal: who signed in, who failed, and who changed what.
 
 ## Behavior
-- **Audit log page.** Newest first, columns time (local, with relative age on hover), actor, action, target, outcome (green `ok`, red `failed`) and detail. Loads 50 at a time with "Load more".
+- **Audit log page.** Newest first, columns time (local, with relative age on hover), actor, action, target, outcome (green `success`, red `failed`) and detail. Loads 50 at a time with "Load more".
 - **Filters.** Actor (text), action (select of known actions), outcome, date range. Filters live in the URL so a view can be shared.
 - **Quick views.** Failed sign-ins, Admin changes, Today.
 - **Refresh.** A Refresh button and an optional auto-refresh every 30 seconds; the time of the last load is shown.

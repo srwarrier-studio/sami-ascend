@@ -1,3 +1,3 @@
 # Tasks
 
-- [ ] 1. `detail` column and migration, audit calls on login, logout and Entra, tests.
+- [x] 1. `detail` column and migration, audit calls on password and Entra login, tests.

@@ -10,6 +10,6 @@ class SqliteAuditRepo(AuditRepo):
 
     def add(self, event: AuditEvent) -> None:
         self.conn.execute(
-            "INSERT INTO audit_log (at, actor, action, target, outcome) VALUES (?, ?, ?, ?, ?)",
-            (event.at.isoformat(), event.actor, event.action, event.target, event.outcome),
+            "INSERT INTO audit_log (at, actor, action, target, outcome, detail) VALUES (?, ?, ?, ?, ?, ?)",
+            (event.at.isoformat(), event.actor, event.action, event.target, event.outcome, event.detail),
         )
