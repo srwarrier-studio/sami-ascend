@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Button, Card, Group, SparkleIcon, Stack, Text } from '@sami/ui'
 import { REFRESH_MS, CURRENCY } from '../catalog/CatalogWidget'
@@ -13,6 +13,7 @@ export function SummaryStrip({ client, company, widgets, refreshMs = REFRESH_MS 
   const navigate = useNavigate()
   const [summary, setSummary] = useState<Summary | null>(null)
   const [all, setAll] = useState(false)
+  const listId = useId()
   const ids = [...new Set(widgets)].sort().join(',')
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export function SummaryStrip({ client, company, widgets, refreshMs = REFRESH_MS 
         <Stack gap="xs">
           <Text className={classes.lead}>{lead}</Text>
           {visible.length > 0 && (
-            <Stack gap={4}>
+            <Stack gap={4} id={listId}>
               {visible.map((sentence) => (
                 <Text key={sentence} size="sm" c="dimmed">
                   {sentence}
@@ -49,7 +50,7 @@ export function SummaryStrip({ client, company, widgets, refreshMs = REFRESH_MS 
             </Stack>
           )}
           {(hidden > 0 || all) && rest.length > SHOWN - 1 && (
-            <Button variant="subtle" size="compact-xs" onClick={() => setAll(!all)} style={{ alignSelf: 'flex-start' }}>
+            <Button variant="subtle" size="compact-xs" aria-expanded={all} aria-controls={listId} onClick={() => setAll(!all)} style={{ alignSelf: 'flex-start' }}>
               {all ? 'Show less' : `Show ${hidden} more`}
             </Button>
           )}
