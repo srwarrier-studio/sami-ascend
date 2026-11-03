@@ -25,8 +25,8 @@ from butterfly.infrastructure.memory.story_seed import StorySeed
 
 TABLES = {
     "contracts": ("sales_contract", contract_from_row, {"contract_value": MONEY_SCALE}),
-    "deliveries": ("purchase_delivery", delivery_from_row, {"ordered_quantity": QUANTITY_SCALE, "delivered_quantity": QUANTITY_SCALE, "net_amount": MONEY_SCALE}),
-    "invoices": ("customer_invoice", invoice_from_row, {"net_amount": MONEY_SCALE, "cleared_amount": MONEY_SCALE}),
+    "deliveries": ("purchase_delivery", delivery_from_row, {"ordered_quantity": QUANTITY_SCALE, "delivered_quantity": QUANTITY_SCALE, "net_amount": MONEY_SCALE, "net_amount_local": MONEY_SCALE}),
+    "invoices": ("customer_invoice", invoice_from_row, {"net_amount": MONEY_SCALE, "cleared_amount": MONEY_SCALE, "net_amount_local": MONEY_SCALE, "cleared_amount_local": MONEY_SCALE}),
     "production_orders": ("production_order", production_order_from_row, {"planned_quantity": QUANTITY_SCALE, "confirmed_quantity": QUANTITY_SCALE}),
     "components": ("production_order_component", component_from_row, {"required_quantity": QUANTITY_SCALE}),
 }

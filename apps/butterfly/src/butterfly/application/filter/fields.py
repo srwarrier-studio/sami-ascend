@@ -23,6 +23,8 @@ SALES_ORDER_FIELDS = {
     "LastChangeDateTime": ("last_change_date_time", FieldType.DATETIME),
     "CompanyCode": ("company_code", FieldType.STRING),
     "Country": ("country", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 SALES_ORDER_ITEM_FIELDS = {
@@ -41,6 +43,8 @@ SALES_SUMMARY_BY_DAY_FIELDS = {
     "OrderCount": ("order_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 SALES_SUMMARY_BY_CUSTOMER_FIELDS = {
@@ -51,6 +55,8 @@ SALES_SUMMARY_BY_CUSTOMER_FIELDS = {
     "OrderCount": ("order_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 SALES_SUMMARY_BY_MATERIAL_FIELDS = {
@@ -62,6 +68,8 @@ SALES_SUMMARY_BY_MATERIAL_FIELDS = {
     "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 SALES_CONTRACT_FIELDS = {
@@ -94,6 +102,8 @@ PURCHASE_DELIVERY_FIELDS = {
     "ActualDeliveryDate": ("actual_delivery_date", FieldType.DATE),
     "DeliveryStatus": ("delivery_status", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "NetAmountLocal": ("net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 CUSTOMER_INVOICE_FIELDS = {
@@ -118,6 +128,9 @@ RECEIVABLES_SUMMARY_FIELDS = {
     "OverdueCount": ("overdue_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "OpenAmountLocal": ("open_amount_local", FieldType.DECIMAL),
+    "OverdueAmountLocal": ("overdue_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 RECEIVABLES_BY_CUSTOMER_FIELDS = {
@@ -133,6 +146,8 @@ RECEIVABLES_AGEING_FIELDS = {
     "OpenCount": ("open_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "OpenAmountLocal": ("open_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 PRODUCTION_ORDER_FIELDS = {
@@ -357,6 +372,8 @@ PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {
     "OrderCount": ("order_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 
 PURCHASE_SUMMARY_BY_MATERIAL_GROUP_FIELDS = {
@@ -367,5 +384,7 @@ PURCHASE_SUMMARY_BY_MATERIAL_GROUP_FIELDS = {
     "OrderCount": ("order_count", FieldType.DECIMAL),
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
+    "TotalNetAmountLocal": ("total_net_amount_local", FieldType.DECIMAL),
+    "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 PURCHASE_SUMMARY_BY_MATERIAL_FIELDS = SALES_SUMMARY_BY_MATERIAL_FIELDS

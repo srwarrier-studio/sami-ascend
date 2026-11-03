@@ -5,6 +5,8 @@ SELECT material,
        SUM(ordered_quantity) AS total_quantity,
        MIN(quantity_unit) AS quantity_unit,
        SUM(net_amount) AS total_net_amount,
+       SUM(net_amount_local) AS total_net_amount_local,
+       'INR' AS local_currency,
        transaction_currency AS currency,
        company_code
 FROM purchase_delivery

@@ -96,7 +96,7 @@ class TestInTheDatabase:
     def test_an_older_database_is_rebuilt_and_keeps_api_orders(self):
         db = Database()
         prepare(db, "story", "august-contract", TODAY)
-        db.execute("INSERT INTO sales_order VALUES ('0000099999', 'OR', '1', NULL, '2026-11-03', NULL, 'INR', 100, 'A', 'ME', '2026-11-03T09:00:00+00:00', '2026-11-03T09:00:00+00:00', 'INA1', 'IN', 'api')")
+        db.execute("INSERT INTO sales_order VALUES ('0000099999', 'OR', '1', NULL, '2026-11-03', NULL, 'INR', 100, 'A', 'ME', '2026-11-03T09:00:00+00:00', '2026-11-03T09:00:00+00:00', 'INA1', 'IN', 'api', 100, 'INR')")
         db.execute("UPDATE meta SET value = '3' WHERE key = 'layout'")
         db.execute("DELETE FROM export_shipment")
         assert prepare(db, "story", "august-contract", TODAY) is True

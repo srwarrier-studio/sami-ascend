@@ -46,7 +46,7 @@ def test_every_field_has_a_type_and_nullability():
 
 
 def test_there_is_an_example_for_each_entity():
-    assert len(example_blocks()) == 6
+    assert len(example_blocks()) == 7
 
 
 def test_example_rows_match_the_tables():

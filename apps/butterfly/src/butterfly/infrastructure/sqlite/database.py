@@ -3,7 +3,7 @@ import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from butterfly.infrastructure.sqlite.schema import TABLES
+from butterfly.infrastructure.sqlite.schema import ADDED_COLUMNS, BACKFILL, TABLES
 from butterfly.infrastructure.sqlite.views import view_script
 
 MEMORY = ":memory:"
@@ -20,7 +20,15 @@ class Database:
             self.connection.execute("PRAGMA journal_mode=WAL")
         with self.lock:
             self.connection.executescript(TABLES)
+            self.add_missing_columns()
             self.connection.executescript(view_script())
+
+    def add_missing_columns(self) -> None:
+        for table, column, definition in ADDED_COLUMNS:
+            if column not in {row["name"] for row in self.connection.execute(f"PRAGMA table_info({table})")}:
+                self.connection.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+        for statement in BACKFILL:
+            self.connection.execute(statement)
 
     def query(self, sql: str, params: tuple | list = ()) -> list[sqlite3.Row]:
         with self.lock:

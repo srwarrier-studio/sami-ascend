@@ -32,6 +32,8 @@ def order_to_json(order: SalesOrder, fields: list[str] | None = None) -> dict:
         "LastChangeDateTime": timestamp(order.last_change_date_time),
         "CompanyCode": order.company_code,
         "Country": order.country,
+        "TotalNetAmountLocal": str(order.total_net_amount_local),
+        "LocalCurrency": order.local_currency,
     }
     if fields is None:
         return row

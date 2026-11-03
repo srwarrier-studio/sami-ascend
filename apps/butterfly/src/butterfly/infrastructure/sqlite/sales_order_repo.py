@@ -1,5 +1,6 @@
 from collections.abc import Callable
 
+from butterfly.domain.entities.master_data import to_local
 from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.sqlite.database import Database
@@ -9,7 +10,7 @@ from butterfly.infrastructure.sqlite.seeder import iso, marks, write_orders
 from butterfly.infrastructure.sqlite.summaries import summary_table
 from butterfly.infrastructure.sqlite.table import SqliteTable
 
-SCALES = {"total_net_amount": MONEY_SCALE}
+SCALES = {"total_net_amount": MONEY_SCALE, "total_net_amount_local": MONEY_SCALE}
 
 ORDER_UPDATE = (
     "UPDATE sales_order SET sales_order_type = ?, sold_to_party = ?, customer_name = ?, order_date = ?, requested_delivery_date = ?, transaction_currency = ?, "
@@ -80,7 +81,10 @@ class SqliteSalesOrderRepo(SalesOrderRepo):
             )
             self.db.execute("DELETE FROM sales_order_item WHERE sales_order = ?", (order.sales_order,))
             self.db.insert_many(
-                f"INSERT INTO sales_order_item (sales_order, sales_order_item, material, material_description, quantity, quantity_unit, net_amount) VALUES ({marks(7)})",
-                [(i.sales_order, i.sales_order_item, i.material, i.material_description, quantity_to_minor(i.quantity), i.quantity_unit, to_minor(i.net_amount)) for i in order.items],
+                f"INSERT INTO sales_order_item (sales_order, sales_order_item, material, material_description, quantity, quantity_unit, net_amount, net_amount_local) VALUES ({marks(8)})",
+                [
+                    (i.sales_order, i.sales_order_item, i.material, i.material_description, quantity_to_minor(i.quantity), i.quantity_unit, to_minor(i.net_amount), to_minor(to_local(i.net_amount, order.transaction_currency)))
+                    for i in order.items
+                ],
             )
         self.changed()

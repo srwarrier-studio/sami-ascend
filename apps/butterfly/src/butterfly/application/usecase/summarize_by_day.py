@@ -9,14 +9,14 @@ class SummarizeByDay:
         self.repo = repo
 
     def execute(self) -> list[SalesSummaryByDay]:
-        totals: dict[tuple, tuple[Decimal, int]] = {}
+        totals: dict[tuple, tuple[Decimal, int, Decimal]] = {}
         for order in self.repo.list_all():
             if order.overall_status == "X":
                 continue
             key = (order.order_date, order.transaction_currency, order.company_code)
-            amount, count = totals.get(key, (Decimal("0.00"), 0))
-            totals[key] = (amount + order.total_net_amount, count + 1)
+            amount, count, local = totals.get(key, (Decimal("0.00"), 0, Decimal("0.00")))
+            totals[key] = (amount + order.total_net_amount, count + 1, local + order.total_net_amount_local)
         return [
-            SalesSummaryByDay(day, amount, count, currency, company)
-            for (day, currency, company), (amount, count) in sorted(totals.items())
+            SalesSummaryByDay(day, amount, count, currency, company, local)
+            for (day, currency, company), (amount, count, local) in sorted(totals.items())
         ]

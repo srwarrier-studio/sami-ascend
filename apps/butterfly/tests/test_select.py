@@ -52,7 +52,7 @@ class TestSelect:
         body = make_client().get(URL).json()
 
         assert body["@odata.context"] == "$metadata#SalesOrder"
-        assert len(body["value"][0]) == 14
+        assert len(body["value"][0]) == 16
 
     def test_works_together_with_filter(self):
         rows = make_client().get(

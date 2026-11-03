@@ -96,7 +96,7 @@ class TestKeepingAndRebuilding:
         path = str(tmp_path / "butterfly.db")
         first = Database(path)
         assert prepare(first, "small", "august-contract", TODAY) is True
-        first.execute("INSERT INTO sales_order VALUES ('0000099999', 'OR', '1', NULL, '2026-11-03', NULL, 'INR', 100, 'A', 'ME', '2026-11-03T09:00:00+00:00', '2026-11-03T09:00:00+00:00', 'INA1', 'IN', 'api')")
+        first.execute("INSERT INTO sales_order VALUES ('0000099999', 'OR', '1', NULL, '2026-11-03', NULL, 'INR', 100, 'A', 'ME', '2026-11-03T09:00:00+00:00', '2026-11-03T09:00:00+00:00', 'INA1', 'IN', 'api', 100, 'INR')")
         first.close()
         second = Database(path)
         assert prepare(second, "small", "august-contract", TODAY) is False
@@ -120,7 +120,7 @@ class TestKeepingAndRebuilding:
     def test_a_new_day_moves_the_seed_but_keeps_orders_written_through_the_api(self):
         db = Database()
         prepare(db, "small", "august-contract", TODAY)
-        db.execute("INSERT INTO sales_order VALUES ('0000099999', 'OR', '1', NULL, '2026-11-03', NULL, 'INR', 100, 'A', 'ME', '2026-11-03T09:00:00+00:00', '2026-11-03T09:00:00+00:00', 'INA1', 'IN', 'api')")
+        db.execute("INSERT INTO sales_order VALUES ('0000099999', 'OR', '1', NULL, '2026-11-03', NULL, 'INR', 100, 'A', 'ME', '2026-11-03T09:00:00+00:00', '2026-11-03T09:00:00+00:00', 'INA1', 'IN', 'api', 100, 'INR')")
         assert prepare(db, "small", "august-contract", TODAY + timedelta(days=1)) is True
         assert count(db, "sales_order", "origin = 'api'") == 1
         assert count(db, "sales_order", "origin = 'seed'") == len(build_seed(TODAY))

@@ -12,7 +12,7 @@ class TestSummaryShape:
         body = make_client().get(DAY).json()
 
         assert body["@odata.context"] == "$metadata#SalesSummaryByDay"
-        assert list(body["value"][0]) == ["OrderDate", "TotalNetAmount", "OrderCount", "Currency", "CompanyCode"]
+        assert list(body["value"][0]) == ["OrderDate", "TotalNetAmount", "OrderCount", "Currency", "CompanyCode", "TotalNetAmountLocal", "LocalCurrency"]
 
     def test_amounts_are_strings_and_counts_are_numbers(self):
         row = make_client().get(DAY).json()["value"][0]
@@ -25,11 +25,11 @@ class TestSummaryShape:
         material = make_client().get(MATERIAL).json()["value"][0]
 
         assert list(customer) == [
-            "SoldToParty", "CustomerName", "OrderDate", "TotalNetAmount", "OrderCount", "Currency", "CompanyCode"
+            "SoldToParty", "CustomerName", "OrderDate", "TotalNetAmount", "OrderCount", "Currency", "CompanyCode", "TotalNetAmountLocal", "LocalCurrency"
         ]
         assert list(material) == [
             "Material", "MaterialDescription", "OrderDate", "TotalQuantity",
-            "QuantityUnit", "TotalNetAmount", "Currency", "CompanyCode",
+            "QuantityUnit", "TotalNetAmount", "Currency", "CompanyCode", "TotalNetAmountLocal", "LocalCurrency",
         ]
         assert len(material["TotalQuantity"].split(".")[1]) == 3
 

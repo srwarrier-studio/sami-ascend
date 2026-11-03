@@ -3,6 +3,7 @@ from datetime import date
 
 from butterfly.domain.entities.drivers import CustomerInvoice, ProductionOrder
 from butterfly.domain.entities.exports import ExportShipment
+from butterfly.domain.entities.master_data import LOCAL_CURRENCY, to_local
 from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.infrastructure.memory.companies import COMPANIES
 from butterfly.infrastructure.memory.export_seed import build_exports
@@ -20,7 +21,7 @@ from butterfly.infrastructure.sqlite.money import quantity_to_minor, to_minor
 from butterfly.infrastructure.sqlite.schema import REPLACED_ON_RESEED
 
 SEEDS = ("small", "story")
-LAYOUT = "4"
+LAYOUT = "5"
 DERIVED_TABLES = ["export_shipment", "stock_value_month", "stock_movement", "material_stock", "customer_invoice"]
 
 
@@ -131,19 +132,19 @@ def write_exports(db: Database, shipments: list[ExportShipment]) -> None:
 def write_orders(db: Database, orders: list[SalesOrder], origin: str = "seed") -> None:
     db.insert_many(
         f"INSERT INTO sales_order (sales_order, sales_order_type, sold_to_party, customer_name, order_date, requested_delivery_date, transaction_currency, "
-        f"total_net_amount, overall_status, created_by_user, creation_date_time, last_change_date_time, company_code, country, origin) VALUES ({marks(15)})",
+        f"total_net_amount, overall_status, created_by_user, creation_date_time, last_change_date_time, company_code, country, origin, total_net_amount_local, local_currency) VALUES ({marks(17)})",
         [
             (
                 o.sales_order, o.sales_order_type, o.sold_to_party, o.customer_name, iso(o.order_date), iso(o.requested_delivery_date), o.transaction_currency,
-                to_minor(o.total_net_amount), o.overall_status, o.created_by_user, iso(o.creation_date_time), iso(o.last_change_date_time), o.company_code, o.country, origin,
+                to_minor(o.total_net_amount), o.overall_status, o.created_by_user, iso(o.creation_date_time), iso(o.last_change_date_time), o.company_code, o.country, origin, to_minor(o.total_net_amount_local), o.local_currency,
             )
             for o in orders
         ],
     )
     db.insert_many(
-        f"INSERT INTO sales_order_item (sales_order, sales_order_item, material, material_description, quantity, quantity_unit, net_amount) VALUES ({marks(7)})",
+        f"INSERT INTO sales_order_item (sales_order, sales_order_item, material, material_description, quantity, quantity_unit, net_amount, net_amount_local) VALUES ({marks(8)})",
         [
-            (i.sales_order, i.sales_order_item, i.material, i.material_description, quantity_to_minor(i.quantity), i.quantity_unit, to_minor(i.net_amount))
+            (i.sales_order, i.sales_order_item, i.material, i.material_description, quantity_to_minor(i.quantity), i.quantity_unit, to_minor(i.net_amount), to_minor(to_local(i.net_amount, o.transaction_currency)))
             for o in orders
             for i in o.items
         ],
@@ -152,8 +153,12 @@ def write_orders(db: Database, orders: list[SalesOrder], origin: str = "seed") -
 
 def write_invoices(db: Database, invoices: list[CustomerInvoice]) -> None:
     db.insert_many(
-        f"INSERT INTO customer_invoice VALUES ({marks(11)})",
-        [(i.invoice, i.sold_to_party, i.customer_name, iso(i.invoice_date), iso(i.due_date), to_minor(i.net_amount), i.transaction_currency, to_minor(i.cleared_amount), iso(i.clearing_date), i.company_code, i.country) for i in invoices],
+        f"INSERT INTO customer_invoice VALUES ({marks(13)})",
+        [
+            (i.invoice, i.sold_to_party, i.customer_name, iso(i.invoice_date), iso(i.due_date), to_minor(i.net_amount), i.transaction_currency, to_minor(i.cleared_amount), iso(i.clearing_date),
+             i.company_code, i.country, to_minor(i.net_amount_local), to_minor(i.cleared_amount_local))
+            for i in invoices
+        ],
     )
 
 
@@ -196,12 +201,12 @@ def write_drivers(db: Database, story: StorySeed, with_invoices: bool = True) ->
         [(c.sales_contract, c.predecessor_contract, c.sold_to_party, c.customer_name, iso(c.valid_from), iso(c.valid_to), to_minor(c.contract_value), c.transaction_currency, c.contract_status, c.company_code) for c in story.contracts],
     )
     db.insert_many(
-        f"INSERT INTO purchase_delivery VALUES ({marks(16)})",
+        f"INSERT INTO purchase_delivery VALUES ({marks(18)})",
         [
             (
                 d.purchase_order, d.purchase_order_item, d.supplier, d.supplier_name, d.material, d.material_description, iso(d.order_date), quantity_to_minor(d.ordered_quantity),
                 quantity_to_minor(d.delivered_quantity), d.quantity_unit, iso(d.promised_delivery_date), iso(d.actual_delivery_date), d.delivery_status, to_minor(d.net_amount),
-                d.transaction_currency, d.company_code,
+                d.transaction_currency, d.company_code, to_minor(d.net_amount_local), d.local_currency,
             )
             for d in story.deliveries
         ],

@@ -10,6 +10,8 @@ class SalesSummaryByDay:
     order_count: int
     currency: str
     company_code: str = "INA1"
+    total_net_amount_local: Decimal = Decimal("0.00")
+    local_currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -21,6 +23,8 @@ class SalesSummaryByCustomer:
     order_count: int
     currency: str
     company_code: str = "INA1"
+    total_net_amount_local: Decimal = Decimal("0.00")
+    local_currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -33,6 +37,8 @@ class SalesSummaryByMaterial:
     total_net_amount: Decimal
     currency: str
     company_code: str = "INA1"
+    total_net_amount_local: Decimal = Decimal("0.00")
+    local_currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -42,6 +48,8 @@ class PurchaseSummaryByDay:
     order_count: int
     currency: str
     company_code: str = "INA1"
+    total_net_amount_local: Decimal = Decimal("0.00")
+    local_currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -53,6 +61,8 @@ class PurchaseSummaryBySupplier:
     order_count: int
     currency: str
     company_code: str = "INA1"
+    total_net_amount_local: Decimal = Decimal("0.00")
+    local_currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -65,6 +75,8 @@ class PurchaseSummaryByMaterial:
     total_net_amount: Decimal
     currency: str
     company_code: str = "INA1"
+    total_net_amount_local: Decimal = Decimal("0.00")
+    local_currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -76,6 +88,9 @@ class ReceivablesSummary:
     overdue_count: int
     currency: str
     company_code: str = "INA1"
+    open_amount_local: Decimal = Decimal("0.00")
+    overdue_amount_local: Decimal = Decimal("0.00")
+    local_currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -89,6 +104,9 @@ class ReceivablesByCustomer:
     overdue_count: int
     currency: str
     company_code: str = "INA1"
+    open_amount_local: Decimal = Decimal("0.00")
+    overdue_amount_local: Decimal = Decimal("0.00")
+    local_currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -99,6 +117,8 @@ class ReceivablesAgeing:
     open_count: int
     currency: str
     company_code: str = "INA1"
+    open_amount_local: Decimal = Decimal("0.00")
+    local_currency: str = "INR"
 
 
 @dataclass(frozen=True)
@@ -110,3 +130,5 @@ class PurchaseSummaryByMaterialGroup:
     order_count: int
     currency: str
     company_code: str = "INA1"
+    total_net_amount_local: Decimal = Decimal("0.00")
+    local_currency: str = "INR"

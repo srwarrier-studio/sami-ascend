@@ -3,6 +3,8 @@ SELECT g.code AS material_group,
        g.name AS material_group_name,
        d.order_date AS order_date,
        SUM(d.net_amount) AS total_net_amount,
+       SUM(d.net_amount_local) AS total_net_amount_local,
+       'INR' AS local_currency,
        COUNT(*) AS order_count,
        d.transaction_currency AS currency,
        d.company_code AS company_code

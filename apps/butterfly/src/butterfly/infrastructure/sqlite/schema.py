@@ -26,7 +26,9 @@ CREATE TABLE IF NOT EXISTS sales_order (
     last_change_date_time TEXT NOT NULL,
     company_code TEXT NOT NULL,
     country TEXT NOT NULL,
-    origin TEXT NOT NULL DEFAULT 'seed'
+    origin TEXT NOT NULL DEFAULT 'seed',
+    total_net_amount_local INTEGER NOT NULL DEFAULT 0,
+    local_currency TEXT NOT NULL DEFAULT 'INR'
 );
 CREATE INDEX IF NOT EXISTS sales_order_by_date ON sales_order (order_date, transaction_currency, company_code);
 
@@ -38,6 +40,7 @@ CREATE TABLE IF NOT EXISTS sales_order_item (
     quantity INTEGER NOT NULL,
     quantity_unit TEXT NOT NULL,
     net_amount INTEGER NOT NULL,
+    net_amount_local INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (sales_order, sales_order_item)
 );
 
@@ -71,6 +74,8 @@ CREATE TABLE IF NOT EXISTS purchase_delivery (
     net_amount INTEGER NOT NULL,
     transaction_currency TEXT NOT NULL,
     company_code TEXT NOT NULL,
+    net_amount_local INTEGER NOT NULL DEFAULT 0,
+    local_currency TEXT NOT NULL DEFAULT 'INR',
     PRIMARY KEY (purchase_order, purchase_order_item)
 );
 CREATE INDEX IF NOT EXISTS purchase_delivery_by_date ON purchase_delivery (order_date, transaction_currency, company_code);
@@ -86,7 +91,9 @@ CREATE TABLE IF NOT EXISTS customer_invoice (
     cleared_amount INTEGER NOT NULL,
     clearing_date TEXT,
     company_code TEXT NOT NULL,
-    country TEXT NOT NULL
+    country TEXT NOT NULL,
+    net_amount_local INTEGER NOT NULL DEFAULT 0,
+    cleared_amount_local INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS production_order (
@@ -225,6 +232,21 @@ CREATE TABLE IF NOT EXISTS export_shipment (
 );
 CREATE INDEX IF NOT EXISTS export_shipment_by_date ON export_shipment (shipment_date, company_code);
 """
+
+ADDED_COLUMNS = [
+    ("sales_order", "total_net_amount_local", "INTEGER NOT NULL DEFAULT 0"),
+    ("sales_order", "local_currency", "TEXT NOT NULL DEFAULT 'INR'"),
+    ("sales_order_item", "net_amount_local", "INTEGER NOT NULL DEFAULT 0"),
+    ("purchase_delivery", "net_amount_local", "INTEGER NOT NULL DEFAULT 0"),
+    ("purchase_delivery", "local_currency", "TEXT NOT NULL DEFAULT 'INR'"),
+    ("customer_invoice", "net_amount_local", "INTEGER NOT NULL DEFAULT 0"),
+    ("customer_invoice", "cleared_amount_local", "INTEGER NOT NULL DEFAULT 0"),
+]
+
+BACKFILL = [
+    "UPDATE sales_order SET total_net_amount_local = CASE transaction_currency WHEN 'USD' THEN total_net_amount * 80 ELSE total_net_amount END WHERE total_net_amount_local = 0 AND total_net_amount != 0",
+    "UPDATE sales_order_item SET net_amount_local = (SELECT CASE o.transaction_currency WHEN 'USD' THEN sales_order_item.net_amount * 80 ELSE sales_order_item.net_amount END FROM sales_order o WHERE o.sales_order = sales_order_item.sales_order) WHERE net_amount_local = 0 AND net_amount != 0",
+]
 
 REPLACED_ON_RESEED = [
     "export_shipment",

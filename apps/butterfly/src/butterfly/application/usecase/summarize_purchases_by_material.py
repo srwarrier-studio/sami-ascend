@@ -14,10 +14,11 @@ class SummarizePurchasesByMaterial:
             if delivery.delivery_status == "X":
                 continue
             key = (delivery.order_date, delivery.material, delivery.transaction_currency, delivery.company_code)
-            entry = totals.setdefault(key, [delivery.material_description, delivery.quantity_unit, Decimal("0.000"), Decimal("0.00")])
+            entry = totals.setdefault(key, [delivery.material_description, delivery.quantity_unit, Decimal("0.000"), Decimal("0.00"), Decimal("0.00")])
             entry[2] += delivery.ordered_quantity
             entry[3] += delivery.net_amount
+            entry[4] += delivery.net_amount_local
         return [
-            PurchaseSummaryByMaterial(material, description, day, quantity, unit, amount, currency, company)
-            for (day, material, currency, company), (description, unit, quantity, amount) in sorted(totals.items())
+            PurchaseSummaryByMaterial(material, description, day, quantity, unit, amount, currency, company, local)
+            for (day, material, currency, company), (description, unit, quantity, amount, local) in sorted(totals.items())
         ]

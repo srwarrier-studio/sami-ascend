@@ -30,10 +30,10 @@ from butterfly.infrastructure.sqlite.money import MONEY_SCALE, QUANTITY_SCALE, f
 from butterfly.infrastructure.sqlite.table import SqliteTable
 from butterfly.infrastructure.sqlite.views import query
 
-MONEY = {"total_net_amount": MONEY_SCALE}
-MONEY_AND_QUANTITY = {"total_net_amount": MONEY_SCALE, "total_quantity": QUANTITY_SCALE}
-OPEN = {"open_amount": MONEY_SCALE, "overdue_amount": MONEY_SCALE}
-AGEING = {"open_amount": MONEY_SCALE}
+MONEY = {"total_net_amount": MONEY_SCALE, "total_net_amount_local": MONEY_SCALE}
+MONEY_AND_QUANTITY = {"total_net_amount": MONEY_SCALE, "total_net_amount_local": MONEY_SCALE, "total_quantity": QUANTITY_SCALE}
+OPEN = {"open_amount": MONEY_SCALE, "overdue_amount": MONEY_SCALE, "open_amount_local": MONEY_SCALE, "overdue_amount_local": MONEY_SCALE}
+AGEING = {"open_amount": MONEY_SCALE, "open_amount_local": MONEY_SCALE}
 
 BY_DAY = "order_date, currency, company_code"
 BY_CUSTOMER = "order_date, sold_to_party, currency, company_code"
@@ -43,7 +43,7 @@ BUCKET_ORDER = "CASE age_bucket WHEN 'current' THEN 0 WHEN '1-30' THEN 1 WHEN '3
 
 
 def by_day(row: sqlite3.Row):
-    return (day(row["order_date"]), from_minor(row["total_net_amount"]), row["order_count"], row["currency"], row["company_code"])
+    return (day(row["order_date"]), from_minor(row["total_net_amount"]), row["order_count"], row["currency"], row["company_code"], from_minor(row["total_net_amount_local"]), row["local_currency"])
 
 
 def sales_by_day(row):
@@ -56,44 +56,48 @@ def purchases_by_day(row):
 
 def sales_by_customer(row):
     return SalesSummaryByCustomer(
-        row["sold_to_party"], row["customer_name"], day(row["order_date"]), from_minor(row["total_net_amount"]), row["order_count"], row["currency"], row["company_code"]
+        row["sold_to_party"], row["customer_name"], day(row["order_date"]), from_minor(row["total_net_amount"]), row["order_count"], row["currency"], row["company_code"],
+        from_minor(row["total_net_amount_local"]), row["local_currency"],
     )
 
 
 def purchases_by_supplier(row):
     return PurchaseSummaryBySupplier(
-        row["supplier"], row["supplier_name"], day(row["order_date"]), from_minor(row["total_net_amount"]), row["order_count"], row["currency"], row["company_code"]
+        row["supplier"], row["supplier_name"], day(row["order_date"]), from_minor(row["total_net_amount"]), row["order_count"], row["currency"], row["company_code"],
+        from_minor(row["total_net_amount_local"]), row["local_currency"],
     )
 
 
 def purchases_by_material_group(row):
     return PurchaseSummaryByMaterialGroup(
-        row["material_group"], row["material_group_name"], day(row["order_date"]), from_minor(row["total_net_amount"]), row["order_count"], row["currency"], row["company_code"]
+        row["material_group"], row["material_group_name"], day(row["order_date"]), from_minor(row["total_net_amount"]), row["order_count"], row["currency"], row["company_code"],
+        from_minor(row["total_net_amount_local"]), row["local_currency"],
     )
 
 
 def by_material(kind):
     return lambda row: kind(
         row["material"], row["material_description"], day(row["order_date"]), quantity_from_minor(row["total_quantity"]), row["quantity_unit"],
-        from_minor(row["total_net_amount"]), row["currency"], row["company_code"],
+        from_minor(row["total_net_amount"]), row["currency"], row["company_code"], from_minor(row["total_net_amount_local"]), row["local_currency"],
     )
 
 
 def receivables(row):
     return ReceivablesSummary(
-        day(row["as_of_date"]), from_minor(row["open_amount"]), from_minor(row["overdue_amount"]), row["open_count"], row["overdue_count"], row["currency"], row["company_code"]
+        day(row["as_of_date"]), from_minor(row["open_amount"]), from_minor(row["overdue_amount"]), row["open_count"], row["overdue_count"], row["currency"], row["company_code"],
+        from_minor(row["open_amount_local"]), from_minor(row["overdue_amount_local"]),
     )
 
 
 def receivables_by_customer(row):
     return ReceivablesByCustomer(
         row["sold_to_party"], row["customer_name"], day(row["as_of_date"]), from_minor(row["open_amount"]), from_minor(row["overdue_amount"]),
-        row["open_count"], row["overdue_count"], row["currency"], row["company_code"],
+        row["open_count"], row["overdue_count"], row["currency"], row["company_code"], from_minor(row["open_amount_local"]), from_minor(row["overdue_amount_local"]),
     )
 
 
 def ageing(row):
-    return ReceivablesAgeing(day(row["as_of_date"]), row["age_bucket"], from_minor(row["open_amount"]), row["open_count"], row["currency"], row["company_code"])
+    return ReceivablesAgeing(day(row["as_of_date"]), row["age_bucket"], from_minor(row["open_amount"]), row["open_count"], row["currency"], row["company_code"], from_minor(row["open_amount_local"]))
 
 
 def warehouse(row):

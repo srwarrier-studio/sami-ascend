@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
+from butterfly.domain.entities.master_data import LOCAL_CURRENCY, to_local
+
 
 @dataclass(frozen=True)
 class SalesOrderItem:
@@ -31,6 +33,14 @@ class SalesOrder:
     items: list[SalesOrderItem] = field(default_factory=list)
     company_code: str = "INA1"
     country: str = "IN"
+
+    @property
+    def total_net_amount_local(self) -> Decimal:
+        return to_local(self.total_net_amount, self.transaction_currency)
+
+    @property
+    def local_currency(self) -> str:
+        return LOCAL_CURRENCY
 
     @property
     def etag(self) -> str:

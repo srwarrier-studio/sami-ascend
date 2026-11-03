@@ -55,7 +55,7 @@ def check_rows(rows, table):
 class TestContractFieldTables:
     def test_the_tables_were_found(self):
         assert [name for name, *_ in ORDER_TABLE][:3] == ["SalesOrder", "SalesOrderType", "SoldToParty"]
-        assert len(ORDER_TABLE) == 14
+        assert len(ORDER_TABLE) == 16
         assert len(ITEM_TABLE) == 7
 
 
