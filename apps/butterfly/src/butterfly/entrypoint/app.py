@@ -14,7 +14,13 @@ from structured_logging import RequestIdMiddleware, get_request_id, setup_loggin
 from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.filter.fields import (
     CUSTOMER_INVOICE_FIELDS,
+    DOWNTIME_SUMMARY_BY_DAY_FIELDS,
     MATERIAL_STOCK_FIELDS,
+    OUTPUT_SUMMARY_BY_LINE_SHIFT_FIELDS,
+    PRODUCTION_CONFIRMATION_FIELDS,
+    PRODUCTION_SUMMARY_BY_DAY_FIELDS,
+    SCRAP_SUMMARY_BY_DAY_FIELDS,
+    WORK_CENTER_DOWNTIME_FIELDS,
     STOCK_MOVEMENT_FIELDS,
     STOCK_MOVEMENT_SUMMARY_BY_DAY_FIELDS,
     STOCK_MOVEMENT_SUMMARY_BY_HOUR_FIELDS,
@@ -51,6 +57,7 @@ from butterfly.application.usecase.summarize_purchases_by_material import Summar
 from butterfly.application.usecase.summarize_purchases_by_material_group import SummarizePurchasesByMaterialGroup
 from butterfly.application.usecase.summarize_purchases_by_supplier import SummarizePurchasesBySupplier
 from butterfly.application.usecase.summarize_inventory import SummarizeInventory
+from butterfly.application.usecase.summarize_production import SummarizeProduction
 from butterfly.application.usecase.summarize_receivables import SummarizeReceivables
 from butterfly.application.usecase.summarize_receivables_ageing import SummarizeReceivablesAgeing
 from butterfly.application.usecase.summarize_receivables_by_customer import SummarizeReceivablesByCustomer
@@ -67,11 +74,13 @@ from butterfly.domain.errors import (
 )
 from butterfly.domain.repositories.driver_repo import DriverRepo
 from butterfly.domain.repositories.inventory_repo import InventoryRepo
+from butterfly.domain.repositories.production_repo import ProductionRepo
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.api.odata import (
     DRIVERS_ROOT,
     INVENTORY_ROOT,
+    PRODUCTION_ROOT,
     ROOT,
     error_body,
     item_to_json,
@@ -80,6 +89,7 @@ from butterfly.infrastructure.api.odata import (
 )
 from butterfly.infrastructure.memory.in_memory_driver_repo import InMemoryDriverRepo
 from butterfly.infrastructure.memory.in_memory_inventory_repo import InMemoryInventoryRepo
+from butterfly.infrastructure.memory.in_memory_production_repo import InMemoryProductionRepo
 from butterfly.infrastructure.memory.inventory_master import GROUP_OF, GROUPS
 from butterfly.infrastructure.memory.in_memory_master_data_repo import InMemoryMasterDataRepo
 from butterfly.infrastructure.memory.scenarios import find_scenario
@@ -87,6 +97,7 @@ from butterfly.infrastructure.sqlite.database import Database
 from butterfly.infrastructure.sqlite.driver_repo import SqliteDriverRepo
 from butterfly.infrastructure.sqlite.inventory_repo import SqliteInventoryRepo
 from butterfly.infrastructure.sqlite.master_data_repo import SqliteMasterDataRepo
+from butterfly.infrastructure.sqlite.production_repo import SqliteProductionRepo
 from butterfly.infrastructure.sqlite.sales_order_repo import SqliteSalesOrderRepo
 from butterfly.infrastructure.sqlite.seeder import SEEDS, prepare
 
@@ -128,11 +139,13 @@ def create_app(
     master_data: MasterDataRepo | None = None,
     drivers: DriverRepo | None = None,
     inventory: InventoryRepo | None = None,
+    production: ProductionRepo | None = None,
     now: Callable[[], datetime] = utc_now,
 ) -> FastAPI:
     master_data = master_data or InMemoryMasterDataRepo()
     drivers = drivers or InMemoryDriverRepo()
     inventory = inventory or InMemoryInventoryRepo()
+    production = production or InMemoryProductionRepo()
     app = FastAPI()
     router = APIRouter(prefix=ROOT.rstrip("/"))
 
@@ -318,6 +331,18 @@ def create_app(
     ):
         add_list_route(inventory_router, entity, lambda entity=entity, build=build: inventory.summary_listing(entity) or build(), fields)
 
+    production_router = APIRouter(prefix=PRODUCTION_ROOT.rstrip("/"))
+    add_list_route(production_router, "ProductionConfirmation", lambda: production.listing("confirmations"), PRODUCTION_CONFIRMATION_FIELDS)
+    add_list_route(production_router, "WorkCenterDowntime", lambda: production.listing("downtimes"), WORK_CENTER_DOWNTIME_FIELDS)
+    shop_floor = SummarizeProduction(production)
+    for entity, build, fields in (
+        ("ProductionSummaryByDay", shop_floor.by_day, PRODUCTION_SUMMARY_BY_DAY_FIELDS),
+        ("DowntimeSummaryByDay", shop_floor.downtime_by_day, DOWNTIME_SUMMARY_BY_DAY_FIELDS),
+        ("ScrapSummaryByDay", shop_floor.scrap_by_day, SCRAP_SUMMARY_BY_DAY_FIELDS),
+        ("OutputSummaryByLineShift", shop_floor.output_by_line_shift, OUTPUT_SUMMARY_BY_LINE_SHIFT_FIELDS),
+    ):
+        add_list_route(production_router, entity, lambda entity=entity, build=build: production.summary_listing(entity) or build(), fields)
+
     @app.exception_handler(SalesOrderNotFound)
     def not_found(request: Request, error: SalesOrderNotFound):
         return JSONResponse(
@@ -402,6 +427,7 @@ def create_app(
     app.include_router(router)
     app.include_router(drivers_router)
     app.include_router(inventory_router)
+    app.include_router(production_router)
     return app
 
 
@@ -417,7 +443,7 @@ def build_default_app(today: date, seed_name: str | None = None, scenario_name: 
         find_scenario(scenario)
     db = Database(db_path if db_path is not None else os.environ.get("BUTTERFLY_DB", str(DEFAULT_DB)))
     prepare(db, name, scenario, today)
-    return create_app(SqliteSalesOrderRepo(db), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db), inventory=SqliteInventoryRepo(db))
+    return create_app(SqliteSalesOrderRepo(db), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db), inventory=SqliteInventoryRepo(db), production=SqliteProductionRepo(db))
 
 
 setup_logging("butterfly")

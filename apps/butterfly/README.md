@@ -33,6 +33,11 @@ Third read-only service on `/sap/opu/odata4/sap/zui_inventory_o4/srvd_a2x/sap/zi
 
 The stock is generated from the data butterfly already holds, so every number can be explained: raw material receipts are the purchase deliveries, finished product receipts are the production orders, issues are the production order components and the sales order items, opening stock is posted as an initial entry (`561`), and about one material in nine is counted down to zero today (`702`). Stock is valued at a standard price per material in rupees. `BUTTERFLY_SEED=small` has no stock. The material groups and storage locations are master data and are always present.
 
+## Production service
+Fourth read-only service on `/sap/opu/odata4/sap/zui_production_o4/srvd_a2x/sap/zproduction/0001/`, specified in `docs/sap/production-contract.md`: `ProductionConfirmation` (what one work center produced in one shift: yield, scrap, target, scrap reason, valued at the standard price) and `WorkCenterDowntime` (stoppages by cause), plus the summaries `ProductionSummaryByDay`, `DowntimeSummaryByDay`, `ScrapSummaryByDay` and `OutputSummaryByLineShift`. Equipment effectiveness is worked out by the consumer from `ProductionSummaryByDay`. Same query options as the other services; `$expand` and writes are refused.
+
+The shop floor is generated from the production orders, so it ties out: the yields of a completed order add up to its confirmed quantity and the targets to its planned quantity, every delayed order has a stoppage of its cause with 8 hours for each day it ran late, each order changes over on its first day and each line is maintained once a month. Orders that have not started have no confirmations. `BUTTERFLY_SEED=small` has no shop floor; the work centers are master data and are always present.
+
 ## Storage
 Butterfly keeps its data in SQLite tables (orders, drivers, master data, stock) behind the repository interfaces, and answers `$filter`, `$orderby`, `$top`, `$skip`, `$count` and `$select` with SQL (values are bound parameters, column names come from the field whitelists). The summaries are SQL views and the receivables entities are queries with a bound `AsOfDate`; each is one file in `src/butterfly/infrastructure/sqlite/views/`, named after its OData entity.
 

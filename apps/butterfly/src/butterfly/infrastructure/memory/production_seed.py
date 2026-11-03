@@ -60,7 +60,7 @@ def drafts_of(order: ProductionOrder, today: date) -> list[Draft]:
     drafts = []
     for index, day in enumerate(days):
         clean = (number * 3 + index) % 11 == 0
-        scrap = Decimal(0) if clean else (yields[index] * rate).quantize(QUANTITY)
+        scrap = Decimal(0).quantize(QUANTITY) if clean else (yields[index] * rate).quantize(QUANTITY)
         reason = None if clean else SCRAP_REASONS[(number + index) % len(SCRAP_REASONS)]
         drafts.append(Draft(order, day, number % LINES + 1, SHIFTS[(number + index) % len(SHIFTS)], yields[index], scrap, targets[index], reason))
     return drafts

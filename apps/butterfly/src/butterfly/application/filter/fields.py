@@ -238,6 +238,75 @@ STOCK_MOVEMENT_SUMMARY_BY_HOUR_FIELDS = {
     "MovementCount": ("movement_count", FieldType.DECIMAL),
     "CompanyCode": ("company_code", FieldType.STRING),
 }
+PRODUCTION_CONFIRMATION_FIELDS = {
+    "ConfirmationNumber": ("confirmation_number", FieldType.STRING),
+    "ConfirmationCounter": ("confirmation_counter", FieldType.STRING),
+    "ProductionOrder": ("production_order", FieldType.STRING),
+    "Material": ("material", FieldType.STRING),
+    "MaterialDescription": ("material_description", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "WorkCenter": ("work_center", FieldType.STRING),
+    "WorkCenterName": ("work_center_name", FieldType.STRING),
+    "Shift": ("shift", FieldType.STRING),
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "YieldQuantity": ("yield_quantity", FieldType.DECIMAL),
+    "ScrapQuantity": ("scrap_quantity", FieldType.DECIMAL),
+    "TargetQuantity": ("target_quantity", FieldType.DECIMAL),
+    "QuantityUnit": ("quantity_unit", FieldType.STRING),
+    "ScrapReason": ("scrap_reason", FieldType.STRING),
+    "RunHours": ("run_hours", FieldType.DECIMAL),
+    "YieldValue": ("yield_value", FieldType.DECIMAL),
+    "ScrapValue": ("scrap_value", FieldType.DECIMAL),
+    "TargetValue": ("target_value", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+WORK_CENTER_DOWNTIME_FIELDS = {
+    "DowntimeNumber": ("downtime_number", FieldType.STRING),
+    "ProductionOrder": ("production_order", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "WorkCenter": ("work_center", FieldType.STRING),
+    "WorkCenterName": ("work_center_name", FieldType.STRING),
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "DowntimeHours": ("downtime_hours", FieldType.DECIMAL),
+    "DowntimeCause": ("downtime_cause", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+PRODUCTION_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "PlannedHours": ("planned_hours", FieldType.DECIMAL),
+    "DowntimeHours": ("downtime_hours", FieldType.DECIMAL),
+    "TargetValue": ("target_value", FieldType.DECIMAL),
+    "GoodValue": ("good_value", FieldType.DECIMAL),
+    "ScrapValue": ("scrap_value", FieldType.DECIMAL),
+    "ConfirmationCount": ("confirmation_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+DOWNTIME_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "DowntimeCause": ("downtime_cause", FieldType.STRING),
+    "DowntimeHours": ("downtime_hours", FieldType.DECIMAL),
+    "EventCount": ("event_count", FieldType.DECIMAL),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+SCRAP_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "ScrapReason": ("scrap_reason", FieldType.STRING),
+    "ScrapValue": ("scrap_value", FieldType.DECIMAL),
+    "ConfirmationCount": ("confirmation_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+OUTPUT_SUMMARY_BY_LINE_SHIFT_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "WorkCenter": ("work_center", FieldType.STRING),
+    "Shift": ("shift", FieldType.STRING),
+    "WorkCenterName": ("work_center_name", FieldType.STRING),
+    "GoodValue": ("good_value", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
 PURCHASE_SUMMARY_BY_DAY_FIELDS = SALES_SUMMARY_BY_DAY_FIELDS
 
 PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {

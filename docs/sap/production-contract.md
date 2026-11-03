@@ -127,6 +127,235 @@ Filter and compare codes as written.
 All examples use the root path from section 1. `{root}` stands for it. The responses are real and are
 checked by a test against the data of 2026-10-31.
 
+### Confirmations of a production order
+
+```
+GET {root}ProductionConfirmation?$filter=ProductionOrder eq '0001000417'&$orderby=PostingDate,ConfirmationNumber&$top=2
+```
+
+```json
+{
+  "@odata.context": "$metadata#ProductionConfirmation",
+  "value": [
+    {
+      "ConfirmationNumber": "8000002347",
+      "ConfirmationCounter": "00000001",
+      "ProductionOrder": "0001000417",
+      "Material": "RM-1002",
+      "MaterialDescription": "Piperine extract 95%",
+      "Plant": "1000",
+      "WorkCenter": "LINE2",
+      "WorkCenterName": "Line 2",
+      "Shift": "A",
+      "PostingDate": "2026-07-06",
+      "YieldQuantity": "160.000",
+      "ScrapQuantity": "0.000",
+      "TargetQuantity": "160.000",
+      "QuantityUnit": "KG",
+      "ScrapReason": null,
+      "RunHours": "8.00",
+      "YieldValue": "240000.00",
+      "ScrapValue": "0.00",
+      "TargetValue": "240000.00",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "ConfirmationNumber": "8000002365",
+      "ConfirmationCounter": "00000001",
+      "ProductionOrder": "0001000417",
+      "Material": "RM-1002",
+      "MaterialDescription": "Piperine extract 95%",
+      "Plant": "1000",
+      "WorkCenter": "LINE2",
+      "WorkCenterName": "Line 2",
+      "Shift": "N",
+      "PostingDate": "2026-07-07",
+      "YieldQuantity": "172.800",
+      "ScrapQuantity": "5.184",
+      "TargetQuantity": "160.000",
+      "QuantityUnit": "KG",
+      "ScrapReason": "OPERATOR_ERROR",
+      "RunHours": "8.00",
+      "YieldValue": "259200.00",
+      "ScrapValue": "7776.00",
+      "TargetValue": "240000.00",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Stoppages of one cause
+
+```
+GET {root}WorkCenterDowntime?$filter=DowntimeCause eq 'BREAKDOWN'&$orderby=PostingDate,DowntimeNumber
+```
+
+```json
+{
+  "@odata.context": "$metadata#WorkCenterDowntime",
+  "value": [
+    {
+      "DowntimeNumber": "0000045262",
+      "ProductionOrder": "0001000408",
+      "Plant": "1000",
+      "WorkCenter": "LINE2",
+      "WorkCenterName": "Line 2",
+      "PostingDate": "2026-05-20",
+      "DowntimeHours": "48.00",
+      "DowntimeCause": "BREAKDOWN",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Production per day
+
+```
+GET {root}ProductionSummaryByDay?$filter=CompanyCode eq 'INA1' and PostingDate ge 2026-10-14&$orderby=PostingDate,Currency,CompanyCode&$top=2
+```
+
+```json
+{
+  "@odata.context": "$metadata#ProductionSummaryByDay",
+  "value": [
+    {
+      "PostingDate": "2026-10-14",
+      "PlannedHours": "48.00",
+      "DowntimeHours": "0.00",
+      "TargetValue": "777189.08",
+      "GoodValue": "814055.90",
+      "ScrapValue": "16411.91",
+      "ConfirmationCount": 6,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-15",
+      "PlannedHours": "48.00",
+      "DowntimeHours": "0.00",
+      "TargetValue": "777189.08",
+      "GoodValue": "743603.82",
+      "ScrapValue": "15167.32",
+      "ConfirmationCount": 6,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Downtime by cause
+
+```
+GET {root}DowntimeSummaryByDay?$filter=PostingDate eq 2026-10-10 and CompanyCode eq 'INA1'&$orderby=PostingDate,DowntimeCause,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#DowntimeSummaryByDay",
+  "value": [
+    {
+      "PostingDate": "2026-10-10",
+      "DowntimeCause": "MAINTENANCE",
+      "DowntimeHours": "18.00",
+      "EventCount": 3,
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Scrap by reason
+
+```
+GET {root}ScrapSummaryByDay?$filter=PostingDate eq 2026-10-14 and CompanyCode eq 'INA1'&$orderby=PostingDate,ScrapReason,Currency,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#ScrapSummaryByDay",
+  "value": [
+    {
+      "PostingDate": "2026-10-14",
+      "ScrapReason": "MACHINE_SETTING",
+      "ScrapValue": "7364.39",
+      "ConfirmationCount": 2,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-14",
+      "ScrapReason": "MATERIAL_DEFECT",
+      "ScrapValue": "1434.80",
+      "ConfirmationCount": 1,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-14",
+      "ScrapReason": "OPERATOR_ERROR",
+      "ScrapValue": "5997.90",
+      "ConfirmationCount": 2,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-14",
+      "ScrapReason": "OTHER",
+      "ScrapValue": "1614.82",
+      "ConfirmationCount": 1,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Output by line and shift
+
+```
+GET {root}OutputSummaryByLineShift?$filter=PostingDate eq 2026-10-14 and CompanyCode eq 'INA1'&$orderby=PostingDate,WorkCenter,Shift,Currency,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#OutputSummaryByLineShift",
+  "value": [
+    {
+      "PostingDate": "2026-10-14",
+      "WorkCenter": "LINE1",
+      "Shift": "A",
+      "WorkCenterName": "Line 1",
+      "GoodValue": "246468.69",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-14",
+      "WorkCenter": "LINE2",
+      "Shift": "N",
+      "WorkCenterName": "Line 2",
+      "GoodValue": "502420.31",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-14",
+      "WorkCenter": "LINE3",
+      "Shift": "M",
+      "WorkCenterName": "Line 3",
+      "GoodValue": "65166.90",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
 ## 6. Notes for the SAP consultant
 
 These are the usual SAP sources; confirm them and expose each entity as a read-only CDS view entity

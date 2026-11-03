@@ -10,6 +10,7 @@ from butterfly.domain.entities.inventory import (
     StockSummaryByWarehouse,
     StockValueMonth,
 )
+from butterfly.domain.entities.production import DowntimeSummaryByDay, OutputSummaryByLineShift, ProductionSummaryByDay, ScrapSummaryByDay
 from butterfly.domain.entities.sales_summary import (
     PurchaseSummaryByDay,
     PurchaseSummaryByMaterialGroup,
@@ -118,10 +119,37 @@ def movements_by_hour(row):
     return StockMovementSummaryByHour(day(row["posting_date"]), row["posting_hour"], row["movement_count"], row["company_code"])
 
 
+def production_day(row):
+    return ProductionSummaryByDay(
+        day(row["posting_date"]), from_minor(row["planned_hours"]), from_minor(row["downtime_hours"]), from_minor(row["target_value"]), from_minor(row["good_value"]),
+        from_minor(row["scrap_value"]), row["confirmation_count"], row["currency"], row["company_code"],
+    )
+
+
+def downtime_day(row):
+    return DowntimeSummaryByDay(day(row["posting_date"]), row["downtime_cause"], from_minor(row["downtime_hours"]), row["event_count"], row["company_code"])
+
+
+def scrap_day(row):
+    return ScrapSummaryByDay(day(row["posting_date"]), row["scrap_reason"], from_minor(row["scrap_value"]), row["confirmation_count"], row["currency"], row["company_code"])
+
+
+def output_line_shift(row):
+    return OutputSummaryByLineShift(day(row["posting_date"]), row["work_center"], row["shift"], row["work_center_name"], from_minor(row["good_value"]), row["currency"], row["company_code"])
+
+
 STOCK = {"stock_value": MONEY_SCALE}
+PRODUCTION = {"planned_hours": MONEY_SCALE, "downtime_hours": MONEY_SCALE, "target_value": MONEY_SCALE, "good_value": MONEY_SCALE, "scrap_value": MONEY_SCALE}
+HOURS = {"downtime_hours": MONEY_SCALE}
+SCRAP = {"scrap_value": MONEY_SCALE}
+OUTPUT = {"good_value": MONEY_SCALE}
 FLOWS = {"receipt_value": MONEY_SCALE, "issue_value": MONEY_SCALE}
 
 VIEWS = {
+    "ProductionSummaryByDay": ("production_summary_by_day", production_day, PRODUCTION, "posting_date, currency, company_code"),
+    "DowntimeSummaryByDay": ("downtime_summary_by_day", downtime_day, HOURS, "posting_date, downtime_cause, company_code"),
+    "ScrapSummaryByDay": ("scrap_summary_by_day", scrap_day, SCRAP, "posting_date, scrap_reason, currency, company_code"),
+    "OutputSummaryByLineShift": ("output_summary_by_line_shift", output_line_shift, OUTPUT, "posting_date, work_center, shift, currency, company_code"),
     "StockSummaryByWarehouse": ("stock_summary_by_warehouse", warehouse, STOCK, "plant, storage_location, currency, company_code"),
     "StockSummaryByMaterialGroup": ("stock_summary_by_material_group", material_group, STOCK, "material_group, currency, company_code"),
     "StockSummaryByStatus": ("stock_summary_by_status", stock_status, STOCK, "stock_status, currency, company_code"),

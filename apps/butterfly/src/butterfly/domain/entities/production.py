@@ -47,3 +47,46 @@ class WorkCenterDowntime:
     downtime_hours: Decimal
     downtime_cause: str
     company_code: str
+
+
+@dataclass(frozen=True)
+class ProductionSummaryByDay:
+    posting_date: date
+    planned_hours: Decimal
+    downtime_hours: Decimal
+    target_value: Decimal
+    good_value: Decimal
+    scrap_value: Decimal
+    confirmation_count: int
+    currency: str
+    company_code: str
+
+
+@dataclass(frozen=True)
+class DowntimeSummaryByDay:
+    posting_date: date
+    downtime_cause: str
+    downtime_hours: Decimal
+    event_count: int
+    company_code: str
+
+
+@dataclass(frozen=True)
+class ScrapSummaryByDay:
+    posting_date: date
+    scrap_reason: str
+    scrap_value: Decimal
+    confirmation_count: int
+    currency: str
+    company_code: str
+
+
+@dataclass(frozen=True)
+class OutputSummaryByLineShift:
+    posting_date: date
+    work_center: str
+    shift: str
+    work_center_name: str | None
+    good_value: Decimal
+    currency: str
+    company_code: str
