@@ -1,3 +1,5 @@
+from datetime import date
+
 from butterfly.domain.entities.drivers import (
     CustomerInvoice,
     ProductionOrder,
@@ -16,6 +18,7 @@ from butterfly.infrastructure.sqlite.mappers import (
 )
 from butterfly.infrastructure.sqlite.money import MONEY_SCALE, QUANTITY_SCALE
 from butterfly.infrastructure.sqlite.seeder import write_drivers
+from butterfly.infrastructure.sqlite.summaries import summary_table
 from butterfly.infrastructure.sqlite.table import SqliteTable
 from butterfly.infrastructure.memory.story_seed import StorySeed
 
@@ -30,6 +33,9 @@ TABLES = {
 
 
 class SqliteDriverRepo(DriverRepo):
+    def summary_listing(self, name: str, as_of: date | None = None) -> SqliteTable | None:
+        return summary_table(self.db, name, as_of)
+
     def listing(self, entity: str) -> SqliteTable:
         table, mapper, scales = TABLES[entity]
         return SqliteTable(self.db, table, lambda rows: [mapper(row) for row in rows], scales)

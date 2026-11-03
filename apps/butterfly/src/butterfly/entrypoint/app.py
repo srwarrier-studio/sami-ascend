@@ -251,7 +251,7 @@ def create_app(
             reject_unsupported(request, LIST_OPTIONS)
             day = as_of_date(as_of)
             query = ListQuery(filter_text, select, orderby, top, skip, count)
-            result = ListSalesSummary(lambda: summarize(drivers).execute(day), fields).execute(query)
+            result = ListSalesSummary(lambda: drivers.summary_listing(entity, day) or summarize(drivers).execute(day), fields).execute(query)
             body = {"@odata.context": context_for(entity, result.select, fields, False)}
             if result.total is not None:
                 body["@odata.count"] = result.total
@@ -259,7 +259,7 @@ def create_app(
             return body
 
     def add_summary_route(entity: str, summarize, fields: dict):
-        add_list_route(router, entity, lambda: summarize(repo).execute(), fields)
+        add_list_route(router, entity, lambda: repo.summary_listing(entity) or summarize(repo).execute(), fields)
 
     add_summary_route("SalesSummaryByDay", SummarizeByDay, SALES_SUMMARY_BY_DAY_FIELDS)
     add_summary_route("SalesSummaryByCustomer", SummarizeByCustomer, SALES_SUMMARY_BY_CUSTOMER_FIELDS)
@@ -274,9 +274,9 @@ def create_app(
     add_receivables_route(drivers_router, "ReceivablesAgeing", SummarizeReceivablesAgeing, RECEIVABLES_AGEING_FIELDS)
     add_list_route(drivers_router, "ProductionOrder", lambda: drivers.listing("production_orders"), PRODUCTION_ORDER_FIELDS)
     add_list_route(drivers_router, "ProductionOrderComponent", lambda: drivers.listing("components"), PRODUCTION_ORDER_COMPONENT_FIELDS)
-    add_list_route(drivers_router, "PurchaseSummaryByDay", lambda: SummarizePurchasesByDay(drivers).execute(), PURCHASE_SUMMARY_BY_DAY_FIELDS)
-    add_list_route(drivers_router, "PurchaseSummaryBySupplier", lambda: SummarizePurchasesBySupplier(drivers).execute(), PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS)
-    add_list_route(drivers_router, "PurchaseSummaryByMaterial", lambda: SummarizePurchasesByMaterial(drivers).execute(), PURCHASE_SUMMARY_BY_MATERIAL_FIELDS)
+    add_list_route(drivers_router, "PurchaseSummaryByDay", lambda: drivers.summary_listing("PurchaseSummaryByDay") or SummarizePurchasesByDay(drivers).execute(), PURCHASE_SUMMARY_BY_DAY_FIELDS)
+    add_list_route(drivers_router, "PurchaseSummaryBySupplier", lambda: drivers.summary_listing("PurchaseSummaryBySupplier") or SummarizePurchasesBySupplier(drivers).execute(), PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS)
+    add_list_route(drivers_router, "PurchaseSummaryByMaterial", lambda: drivers.summary_listing("PurchaseSummaryByMaterial") or SummarizePurchasesByMaterial(drivers).execute(), PURCHASE_SUMMARY_BY_MATERIAL_FIELDS)
 
     @app.exception_handler(SalesOrderNotFound)
     def not_found(request: Request, error: SalesOrderNotFound):

@@ -4,6 +4,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 
 from butterfly.infrastructure.sqlite.schema import TABLES
+from butterfly.infrastructure.sqlite.views import view_script
 
 MEMORY = ":memory:"
 
@@ -19,6 +20,7 @@ class Database:
             self.connection.execute("PRAGMA journal_mode=WAL")
         with self.lock:
             self.connection.executescript(TABLES)
+            self.connection.executescript(view_script())
 
     def query(self, sql: str, params: tuple | list = ()) -> list[sqlite3.Row]:
         with self.lock:

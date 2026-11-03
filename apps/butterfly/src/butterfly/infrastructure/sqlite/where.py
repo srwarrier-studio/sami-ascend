@@ -16,7 +16,8 @@ def column(attribute: str) -> str:
 
 def bound(value, scale: int | None):
     if isinstance(value, Decimal):
-        return str(value * scale) if scale else str(value)
+        scaled = value * scale if scale else value
+        return int(scaled) if scaled == scaled.to_integral_value() else float(scaled)
     if isinstance(value, datetime):
         return value.astimezone(timezone.utc).isoformat()
     if isinstance(value, date):

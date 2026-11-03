@@ -13,6 +13,9 @@ class DriverRepo(ABC):
     def listing(self, entity: str):
         return getattr(self, entity)()
 
+    def summary_listing(self, name: str, as_of=None):
+        return None
+
     @abstractmethod
     def contracts(self) -> list[SalesContract]: ...
 

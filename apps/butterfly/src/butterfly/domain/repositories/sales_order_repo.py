@@ -7,6 +7,9 @@ class SalesOrderRepo(ABC):
     def listing(self):
         return self.list_all()
 
+    def summary_listing(self, name: str):
+        return None
+
     @abstractmethod
     def list_all(self) -> list[SalesOrder]: ...
 

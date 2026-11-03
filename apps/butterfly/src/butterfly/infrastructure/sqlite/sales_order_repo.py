@@ -4,6 +4,7 @@ from butterfly.infrastructure.sqlite.database import Database
 from butterfly.infrastructure.sqlite.mappers import item_from_row, order_from_row
 from butterfly.infrastructure.sqlite.money import MONEY_SCALE, quantity_to_minor, to_minor
 from butterfly.infrastructure.sqlite.seeder import iso, marks, write_orders
+from butterfly.infrastructure.sqlite.summaries import summary_table
 from butterfly.infrastructure.sqlite.table import SqliteTable
 
 SCALES = {"total_net_amount": MONEY_SCALE}
@@ -32,6 +33,9 @@ class SqliteSalesOrderRepo(SalesOrderRepo):
 
     def listing(self) -> SqliteTable:
         return SqliteTable(self.db, "sales_order", self.with_items, SCALES)
+
+    def summary_listing(self, name: str) -> SqliteTable | None:
+        return summary_table(self.db, name)
 
     def with_items(self, rows: list) -> list[SalesOrder]:
         items: dict[str, list] = {}
