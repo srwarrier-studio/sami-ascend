@@ -44,3 +44,12 @@ Answered with the answer and the date, and update the document that depended on 
 
 
 None yet.
+
+### Production (`production-contract.md`)
+27. Service name, root path and namespace for production confirmations: confirm or replace section 1 (`ZUI_PRODUCTION_O4`).
+28. Does the plant confirm output per shift and work center (one `AFRU` row per shift), or per order and day? The contract assumes per shift.
+29. Where is downtime kept: work center downtime in PM (maintenance notifications), a confirmation with a downtime reason, or an MES? What are the cause codes, and can they be mapped to `BREAKDOWN`, `CHANGEOVER`, `NO_MATERIAL`, `MAINTENANCE` and `OTHER`?
+30. How are scrap and its reason recorded (scrap quantity and variance reason on the confirmation, or a quality notification)? Which reasons exist?
+31. Is the planned output of a shift (`TargetQuantity`) available, or only the order total? We spread the order quantity over its shifts.
+32. How are shifts defined (hours of morning, afternoon and night), and is `RunHours` the scheduled hours of the shift?
+33. Which standard price values the yield and scrap, and in which currency?
