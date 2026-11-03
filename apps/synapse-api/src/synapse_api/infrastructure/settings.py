@@ -9,6 +9,7 @@ DEFAULT_DRIVERS_BASE_URL = "http://localhost:8003/sap/opu/odata4/sap/zui_drivers
 DEFAULT_INVENTORY_BASE_URL = "http://localhost:8003/sap/opu/odata4/sap/zui_inventory_o4/srvd_a2x/sap/zinventory/0001/"
 DEFAULT_PRODUCTION_BASE_URL = "http://localhost:8003/sap/opu/odata4/sap/zui_production_o4/srvd_a2x/sap/zproduction/0001/"
 DEFAULT_EXPORT_BASE_URL = "http://localhost:8003/sap/opu/odata4/sap/zui_export_o4/srvd_a2x/sap/zexport/0001/"
+DEFAULT_FINANCE_BASE_URL = "http://localhost:8003/sap/opu/odata4/sap/zui_finance_o4/srvd_a2x/sap/zfinance/0001/"
 DEFAULT_SAP_BASE_URL = "http://localhost:8003/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/0001/"
 
 
@@ -19,10 +20,12 @@ class Settings(BaseSettings):
     inventory_base_url: str = DEFAULT_INVENTORY_BASE_URL
     production_base_url: str = DEFAULT_PRODUCTION_BASE_URL
     export_base_url: str = DEFAULT_EXPORT_BASE_URL
+    finance_base_url: str = DEFAULT_FINANCE_BASE_URL
     registry_path: Path = REGISTRY_PATH
     sap_timeout_seconds: float = 10.0
     cache_seconds: float = 300
     monthly_sales_target: Decimal = Decimal(5000000)
+    monthly_collection_target: Decimal = Decimal(30000000)
     default_currency: str = "INR"
     jwt_secret: str = ""
     frontend_url: str = "http://localhost:5173"
