@@ -268,3 +268,7 @@
   font-weight: 600;
   font-size: var(--mantine-font-size-md);
 }
+
+.fold {
+  align-self: flex-start;
+}

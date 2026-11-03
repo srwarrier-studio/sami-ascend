@@ -27,11 +27,10 @@ const open = (catalogClient = new MockCatalogClient()) => {
 }
 
 const exportPdf = async () => {
-  await userEvent.click(await screen.findByRole('button', { name: 'More' }))
-  await userEvent.click(await screen.findByRole('menuitem', { name: 'Export PDF' }))
+  await userEvent.click(await screen.findByRole('button', { name: 'Export PDF' }))
 }
 
-describe('Export PDF menu item', () => {
+describe('Export PDF button', () => {
   it('exports the board frame once with a safe file name and the date', async () => {
     const exporter = open()
     await screen.findByText('Top customers')
@@ -44,7 +43,7 @@ describe('Export PDF menu item', () => {
   it('is hidden in Edit mode', async () => {
     open()
     await userEvent.click(await screen.findByRole('button', { name: 'Edit' }))
-    expect(screen.queryByRole('button', { name: 'More' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Export PDF' })).toBeNull()
   })
 
   it('shows the header and footer only while the export runs', async () => {

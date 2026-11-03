@@ -50,7 +50,7 @@ export function SummaryStrip({ client, company, widgets, refreshMs = REFRESH_MS 
             </Stack>
           )}
           {(hidden > 0 || all) && rest.length > SHOWN - 1 && (
-            <Button variant="subtle" size="compact-xs" aria-expanded={all} aria-controls={listId} onClick={() => setAll(!all)} style={{ alignSelf: 'flex-start' }}>
+            <Button variant="subtle" size="compact-xs" aria-expanded={all} aria-controls={listId} onClick={() => setAll(!all)} className={classes.fold}>
               {all ? 'Show less' : `Show ${hidden} more`}
             </Button>
           )}

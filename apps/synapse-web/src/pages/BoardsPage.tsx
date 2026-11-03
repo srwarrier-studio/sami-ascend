@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
-import { Alert, Button, EmptyBoard, Group, Menu, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, clockTime, notifications, useColorScheme } from '@sami/ui'
+import { Alert, Button, EmptyBoard, Group, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Text, TrashIcon, WidgetLibrary, clockTime, notifications, useColorScheme } from '@sami/ui'
 import { BoardGrid } from '../boards/BoardGrid'
 import { BoardsSkeleton } from '../boards/BoardsSkeleton'
 import { SummaryStrip } from '../boards/SummaryStrip'
@@ -75,18 +75,9 @@ export function BoardsPage() {
               </Text>
             )}
             {!editing && (
-              <Menu position="bottom-end">
-                <Menu.Target>
-                  <Button variant="default" loading={exporting}>
-                    More
-                  </Button>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item leftSection={<FilePdfIcon size={16} />} onClick={exportPdf}>
-                    Export PDF
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
+              <Button variant="default" leftSection={<FilePdfIcon size={16} />} loading={exporting} onClick={exportPdf}>
+                Export PDF
+              </Button>
             )}
             {editing && (
               <Button variant="subtle" color="red" leftSection={<TrashIcon size={16} />} disabled={boards.length < 2} onClick={() => setDeleting(true)}>
