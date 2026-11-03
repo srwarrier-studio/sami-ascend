@@ -307,6 +307,46 @@ OUTPUT_SUMMARY_BY_LINE_SHIFT_FIELDS = {
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
 }
+EXPORT_SHIPMENT_FIELDS = {
+    "Shipment": ("shipment", FieldType.STRING),
+    "SalesOrder": ("sales_order", FieldType.STRING),
+    "SoldToParty": ("sold_to_party", FieldType.STRING),
+    "CustomerName": ("customer_name", FieldType.STRING),
+    "Country": ("country", FieldType.STRING),
+    "CountryName": ("country_name", FieldType.STRING),
+    "TransportMode": ("transport_mode", FieldType.STRING),
+    "ShipmentDate": ("shipment_date", FieldType.DATE),
+    "ExpectedArrivalDate": ("expected_arrival_date", FieldType.DATE),
+    "ActualArrivalDate": ("actual_arrival_date", FieldType.DATE),
+    "ShipmentStatus": ("shipment_status", FieldType.STRING),
+    "NetAmount": ("net_amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "DocumentAmount": ("document_amount", FieldType.DECIMAL),
+    "DocumentCurrency": ("document_currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+EXPORT_SUMMARY_BY_DAY_FIELDS = {
+    "ShipmentDate": ("shipment_date", FieldType.DATE),
+    "ShipmentCount": ("shipment_count", FieldType.DECIMAL),
+    "NetAmount": ("net_amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+EXPORT_SUMMARY_BY_DESTINATION_FIELDS = {
+    "ShipmentDate": ("shipment_date", FieldType.DATE),
+    "Country": ("country", FieldType.STRING),
+    "CountryName": ("country_name", FieldType.STRING),
+    "ShipmentCount": ("shipment_count", FieldType.DECIMAL),
+    "NetAmount": ("net_amount", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+EXPORT_SUMMARY_BY_MODE_FIELDS = {
+    "ShipmentDate": ("shipment_date", FieldType.DATE),
+    "TransportMode": ("transport_mode", FieldType.STRING),
+    "ShipmentCount": ("shipment_count", FieldType.DECIMAL),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
 PURCHASE_SUMMARY_BY_DAY_FIELDS = SALES_SUMMARY_BY_DAY_FIELDS
 
 PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {

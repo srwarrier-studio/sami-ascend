@@ -204,9 +204,30 @@ CREATE TABLE IF NOT EXISTS work_center_downtime (
     company_code TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS work_center_downtime_by_date ON work_center_downtime (posting_date, company_code);
+
+CREATE TABLE IF NOT EXISTS export_shipment (
+    shipment TEXT PRIMARY KEY,
+    sales_order TEXT NOT NULL,
+    sold_to_party TEXT NOT NULL,
+    customer_name TEXT,
+    country TEXT NOT NULL,
+    country_name TEXT,
+    transport_mode TEXT NOT NULL,
+    shipment_date TEXT NOT NULL,
+    expected_arrival_date TEXT NOT NULL,
+    actual_arrival_date TEXT,
+    shipment_status TEXT NOT NULL,
+    net_amount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    document_amount INTEGER NOT NULL,
+    document_currency TEXT NOT NULL,
+    company_code TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS export_shipment_by_date ON export_shipment (shipment_date, company_code);
 """
 
 REPLACED_ON_RESEED = [
+    "export_shipment",
     "work_center_downtime",
     "production_confirmation",
     "work_center",

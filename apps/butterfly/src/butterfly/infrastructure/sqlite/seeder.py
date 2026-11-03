@@ -1,8 +1,10 @@
 from datetime import date
 
 from butterfly.domain.entities.drivers import ProductionOrder
+from butterfly.domain.entities.exports import ExportShipment
 from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.infrastructure.memory.companies import COMPANIES
+from butterfly.infrastructure.memory.export_seed import build_exports
 from butterfly.infrastructure.memory.inventory_master import GROUP_OF, GROUPS, LOCATIONS
 from butterfly.infrastructure.memory.inventory_seed import InventorySeed, build_inventory
 from butterfly.infrastructure.memory.production_master import WORK_CENTERS
@@ -15,7 +17,7 @@ from butterfly.infrastructure.sqlite.money import quantity_to_minor, to_minor
 from butterfly.infrastructure.sqlite.schema import REPLACED_ON_RESEED
 
 SEEDS = ("small", "story")
-LAYOUT = "3"
+LAYOUT = "4"
 
 
 def iso(value) -> str | None:
@@ -49,6 +51,7 @@ def prepare(db: Database, seed: str, scenario: str, today: date) -> bool:
             write_drivers(db, story)
             write_inventory(db, build_inventory(story, COMPANIES, today))
             write_production(db, build_production(story, COMPANIES, today))
+            write_exports(db, build_exports(story, today))
         db.insert_many("INSERT INTO meta (key, value) VALUES (?, ?)", list(wanted.items()))
     return True
 
@@ -105,6 +108,17 @@ def write_production(db: Database, production: ProductionSeed) -> None:
     db.insert_many(
         f"INSERT INTO work_center_downtime VALUES ({marks(8)})",
         [(d.downtime_number, d.production_order, d.plant, d.work_center, iso(d.posting_date), to_minor(d.downtime_hours), d.downtime_cause, d.company_code) for d in production.downtimes],
+    )
+
+
+def write_exports(db: Database, shipments: list[ExportShipment]) -> None:
+    db.insert_many(
+        f"INSERT INTO export_shipment VALUES ({marks(16)})",
+        [
+            (s.shipment, s.sales_order, s.sold_to_party, s.customer_name, s.country, s.country_name, s.transport_mode, iso(s.shipment_date), iso(s.expected_arrival_date),
+             iso(s.actual_arrival_date), s.shipment_status, to_minor(s.net_amount), s.currency, to_minor(s.document_amount), s.document_currency, s.company_code)
+            for s in shipments
+        ],
     )
 
 

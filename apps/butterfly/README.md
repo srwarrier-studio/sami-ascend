@@ -38,6 +38,11 @@ Fourth read-only service on `/sap/opu/odata4/sap/zui_production_o4/srvd_a2x/sap/
 
 The shop floor is generated from the production orders, so it ties out: the yields of a completed order add up to its confirmed quantity and the targets to its planned quantity, every delayed order has a stoppage of its cause with 8 hours for each day it ran late, each order changes over on its first day and each line is maintained once a month. Orders that have not started have no confirmations. `BUTTERFLY_SEED=small` has no shop floor; the work centers are master data and are always present.
 
+## Export service
+Fifth read-only service on `/sap/opu/odata4/sap/zui_export_o4/srvd_a2x/sap/zexport/0001/`, specified in `docs/sap/export-contract.md`: `ExportShipment` (one outbound delivery of an order sold abroad, with destination country, transport mode, expected and actual arrival, and the value in rupees and in the order currency) and the summaries `ExportSummaryByDay`, `ExportSummaryByDestination` and `ExportSummaryByMode`. Same query options as the other services; `$expand` and writes are refused.
+
+Shipments are generated with the seed from the orders that are not cancelled and not sold to `IN`: they ship on the requested delivery date, about 60% by sea, 25% by air, 15% by road, and a shipment whose arrival is after today is in transit. An order created through the API is part of the sales data at once but only becomes a shipment (and stock movement, invoice and so on) when the seed is rebuilt. `BUTTERFLY_SEED=small` has no shipments.
+
 ## Storage
 Butterfly keeps its data in SQLite tables (orders, drivers, master data, stock) behind the repository interfaces, and answers `$filter`, `$orderby`, `$top`, `$skip`, `$count` and `$select` with SQL (values are bound parameters, column names come from the field whitelists). The summaries are SQL views and the receivables entities are queries with a bound `AsOfDate`; each is one file in `src/butterfly/infrastructure/sqlite/views/`, named after its OData entity.
 

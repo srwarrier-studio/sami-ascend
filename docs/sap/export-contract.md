@@ -92,6 +92,145 @@ consumer does the arithmetic.
 All examples use the root path from section 1. `{root}` stands for it. The responses are real and are
 checked by a test against the data of 2026-10-31.
 
+### Shipments in transit
+
+```
+GET {root}ExportShipment?$filter=ShipmentStatus eq 'T'&$orderby=ExpectedArrivalDate,Shipment&$top=2
+```
+
+```json
+{
+  "@odata.context": "$metadata#ExportShipment",
+  "value": [
+    {
+      "Shipment": "6000002892",
+      "SalesOrder": "0000021266",
+      "SoldToParty": "0000100005",
+      "CustomerName": "Lakeshore Supplements Inc",
+      "Country": "US",
+      "CountryName": "United States",
+      "TransportMode": "S",
+      "ShipmentDate": "2026-10-09",
+      "ExpectedArrivalDate": "2026-10-29",
+      "ActualArrivalDate": null,
+      "ShipmentStatus": "T",
+      "NetAmount": "105877.60",
+      "Currency": "INR",
+      "DocumentAmount": "1323.47",
+      "DocumentCurrency": "USD",
+      "CompanyCode": "INA1"
+    },
+    {
+      "Shipment": "6000003025",
+      "SalesOrder": "0000041356",
+      "SoldToParty": "0000120002",
+      "CustomerName": "Fragrance Atelier SA",
+      "Country": "FR",
+      "CountryName": "France",
+      "TransportMode": "A",
+      "ShipmentDate": "2026-10-27",
+      "ExpectedArrivalDate": "2026-10-30",
+      "ActualArrivalDate": null,
+      "ShipmentStatus": "T",
+      "NetAmount": "177222.40",
+      "Currency": "INR",
+      "DocumentAmount": "2215.28",
+      "DocumentCurrency": "USD",
+      "CompanyCode": "INA3"
+    }
+  ]
+}
+```
+
+### Exports per day
+
+```
+GET {root}ExportSummaryByDay?$filter=CompanyCode eq 'INA1' and ShipmentDate ge 2026-10-29&$orderby=ShipmentDate,Currency,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#ExportSummaryByDay",
+  "value": [
+    {
+      "ShipmentDate": "2026-10-29",
+      "ShipmentCount": 4,
+      "NetAmount": "380182.40",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "ShipmentDate": "2026-10-30",
+      "ShipmentCount": 4,
+      "NetAmount": "389502.40",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Exports by destination
+
+```
+GET {root}ExportSummaryByDestination?$filter=ShipmentDate eq 2026-10-30 and CompanyCode eq 'INA1'&$orderby=ShipmentDate,Country,Currency,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#ExportSummaryByDestination",
+  "value": [
+    {
+      "ShipmentDate": "2026-10-30",
+      "Country": "AU",
+      "CountryName": "Australia",
+      "ShipmentCount": 1,
+      "NetAmount": "78118.40",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "ShipmentDate": "2026-10-30",
+      "Country": "SE",
+      "CountryName": "Sweden",
+      "ShipmentCount": 1,
+      "NetAmount": "106059.20",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "ShipmentDate": "2026-10-30",
+      "Country": "US",
+      "CountryName": "United States",
+      "ShipmentCount": 2,
+      "NetAmount": "205324.80",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Shipments by transport mode
+
+```
+GET {root}ExportSummaryByMode?$filter=ShipmentDate eq 2026-10-30 and CompanyCode eq 'INA1'&$orderby=ShipmentDate,TransportMode,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#ExportSummaryByMode",
+  "value": [
+    {
+      "ShipmentDate": "2026-10-30",
+      "TransportMode": "A",
+      "ShipmentCount": 4,
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
 ## 6. Notes for the SAP consultant
 
 These are the usual SAP sources; confirm them and expose each entity as a read-only CDS view entity
