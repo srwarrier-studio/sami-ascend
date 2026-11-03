@@ -28,8 +28,13 @@ Second read-only service on `/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdr
 curl "http://localhost:8003/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/PurchaseDelivery?\$filter=Material%20eq%20'RAW-2002'&\$orderby=PromisedDeliveryDate%20desc&\$top=3"
 ```
 
+## Inventory service
+Third read-only service on `/sap/opu/odata4/sap/zui_inventory_o4/srvd_a2x/sap/zinventory/0001/`, specified in `docs/sap/inventory-contract.md`: `MaterialStock` (stock on hand per material and storage location, with a derived `StockStatus` of `O`, `L` or `Z`) and `StockMovement` (goods movements with their entry time), plus the summaries `StockSummaryByWarehouse`, `StockSummaryByMaterialGroup`, `StockSummaryByStatus`, `StockValueByMonth`, `StockMovementSummaryByDay` and `StockMovementSummaryByHour`. Same query options as the other services; `$expand` and writes are refused.
+
+The stock is generated from the data butterfly already holds, so every number can be explained: raw material receipts are the purchase deliveries, finished product receipts are the production orders, issues are the production order components and the sales order items, opening stock is posted as an initial entry (`561`), and about one material in nine is counted down to zero today (`702`). Stock is valued at a standard price per material in rupees. `BUTTERFLY_SEED=small` has no stock. The material groups and storage locations are master data and are always present.
+
 ## Storage
-Butterfly keeps its data in SQLite tables behind the repository interfaces, and answers `$filter`, `$orderby`, `$top`, `$skip`, `$count` and `$select` with SQL (values are bound parameters, column names come from the field whitelists). The summaries are SQL views and the receivables entities are queries with a bound `AsOfDate`; each is one file in `src/butterfly/infrastructure/sqlite/views/`, named after its OData entity.
+Butterfly keeps its data in SQLite tables (orders, drivers, master data, stock) behind the repository interfaces, and answers `$filter`, `$orderby`, `$top`, `$skip`, `$count` and `$select` with SQL (values are bound parameters, column names come from the field whitelists). The summaries are SQL views and the receivables entities are queries with a bound `AsOfDate`; each is one file in `src/butterfly/infrastructure/sqlite/views/`, named after its OData entity.
 
 - `BUTTERFLY_DB` is the file, default `apps/butterfly/butterfly.db` (ignored by git). `:memory:` keeps nothing between restarts.
 - Money is stored as integer cents and quantities as integer thousandths, so sums are exact; the repositories convert to and from `Decimal`.
