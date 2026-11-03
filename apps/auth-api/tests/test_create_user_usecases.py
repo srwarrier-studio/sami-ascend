@@ -30,7 +30,7 @@ def test_creates_user_with_hashed_password_and_audit_event(uow):
     assert user.roles == [Role.PURCHASE]
     assert user.hashed_password != PASSWORD
     assert Argon2PasswordHasher().verify(PASSWORD, user.hashed_password)
-    assert tuple(audit) == ("sarath", "user_created", "buyer@email.com")
+    assert tuple(audit) == ("sarath", "user.create", "buyer@email.com")
 
 
 def test_rejects_short_password(uow):

@@ -80,12 +80,12 @@ def test_audit_event_is_stored(tmp_path):
     uow = SqliteAuthUnitOfWork(str(tmp_path / "auth.db"))
 
     with uow:
-        uow.audit_repo.add(AuditEvent("sarath", "user_created", "a@b.com", "success"))
+        uow.audit_repo.add(AuditEvent("sarath", "user.create", "a@b.com", "success"))
         uow.commit()
 
     with uow:
         row = uow.conn.execute("SELECT actor, action FROM audit_log").fetchone()
-    assert (row["actor"], row["action"]) == ("sarath", "user_created")
+    assert (row["actor"], row["action"]) == ("sarath", "user.create")
 
 
 def test_database_file_is_owner_only(tmp_path):

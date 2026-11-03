@@ -11,6 +11,9 @@ class MockAuditRepo(AuditRepo):
     def add(self, event: AuditEvent) -> None:
         self.events.append(event)
 
+    def list(self, filters, limit, before):
+        return list(reversed(self.events))[:limit]
+
 
 class MockAuthUnitOfWork(AuthUnitOfWork):
     def __init__(self):

@@ -20,7 +20,7 @@ class CreateUser:
         email = EmailID(data.email_id.lower())
         roles = [Role(role) for role in data.roles]
         companies = list(dict.fromkeys(Company(company) for company in data.companies))
-        if len(data.password) < MIN_PASSWORD_LENGTH:
+        if data.password and len(data.password) < MIN_PASSWORD_LENGTH:
             raise WeakPassword(
                 f"Password must be at least {MIN_PASSWORD_LENGTH} characters"
             )
@@ -33,19 +33,21 @@ class CreateUser:
                 userid=UserID.new(),
                 email=email,
                 fullname=data.fullname,
-                hashed_password=self.password_hasher.hash(data.password),
+                hashed_password=self.password_hasher.hash(data.password) if data.password else "",
                 disabled=False,
                 sap_username=data.sap_username,
                 roles=roles,
                 companies=companies,
+                entra_username=(data.entra_username or "").strip().lower() or None,
             )
             self.uow.user_repo.add(user)
             self.uow.audit_repo.add(
                 AuditEvent(
                     actor=data.actor,
-                    action="user_created",
+                    action="user.create",
                     target=email.value,
                     outcome="success",
+                    detail="entra only" if not data.password else "",
                 )
             )
             self.uow.commit()

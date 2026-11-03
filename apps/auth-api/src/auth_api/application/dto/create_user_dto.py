@@ -10,6 +10,7 @@ class CreateUserDTO:
     roles: list[str]
     actor: str
     companies: list[str] = field(default_factory=list)
+    entra_username: str | None = None
 
 
 @dataclass

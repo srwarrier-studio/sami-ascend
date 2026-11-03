@@ -25,7 +25,7 @@ class LoginWithEntra:
             self.refuse(who, "bad_email")
 
         with self.uow:
-            user = self.uow.user_repo.find_by_email(email)
+            user = self.uow.user_repo.find_by_entra_username(who) or self.uow.user_repo.find_by_email(email)
 
         if user is None:
             self.refuse(who, "no_entra_match")

@@ -9,4 +9,5 @@ class AuditEvent:
     target: str
     outcome: str
     detail: str = ""
+    id: int | None = None
     at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

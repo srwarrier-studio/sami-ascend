@@ -38,7 +38,7 @@ class LoginWithPassword:
             self.refuse(who, "unknown_user")
         if user.disabled:
             self.refuse(who, "disabled")
-        if not self.password_hasher.verify(data.password, user.hashed_password):
+        if not user.hashed_password or not self.password_hasher.verify(data.password, user.hashed_password):
             self.refuse(who, "bad_password")
 
         token = self.token_service.issue(user)

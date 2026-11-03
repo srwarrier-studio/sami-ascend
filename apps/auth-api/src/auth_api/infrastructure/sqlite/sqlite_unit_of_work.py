@@ -12,7 +12,9 @@ CREATE TABLE IF NOT EXISTS users (
     fullname TEXT NOT NULL,
     hashed_password TEXT NOT NULL,
     disabled INTEGER NOT NULL,
-    sap_username TEXT NOT NULL
+    sap_username TEXT NOT NULL,
+    entra_username TEXT,
+    created_at TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS user_roles (
     userid TEXT NOT NULL REFERENCES users (userid),
@@ -35,15 +37,23 @@ CREATE TABLE IF NOT EXISTS audit_log (
 );
 """
 
+MIGRATIONS = [
+    ("audit_log", "detail", "TEXT NOT NULL DEFAULT ''"),
+    ("users", "entra_username", "TEXT"),
+    ("users", "created_at", "TEXT NOT NULL DEFAULT ''"),
+]
+
 
 class SqliteAuthUnitOfWork(AuthUnitOfWork):
     def __init__(self, database_path: str):
         self.database_path = database_path
         conn = self._connect()
         conn.executescript(SCHEMA)
-        if "detail" not in [column["name"] for column in conn.execute("PRAGMA table_info(audit_log)")]:
-            conn.execute("ALTER TABLE audit_log ADD COLUMN detail TEXT NOT NULL DEFAULT ''")
-            conn.commit()
+        for table, column, definition in MIGRATIONS:
+            if column not in [info["name"] for info in conn.execute(f"PRAGMA table_info({table})")]:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS users_entra_username ON users (entra_username) WHERE entra_username IS NOT NULL")
+        conn.commit()
         conn.close()
         os.chmod(database_path, 0o600)
 

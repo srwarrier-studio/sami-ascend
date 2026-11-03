@@ -14,6 +14,8 @@ class User:
     sap_username: str
     roles: list[Role]
     companies: list[Company] = field(default_factory=list)
+    entra_username: str | None = None
+    created_at: str = ""
 
     def to_dict(self):
         return {
@@ -25,6 +27,8 @@ class User:
             "sap_username": self.sap_username,
             "roles": [role.value for role in self.roles],
             "companies": [company.value for company in self.companies],
+            "entra_username": self.entra_username,
+            "created_at": self.created_at,
         }
 
     def __eq__(self, other: object):

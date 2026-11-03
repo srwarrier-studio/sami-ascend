@@ -15,7 +15,8 @@ from auth_api.core.config import settings
 from auth_api.domain.errors import InvalidCredentials
 from auth_api.infrastructure.interface.argon2_password_hasher import Argon2PasswordHasher
 from token_verification import TokenClaims
-from auth_api.entrypoint.dependencies import ACCESS_TOKEN_COOKIE, current_claims, token_service
+from auth_api.entrypoint.dependencies import ACCESS_TOKEN_COOKIE, auth, current_claims, token_service
+from auth_api.infrastructure.api.admin.router import create_admin_router
 from auth_api.infrastructure.api.schema import Me
 from auth_api.infrastructure.interface.msal_auth_provider import MSALAuthProvider
 from auth_api.infrastructure.sqlite.sqlite_unit_of_work import SqliteAuthUnitOfWork
@@ -99,6 +100,10 @@ def entra_callback(request: Request):
 
 @router_head.get("/me")
 def me(claims: Annotated[TokenClaims, Depends(current_claims)]) -> Me:
+    with uow:
+        user = uow.user_repo.find_by_id(claims.userid)
+    if user is None or user.disabled:
+        raise HTTPException(status_code=401, detail="Session expired, please log in again")
     return Me(
         userid=claims.userid,
         sap_username=claims.sap_username,
@@ -114,6 +119,7 @@ def logout(response: Response):
 
 
 app.include_router(router_head, prefix="/v1/auth", tags=["Auth"])
+app.include_router(create_admin_router(uow, password_hasher, auth), prefix="/v1/auth", tags=["Admin"])
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001, log_config=None)

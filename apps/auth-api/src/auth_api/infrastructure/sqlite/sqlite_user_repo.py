@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime, timezone
 from uuid import UUID
 
 from auth_api.domain.entities.user import User
@@ -14,8 +15,8 @@ class SqliteUserRepo(UserRepo):
 
     def add(self, user: User) -> User:
         self.conn.execute(
-            "INSERT INTO users (userid, email, fullname, hashed_password, disabled, sap_username)"
-            " VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO users (userid, email, fullname, hashed_password, disabled, sap_username, entra_username, created_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 str(user.userid.value),
                 user.email.value,
@@ -23,6 +24,8 @@ class SqliteUserRepo(UserRepo):
                 user.hashed_password,
                 int(user.disabled),
                 user.sap_username,
+                user.entra_username,
+                user.created_at or datetime.now(timezone.utc).isoformat(timespec="seconds"),
             ),
         )
         self.conn.executemany(
@@ -44,6 +47,24 @@ class SqliteUserRepo(UserRepo):
             "SELECT * FROM users WHERE email = ?", (email.value,)
         ).fetchone()
         return self._to_user(row) if row else None
+
+    def find_by_id(self, userid: str) -> User | None:
+        row = self.conn.execute("SELECT * FROM users WHERE userid = ?", (userid,)).fetchone()
+        return self._to_user(row) if row else None
+
+    def find_by_entra_username(self, name: str) -> User | None:
+        row = self.conn.execute("SELECT * FROM users WHERE entra_username = ?", (name.lower(),)).fetchone()
+        return self._to_user(row) if row else None
+
+    def update(self, user: User) -> None:
+        userid = str(user.userid.value)
+        self.conn.execute(
+            "UPDATE users SET fullname = ?, sap_username = ?, entra_username = ?, disabled = ? WHERE userid = ?",
+            (user.fullname, user.sap_username, user.entra_username, int(user.disabled), userid),
+        )
+        self.conn.execute("DELETE FROM user_roles WHERE userid = ?", (userid,))
+        self.conn.executemany("INSERT INTO user_roles (userid, role) VALUES (?, ?)", [(userid, role.value) for role in user.roles])
+        self.set_companies(user, user.companies)
 
     def set_companies(self, user: User, companies: list[Company]) -> None:
         userid = str(user.userid.value)
@@ -70,4 +91,6 @@ class SqliteUserRepo(UserRepo):
             sap_username=row["sap_username"],
             roles=[Role(role_row["role"]) for role_row in role_rows],
             companies=[Company(company_row["company"]) for company_row in company_rows],
+            entra_username=row["entra_username"],
+            created_at=row["created_at"],
         )

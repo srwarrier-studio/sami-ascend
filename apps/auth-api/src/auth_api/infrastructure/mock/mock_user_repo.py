@@ -32,5 +32,18 @@ class MockUserRepo(UserRepo):
             if user.email == email:
                 return user
 
+    def find_by_id(self, userid):
+        for user in self.store:
+            if str(user.userid.value) == userid:
+                return user
+
+    def find_by_entra_username(self, name):
+        for user in self.store:
+            if user.entra_username == name.lower():
+                return user
+
+    def update(self, user):
+        self.store.add(user)
+
     def set_companies(self, user, companies):
         user.companies = companies
