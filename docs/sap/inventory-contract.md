@@ -97,7 +97,11 @@ Types: `StockValue`, `ReceiptValue`, `IssueValue` are `Edm.Decimal` (15,2); `Mat
 `MovementCount` are `Edm.Int32`; `PostingHour` is `Edm.Int32` (0 to 23, from `EntryDateTime` in
 UTC); `PostingPeriod` is `Edm.String` (7) as `"2026-10"`. `MaterialCount` counts material and
 location rows. `StockValueByMonth` is the stock value at the end of the month, and for the current
-month the value now; months before the first valuation have no row.
+month the value now; months before the first valuation have no row. The two `StockMovementSummaryBy*`
+entities count goods receipts and goods issues only (movement types `101`, `131`, `261` and `601`);
+initial entries (`561`) and stock-count differences (`702`) are not flows and are left out of them.
+`ReceiptValue` is the sum of `Amount` of the debit movements (`S`) and `IssueValue` of the credit
+movements (`H`) of the day.
 
 ## 3. Codes
 
@@ -183,6 +187,258 @@ GET {root}MaterialStock?$filter=StockStatus ne 'O'&$orderby=Material,Plant,Stora
 }
 ```
 
+### Stock by material group
+
+```
+GET {root}StockSummaryByMaterialGroup?$filter=CompanyCode eq 'INA1'&$orderby=MaterialGroup,Currency,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#StockSummaryByMaterialGroup",
+  "value": [
+    {
+      "MaterialGroup": "BOTANIC",
+      "MaterialGroupName": "Botanical raw materials",
+      "StockValue": "3970135.56",
+      "MaterialCount": 4,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "MaterialGroup": "DOSAGE",
+      "MaterialGroupName": "Finished dosage forms",
+      "StockValue": "1918080.33",
+      "MaterialCount": 2,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "MaterialGroup": "EXTRACT",
+      "MaterialGroupName": "Herbal extracts",
+      "StockValue": "28103209.06",
+      "MaterialCount": 4,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "MaterialGroup": "PACKING",
+      "MaterialGroupName": "Packaging materials",
+      "StockValue": "644598.86",
+      "MaterialCount": 2,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Stock by status
+
+```
+GET {root}StockSummaryByStatus?$orderby=StockStatus,Currency,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#StockSummaryByStatus",
+  "value": [
+    {
+      "StockStatus": "L",
+      "StockValue": "632012.19",
+      "MaterialCount": 1,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "StockStatus": "L",
+      "StockValue": "289491.25",
+      "MaterialCount": 2,
+      "Currency": "INR",
+      "CompanyCode": "INA2"
+    },
+    {
+      "StockStatus": "O",
+      "StockValue": "34004011.62",
+      "MaterialCount": 10,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "StockStatus": "O",
+      "StockValue": "1165903741.85",
+      "MaterialCount": 9,
+      "Currency": "INR",
+      "CompanyCode": "INA2"
+    },
+    {
+      "StockStatus": "O",
+      "StockValue": "1008721726.20",
+      "MaterialCount": 10,
+      "Currency": "INR",
+      "CompanyCode": "INA3"
+    },
+    {
+      "StockStatus": "Z",
+      "StockValue": "0.00",
+      "MaterialCount": 1,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "StockStatus": "Z",
+      "StockValue": "0.00",
+      "MaterialCount": 1,
+      "Currency": "INR",
+      "CompanyCode": "INA2"
+    },
+    {
+      "StockStatus": "Z",
+      "StockValue": "0.00",
+      "MaterialCount": 2,
+      "Currency": "INR",
+      "CompanyCode": "INA3"
+    }
+  ]
+}
+```
+
+### Stock value at each month end
+
+```
+GET {root}StockValueByMonth?$filter=CompanyCode eq 'INA1' and PostingPeriod ge '2026-08'&$orderby=PostingPeriod,Currency,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#StockValueByMonth",
+  "value": [
+    {
+      "PostingPeriod": "2026-08",
+      "StockValue": "98994618.99",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingPeriod": "2026-09",
+      "StockValue": "104595114.76",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingPeriod": "2026-10",
+      "StockValue": "34636023.81",
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Receipts and issues per day
+
+```
+GET {root}StockMovementSummaryByDay?$filter=PostingDate ge 2026-10-29 and CompanyCode eq 'INA1'&$orderby=PostingDate,Currency,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#StockMovementSummaryByDay",
+  "value": [
+    {
+      "PostingDate": "2026-10-29",
+      "ReceiptValue": "0.00",
+      "IssueValue": "228108.90",
+      "MovementCount": 9,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-30",
+      "ReceiptValue": "0.00",
+      "IssueValue": "233700.90",
+      "MovementCount": 11,
+      "Currency": "INR",
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
+### Movements per hour
+
+```
+GET {root}StockMovementSummaryByHour?$filter=PostingDate eq 2026-10-30 and CompanyCode eq 'INA1'&$orderby=PostingDate,PostingHour,CompanyCode
+```
+
+```json
+{
+  "@odata.context": "$metadata#StockMovementSummaryByHour",
+  "value": [
+    {
+      "PostingDate": "2026-10-30",
+      "PostingHour": 8,
+      "MovementCount": 1,
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-30",
+      "PostingHour": 9,
+      "MovementCount": 1,
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-30",
+      "PostingHour": 10,
+      "MovementCount": 1,
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-30",
+      "PostingHour": 11,
+      "MovementCount": 1,
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-30",
+      "PostingHour": 12,
+      "MovementCount": 2,
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-30",
+      "PostingHour": 13,
+      "MovementCount": 1,
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-30",
+      "PostingHour": 14,
+      "MovementCount": 1,
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-30",
+      "PostingHour": 15,
+      "MovementCount": 1,
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-30",
+      "PostingHour": 16,
+      "MovementCount": 1,
+      "CompanyCode": "INA1"
+    },
+    {
+      "PostingDate": "2026-10-30",
+      "PostingHour": 17,
+      "MovementCount": 1,
+      "CompanyCode": "INA1"
+    }
+  ]
+}
+```
+
 ### Movements of a material in a period
 
 ```
@@ -232,12 +488,6 @@ GET {root}StockMovement?$filter=Material eq 'RAW-2002' and PostingDate ge 2026-1
   ]
 }
 ```
-
-### Further reads (examples are added with the summaries)
-
-- Stock of one group: `{root}StockSummaryByMaterialGroup?$filter=CompanyCode eq 'INA1'&$orderby=MaterialGroup,Currency,CompanyCode`
-- Receipts and issues per day: `{root}StockMovementSummaryByDay?$filter=PostingDate ge 2026-10-01&$orderby=PostingDate,Currency,CompanyCode`
-- Stock value at each month end: `{root}StockValueByMonth?$orderby=PostingPeriod,Currency,CompanyCode`
 
 ## 6. Notes for the SAP consultant
 

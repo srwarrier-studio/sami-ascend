@@ -2,6 +2,14 @@ import sqlite3
 from collections.abc import Callable
 from datetime import date
 
+from butterfly.domain.entities.inventory import (
+    StockMovementSummaryByDay,
+    StockMovementSummaryByHour,
+    StockSummaryByMaterialGroup,
+    StockSummaryByStatus,
+    StockSummaryByWarehouse,
+    StockValueMonth,
+)
 from butterfly.domain.entities.sales_summary import (
     PurchaseSummaryByDay,
     PurchaseSummaryBySupplier,
@@ -79,7 +87,40 @@ def ageing(row):
     return ReceivablesAgeing(day(row["as_of_date"]), row["age_bucket"], from_minor(row["open_amount"]), row["open_count"], row["currency"], row["company_code"])
 
 
+def warehouse(row):
+    return StockSummaryByWarehouse(row["plant"], row["storage_location"], row["storage_location_name"], from_minor(row["stock_value"]), row["material_count"], row["currency"], row["company_code"])
+
+
+def material_group(row):
+    return StockSummaryByMaterialGroup(row["material_group"], row["material_group_name"], from_minor(row["stock_value"]), row["material_count"], row["currency"], row["company_code"])
+
+
+def stock_status(row):
+    return StockSummaryByStatus(row["stock_status"], from_minor(row["stock_value"]), row["material_count"], row["currency"], row["company_code"])
+
+
+def value_month(row):
+    return StockValueMonth(row["posting_period"], from_minor(row["stock_value"]), row["currency"], row["company_code"])
+
+
+def movements_by_day(row):
+    return StockMovementSummaryByDay(day(row["posting_date"]), from_minor(row["receipt_value"]), from_minor(row["issue_value"]), row["movement_count"], row["currency"], row["company_code"])
+
+
+def movements_by_hour(row):
+    return StockMovementSummaryByHour(day(row["posting_date"]), row["posting_hour"], row["movement_count"], row["company_code"])
+
+
+STOCK = {"stock_value": MONEY_SCALE}
+FLOWS = {"receipt_value": MONEY_SCALE, "issue_value": MONEY_SCALE}
+
 VIEWS = {
+    "StockSummaryByWarehouse": ("stock_summary_by_warehouse", warehouse, STOCK, "plant, storage_location, currency, company_code"),
+    "StockSummaryByMaterialGroup": ("stock_summary_by_material_group", material_group, STOCK, "material_group, currency, company_code"),
+    "StockSummaryByStatus": ("stock_summary_by_status", stock_status, STOCK, "stock_status, currency, company_code"),
+    "StockValueByMonth": ("stock_value_month", value_month, STOCK, "posting_period, currency, company_code"),
+    "StockMovementSummaryByDay": ("stock_movement_summary_by_day", movements_by_day, FLOWS, "posting_date, currency, company_code"),
+    "StockMovementSummaryByHour": ("stock_movement_summary_by_hour", movements_by_hour, {}, "posting_date, posting_hour, company_code"),
     "SalesSummaryByDay": ("sales_summary_by_day", sales_by_day, MONEY, BY_DAY),
     "SalesSummaryByCustomer": ("sales_summary_by_customer", sales_by_customer, MONEY, BY_CUSTOMER),
     "SalesSummaryByMaterial": ("sales_summary_by_material", by_material(SalesSummaryByMaterial), MONEY_AND_QUANTITY, BY_MATERIAL),

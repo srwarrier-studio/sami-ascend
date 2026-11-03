@@ -108,7 +108,7 @@ class TestRows:
 
 class TestContractExamples:
     def test_the_contract_has_examples(self):
-        assert len(EXAMPLES) >= 2
+        assert len(EXAMPLES) == 7
 
     @pytest.mark.parametrize("request_text,response_text", EXAMPLES, ids=[e[0][:50] for e in EXAMPLES])
     def test_the_data_gives_exactly_the_example(self, request_text, response_text):
@@ -125,3 +125,84 @@ class TestRunner:
         assert story.get(INVENTORY_ROOT + "MaterialStock?$count=true&$top=1").json()["@odata.count"] == 36
         assert small.get(INVENTORY_ROOT + "MaterialStock?$count=true&$top=1").json()["@odata.count"] == 0
         assert story.get(ROOT + "SalesOrder?$top=1").status_code == 200
+
+
+SUMMARIES = [
+    "StockSummaryByWarehouse",
+    "StockSummaryByWarehouse?$filter=CompanyCode eq 'INA2'&$orderby=StockValue desc",
+    "StockSummaryByMaterialGroup?$orderby=StockValue desc&$top=5&$count=true",
+    "StockSummaryByMaterialGroup?$filter=CompanyCode eq 'INA1' and MaterialCount ge 2",
+    "StockSummaryByStatus",
+    "StockSummaryByStatus?$filter=StockStatus ne 'O'&$orderby=CompanyCode,StockStatus",
+    "StockValueByMonth",
+    "StockValueByMonth?$filter=PostingPeriod ge '2026-06' and CompanyCode eq 'INA3'&$count=true",
+    "StockValueByMonth?$filter=StockValue gt 100000000.5&$orderby=StockValue desc&$top=4",
+    "StockMovementSummaryByDay?$filter=PostingDate ge 2026-10-01 and PostingDate le 2026-10-31&$orderby=PostingDate&$count=true&$top=50",
+    "StockMovementSummaryByDay?$filter=ReceiptValue gt 500000.5&$orderby=ReceiptValue desc&$top=5",
+    "StockMovementSummaryByDay?$filter=CompanyCode eq 'INA1'&$top=3&$count=true",
+    "StockMovementSummaryByHour?$filter=PostingDate eq 2026-09-15",
+    "StockMovementSummaryByHour?$filter=PostingHour ge 15 and CompanyCode eq 'INA2'&$orderby=MovementCount desc,PostingDate&$top=6&$count=true",
+]
+
+
+@pytest.mark.parametrize("path", SUMMARIES)
+def test_summaries_answer_the_same_from_views(path):
+    status, body = get(SQLITE, path)
+    assert status == 200 and (status, body) == get(MEMORY, path)
+
+
+def rows(entity: str, query: str = "") -> list[dict]:
+    found: list[dict] = []
+    while True:
+        page = get(SQLITE, f"{entity}?$top=1000&$skip={len(found)}{query}")[1]["value"]
+        found += page
+        if len(page) < 1000:
+            return found
+
+
+class TestSummaryTotals:
+    def test_warehouses_add_up_to_the_stock_rows(self):
+        from decimal import Decimal
+
+        by_location = {(r["Plant"], r["StorageLocation"]): Decimal(r["StockValue"]) for r in rows("StockSummaryByWarehouse")}
+        expected = {}
+        for stock in INVENTORY.stocks:
+            expected[(stock.plant, stock.storage_location)] = expected.get((stock.plant, stock.storage_location), Decimal(0)) + stock.stock_value
+        assert by_location == expected and len(by_location) == 6
+
+    def test_groups_and_statuses_cover_every_stock_row_once(self):
+        assert sum(r["MaterialCount"] for r in rows("StockSummaryByMaterialGroup")) == len(INVENTORY.stocks)
+        assert sum(r["MaterialCount"] for r in rows("StockSummaryByStatus")) == len(INVENTORY.stocks)
+
+    def test_the_status_summary_counts_what_the_status_filter_finds(self):
+        low = [r for r in rows("StockSummaryByStatus") if r["StockStatus"] != "O"]
+        assert sum(r["MaterialCount"] for r in low) == len(rows("MaterialStock", "&$filter=StockStatus ne 'O'"))
+
+    def test_the_latest_month_end_value_is_the_stock_value_now(self):
+        from decimal import Decimal
+
+        for company in ("INA1", "INA2", "INA3"):
+            latest = rows("StockValueByMonth", f"&$filter=CompanyCode eq '{company}'&$orderby=PostingPeriod desc")[0]
+            now = sum((Decimal(r["StockValue"]) for r in rows("MaterialStock", f"&$filter=CompanyCode eq '{company}'")), Decimal(0))
+            assert latest["PostingPeriod"] == "2026-10" and latest["StockValue"] == str(now)
+
+    def test_a_day_equals_the_receipts_and_issues_of_that_day(self):
+        from decimal import Decimal
+
+        day = rows("StockMovementSummaryByDay", "&$filter=PostingDate eq 2026-10-14 and CompanyCode eq 'INA1'")[0]
+        moved = rows("StockMovement", "&$filter=PostingDate eq 2026-10-14 and CompanyCode eq 'INA1'")
+        flows = [m for m in moved if m["MovementType"] in ("101", "131", "261", "601")]
+        assert Decimal(day["ReceiptValue"]) == sum((Decimal(m["Amount"]) for m in flows if m["DebitCreditCode"] == "S"), Decimal(0))
+        assert Decimal(day["IssueValue"]) == sum((Decimal(m["Amount"]) for m in flows if m["DebitCreditCode"] == "H"), Decimal(0))
+        assert day["MovementCount"] == len(flows)
+
+    def test_initial_entries_and_stock_counts_are_not_flows(self):
+        counted = sum(r["MovementCount"] for r in rows("StockMovementSummaryByDay"))
+        every = len(rows("StockMovement"))
+        other = len(rows("StockMovement", "&$filter=MovementType eq '561' or MovementType eq '702'"))
+        assert counted == every - other > 0
+
+    def test_hours_are_office_hours_and_add_up_to_the_flows(self):
+        hours = rows("StockMovementSummaryByHour")
+        assert {r["PostingHour"] for r in hours} <= set(range(8, 18))
+        assert sum(r["MovementCount"] for r in hours) == sum(r["MovementCount"] for r in rows("StockMovementSummaryByDay"))

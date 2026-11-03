@@ -16,6 +16,12 @@ from butterfly.application.filter.fields import (
     CUSTOMER_INVOICE_FIELDS,
     MATERIAL_STOCK_FIELDS,
     STOCK_MOVEMENT_FIELDS,
+    STOCK_MOVEMENT_SUMMARY_BY_DAY_FIELDS,
+    STOCK_MOVEMENT_SUMMARY_BY_HOUR_FIELDS,
+    STOCK_SUMMARY_BY_MATERIAL_GROUP_FIELDS,
+    STOCK_SUMMARY_BY_STATUS_FIELDS,
+    STOCK_SUMMARY_BY_WAREHOUSE_FIELDS,
+    STOCK_VALUE_BY_MONTH_FIELDS,
     PRODUCTION_ORDER_COMPONENT_FIELDS,
     PRODUCTION_ORDER_FIELDS,
     PURCHASE_DELIVERY_FIELDS,
@@ -42,6 +48,7 @@ from butterfly.application.usecase.list_sales_summary import ListSalesSummary
 from butterfly.application.usecase.summarize_purchases_by_day import SummarizePurchasesByDay
 from butterfly.application.usecase.summarize_purchases_by_material import SummarizePurchasesByMaterial
 from butterfly.application.usecase.summarize_purchases_by_supplier import SummarizePurchasesBySupplier
+from butterfly.application.usecase.summarize_inventory import SummarizeInventory
 from butterfly.application.usecase.summarize_receivables import SummarizeReceivables
 from butterfly.application.usecase.summarize_receivables_ageing import SummarizeReceivablesAgeing
 from butterfly.application.usecase.summarize_receivables_by_customer import SummarizeReceivablesByCustomer
@@ -291,6 +298,16 @@ def create_app(
     inventory_router = APIRouter(prefix=INVENTORY_ROOT.rstrip("/"))
     add_list_route(inventory_router, "MaterialStock", lambda: inventory.listing("stocks"), MATERIAL_STOCK_FIELDS)
     add_list_route(inventory_router, "StockMovement", lambda: inventory.listing("movements"), STOCK_MOVEMENT_FIELDS)
+    stock_summaries = SummarizeInventory(inventory)
+    for entity, build, fields in (
+        ("StockSummaryByWarehouse", stock_summaries.by_warehouse, STOCK_SUMMARY_BY_WAREHOUSE_FIELDS),
+        ("StockSummaryByMaterialGroup", stock_summaries.by_material_group, STOCK_SUMMARY_BY_MATERIAL_GROUP_FIELDS),
+        ("StockSummaryByStatus", stock_summaries.by_status, STOCK_SUMMARY_BY_STATUS_FIELDS),
+        ("StockValueByMonth", stock_summaries.value_by_month, STOCK_VALUE_BY_MONTH_FIELDS),
+        ("StockMovementSummaryByDay", stock_summaries.movements_by_day, STOCK_MOVEMENT_SUMMARY_BY_DAY_FIELDS),
+        ("StockMovementSummaryByHour", stock_summaries.movements_by_hour, STOCK_MOVEMENT_SUMMARY_BY_HOUR_FIELDS),
+    ):
+        add_list_route(inventory_router, entity, lambda entity=entity, build=build: inventory.summary_listing(entity) or build(), fields)
 
     @app.exception_handler(SalesOrderNotFound)
     def not_found(request: Request, error: SalesOrderNotFound):

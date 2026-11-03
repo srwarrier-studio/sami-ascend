@@ -163,7 +163,7 @@ def month_end_values(items: dict[str, Item], by_material: dict[str, list[Event]]
             position = bisect.bisect_right(days, end)
             quantity = running[position - 1] if position else Decimal(0)
             key = (items[material].company, index)
-            totals[key] = totals.get(key, Decimal(0)) + quantity * items[material].price
+            totals[key] = totals.get(key, Decimal(0)) + (quantity * items[material].price).quantize(MONEY)
     return [
         StockValueMonth(f"{months[index].year}-{months[index].month:02d}", value.quantize(MONEY), CURRENCY, company)
         for (company, index), value in sorted(totals.items(), key=lambda entry: (entry[0][0], entry[0][1]))

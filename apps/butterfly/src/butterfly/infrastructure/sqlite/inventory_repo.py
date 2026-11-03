@@ -7,6 +7,7 @@ from butterfly.infrastructure.sqlite.database import Database
 from butterfly.infrastructure.sqlite.mappers import day, moment
 from butterfly.infrastructure.sqlite.money import MONEY_SCALE, QUANTITY_SCALE, from_minor, quantity_from_minor
 from butterfly.infrastructure.sqlite.seeder import write_inventory, write_master_data
+from butterfly.infrastructure.sqlite.summaries import summary_table
 from butterfly.infrastructure.sqlite.table import SqliteTable
 
 STOCK_SCALES = {"stock_quantity": QUANTITY_SCALE, "stock_value": MONEY_SCALE, "reorder_level": QUANTITY_SCALE}
@@ -46,6 +47,9 @@ class SqliteInventoryRepo(InventoryRepo):
         if entity == "stocks":
             return SqliteTable(self.db, "material_stock_row", lambda rows: [stock_from_row(row) for row in rows], STOCK_SCALES, STOCK_ORDER)
         return SqliteTable(self.db, "stock_movement", lambda rows: [movement_from_row(row) for row in rows], MOVEMENT_SCALES)
+
+    def summary_listing(self, name: str) -> SqliteTable | None:
+        return summary_table(self.db, name)
 
     def stocks(self) -> list[MaterialStock]:
         return [stock_from_row(row) for row in self.db.query(f"SELECT * FROM material_stock_row ORDER BY {STOCK_ORDER}")]

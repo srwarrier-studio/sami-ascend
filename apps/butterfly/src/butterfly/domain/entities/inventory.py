@@ -73,3 +73,51 @@ class StockValueMonth:
 class MaterialGroupAssignment:
     material: str
     material_group: str
+
+
+@dataclass(frozen=True)
+class StockSummaryByWarehouse:
+    plant: str
+    storage_location: str
+    storage_location_name: str | None
+    stock_value: Decimal
+    material_count: int
+    currency: str
+    company_code: str
+
+
+@dataclass(frozen=True)
+class StockSummaryByMaterialGroup:
+    material_group: str
+    material_group_name: str | None
+    stock_value: Decimal
+    material_count: int
+    currency: str
+    company_code: str
+
+
+@dataclass(frozen=True)
+class StockSummaryByStatus:
+    stock_status: str
+    stock_value: Decimal
+    material_count: int
+    currency: str
+    company_code: str
+
+
+@dataclass(frozen=True)
+class StockMovementSummaryByDay:
+    posting_date: date
+    receipt_value: Decimal
+    issue_value: Decimal
+    movement_count: int
+    currency: str
+    company_code: str
+
+
+@dataclass(frozen=True)
+class StockMovementSummaryByHour:
+    posting_date: date
+    posting_hour: int
+    movement_count: int
+    company_code: str

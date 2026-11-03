@@ -126,7 +126,7 @@ class TestValueByMonth:
             now = sum((s.stock_value for s in INVENTORY.stocks if s.company_code == company.code), Decimal(0))
             months = [v for v in INVENTORY.monthly if v.company_code == company.code]
             assert months[-1].posting_period == "2026-11"
-            assert abs(months[-1].stock_value - now) < Decimal("0.05")
+            assert months[-1].stock_value == now
 
     def test_months_are_consecutive_without_gaps(self):
         months = [v.posting_period for v in INVENTORY.monthly if v.company_code == "INA1"]

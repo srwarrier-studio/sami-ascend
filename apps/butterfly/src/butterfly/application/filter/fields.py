@@ -194,6 +194,50 @@ STOCK_MOVEMENT_FIELDS = {
     "Currency": ("currency", FieldType.STRING),
     "CompanyCode": ("company_code", FieldType.STRING),
 }
+STOCK_SUMMARY_BY_WAREHOUSE_FIELDS = {
+    "Plant": ("plant", FieldType.STRING),
+    "StorageLocation": ("storage_location", FieldType.STRING),
+    "StorageLocationName": ("storage_location_name", FieldType.STRING),
+    "StockValue": ("stock_value", FieldType.DECIMAL),
+    "MaterialCount": ("material_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_SUMMARY_BY_MATERIAL_GROUP_FIELDS = {
+    "MaterialGroup": ("material_group", FieldType.STRING),
+    "MaterialGroupName": ("material_group_name", FieldType.STRING),
+    "StockValue": ("stock_value", FieldType.DECIMAL),
+    "MaterialCount": ("material_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_SUMMARY_BY_STATUS_FIELDS = {
+    "StockStatus": ("stock_status", FieldType.STRING),
+    "StockValue": ("stock_value", FieldType.DECIMAL),
+    "MaterialCount": ("material_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_VALUE_BY_MONTH_FIELDS = {
+    "PostingPeriod": ("posting_period", FieldType.STRING),
+    "StockValue": ("stock_value", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_MOVEMENT_SUMMARY_BY_DAY_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "ReceiptValue": ("receipt_value", FieldType.DECIMAL),
+    "IssueValue": ("issue_value", FieldType.DECIMAL),
+    "MovementCount": ("movement_count", FieldType.DECIMAL),
+    "Currency": ("currency", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
+STOCK_MOVEMENT_SUMMARY_BY_HOUR_FIELDS = {
+    "PostingDate": ("posting_date", FieldType.DATE),
+    "PostingHour": ("posting_hour", FieldType.DECIMAL),
+    "MovementCount": ("movement_count", FieldType.DECIMAL),
+    "CompanyCode": ("company_code", FieldType.STRING),
+}
 PURCHASE_SUMMARY_BY_DAY_FIELDS = SALES_SUMMARY_BY_DAY_FIELDS
 
 PURCHASE_SUMMARY_BY_SUPPLIER_FIELDS = {
