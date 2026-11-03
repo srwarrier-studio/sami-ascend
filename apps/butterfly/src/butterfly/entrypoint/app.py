@@ -100,8 +100,11 @@ from butterfly.infrastructure.memory.in_memory_inventory_repo import InMemoryInv
 from butterfly.infrastructure.memory.in_memory_production_repo import InMemoryProductionRepo
 from butterfly.infrastructure.memory.inventory_master import GROUP_OF, GROUPS
 from butterfly.infrastructure.memory.in_memory_master_data_repo import InMemoryMasterDataRepo
+from butterfly.infrastructure.memory.companies import COMPANIES
 from butterfly.infrastructure.memory.scenarios import find_scenario
+from butterfly.infrastructure.memory.story_seed import build_story_seed
 from butterfly.infrastructure.sqlite.database import Database
+from butterfly.infrastructure.sqlite.derivation import Derivation
 from butterfly.infrastructure.sqlite.driver_repo import SqliteDriverRepo
 from butterfly.infrastructure.sqlite.export_repo import SqliteExportRepo
 from butterfly.infrastructure.sqlite.inventory_repo import SqliteInventoryRepo
@@ -461,11 +464,11 @@ def build_default_app(today: date, seed_name: str | None = None, scenario_name: 
     scenario = scenario_name if scenario_name is not None else os.environ.get("BUTTERFLY_SCENARIO", "august-contract")
     if name not in SEEDS:
         raise SystemExit(f"BUTTERFLY_SEED must be 'story' or 'small', not '{name}'")
-    if name == "story":
-        find_scenario(scenario)
+    story = build_story_seed(today, find_scenario(scenario), COMPANIES) if name == "story" else None
     db = Database(db_path if db_path is not None else os.environ.get("BUTTERFLY_DB", str(DEFAULT_DB)))
-    prepare(db, name, scenario, today)
-    return create_app(SqliteSalesOrderRepo(db), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db), inventory=SqliteInventoryRepo(db), production=SqliteProductionRepo(db), exports=SqliteExportRepo(db))
+    prepare(db, name, scenario, today, story)
+    derivation = Derivation(db, story, today) if story else None
+    return create_app(SqliteSalesOrderRepo(db, derivation.refresh if derivation else None), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db), inventory=SqliteInventoryRepo(db), production=SqliteProductionRepo(db), exports=SqliteExportRepo(db))
 
 
 setup_logging("butterfly")

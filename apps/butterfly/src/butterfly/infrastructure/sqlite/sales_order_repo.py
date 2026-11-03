@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.sqlite.database import Database
@@ -16,8 +18,9 @@ ORDER_UPDATE = (
 
 
 class SqliteSalesOrderRepo(SalesOrderRepo):
-    def __init__(self, db: Database):
+    def __init__(self, db: Database, after_write: Callable[[], None] | None = None):
         self.db = db
+        self.after_write = after_write
 
     @classmethod
     def from_orders(cls, orders: list[SalesOrder]) -> "SqliteSalesOrderRepo":
@@ -59,6 +62,11 @@ class SqliteSalesOrderRepo(SalesOrderRepo):
     def add(self, order: SalesOrder) -> None:
         with self.db.transaction():
             write_orders(self.db, [order], origin="api")
+        self.changed()
+
+    def changed(self) -> None:
+        if self.after_write:
+            self.after_write()
 
     def update(self, order: SalesOrder) -> None:
         with self.db.transaction():
@@ -75,3 +83,4 @@ class SqliteSalesOrderRepo(SalesOrderRepo):
                 f"INSERT INTO sales_order_item (sales_order, sales_order_item, material, material_description, quantity, quantity_unit, net_amount) VALUES ({marks(7)})",
                 [(i.sales_order, i.sales_order_item, i.material, i.material_description, quantity_to_minor(i.quantity), i.quantity_unit, to_minor(i.net_amount)) for i in order.items],
             )
+        self.changed()

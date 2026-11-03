@@ -1,23 +1,27 @@
+from dataclasses import replace
 from datetime import date
 
-from butterfly.domain.entities.drivers import ProductionOrder
+from butterfly.domain.entities.drivers import CustomerInvoice, ProductionOrder
 from butterfly.domain.entities.exports import ExportShipment
 from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.infrastructure.memory.companies import COMPANIES
 from butterfly.infrastructure.memory.export_seed import build_exports
+from butterfly.infrastructure.memory.invoices import CUSTOMERS, build_invoices
 from butterfly.infrastructure.memory.inventory_master import GROUP_OF, GROUPS, LOCATIONS
-from butterfly.infrastructure.memory.inventory_seed import InventorySeed, build_inventory
+from butterfly.infrastructure.memory.inventory_seed import InventorySeed, build_inventory, items_of
 from butterfly.infrastructure.memory.production_master import WORK_CENTERS
 from butterfly.infrastructure.memory.production_seed import ProductionSeed, build_production
 from butterfly.infrastructure.memory.scenarios import find_scenario
 from butterfly.infrastructure.memory.seed import build_seed
 from butterfly.infrastructure.memory.story_seed import StorySeed, build_story_seed
 from butterfly.infrastructure.sqlite.database import Database
+from butterfly.infrastructure.sqlite.mappers import item_from_row, order_from_row
 from butterfly.infrastructure.sqlite.money import quantity_to_minor, to_minor
 from butterfly.infrastructure.sqlite.schema import REPLACED_ON_RESEED
 
 SEEDS = ("small", "story")
 LAYOUT = "4"
+DERIVED_TABLES = ["export_shipment", "stock_value_month", "stock_movement", "material_stock", "customer_invoice"]
 
 
 def iso(value) -> str | None:
@@ -32,13 +36,16 @@ def settings_of(db: Database) -> dict[str, str]:
     return {row["key"]: row["value"] for row in db.query("SELECT key, value FROM meta")}
 
 
-def prepare(db: Database, seed: str, scenario: str, today: date) -> bool:
+def prepare(db: Database, seed: str, scenario: str, today: date, story: StorySeed | None = None) -> bool:
     if seed not in SEEDS:
         raise ValueError(f"unknown seed {seed}")
     wanted = {"seed": seed, "scenario": scenario, "built_on": today.isoformat(), "layout": LAYOUT}
     if settings_of(db) == wanted:
         return False
-    story = build_story_seed(today, find_scenario(scenario), COMPANIES) if seed == "story" else None
+    if seed == "story" and story is None:
+        story = build_story_seed(today, find_scenario(scenario), COMPANIES)
+    if seed == "small":
+        story = None
     orders = story.orders if story else build_seed(today)
     with db.transaction():
         for table in REPLACED_ON_RESEED:
@@ -46,12 +53,11 @@ def prepare(db: Database, seed: str, scenario: str, today: date) -> bool:
         db.execute("DELETE FROM sales_order WHERE origin = 'seed'")
         db.execute("DELETE FROM meta")
         write_master_data(db)
-        write_orders(db, orders)
+        write_orders(db, clear_of_api_numbers(db, orders))
         if story:
-            write_drivers(db, story)
-            write_inventory(db, build_inventory(story, COMPANIES, today))
+            write_drivers(db, story, with_invoices=False)
             write_production(db, build_production(story, COMPANIES, today))
-            write_exports(db, build_exports(story, today))
+            derive_documents(db, story, today)
         db.insert_many("INSERT INTO meta (key, value) VALUES (?, ?)", list(wanted.items()))
     return True
 
@@ -144,7 +150,47 @@ def write_orders(db: Database, orders: list[SalesOrder], origin: str = "seed") -
     )
 
 
-def write_drivers(db: Database, story: StorySeed) -> None:
+def write_invoices(db: Database, invoices: list[CustomerInvoice]) -> None:
+    db.insert_many(
+        f"INSERT INTO customer_invoice VALUES ({marks(11)})",
+        [(i.invoice, i.sold_to_party, i.customer_name, iso(i.invoice_date), iso(i.due_date), to_minor(i.net_amount), i.transaction_currency, to_minor(i.cleared_amount), iso(i.clearing_date), i.company_code, i.country) for i in invoices],
+    )
+
+
+def stored_orders(db: Database) -> list[SalesOrder]:
+    items: dict[str, list] = {}
+    for row in db.query("SELECT * FROM sales_order_item ORDER BY rowid"):
+        items.setdefault(row["sales_order"], []).append(item_from_row(row))
+    return [order_from_row(row, items.get(row["sales_order"], [])) for row in db.query("SELECT * FROM sales_order ORDER BY rowid")]
+
+
+def clear_of_api_numbers(db: Database, orders: list[SalesOrder]) -> list[SalesOrder]:
+    taken = {int(row["sales_order"]) for row in db.query("SELECT sales_order FROM sales_order WHERE origin = 'api'")}
+    if not taken or taken.isdisjoint(int(order.sales_order) for order in orders):
+        return orders
+    spare = max(taken | {int(order.sales_order) for order in orders})
+    moved = []
+    for order in orders:
+        if int(order.sales_order) in taken:
+            spare += 1
+            number = f"{spare:010d}"
+            order = replace(order, sales_order=number, items=[replace(item, sales_order=number) for item in order.items])
+        moved.append(order)
+    return moved
+
+
+def derive_documents(db: Database, story: StorySeed, today: date) -> None:
+    known = items_of(COMPANIES)
+    orders = [o for o in stored_orders(db) if o.sold_to_party in CUSTOMERS and all(i.material in known for i in o.items)]
+    documents = replace(story, orders=orders, invoices=build_invoices(orders, today))
+    for table in DERIVED_TABLES:
+        db.execute(f"DELETE FROM {table}")
+    write_invoices(db, documents.invoices)
+    write_inventory(db, build_inventory(documents, COMPANIES, today))
+    write_exports(db, build_exports(documents, today))
+
+
+def write_drivers(db: Database, story: StorySeed, with_invoices: bool = True) -> None:
     db.insert_many(
         f"INSERT INTO sales_contract VALUES ({marks(10)})",
         [(c.sales_contract, c.predecessor_contract, c.sold_to_party, c.customer_name, iso(c.valid_from), iso(c.valid_to), to_minor(c.contract_value), c.transaction_currency, c.contract_status, c.company_code) for c in story.contracts],
@@ -160,10 +206,8 @@ def write_drivers(db: Database, story: StorySeed) -> None:
             for d in story.deliveries
         ],
     )
-    db.insert_many(
-        f"INSERT INTO customer_invoice VALUES ({marks(11)})",
-        [(i.invoice, i.sold_to_party, i.customer_name, iso(i.invoice_date), iso(i.due_date), to_minor(i.net_amount), i.transaction_currency, to_minor(i.cleared_amount), iso(i.clearing_date), i.company_code, i.country) for i in story.invoices],
-    )
+    if with_invoices:
+        write_invoices(db, story.invoices)
     db.insert_many(f"INSERT INTO production_order VALUES ({marks(12)})", [production_row(p) for p in story.production_orders])
     db.insert_many(
         f"INSERT INTO production_order_component VALUES ({marks(6)})",
