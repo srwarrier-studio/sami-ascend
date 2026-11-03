@@ -1,6 +1,7 @@
 import uvicorn
 
 from synapse_api.entrypoint.app import create_app
+from synapse_api.infrastructure.butterfly_export_source import ButterflyExportSource
 from synapse_api.infrastructure.butterfly_inventory_source import ButterflyInventorySource
 from synapse_api.infrastructure.butterfly_production_source import ButterflyProductionSource
 from synapse_api.infrastructure.butterfly_purchase_source import ButterflyPurchaseSource
@@ -21,6 +22,7 @@ def main() -> None:
         "drivers": ODataReader(settings.drivers_base_url, settings.sap_timeout_seconds),
         "inventory": ODataReader(settings.inventory_base_url, settings.sap_timeout_seconds),
         "production": ODataReader(settings.production_base_url, settings.sap_timeout_seconds),
+        "export": ODataReader(settings.export_base_url, settings.sap_timeout_seconds),
     }
     app = create_app(
         ButterflySalesSource(settings),
@@ -31,5 +33,6 @@ def main() -> None:
         receivables=ButterflyReceivablesSource(readers["drivers"]),
         inventory=ButterflyInventorySource(readers["inventory"]),
         production=ButterflyProductionSource(readers["production"], readers["drivers"]),
+        exports=ButterflyExportSource(readers["export"]),
     )
     uvicorn.run(app, host="0.0.0.0", port=8004, log_config=None)

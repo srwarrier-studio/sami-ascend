@@ -81,6 +81,7 @@ describe('statusTone', () => {
     ['Late', 'negative'],
     ['Planned', 'neutral'],
     ['In progress', 'neutral'],
+    ['In transit', 'neutral'],
     ['Open', 'neutral'],
     ['Something new', 'neutral'],
   ])('reads %s as %s', (status, tone) => {

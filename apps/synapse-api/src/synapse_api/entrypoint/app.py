@@ -9,6 +9,7 @@ from token_verification import TokenVerifier
 from token_verification.fastapi_deps import AuthDependencies
 
 from synapse_api.application.combined_catalog import CombinedCatalog
+from synapse_api.application.export_widgets import export_catalog
 from synapse_api.application.inventory_widgets import inventory_catalog
 from synapse_api.application.production_widgets import production_catalog
 from synapse_api.application.purchase_widgets import purchase_catalog
@@ -17,6 +18,7 @@ from synapse_api.application.sales_cache import SalesCache
 from synapse_api.application.sales_widgets import SalesWidgetCatalog
 from synapse_api.domain.entities.registry import Registry
 from synapse_api.domain.errors import CatalogEntryNotFound, CompanyNotAllowed, InvalidQuery, MetricNotFound, RecordTypeNotFound, SapUnavailable
+from synapse_api.domain.gateways.export_source import ExportSource
 from synapse_api.domain.gateways.inventory_source import InventorySource
 from synapse_api.domain.gateways.metric_source import MetricSource
 from synapse_api.domain.gateways.production_source import ProductionSource
@@ -35,7 +37,7 @@ from synapse_api.infrastructure.registry_loader import load_registry
 from synapse_api.infrastructure.settings import Settings
 
 
-def library_catalog(sales: WidgetCatalog, purchases: PurchaseSource | None, receivables: ReceivablesSource | None, inventory: InventorySource | None = None, production: ProductionSource | None = None) -> CombinedCatalog:
+def library_catalog(sales: WidgetCatalog, purchases: PurchaseSource | None, receivables: ReceivablesSource | None, inventory: InventorySource | None = None, production: ProductionSource | None = None, exports: ExportSource | None = None) -> CombinedCatalog:
     real = [sales]
     if purchases is not None:
         real.append(purchase_catalog(purchases))
@@ -45,6 +47,8 @@ def library_catalog(sales: WidgetCatalog, purchases: PurchaseSource | None, rece
         real.append(inventory_catalog(inventory))
     if production is not None:
         real.append(production_catalog(production))
+    if exports is not None:
+        real.append(export_catalog(exports))
     taken = {entry.id for catalog in real for entry in catalog.entries()}
     return CombinedCatalog(*real, MockLibraryCatalog(without=taken))
 
@@ -62,6 +66,7 @@ def create_app(
     receivables: ReceivablesSource | None = None,
     inventory: InventorySource | None = None,
     production: ProductionSource | None = None,
+    exports: ExportSource | None = None,
 ) -> FastAPI:
     auth = AuthDependencies(TokenVerifier(settings.jwt_secret))
     app = FastAPI()
@@ -99,11 +104,11 @@ def create_app(
     )
     app.add_middleware(RequestIdMiddleware)
     sales_cache = cache or SalesCache(settings.cache_seconds)
-    widgets = catalog or library_catalog(SalesWidgetCatalog(source, settings.monthly_sales_target), purchases, receivables, inventory, production)
+    widgets = catalog or library_catalog(SalesWidgetCatalog(source, settings.monthly_sales_target), purchases, receivables, inventory, production, exports)
     app.include_router(create_sales_router(source, auth, today, sales_cache), prefix="/v1/synapse", tags=["Sales"])
     app.include_router(create_catalog_router(widgets, auth, today, sales_cache, settings.default_currency), prefix="/v1/synapse", tags=["Catalog"])
     app.include_router(
-        create_summary_router(source, settings.monthly_sales_target, auth, today, sales_cache, settings.default_currency, purchases, receivables, inventory, production), prefix="/v1/synapse", tags=["Summary"]
+        create_summary_router(source, settings.monthly_sales_target, auth, today, sales_cache, settings.default_currency, purchases, receivables, inventory, production, exports), prefix="/v1/synapse", tags=["Summary"]
     )
     known = (registry or load_registry(settings.registry_path)) if metrics is not None or records is not None else None
     if records is not None:

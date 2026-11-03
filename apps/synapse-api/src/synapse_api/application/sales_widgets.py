@@ -75,6 +75,7 @@ def sales_in(source: SalesSource, period: Period, currency: str) -> tuple[Decima
 
 class SalesKpiWidget:
     measure = "sales"
+    value_format = "currency"
 
     def __init__(self, source: SalesSource, entry: CatalogEntry, periods: Callable[[date], tuple[Period, Period]], trend: Callable[[date, str], list[float]], note: Callable[[date], str | None] = lambda today: None):
         self.source = source
@@ -95,7 +96,7 @@ class SalesKpiWidget:
             "title": self.entry.title,
             "measure": self.measure,
             "value": float(now),
-            "valueFormat": "currency",
+            "valueFormat": self.value_format,
             "caption": f"{range_label(current)} vs {compared}",
             "period": range_label(current),
             "comparedWith": compared,
