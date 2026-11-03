@@ -18,10 +18,25 @@ class ODataReader:
             if not page or (len(page) < PAGE and not more):
                 return rows
 
+    def count(self, path: str) -> int:
+        separator = "&" if "?" in path else "?"
+        body = self.read_body(f"{path}{separator}$count=true&$top=0")
+        try:
+            return int(body["@odata.count"])
+        except (KeyError, TypeError, ValueError) as error:
+            raise SapUnavailable("unreadable count") from error
+
     def get_rows(self, path: str) -> list[dict]:
         return self.read_page(path)[0]
 
     def read_page(self, path: str) -> tuple[list[dict], bool]:
+        body = self.read_body(path)
+        try:
+            return body["value"], "@odata.nextLink" in body
+        except (KeyError, TypeError) as error:
+            raise SapUnavailable("unreadable body") from error
+
+    def read_body(self, path: str) -> dict:
         headers = {"Accept": "application/json"}
         if request_id := get_request_id():
             headers["X-Request-ID"] = request_id
@@ -32,9 +47,8 @@ class ODataReader:
         if response.status_code != 200:
             raise SapUnavailable(f"unexpected status {response.status_code}")
         try:
-            body = response.json()
-            return body["value"], "@odata.nextLink" in body
-        except (ValueError, KeyError, TypeError) as error:
+            return response.json()
+        except ValueError as error:
             raise SapUnavailable("unreadable body") from error
 
 

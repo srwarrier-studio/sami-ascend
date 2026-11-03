@@ -114,3 +114,27 @@ class TestTop:
     @pytest.mark.parametrize("bad", ["0", "21", "x"])
     def test_a_bad_top_is_422(self, bad):
         assert self.rows(f"?top={bad}").status_code == 422
+
+
+class TestRealSourcesReplaceTheMockLibrary:
+    def client(self):
+        from test_routes_totals import SECRET, TODAY as DAY, token_with
+        from synapse_api.infrastructure.mock_purchase_source import MockPurchaseSource
+        from synapse_api.infrastructure.mock_receivables_source import MockReceivablesSource
+
+        app = create_app(MockSalesSource(), Settings(jwt_secret=SECRET, _env_file=None), lambda: DAY, purchases=MockPurchaseSource(), receivables=MockReceivablesSource())
+        client = TestClient(app)
+        client.cookies.set(ACCESS_TOKEN_COOKIE, token_with(["management"]))
+        return client
+
+    def test_each_id_is_listed_once_and_the_rest_of_the_library_stays(self):
+        ids = [e["id"] for e in self.client().get(BASE).json()["entries"]]
+        assert len(ids) == len(set(ids)) == 50
+        assert {"pur-spend", "fin-receivables", "pur-categories", "inv-value"} <= set(ids)
+
+    def test_a_replaced_id_is_served_by_the_real_source(self):
+        body = self.client().get(f"{BASE}/pur-spend/data").json()
+        assert body["measure"] == "purchases" and body["value"] == 0.0 and "period" in body
+
+    def test_an_id_with_no_real_source_still_comes_from_the_library(self):
+        assert self.client().get(f"{BASE}/pur-categories/data").json()["title"] == "Spend by category"

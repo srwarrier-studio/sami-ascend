@@ -9,11 +9,15 @@ from token_verification import TokenVerifier
 from token_verification.fastapi_deps import AuthDependencies
 
 from synapse_api.application.combined_catalog import CombinedCatalog
+from synapse_api.application.purchase_widgets import purchase_catalog
+from synapse_api.application.receivables_widgets import receivables_catalog
 from synapse_api.application.sales_cache import SalesCache
 from synapse_api.application.sales_widgets import SalesWidgetCatalog
 from synapse_api.domain.entities.registry import Registry
 from synapse_api.domain.errors import CatalogEntryNotFound, CompanyNotAllowed, InvalidQuery, MetricNotFound, RecordTypeNotFound, SapUnavailable
 from synapse_api.domain.gateways.metric_source import MetricSource
+from synapse_api.domain.gateways.purchase_source import PurchaseSource
+from synapse_api.domain.gateways.receivables_source import ReceivablesSource
 from synapse_api.domain.gateways.record_source import RecordSource
 from synapse_api.domain.gateways.sales_source import SalesSource
 from synapse_api.domain.gateways.widget_catalog import WidgetCatalog
@@ -27,6 +31,16 @@ from synapse_api.infrastructure.registry_loader import load_registry
 from synapse_api.infrastructure.settings import Settings
 
 
+def library_catalog(sales: WidgetCatalog, purchases: PurchaseSource | None, receivables: ReceivablesSource | None) -> CombinedCatalog:
+    real = [sales]
+    if purchases is not None:
+        real.append(purchase_catalog(purchases))
+    if receivables is not None:
+        real.append(receivables_catalog(receivables))
+    taken = {entry.id for catalog in real for entry in catalog.entries()}
+    return CombinedCatalog(*real, MockLibraryCatalog(without=taken))
+
+
 def create_app(
     source: SalesSource,
     settings: Settings,
@@ -36,6 +50,8 @@ def create_app(
     metrics: MetricSource | None = None,
     records: RecordSource | None = None,
     registry: Registry | None = None,
+    purchases: PurchaseSource | None = None,
+    receivables: ReceivablesSource | None = None,
 ) -> FastAPI:
     auth = AuthDependencies(TokenVerifier(settings.jwt_secret))
     app = FastAPI()
@@ -73,7 +89,7 @@ def create_app(
     )
     app.add_middleware(RequestIdMiddleware)
     sales_cache = cache or SalesCache(settings.cache_seconds)
-    widgets = catalog or CombinedCatalog(SalesWidgetCatalog(source, settings.monthly_sales_target), MockLibraryCatalog())
+    widgets = catalog or library_catalog(SalesWidgetCatalog(source, settings.monthly_sales_target), purchases, receivables)
     app.include_router(create_sales_router(source, auth, today, sales_cache), prefix="/v1/synapse", tags=["Sales"])
     app.include_router(create_catalog_router(widgets, auth, today, sales_cache, settings.default_currency), prefix="/v1/synapse", tags=["Catalog"])
     app.include_router(

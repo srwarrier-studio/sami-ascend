@@ -74,6 +74,8 @@ def sales_in(source: SalesSource, period: Period, currency: str) -> tuple[Decima
 
 
 class SalesKpiWidget:
+    measure = "sales"
+
     def __init__(self, source: SalesSource, entry: CatalogEntry, periods: Callable[[date], tuple[Period, Period]], trend: Callable[[date, str], list[float]], note: Callable[[date], str | None] = lambda today: None):
         self.source = source
         self.entry = entry
@@ -81,14 +83,17 @@ class SalesKpiWidget:
         self.trend = trend
         self.note = note
 
+    def amount(self, period: Period, currency: str) -> Decimal:
+        return sales_in(self.source, period, currency)[0]
+
     def props(self, today: date, currency: str, top: int = TOP) -> dict:
         current, previous = self.periods(today)
-        now, _ = sales_in(self.source, current, currency)
-        before, _ = sales_in(self.source, previous, currency)
+        now = self.amount(current, currency)
+        before = self.amount(previous, currency)
         compared = str(previous[0].year) if current[0].month == 1 and current[0].day == 1 and current[1].year != previous[1].year else range_label(previous)
         props = {
             "title": self.entry.title,
-            "measure": "sales",
+            "measure": self.measure,
             "value": float(now),
             "valueFormat": "currency",
             "caption": f"{range_label(current)} vs {compared}",

@@ -27,14 +27,14 @@ Each butterfly phase writes its contract in `docs/sap/` first (the document the 
   - `pur-trend` area chart: purchases per month for 12 months.
   - `pur-vendors` ranked list: top 5 suppliers by spend this month.
   - `pur-recent` table: the latest purchase order items by order date.
-  - `pur-ontime` gauge: share of items due this month and delivered that arrived on or before the promised date.
+  - `pur-ontime` gauge: of the items promised in the last 90 days up to today, the share delivered on or before the promised date (an item not delivered yet counts as late). The window is 90 days because butterfly, like SAP, places orders about the 24th of a month, so a calendar month is often empty.
 - Receivables widgets, measured on today (`AsOfDate`): `fin-receivables` KPI (open amount, caption with the overdue amount), `fin-ageing` bar chart (one bar per bucket in the order `current`, `1-30`, `31-60`, `61-90`, `90+`), `fin-overdue` ranked list (top 5 customers by overdue amount).
 - Money is in the requested currency (default INR); rows in other currencies are left out, as for sales. All sources read only through the OData query options in the contract.
 
 ## Acceptance cases
 - With purchase rows for this month and the same days last month, `pur-spend` has the value, the delta, `period`, `comparedWith` and `partial` like a sales KPI.
 - `pur-open` counts only `DeliveryStatus O` items; cancelled `X` items are not counted.
-- `pur-ontime` is delivered-on-time over delivered, for items promised this month; an empty month gives no gauge (a zero-target is not drawn).
+- `pur-ontime` is delivered-on-time over items promised in the last 90 days up to today; with none due it shows 0% with the caption `nothing due in 90 days`.
 - `fin-ageing` returns the five buckets in order, with missing buckets as zero.
 - The catalog list has no duplicate id and `pur-categories` is still served by the mock library.
 - With butterfly running, every moved widget returns numbers that match a direct butterfly read.

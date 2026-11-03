@@ -10,9 +10,9 @@ LIBRARY_FILE = Path(__file__).with_name("mock_library.json")
 
 
 class MockLibraryCatalog(WidgetCatalog):
-    def __init__(self, items: list[dict] | None = None):
+    def __init__(self, items: list[dict] | None = None, without: set[str] = frozenset()):
         items = json.loads(LIBRARY_FILE.read_text()) if items is None else items
-        self.items = {item["id"]: item for item in items}
+        self.items = {item["id"]: item for item in items if item["id"] not in without}
 
     def for_companies(self, companies: tuple[str, ...]) -> "MockLibraryCatalog":
         return self
