@@ -32,7 +32,7 @@ stop() {
 }
 
 status() {
-  for p in 8001:auth-api 8003:butterfly 8004:synapse-api 8006:intent-api 8011:laya 5174:synapse-web; do
+  for p in 8001:auth-api 8002:workspace-api 8003:butterfly 8004:synapse-api 8006:intent-api 8011:laya 5173:workspace-web 5174:synapse-web; do
     if listening "${p%%:*}"; then echo "up    ${p#*:} (${p%%:*})"; else echo "down  ${p#*:} (${p%%:*})"; fi
   done
 }
@@ -48,9 +48,12 @@ case "${1:-start}" in
     fi
     start butterfly 8003 uv run --package butterfly butterfly
     start auth-api 8001 uv run --package auth-api python -m auth_api.entrypoint.app
+    JWT_SECRET="$(grep -m1 '^JWT_SECRET=' "$ROOT/.env" | cut -d= -f2-)" FRONTEND_URL=http://localhost:5173 \
+      start workspace-api 8002 uv run --package workspace-api workspace-api
     start synapse-api 8004 uv run --package synapse-api synapse-api
     LAYA_URL=http://localhost:8011 LAYA_MODEL="$LAYA_MODEL_NAME" DOMAIN_MIN_PROBABILITY=0.4 \
       start intent-api 8006 uv run --package intent-api intent-api
+    start workspace-web 5173 pnpm --filter workspace-web exec vite --port 5173 --strictPort
     start synapse-web 5174 pnpm --filter synapse-web exec vite --port 5174 --strictPort
     ;;
   stop) stop ;;
