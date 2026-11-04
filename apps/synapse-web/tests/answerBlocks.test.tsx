@@ -59,3 +59,48 @@ describe('reading a block', () => {
     expect(parseBlock(5)).toBeNull()
   })
 })
+
+const findings = {
+  type: 'findings',
+  headline: 'Sales of Sami-Sabinsa rose 13.7% in USD from September 2026 to October 2026 (USD 99,864.12 to USD 113,578.37).',
+  items: [
+    {
+      name: 'Harborline Nutrition LLC', dimension: 'customer', role: 'mover', direction: 'up', change_text: '101.2%', amount_text: 'USD 12,434.18', share_text: '90.7% of the change', price_text: null,
+      paths: [['no valid contract for 43 days from 2026-08-02 (contract 0040000163)'], ['production order 0001000417 being 14 days late (due 2026-07-20)', 'purchase delivery 4500001207 being 12 days late']],
+    },
+    { name: 'Pacific Wellness Pty Ltd', dimension: 'customer', role: 'offset', direction: 'down', change_text: '11.6%', amount_text: 'USD 2,574.89', share_text: null, price_text: null, paths: [] },
+  ],
+  coverage: { explained_percent: '91', unexplained_percent: '9', text: 'At least 91% of the change is explained by what is listed above; 9% is not explained by anything in the data we hold.' },
+  notes: ['These are the figures of all your companies together.'],
+}
+
+describe('the why answer', () => {
+  it('reads the findings block with its items, coverage and notes', () => {
+    const block = parseBlock(findings)
+    expect(block?.type).toBe('findings')
+    if (block?.type !== 'findings') return
+    expect(block.items).toHaveLength(2)
+    expect(block.items[0].changeText).toBe('101.2%')
+    expect(block.coverage.explainedPercent).toBe(91)
+    expect(block.items[0].paths[1]).toHaveLength(2)
+  })
+
+  it('refuses a findings block with a malformed item', () => {
+    expect(parseBlock({ ...findings, items: [{ name: 'X' }] })).toBeNull()
+  })
+
+  it('draws the headline, a card for each mover and offset, the causes, the coverage and the notes', () => {
+    const block = parseBlock(findings)!
+    show([block])
+    expect(screen.getByText(/^Sales of Sami-Sabinsa rose 13.7%/)).toBeInTheDocument()
+    expect(screen.getByText('Harborline Nutrition LLC')).toBeInTheDocument()
+    expect(screen.getByText('101.2%')).toBeInTheDocument()
+    expect(screen.getByText('USD 12,434.18 · 90.7% of the change')).toBeInTheDocument()
+    expect(screen.getByText('Offset by customer')).toBeInTheDocument()
+    expect(screen.getByText('Coincided with: no valid contract for 43 days from 2026-08-02 (contract 0040000163)')).toBeInTheDocument()
+    expect(screen.getByText('Behind that: purchase delivery 4500001207 being 12 days late')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar', { name: 'Share of the change explained' })).toBeInTheDocument()
+    expect(screen.getByText(/^At least 91% of the change is explained/)).toBeInTheDocument()
+    expect(screen.getByText('These are the figures of all your companies together.')).toBeInTheDocument()
+  })
+})

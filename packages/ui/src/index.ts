@@ -75,7 +75,9 @@ export { WidgetCatalog } from './WidgetCatalog'
 export { PageBar } from './PageBar'
 export type { PageBarConfig, PageBarProps, PageBarTab } from './PageBar'
 export {
+  ArrowDownIcon,
   ArrowLeftIcon,
+  ArrowUpIcon,
   ArrowsOutSimpleIcon,
   ArrowRightIcon,
   ArrowCounterClockwiseIcon,

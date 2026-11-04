@@ -1,0 +1,4 @@
+.path {
+  border-left: 0.125rem solid var(--mantine-color-default-border);
+  padding-left: var(--mantine-spacing-sm);
+}

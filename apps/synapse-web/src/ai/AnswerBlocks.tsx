@@ -1,5 +1,6 @@
 import { Accordion, DataTable, LineChart, Stack, Text } from '@sami/ui'
 import type { AnswerBlock, EvidenceBlock, TableBlock, TrendBlock } from './answerBlocks'
+import { FindingsBlock } from './FindingsBlock'
 
 const COLUMN_KEYS: Record<string, { key: string; format: 'text' | 'currency' | 'percent' }> = {
   Name: { key: 'name', format: 'text' },
@@ -55,6 +56,7 @@ function Block({ block }: { block: AnswerBlock }) {
   if (block.type === 'text') return <Stack gap={4}>{block.lines.map((line, index) => <Text key={index}>{line}</Text>)}</Stack>
   if (block.type === 'trend') return <Trend block={block} />
   if (block.type === 'table') return <Table block={block} />
+  if (block.type === 'findings') return <FindingsBlock block={block} />
   return <Evidence block={block} />
 }
 
