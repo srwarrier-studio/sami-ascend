@@ -32,7 +32,7 @@ stop() {
 }
 
 status() {
-  for p in 8001:auth-api 8002:workspace-api 8003:butterfly 8004:synapse-api 8006:intent-api 8011:laya 5173:workspace-web 5174:synapse-web; do
+  for p in 8001:auth-api 8002:workspace-api 8003:butterfly 8004:synapse-api 8006:intent-api 8011:laya 5173:workspace-web 5174:synapse-web 5176:admin-web; do
     if listening "${p%%:*}"; then echo "up    ${p#*:} (${p%%:*})"; else echo "down  ${p#*:} (${p%%:*})"; fi
   done
 }
@@ -55,6 +55,7 @@ case "${1:-start}" in
       start intent-api 8006 uv run --package intent-api intent-api
     start workspace-web 5173 pnpm --filter workspace-web exec vite --port 5173 --strictPort
     start synapse-web 5174 pnpm --filter synapse-web exec vite --port 5174 --strictPort
+    start admin-web 5176 pnpm --filter admin-web exec vite --port 5176 --strictPort
     ;;
   stop) stop ;;
   status) status ;;
