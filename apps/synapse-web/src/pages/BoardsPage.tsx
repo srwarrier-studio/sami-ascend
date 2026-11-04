@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useNavigate, useRouteContext, useSearch } from '@tanstack/react-router'
-import { Alert, Badge, Button, EmptyBoard, Group, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Switch, Text, TrashIcon, WidgetLibrary, clockTime, notifications, useColorScheme } from '@sami/ui'
+import { Alert, Badge, Button, EmptyBoard, Group, Modal, PageBar, PageHeader, FilePdfIcon, PencilSimpleIcon, PlusIcon, SparkleIcon, Stack, Switch, Text, Title, TrashIcon, WidgetLibrary, clockTime, notifications, useColorScheme } from '@sami/ui'
 import { BoardGrid } from '../boards/BoardGrid'
 import { BoardsSkeleton } from '../boards/BoardsSkeleton'
 import { SummaryStrip } from '../boards/SummaryStrip'
@@ -34,7 +34,18 @@ export function BoardsPage() {
   }, [picking, boardStore])
 
   if (!boards) return <BoardsSkeleton />
-  if (!active) return null
+  if (!active)
+    return (
+      <Stack align="center" gap="xs" py={96} ta="center">
+        <Title order={3}>You have no boards yet</Title>
+        <Text c="dimmed" maw={360}>
+          Create your first board, then add widgets, or copy a shared board from the widget library.
+        </Text>
+        <Button mt="sm" leftSection={<PlusIcon size={16} />} onClick={add}>
+          Create a board
+        </Button>
+      </Stack>
+    )
 
   const presets = listPresets(catalog)
   const chosenPreset = presets.find((preset) => preset.id === presetId)
