@@ -13,10 +13,12 @@ Python (FastAPI) backends. Backends talk to SAP OData (RAP). The browser never c
 3. **Review before commit.** The agent finishes a task group, stops, and shows the changes.
    It commits only after the owner says so. One commit per task group.
 4. **One branch per phase:** `<app>/phase-<nn>-<name>`, for example `auth-api/phase-01-login-audit`.
+   Always cut the branch from `main`, in the project folder itself. Use a `git worktree` only
+   when there is a real necessity (for example the owner's running servers must stay on another
+   branch while a phase is built); say so first.
 5. **Each app has its own phases** in `specs/<app>/<nn>-<name>/`. Phases that span apps live in
-   `specs/shared/`. Several phases can be open at the same time; use one `git worktree` per
-   open phase. The phase folder exists only on its own branch, and the current branch name
-   tells a session which phase it is in. Open phases are listed by
+   `specs/shared/`. Several phases can be open at the same time. The phase folder exists only on its
+   own branch, and the current branch name tells a session which phase it is in. Open phases are listed by
    `git branch --list '*/phase-*'`, not in the roadmap.
 6. **Phase folder:** `spec.md` (goal, behavior, acceptance cases, out of scope, depends on),
    `tasks.md`, `notes.md`, `reference/` for external material.
