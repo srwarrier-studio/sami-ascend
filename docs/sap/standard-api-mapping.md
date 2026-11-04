@@ -3,6 +3,28 @@
 Status: work in progress (shared phase 12). Sales and drivers entities are studied; inventory,
 production, export and finance are listed as candidates only.
 
+## Target release
+
+The owner's private cloud runs **S/4HANA 2022** (stated 2026-11-04), and the owner reports that
+OData V4 is supported on it. What is established:
+
+- OData V4 as a platform feature on-premise has existed since S/4HANA 2020 FPS01, and ABAP
+  Platform 2022 widened the set of released RAP business objects (for example `I_SALESORDERTP`,
+  the released successor for the sales order BAPIs). Sources are community posts, not SAP's release
+  notes; the owner's link (community.sap.com blog "ABAP Platform for SAP S/4HANA 2022") could not be
+  opened by the tooling.
+- The owner pasted this line from that blog: the ABAP Platform 2022 offers "the capability for the quick
+  activation and consumption of services (SOAP, OData V2, OData V4)". So activating V4 services is
+  an easy, supported step on 2022.
+- **Not established:** whether the standard Sales Order **V4 service** (`API_SALESORDER`) is delivered
+  and published on 2022. SAP Note 3492351 says it can be published on 2023 and has no documentation
+  there. The consultants can settle it by searching for `API_SALESORDER` in the V4 service
+  administration (`/IWFND/V4_ADMIN`) on the real system.
+
+So the plan covers both: butterfly serves the order in V4 first and V2 as the fallback (we hold the
+real specification for each, in `docs/sap/standard/`), and a configuration switch in synapse-api
+picks the one to read. The version rule below resolves per API and per release.
+
 ## How to read this
 
 - **Source of the field lists.** The released services below were read through the type
@@ -26,43 +48,76 @@ production, export and finance are listed as candidates only.
 
 ## 1. Sales
 
-| Ours | Closest standard | Decision | Status |
-|---|---|---|---|
-| `SalesOrder` | `API_SALES_ORDER_SRV`, `A_SalesOrder` | standard + join | Verified |
-| `SalesOrderItem` | `API_SALES_ORDER_SRV`, `A_SalesOrderItem` | standard | Verified |
-| `SalesSummaryByDay`, `...ByCustomer`, `...ByMaterial` | none | standard + aggregate (see section 5) | Verified: no summary entity exists |
+Two real services were read on the Hub sandbox (sample data, no key saved):
 
-### SalesOrder fields
+- **V2, `API_SALES_ORDER_SRV`: the one to plan on for S/4HANA 2022.** Files in
+  `docs/sap/standard/api_sales_order_srv-v2/`.
+- **V4, `API_SALESORDER` (`srvd_a2x`, `0001`): what a newer release offers.** Files in
+  `docs/sap/standard/api_salesorder-v4/`. Kept as the upgrade path; SAP Note 3492351 mentions it
+  only for 2023 and later.
+
+The sandbox is the newest public cloud, so field lists can be slightly newer than a 2022 system;
+the consultants confirm on the real `$metadata`.
+
+| Ours | V2 (2022) | V4 (later releases) | Decision for 2022 |
+|---|---|---|---|
+| `SalesOrder` | `A_SalesOrder`, 84 properties, key `SalesOrder` | `SalesOrder`, 90 properties | standard + join |
+| `SalesOrderItem` | `A_SalesOrderItem`, 98 properties, keys `SalesOrder`, `SalesOrderItem` | `SalesOrderItem`, 95 properties | standard |
+| `SalesSummaryByDay`, `...ByCustomer`, `...ByMaterial` | none; `$apply` is refused (400 `Invalid system query option specified`) | `$apply` works (section 5) | **standard + aggregate** in synapse-api, or custom views |
+
+### V2 (target release): what the real service does
+
+- Wrapper: `{"d": {"results": [...]}}`; each row has `__metadata` (`id`, `uri`, `type`, `etag`) and a
+  deferred link for every navigation property (`to_Item`, `to_Partner`, `to_Text`, ...).
+- Dates are `"/Date(1471392000000)/"`; `LastChangeDateTime` is `"/Date(1472796947125+0000)/"`;
+  amounts are **strings** (`"TotalNetAmount": "52.65"`).
+- Count: `$inlinecount=allpages` gives `d.__count` as a string; `/A_SalesOrder/$count` returns plain
+  text. Filters, `$orderby`, `$select`, `$top` and `$expand=to_Item` work.
+- Errors: `{"error": {"code", "message": {"lang", "value"}, "innererror": {...}}}`.
+- Entity sets are prefixed `A_` (`A_SalesOrder`, `A_SalesOrderItem`, `A_SalesOrderHeaderPartner`, ...).
+- **No company code on the header.** There is `SalesOrganization` (`"1710"` in the sample), but no
+  `BillingCompanyCode` or `CompanyCode`. For 2022 the company code must come from a mapping of sales
+  organization to company code (kept in synapse-api configuration, confirmed by the consultants), or
+  from the billing document.
+- Item fields: `Material`, `SalesOrderItemText`, `RequestedQuantity`, `RequestedQuantityUnit`,
+  `NetAmount`, `TransactionCurrency`, `ProductionPlant`.
+
+The tables below were first filled from the V4 service. The V2 names that differ are listed in the
+V2 notes above; the V4 tables stay as the reference for later releases.
+
+### SalesOrder fields (V4, later releases)
 
 | Our field | Standard field | Match |
 |---|---|---|
-| `SalesOrder` | `SalesOrder` | same |
-| `SalesOrderType` | `SalesOrderType` | same |
-| `SoldToParty` | `SoldToParty` | same |
-| `OrderDate` | `SalesOrderDate` | renamed |
-| `RequestedDeliveryDate` | `RequestedDeliveryDate` | same |
-| `TransactionCurrency` | `TransactionCurrency` | same |
-| `TotalNetAmount` | `TotalNetAmount` | same |
-| `OverallStatus` | `OverallSDProcessStatus` | single-letter code, map to our words |
-| `CreatedByUser` | `CreatedByUser` | same |
-| `CreationDateTime` | `CreationDate` (date only) | time part missing on the header; `LastChangeDateTime` exists |
-| `LastChangeDateTime` | `LastChangeDateTime` | same |
+| `SalesOrder`, `SalesOrderType`, `SoldToParty`, `RequestedDeliveryDate`, `TransactionCurrency`, `TotalNetAmount`, `CreatedByUser`, `LastChangeDateTime` | same names | same (`TotalNetAmount` is a JSON number, dates are ISO) |
+| `OrderDate` | `SalesOrderDate` (Date) | renamed |
+| `OverallStatus` | `OverallSDProcessStatus` | one-letter code (`C` = completed), map to our words |
+| `CreationDateTime` | `CreationDate` (Date) and `CreationTime` (TimeOfDay) | two fields |
+| `CompanyCode` | **`BillingCompanyCode`** | present on the header (`"1710"` in the sample); this corrects the V2 reading, where it was missing |
 | `CustomerName` | not on the order | join to the customer or business partner API |
-| `CompanyCode` | **not on the order header** | gap: the order has `SalesOrganization`; company code follows from that assignment, or from the billing document |
-| `Country` | not on the order | from the customer address (business partner API) |
-| `TotalNetAmountLocal`, `LocalCurrency` | not on the order | gap: the header has `AccountingExchangeRate`, and the company code currency is needed; the accounting document holds the amount in company currency |
+| `Country` | not on the order | from the customer address |
+| `TotalNetAmountLocal`, `LocalCurrency` | not on the order | gap: the company code currency amount is not served; needs the accounting document or a rate we hold |
 
-Biggest consequence: the order alone cannot be scoped by company code, which every dashboard
-and the whole company filter rely on.
+### SalesOrderItem fields (V4, later releases)
+
+| Our field | Standard field |
+|---|---|
+| `Material` | `Product` |
+| `MaterialDescription` | `SalesOrderItemText` (short item text, not the product description) |
+| `Quantity`, `QuantityUnit` | `RequestedQuantity`, `RequestedQuantitySAPUnit` and `RequestedQuantityISOUnit` |
+| `NetAmount` | `NetAmount` |
+
+Third-party connector pages listed other names (`ItemNetAmount`, `RequestedQuantityUnit`); the
+real `$metadata` does not have them. Always trust the `$metadata`, not summaries.
 
 ### Billing document (candidate for invoiced revenue)
 
-`API_BILLING_DOCUMENT_SRV`, `A_BillingDocument` has `BillingDocument`, `BillingDocumentDate`,
+`API_BILLING_DOCUMENT_SRV` (V2 read so far; look up its V4 version) has `BillingDocumentDate`,
 `CompanyCode`, `SoldToParty`, `TotalNetAmount`, `TransactionCurrency`, `AccountingDocument`,
-`BillingDocumentIsCancelled`, `OverallBillingStatus`, `SalesOrganization`. It carries the company
-code the order lacks. Today our "sales" figures are order based (summaries by `OrderDate`).
-Moving to billing documents would turn them into **invoiced** revenue, which is a business
-decision for the owner and finance, not a technical one.
+`BillingDocumentIsCancelled`. Today our "sales" figures are order based (`OrderDate`). Moving to
+billing documents would turn them into **invoiced** revenue, a business decision for the owner and
+finance. With `BillingCompanyCode` now on the order, orders no longer need billing documents for
+the company filter.
 
 ## 2. Drivers
 
@@ -155,18 +210,23 @@ confirmed on the real system):
 - Behavior seen in SAP notes: some navigation properties are missing from `$metadata`; filter
   behavior differs by entity and needs testing per system.
 
-## 5. Aggregation (preliminary)
+## 5. Aggregation
 
-No standard service returns "sales by day" or "by customer". Options, to be settled in task 3:
+Tested on the V4 sandbox (2026-11-04). The standard service **does** support `$apply`:
 
-1. **Read rows and sum in synapse-api.** No SAP work, but heavy on large volumes: paging through
-   every order for a month on each refresh. Caching (already in place) softens it.
-2. **Custom CDS views in SAP** for the summaries only. Fast, but SAP consultants build them, which
-   is exactly the small custom list we want to give them.
-3. **Analytical APIs.** Not yet studied.
+- `groupby((SoldToParty,BillingCompanyCode,TransactionCurrency),aggregate(TotalNetAmount with sum as Total))` works, also after a `filter(...)` step (`$apply=filter(...)/groupby(...)`), and on `SalesOrderItem` by `Product`.
+- **Not supported:** `$orderby` on an aggregated alias (400), and `countdistinct` (501 `$apply option not supported`). So "top customers" needs all groups read and sorted by synapse-api, and order counts need a separate `$count=true` call with the same filter.
+- `$count=true` works with `$filter` (the sandbox reports 455,439 matching orders).
+- Quirk: filtering on `TotalNetAmount` requires the currency in the same filter
+  (`and TransactionCurrency eq 'USD'`), otherwise 400.
 
-Early lean: use standard reads for detail and join work, and ask the consultants for a small set
-of custom summary views only for the figures that read the most rows.
+Decision for sales on a release with V4: **standard + `$apply`**, no custom view, for the by-day, by-customer and
+by-material figures. Orders per group and top-N are finished in synapse-api. This is confirmed
+only for the V4 sales order service on the sandbox. **On V2 (the 2022 target) `$apply` is refused**,
+so for 2022 the decision is standard + aggregate: read the filtered rows (paged, with
+`$select` to keep them small) and sum in synapse-api with the existing cache, or ask the
+consultants for a few custom summary views if the volume is too high. Each other API still needs
+the same test.
 
 ## 6. What the consultants would still build (draft)
 
