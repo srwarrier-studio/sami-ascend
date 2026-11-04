@@ -7,6 +7,7 @@ import {
   useRouteContext,
 } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
+import type { PurchaseRequisitionClient } from './api/purchaseRequisitions'
 import type { SalesOrderClient } from './api/salesOrders'
 import type { Session } from './session/useSession'
 import { LoginPage } from './pages/LoginPage'
@@ -24,6 +25,7 @@ export type RouterContext = {
   login: (username: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
   salesOrders: SalesOrderClient
+  purchaseRequisitions: PurchaseRequisitionClient
 }
 
 function RootLayout() {
@@ -91,12 +93,36 @@ const newOrderRoute = createRoute({
   component: NewOrderPage,
 })
 
+const requisitionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/purchase-requisitions',
+  beforeLoad: requireMenuAccess('/purchase-requisitions'),
+  component: ComingSoonPage,
+})
+
+const newRequisitionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/purchase-requisitions/new',
+  beforeLoad: requireMenuAccess('/purchase-requisitions/new'),
+  component: ComingSoonPage,
+})
+
+const requisitionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/purchase-requisitions/$number',
+  beforeLoad: requireMenuAccess('/purchase-requisitions'),
+  component: ComingSoonPage,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   homeRoute,
   notAllowedRoute,
   salesOrdersRoute,
   newOrderRoute,
+  requisitionsRoute,
+  newRequisitionRoute,
+  requisitionRoute,
 ])
 
 export const createAppRouter = (context: RouterContext, history?: RouterHistory) =>
