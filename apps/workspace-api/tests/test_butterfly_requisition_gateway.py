@@ -59,7 +59,8 @@ class TestCreating:
         assert created.purchase_requisition == "10000000" and created.description == "Spare parts"
         assert [i.item for i in created.items] == ["10", "20"]
         first = created.items[0]
-        assert first.material == MATERIAL.material_id and first.company_code == COMPANY and first.quantity == Decimal("5.000")
+        assert first.material == MATERIAL.material_id and first.company_code == COMPANY and str(first.quantity) == "5.000"
+        assert len(str(first.net_amount).split(".")[1]) == 2
         assert first.text == "for the line" and first.delivery_date == date(2026, 12, 1) and first.net_amount > 0
 
     def test_the_status_comes_as_a_word_and_the_sap_code(self):
@@ -134,6 +135,7 @@ class TestTargets:
             ("_PurchaseRequisitionItem/1/DeliveryDate", "items/1/delivery_date"),
             ("_PurchaseRequisitionItem", "items"),
             ("PurReqnDescription", "description"),
+            ("ReleaseCode", "release_code"),
         ],
     )
     def test_sap_targets_become_workspace_targets(self, sap, ours):

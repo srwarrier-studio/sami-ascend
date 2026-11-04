@@ -40,7 +40,7 @@ def target_from_json(target: str) -> str:
     if target.startswith(ITEM_TARGET):
         position, _, name = target[len(ITEM_TARGET) :].partition("/")
         return f"items/{position}/{ITEM_FIELDS.get(name, name)}"
-    return {"PurReqnDescription": "description", "_PurchaseRequisitionItem": "items"}.get(target, target)
+    return {"PurReqnDescription": "description", "_PurchaseRequisitionItem": "items", "ReleaseCode": "release_code", "PurchaseRequisitionItem": "item"}.get(target, target)
 
 
 def item_from_json(data: dict) -> PurchaseRequisitionItem:
@@ -50,9 +50,9 @@ def item_from_json(data: dict) -> PurchaseRequisitionItem:
         text=data["PurchaseRequisitionItemText"],
         plant=data["Plant"],
         company_code=data["CompanyCode"],
-        quantity=Decimal(str(data["RequestedQuantity"])),
+        quantity=Decimal(str(data["RequestedQuantity"])).quantize(Decimal("0.001")),
         unit=data["BaseUnit"],
-        net_amount=Decimal(str(data["ItemNetAmount"])),
+        net_amount=Decimal(str(data["ItemNetAmount"])).quantize(Decimal("0.01")),
         currency=data["PurReqnItemCurrency"],
         delivery_date=date.fromisoformat(data["DeliveryDate"]),
         release_status=RELEASE_WORDS.get(data["PurReqnReleaseStatus"], data["PurReqnReleaseStatus"]),
