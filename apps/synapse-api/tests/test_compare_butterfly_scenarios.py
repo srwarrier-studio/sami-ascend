@@ -34,7 +34,7 @@ STORY = ("INA1",)
 GROUP = ("INA1", "INA2", "INA3")
 
 
-def compare(scenario: str, by: str | None, current=AUGUST, previous=JULY, top: int = 10, companies=STORY, currency="USD"):
+def compare(scenario: str, by: str | None, current=AUGUST, previous=JULY, top: int = 10, companies=STORY, currency="INR"):
     source = RegistryMetricSource({"sales": ODataReader(ROOT, 10, InProcess(scenario))}).for_companies(companies)
     results = CompareMetric(source, REGISTRY).execute("sales", *current, *previous, by, top)
     return next(result for result in results if result.currency == currency)
@@ -74,16 +74,17 @@ class TestTheGroup:
     def test_the_story_is_diluted_when_the_quiet_companies_are_added(self):
         story = compare("august-contract", None).change_percent
         group = compare("august-contract", None, companies=GROUP).change_percent
-        assert Decimal("-10") <= group <= Decimal("-6") and story < group
+        assert Decimal("-6") <= group <= Decimal("-4") and story < group
 
     def test_the_group_rows_add_up_and_the_story_customer_still_leads_the_fall(self):
         result = compare("august-contract", "customer", companies=GROUP)
         assert sum(r.change for r in result.rows) == result.change
         assert min(result.rows, key=lambda r: r.change).key == "0000100001"
 
-    def test_rupees_are_a_separate_result_with_no_story(self):
-        inr = compare("august-contract", None, companies=GROUP, currency="INR")
-        assert inr.change_percent > 0
+    def test_every_document_is_counted_in_rupees_so_there_is_one_result(self):
+        source = RegistryMetricSource({"sales": ODataReader(ROOT, 10, InProcess("august-contract"))}).for_companies(GROUP)
+        results = CompareMetric(source, REGISTRY).execute("sales", *AUGUST, *JULY, None, 10)
+        assert [result.currency for result in results] == ["INR"]
 
     def test_a_company_without_the_story_has_none_of_it(self):
         result = compare("august-contract", None, companies=("INA3",))

@@ -126,21 +126,21 @@ class TestScopeAndCurrency:
 
     def test_the_sentence_names_the_company_and_the_currency(self):
         _, result = self.run("august-contract")
-        assert result["lines"][0].startswith("Sales of Sami-Sabinsa fell 14.5% in USD from July 2026 to August 2026")
+        assert result["lines"][0].startswith("Sales of Sami-Sabinsa fell 14.5% in INR from July 2026 to August 2026")
 
     def test_the_group_dilutes_the_fall_and_says_so(self):
         _, result = self.run("august-contract", company="all")
         analysis = result["analysis"]
-        assert -10 <= float(analysis["change_percent"]) <= -6
-        assert result["lines"][0].startswith("Sales of all your companies fell") and result["lines"][-1].startswith("These are the figures of all your companies")
+        assert -6 <= float(analysis["change_percent"]) <= -4
+        assert result["lines"][0].startswith("Sales of all your companies") and result["lines"][-1].startswith("These are the figures of all your companies")
 
     def test_the_group_still_finds_the_story_customer_first(self):
         _, result = self.run("august-contract", company="all")
         assert result["analysis"]["findings"][0]["key"] == "0000100001"
 
-    def test_rupees_have_no_story_for_the_story_company(self):
-        _, result = self.run("august-contract", currency="INR")
-        assert result["lines"][0].startswith("There is no data in INR")
+    def test_everything_is_in_rupees_so_dollars_have_no_data(self):
+        _, result = self.run("august-contract", currency="USD")
+        assert result["lines"][0].startswith("There is no data in USD")
 
     def test_a_company_without_the_story_finds_nothing_in_it(self):
         _, result = self.run("august-contract", company="organica")

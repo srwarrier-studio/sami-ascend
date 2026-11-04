@@ -1,0 +1,16 @@
+.up {
+  color: var(--mantine-color-teal-filled);
+}
+
+.down {
+  color: var(--mantine-color-red-filled);
+}
+
+.flat {
+  color: var(--mantine-color-dimmed);
+}
+
+.icon {
+  flex: none;
+  margin-top: 0.25rem;
+}

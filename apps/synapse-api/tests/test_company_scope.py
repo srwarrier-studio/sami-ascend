@@ -120,7 +120,7 @@ class TestAgainstTheGroupData:
         rows = self.source.for_companies(companies).rows(REGISTRY.metrics["sales"], "day", *AUGUST)
         return sum((r.amount for r in rows if r.currency == currency), Decimal(0))
 
-    @pytest.mark.parametrize("currency", ["USD", "INR"])
+    @pytest.mark.parametrize("currency", ["INR"])
     def test_all_is_the_three_companies_added_per_currency(self, currency):
         parts = sum(self.total((code,), currency) for code in ("INA1", "INA2", "INA3"))
         assert self.total(("INA1", "INA2", "INA3"), currency) == parts > 0

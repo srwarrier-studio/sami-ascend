@@ -198,14 +198,14 @@ class TestWhy:
     def test_a_why_question_is_answered_with_the_analysis_blocks(self):
         response, _ = self.ask()
         blocks = response.json()["answers"][0]["blocks"]
-        assert response.status_code == 200 and [b["type"] for b in blocks][:2] == ["text", "trend"]
-        assert blocks[0]["lines"][0].startswith("Sales of all your companies fell 10.0% in INR from July 2026 to August 2026")
+        assert response.status_code == 200 and [b["type"] for b in blocks][:2] == ["findings", "trend"]
+        assert blocks[0]["headline"].startswith("Sales of all your companies fell 10.0% in August 2026, to INR 900 from INR 1K")
 
     def test_the_company_scopes_the_analysis(self):
         analysis = august_data()
         response, _ = self.ask(company="sabinsa", analysis=analysis)
         assert analysis.companies == ["sabinsa"]
-        assert response.json()["answers"][0]["blocks"][0]["lines"][0].startswith("Sales of Sami-Sabinsa fell")
+        assert response.json()["answers"][0]["blocks"][0]["headline"].startswith("Sales of Sami-Sabinsa fell")
 
     def test_a_currency_word_in_the_question_names_the_currency(self):
         response, _ = self.ask("why did sales fall in August in USD")

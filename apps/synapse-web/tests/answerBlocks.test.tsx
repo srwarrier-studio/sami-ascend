@@ -59,3 +59,54 @@ describe('reading a block', () => {
     expect(parseBlock(5)).toBeNull()
   })
 })
+
+const findings = {
+  type: 'findings',
+  headline: 'Sales of Sami-Sabinsa rose 13.7% in October 2026, to USD 113.6K from USD 99.9K in September 2026.',
+  items: [
+    {
+      name: 'Harborline Nutrition LLC', dimension: 'customer', role: 'mover', direction: 'up', detail: 'up USD 12.4K (101.2%), 90.7% of the total rise', price_text: null,
+      reasons: ['Possible reason: there was no valid contract for 43 days from 2 Aug 2026 (contract 0040000163).', 'Possible reason: production order 0001000417 ran 14 days late (due 20 Jul 2026, finished 3 Aug 2026, reason: material shortage). Behind that: purchase delivery 4500001207 ran 12 days late (due 14 Jul 2026, finished 26 Jul 2026).'],
+    },
+    { name: 'Pacific Wellness Pty Ltd', dimension: 'customer', role: 'offset', direction: 'down', detail: 'down USD 2.6K (11.6%)', price_text: null, reasons: [] },
+  ],
+  coverage: { explained_percent: '91', text: 'We can explain about 91% of the change from the data we hold; the other 9% has no cause in our data.' },
+  notes: ['These are the figures of all your companies together.'],
+}
+
+describe('the why answer', () => {
+  it('reads the findings block with its items and coverage', () => {
+    const block = parseBlock(findings)
+    expect(block?.type).toBe('findings')
+    if (block?.type !== 'findings') return
+    expect(block.items).toHaveLength(2)
+    expect(block.items[0].detail).toBe('up USD 12.4K (101.2%), 90.7% of the total rise')
+    expect(block.coverage.explainedPercent).toBe(91)
+    expect(block.items[0].reasons).toHaveLength(2)
+  })
+
+  it('refuses a findings block with a malformed item', () => {
+    expect(parseBlock({ ...findings, items: [{ name: 'X' }] })).toBeNull()
+  })
+
+  it('reads like a short report: headline, what moved most, what offset it, how much is explained', () => {
+    show([parseBlock(findings)!])
+    expect(screen.getByText(/^Sales of Sami-Sabinsa rose 13.7% in October 2026/)).toBeInTheDocument()
+    expect(screen.getByText('What moved most')).toBeInTheDocument()
+    expect(screen.getByText('Harborline Nutrition LLC')).toBeInTheDocument()
+    expect(screen.getByText('up USD 12.4K (101.2%), 90.7% of the total rise')).toBeInTheDocument()
+    expect(screen.getByText(/^Possible reason: there was no valid contract for 43 days from 2 Aug 2026/)).toBeInTheDocument()
+    expect(screen.getByText(/Behind that: purchase delivery 4500001207 ran 12 days late/)).toBeInTheDocument()
+    expect(screen.getByText('Partly offset by')).toBeInTheDocument()
+    expect(screen.getByText('Pacific Wellness Pty Ltd')).toBeInTheDocument()
+    expect(screen.getByText('How much we can explain')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar', { name: 'Share of the change explained' })).toBeInTheDocument()
+    expect(screen.getByText(/^We can explain about 91% of the change/)).toBeInTheDocument()
+    expect(screen.getByText('These are the figures of all your companies together.')).toBeInTheDocument()
+  })
+
+  it('leaves out the offset section when nothing offset the change', () => {
+    show([parseBlock({ ...findings, items: [findings.items[0]] })!])
+    expect(screen.queryByText('Partly offset by')).not.toBeInTheDocument()
+  })
+})

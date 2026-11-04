@@ -18,7 +18,7 @@ EVALS = Path(__file__).resolve().parents[3] / "evals"
 SCENARIOS = Path(__file__).resolve().parents[4] / "butterfly" / "scenarios"
 EVAL_TODAY = date(2026, 11, 2)
 STORY_COMPANY = "sabinsa"
-CURRENCIES = {"sales": "USD", "purchases": "INR"}
+CURRENCIES = {"sales": "INR", "purchases": "INR"}
 HINTS = {"cancelled_orders": "needs a sales_order record type in the registry, a graph node for it and a rate-change anomaly kind (not built)"}
 
 

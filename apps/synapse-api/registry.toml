@@ -1,9 +1,9 @@
 [metric.sales]
 label = "Sales"
 service = "sales"
-measure = "TotalNetAmount"
+measure = "TotalNetAmountLocal"
 date = "OrderDate"
-currency = "Currency"
+currency = "LocalCurrency"
 company = "CompanyCode"
 by.day = { entity = "SalesSummaryByDay", order = "OrderDate,Currency,CompanyCode", count = "OrderCount" }
 by.customer = { entity = "SalesSummaryByCustomer", key = "SoldToParty", name = "CustomerName", order = "OrderDate,SoldToParty,Currency,CompanyCode", count = "OrderCount" }
@@ -12,9 +12,9 @@ by.material = { entity = "SalesSummaryByMaterial", key = "Material", name = "Mat
 [metric.purchases]
 label = "Purchases"
 service = "drivers"
-measure = "TotalNetAmount"
+measure = "TotalNetAmountLocal"
 date = "OrderDate"
-currency = "Currency"
+currency = "LocalCurrency"
 company = "CompanyCode"
 by.day = { entity = "PurchaseSummaryByDay", order = "OrderDate,Currency,CompanyCode", count = "OrderCount" }
 by.supplier = { entity = "PurchaseSummaryBySupplier", key = "Supplier", name = "SupplierName", order = "OrderDate,Supplier,Currency,CompanyCode", count = "OrderCount" }
