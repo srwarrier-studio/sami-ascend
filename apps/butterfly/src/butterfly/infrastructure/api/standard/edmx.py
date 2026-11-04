@@ -6,6 +6,7 @@ from pathlib import Path
 SPECS = Path(os.environ.get("BUTTERFLY_STANDARD_SPECS", Path(__file__).resolve().parents[7] / "docs" / "sap" / "standard"))
 V4_METADATA = SPECS / "api_salesorder-v4" / "metadata.xml"
 V2_METADATA = SPECS / "api_sales_order_srv-v2" / "metadata.xml"
+REQUISITION_METADATA = SPECS / "api_purchaserequisition_2" / "metadata.xml"
 
 
 @dataclass(frozen=True)

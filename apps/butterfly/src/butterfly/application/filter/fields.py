@@ -452,3 +452,35 @@ STANDARD_V4_ITEM_FIELDS = {
 }
 
 STANDARD_V2_ITEM_FIELDS = {("Material" if name == "Product" else name): field for name, field in STANDARD_V4_ITEM_FIELDS.items()}
+
+STANDARD_REQUISITION_FIELDS = {
+    "PurchaseRequisition": ("purchase_requisition", FieldType.STRING),
+    "PurchaseRequisitionType": ("requisition_type", FieldType.STRING),
+    "PurReqnDescription": ("description", FieldType.STRING),
+}
+
+STANDARD_REQUISITION_ITEM_FIELDS = {
+    "PurchaseRequisition": ("purchase_requisition", FieldType.STRING),
+    "PurchaseRequisitionItem": ("purchase_requisition_item", FieldType.STRING),
+    "PurchasingDocument": ("purchasing_document", FieldType.STRING),
+    "PurchasingDocumentItem": ("purchasing_document_item", FieldType.STRING),
+    "PurReqnReleaseStatus": ("release_status", FieldType.STRING),
+    "PurchaseRequisitionItemText": ("item_text", FieldType.STRING),
+    "Material": ("material", FieldType.STRING),
+    "MaterialGroup": ("material_group", FieldType.STRING),
+    "RequestedQuantity": ("requested_quantity", FieldType.DECIMAL),
+    "BaseUnit": ("base_unit", FieldType.STRING),
+    "PurchaseRequisitionPrice": ("price", FieldType.DECIMAL),
+    "PurchasingOrganization": ("purchasing_organization", FieldType.STRING),
+    "PurchasingGroup": ("purchasing_group", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+    "OrderedQuantity": ("ordered_quantity", FieldType.DECIMAL),
+    "DeliveryDate": ("delivery_date", FieldType.DATE),
+    "ProcessingStatus": ("processing_status", FieldType.STRING),
+    "Supplier": ("supplier", FieldType.STRING),
+    "CreatedByUser": ("created_by_user", FieldType.STRING),
+    "PurReqCreationDate": ("creation_date", FieldType.DATE),
+    "PurReqnItemCurrency": ("currency", FieldType.STRING),
+    "ItemNetAmount": ("net_amount", FieldType.DECIMAL),
+}

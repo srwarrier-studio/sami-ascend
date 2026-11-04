@@ -87,8 +87,10 @@ from butterfly.domain.repositories.finance_repo import FinanceRepo
 from butterfly.domain.repositories.inventory_repo import InventoryRepo
 from butterfly.domain.repositories.production_repo import ProductionRepo
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
+from butterfly.domain.repositories.purchase_requisition_repo import PurchaseRequisitionRepo
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.api.standard.dialects import V2, V4
+from butterfly.infrastructure.api.standard.requisition import build_requisition_router
 from butterfly.infrastructure.api.standard.service import build_router
 from butterfly.infrastructure.api.odata import (
     DRIVERS_ROOT,
@@ -120,6 +122,8 @@ from butterfly.infrastructure.sqlite.finance_repo import SqliteFinanceRepo
 from butterfly.infrastructure.sqlite.inventory_repo import SqliteInventoryRepo
 from butterfly.infrastructure.sqlite.master_data_repo import SqliteMasterDataRepo
 from butterfly.infrastructure.sqlite.production_repo import SqliteProductionRepo
+from butterfly.infrastructure.memory.in_memory_purchase_requisition_repo import InMemoryPurchaseRequisitionRepo
+from butterfly.infrastructure.sqlite.purchase_requisition_repo import SqlitePurchaseRequisitionRepo
 from butterfly.infrastructure.sqlite.sales_order_repo import SqliteSalesOrderRepo
 from butterfly.infrastructure.sqlite.seeder import SEEDS, prepare
 
@@ -164,6 +168,7 @@ def create_app(
     production: ProductionRepo | None = None,
     exports: ExportRepo | None = None,
     finance: FinanceRepo | None = None,
+    requisitions: PurchaseRequisitionRepo | None = None,
     now: Callable[[], datetime] = utc_now,
 ) -> FastAPI:
     master_data = master_data or InMemoryMasterDataRepo()
@@ -172,6 +177,7 @@ def create_app(
     production = production or InMemoryProductionRepo()
     exports = exports or InMemoryExportRepo()
     finance = finance or InMemoryFinanceRepo()
+    requisitions = requisitions or InMemoryPurchaseRequisitionRepo()
     app = FastAPI()
     router = APIRouter(prefix=ROOT.rstrip("/"))
 
@@ -472,6 +478,7 @@ def create_app(
     app.include_router(router)
     app.include_router(build_router(V4(), repo))
     app.include_router(build_router(V2(), repo))
+    app.include_router(build_requisition_router(requisitions))
     app.include_router(drivers_router)
     app.include_router(inventory_router)
     app.include_router(production_router)
@@ -492,7 +499,7 @@ def build_default_app(today: date, seed_name: str | None = None, scenario_name: 
     db = Database(db_path if db_path is not None else os.environ.get("BUTTERFLY_DB", str(DEFAULT_DB)))
     prepare(db, name, scenario, today, story)
     derivation = Derivation(db, story, today) if story else None
-    return create_app(SqliteSalesOrderRepo(db, derivation.refresh if derivation else None), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db), inventory=SqliteInventoryRepo(db), production=SqliteProductionRepo(db), exports=SqliteExportRepo(db), finance=SqliteFinanceRepo(db))
+    return create_app(SqliteSalesOrderRepo(db, derivation.refresh if derivation else None), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db), inventory=SqliteInventoryRepo(db), production=SqliteProductionRepo(db), exports=SqliteExportRepo(db), finance=SqliteFinanceRepo(db), requisitions=SqlitePurchaseRequisitionRepo(db))
 
 
 setup_logging("butterfly")
