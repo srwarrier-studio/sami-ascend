@@ -478,7 +478,7 @@ def create_app(
     app.include_router(router)
     app.include_router(build_router(V4(), repo))
     app.include_router(build_router(V2(), repo))
-    app.include_router(build_requisition_router(requisitions))
+    app.include_router(build_requisition_router(requisitions, master_data, now))
     app.include_router(drivers_router)
     app.include_router(inventory_router)
     app.include_router(production_router)

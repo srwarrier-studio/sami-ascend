@@ -1,7 +1,10 @@
+import inspect
+import json
 import re
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date, timezone
+from datetime import date, datetime, timezone
 from functools import wraps
 
 from fastapi import APIRouter, Request
@@ -13,7 +16,15 @@ from butterfly.application.filter.parser import parse_filter
 from butterfly.application.list_query import apply_list_query
 from butterfly.domain.entities.master_data import ISO_UNITS
 from butterfly.domain.entities.purchase_requisition import PurchaseRequisition, PurchaseRequisitionItem
-from butterfly.domain.errors import InvalidQuery
+from butterfly.application.usecase.change_purchase_requisition_item import (
+    ChangePurchaseRequisitionItem,
+    DeletePurchaseRequisitionItem,
+    RequisitionNotFound,
+)
+from butterfly.application.usecase.create_purchase_requisition import CreatePurchaseRequisition
+from butterfly.application.usecase.create_sales_order import utc_now
+from butterfly.domain.errors import ETagMismatch, ETagRequired, InvalidQuery, ValidationDetail, ValidationFailed
+from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.domain.repositories.purchase_requisition_repo import PurchaseRequisitionRepo
 from butterfly.infrastructure.api.standard.dialects import V4_MEDIA, Refusal, short, stamp
 from butterfly.infrastructure.api.standard.edmx import REQUISITION_METADATA, EntityType, load
@@ -251,19 +262,59 @@ class Service:
         return status, {"error": body}
 
 
-def build_requisition_router(repo: PurchaseRequisitionRepo) -> APIRouter:
+def failure(status: int, code: str, message: str, target: str | None = None, details: list[dict] | None = None) -> tuple[int, dict]:
+    error = {"code": code, "message": message, "@SAP__common.ExceptionCategory": "Client_Error"}
+    if target is not None:
+        error["target"] = target
+    if details is not None:
+        error["details"] = details
+    return status, {"error": error}
+
+
+def domain_failure(error: Exception) -> tuple[int, dict] | None:
+    if isinstance(error, ValidationFailed):
+        details = [{"code": d.code, "message": d.message, "target": d.target} for d in error.details]
+        return failure(400, "VALIDATION_FAILED", "The purchase requisition has errors.", details=details)
+    if isinstance(error, ETagRequired):
+        return failure(428, "ETAG_REQUIRED", "An If-Match header with the etag from the last read is required.")
+    if isinstance(error, ETagMismatch):
+        return failure(412, "ETAG_MISMATCH", "The purchase requisition was changed by someone else. Reload and try again.")
+    if isinstance(error, RequisitionNotFound):
+        return failure(404, "/IWBEP/CM_V4S_RUN/000", "Unspecified provider error occurred. See Error Context and Call Stack.")
+    return None
+
+
+def build_requisition_router(repo: PurchaseRequisitionRepo, master_data: MasterDataRepo, now: Callable[[], datetime] = utc_now) -> APIRouter:
     service = Service(repo)
     router = APIRouter(prefix=ROOT)
 
+    def answer(outcome):
+        return outcome if isinstance(outcome, Response) else JSONResponse(outcome, media_type=V4_MEDIA)
+
+    def refused(error: Exception):
+        status, body = service.refusal(error) if isinstance(error, Refusal) else domain_failure(error)
+        return JSONResponse(body, status_code=status, media_type=V4_MEDIA)
+
+    caught = (Refusal, ValidationFailed, ETagRequired, ETagMismatch, RequisitionNotFound)
+
     def guarded(function):
+        if inspect.iscoroutinefunction(function):
+
+            @wraps(function)
+            async def async_handler(*args, **kwargs):
+                try:
+                    return answer(await function(*args, **kwargs))
+                except caught as error:
+                    return refused(error)
+
+            return async_handler
+
         @wraps(function)
         def handler(*args, **kwargs):
             try:
-                result = function(*args, **kwargs)
-            except Refusal as error:
-                status, body = service.refusal(error)
-                return JSONResponse(body, status_code=status, media_type=V4_MEDIA)
-            return result if isinstance(result, Response) else JSONResponse(result, media_type=V4_MEDIA)
+                return answer(function(*args, **kwargs))
+            except caught as error:
+                return refused(error)
 
         return handler
 
@@ -305,6 +356,37 @@ def build_requisition_router(repo: PurchaseRequisitionRepo) -> APIRouter:
     @guarded
     def item(request: Request, key: str, item_key: str):
         return service.item_entity(request, key, item_key)
+
+    async def json_body(request: Request) -> dict:
+        try:
+            payload = json.loads(await request.body())
+        except ValueError:
+            payload = None
+        if not isinstance(payload, dict):
+            raise ValidationFailed([ValidationDetail("INVALID_REQUEST_BODY", "The request body must be a JSON object.", "body")])
+        return payload
+
+    @router.post(f"/{HEADERS}")
+    @guarded
+    async def create(request: Request):
+        requisition = CreatePurchaseRequisition(repo, master_data, now).execute(await json_body(request))
+        row = service.header_row(requisition, None, [])
+        location = f"{str(request.base_url).rstrip('/')}{ROOT}/{HEADERS}('{requisition.purchase_requisition}')"
+        body = service.entity_body(service.context(HEADERS, None, [], ITEMS_OF_HEADER), row)
+        return JSONResponse(body, status_code=201, headers={"Location": location}, media_type=V4_MEDIA)
+
+    @router.patch(f"/{ITEMS}(PurchaseRequisition='" + "{key}',PurchaseRequisitionItem='{item_key}')")
+    @guarded
+    async def change(request: Request, key: str, item_key: str):
+        use_case = ChangePurchaseRequisitionItem(repo, now)
+        requisition = use_case.execute(key, item_key, request.headers.get("if-match"), await json_body(request))
+        return service.item_entity(request, requisition.purchase_requisition, item_key)
+
+    @router.delete(f"/{ITEMS}(PurchaseRequisition='" + "{key}',PurchaseRequisitionItem='{item_key}')")
+    @guarded
+    def delete(request: Request, key: str, item_key: str):
+        DeletePurchaseRequisitionItem(repo, now).execute(key, item_key, request.headers.get("if-match"))
+        return Response(status_code=204)
 
     def add_empty(name: str):
         @router.get(f"/{name}")

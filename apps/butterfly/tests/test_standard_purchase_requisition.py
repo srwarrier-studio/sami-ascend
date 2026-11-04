@@ -157,3 +157,156 @@ class TestRefusalsLikeTheSandbox:
     def test_a_wrong_expand_name_is_refused(self, client):
         error = get(client, "PurchaseReqn?$expand=_Item").json()["error"]
         assert error["code"].startswith("/IWCOR/CX_OD_EXPAND_ERROR") and "'_It...'" in error["message"]
+
+
+TOMORROW = "2026-10-28"
+
+
+def writable():
+    repo = InMemoryPurchaseRequisitionRepo()
+    return TestClient(create_app(InMemorySalesOrderRepo(ORDERS), requisitions=repo, now=lambda: NOW)), repo
+
+
+def post(client, body):
+    return client.post(f"{ROOT}/PurchaseReqn", json=body)
+
+
+def valid_item(**changes):
+    from butterfly.infrastructure.memory.in_memory_master_data_repo import InMemoryMasterDataRepo
+
+    material = next(iter(InMemoryMasterDataRepo().materials.values()))
+    base = {"Material": material.material_id, "Plant": {"INA1": "1000", "INA2": "2000", "INA3": "3000"}[material.company_code], "RequestedQuantity": 5, "BaseUnit": material.unit, "DeliveryDate": TOMORROW}
+    return base | changes
+
+
+class TestCreating:
+    def test_returns_201_with_the_next_number_and_the_item_numbers(self):
+        client, _ = writable()
+        response = post(client, {"_PurchaseRequisitionItem": [valid_item(), valid_item()]})
+        body = response.json()
+        assert response.status_code == 201
+        assert body["PurchaseRequisition"] == "10000000" and body["PurchaseRequisitionType"] == "NB"
+        assert [i["PurchaseRequisitionItem"] for i in body["_PurchaseRequisitionItem"]] == ["10", "20"]
+        assert response.headers["location"].endswith("/PurchaseReqn('10000000')")
+
+    def test_the_second_requisition_gets_the_next_number(self):
+        client, _ = writable()
+        post(client, {"_PurchaseRequisitionItem": [valid_item()]})
+        assert post(client, {"_PurchaseRequisitionItem": [valid_item()]}).json()["PurchaseRequisition"] == "10000001"
+
+    def test_a_new_item_is_unreleased_and_unordered_with_the_defaults(self):
+        client, _ = writable()
+        item = post(client, {"_PurchaseRequisitionItem": [valid_item()]}).json()["_PurchaseRequisitionItem"][0]
+        assert item["PurReqnReleaseStatus"] == "01" and item["ProcessingStatus"] == "N"
+        assert item["PurchasingGroup"] == "001" and item["PurchasingOrganization"] and item["CompanyCode"] and item["PurReqnItemCurrency"] == "INR"
+        assert item["CreatedByUser"] == "BUTTERFLY" and item["PurReqCreationDate"] == "2026-10-27" and item["ItemNetAmount"] > 0
+
+    def test_the_created_requisition_can_be_read_back(self):
+        client, _ = writable()
+        post(client, {"_PurchaseRequisitionItem": [valid_item()]})
+        assert get(client, "PurchaseReqnItem/$count").text == "1"
+
+
+class TestCreateRefusals:
+    @pytest.mark.parametrize(
+        "item, code, target",
+        [
+            ({"Material": "NOPE"}, "MATERIAL_UNKNOWN", "Material"),
+            ({"Plant": "9999"}, "PLANT_UNKNOWN", "Plant"),
+            ({"RequestedQuantity": 0}, "QUANTITY_NOT_POSITIVE", "RequestedQuantity"),
+            ({"RequestedQuantity": "abc"}, "FIELD_INVALID", "RequestedQuantity"),
+            ({"DeliveryDate": "2026-10-01"}, "DELIVERY_DATE_IN_PAST", "DeliveryDate"),
+            ({"BaseUnit": "XX"}, "UNIT_INVALID", "BaseUnit"),
+            ({"Surprise": 1}, "FIELD_NOT_ALLOWED", "Surprise"),
+        ],
+    )
+    def test_names_the_problem_and_the_field(self, item, code, target):
+        client, repo = writable()
+        response = post(client, {"_PurchaseRequisitionItem": [valid_item(**item)]})
+        found = {(d["code"], d["target"].split("/")[-1]) for d in response.json()["error"]["details"]}
+        assert response.status_code == 400 and (code, target) in found
+        assert repo.list_all() == []
+
+    @pytest.mark.parametrize("missing", ["Material", "Plant", "RequestedQuantity", "DeliveryDate"])
+    def test_a_missing_required_field_is_refused(self, missing):
+        client, _ = writable()
+        item = {k: v for k, v in valid_item().items() if k != missing}
+        details = post(client, {"_PurchaseRequisitionItem": [item]}).json()["error"]["details"]
+        assert any(d["code"] == "FIELD_REQUIRED" and d["target"].endswith(missing) for d in details)
+
+    def test_a_requisition_without_items_is_refused(self):
+        client, _ = writable()
+        assert post(client, {}).json()["error"]["details"][0]["code"] == "NO_ITEMS"
+
+    def test_a_body_that_is_not_an_object_is_refused(self):
+        client, _ = writable()
+        assert client.post(f"{ROOT}/PurchaseReqn", content="[1]").status_code == 400
+
+
+def stored(client):
+    post(client, {"_PurchaseRequisitionItem": [valid_item(), valid_item()]})
+    return get(client, "PurchaseReqn('10000000')").json()["@odata.etag"]
+
+
+def change(client, etag, body, line="10"):
+    headers = {} if etag is None else {"If-Match": etag}
+    return client.patch(f"{ROOT}/PurchaseReqnItem(PurchaseRequisition='10000000',PurchaseRequisitionItem='{line}')", json=body, headers=headers)
+
+
+class TestChangingAQuantity:
+    def test_needs_the_quantity_and_the_iso_unit_together(self):
+        client, _ = writable()
+        etag = stored(client)
+        item = get(client, "PurchaseReqnItem?$top=1").json()["value"][0]
+        assert change(client, etag, {"RequestedQuantity": 7}).json()["error"]["details"][0]["target"] == "BaseUnitISOCode"
+        done = change(client, etag, {"RequestedQuantity": 7, "BaseUnitISOCode": item["BaseUnitISOCode"]})
+        assert done.status_code == 200 and done.json()["RequestedQuantity"] == 7
+
+    def test_a_wrong_unit_or_quantity_is_refused(self):
+        client, _ = writable()
+        etag = stored(client)
+        assert change(client, etag, {"RequestedQuantity": 7, "BaseUnitISOCode": "XXX"}).status_code == 400
+        assert change(client, etag, {"RequestedQuantity": -1, "BaseUnitISOCode": get(client, "PurchaseReqnItem?$top=1").json()["value"][0]["BaseUnitISOCode"]}).status_code == 400
+
+    def test_needs_the_etag_and_the_current_one(self):
+        client, _ = writable()
+        etag = stored(client)
+        assert change(client, None, {}).status_code == 428
+        assert change(client, 'W/"old"', {}).status_code == 412
+
+    def test_an_item_that_is_released_is_refused(self):
+        client, repo = writable()
+        etag = stored(client)
+        requisition = repo.get("10000000")
+        requisition.items[0] = replace(requisition.items[0], release_status="03")
+        refused = change(client, etag, {"RequestedQuantity": 7, "BaseUnitISOCode": "PCE"})
+        assert refused.status_code == 400 and refused.json()["error"]["details"][0]["code"] == "ITEM_NOT_CHANGEABLE"
+
+    def test_an_item_that_is_ordered_is_refused(self):
+        client, repo = writable()
+        etag = stored(client)
+        requisition = repo.get("10000000")
+        requisition.items[0] = replace(requisition.items[0], processing_status="B", ordered_quantity=Decimal("5"))
+        assert change(client, etag, {"RequestedQuantity": 7, "BaseUnitISOCode": "PCE"}).json()["error"]["details"][0]["code"] == "ITEM_NOT_CHANGEABLE"
+
+    def test_an_unknown_item_is_404(self):
+        client, _ = writable()
+        etag = stored(client)
+        assert change(client, etag, {}, line="90").status_code == 404
+
+
+class TestDeletingAnItem:
+    def test_marks_the_item_deleted(self):
+        client, _ = writable()
+        etag = stored(client)
+        url = f"{ROOT}/PurchaseReqnItem(PurchaseRequisition='10000000',PurchaseRequisitionItem='10')"
+        assert client.delete(url, headers={"If-Match": etag}).status_code == 204
+        assert client.get(url).json()["IsDeleted"] is True
+
+    def test_a_deleted_item_cannot_be_deleted_again(self):
+        client, _ = writable()
+        etag = stored(client)
+        url = f"{ROOT}/PurchaseReqnItem(PurchaseRequisition='10000000',PurchaseRequisitionItem='10')"
+        client.delete(url, headers={"If-Match": etag})
+        new_etag = get(client, "PurchaseReqn('10000000')").json()["@odata.etag"]
+        assert client.delete(url, headers={"If-Match": new_etag}).status_code == 400
