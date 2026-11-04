@@ -42,10 +42,11 @@ describe('menu', () => {
 
 describe('guards', () => {
   it.each([
-    ['/purchase-requisitions/new', ['purchase']],
-  ])('lets %s in for %j', async (path, roles) => {
+    ['/purchase-requisitions/new', ['purchase'], 'New purchase requisition'],
+    ['/purchase-requisitions', ['management'], 'Purchase requisitions'],
+  ])('lets %s in for %j', async (path, roles, heading) => {
     open(path, userWith(roles))
-    expect(await screen.findByRole('heading', { name: 'Coming soon' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
   })
 
   it.each([

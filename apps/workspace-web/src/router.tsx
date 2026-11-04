@@ -15,6 +15,7 @@ import { HomePage } from './pages/HomePage'
 import { NotAllowedPage } from './pages/NotAllowedPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { NewOrderPage } from './pages/NewOrderPage'
+import { NewRequisitionPage } from './pages/NewRequisitionPage'
 import { RequisitionPage } from './pages/RequisitionPage'
 import { RequisitionsPage } from './pages/RequisitionsPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
@@ -106,7 +107,7 @@ const newRequisitionRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/purchase-requisitions/new',
   beforeLoad: requireMenuAccess('/purchase-requisitions/new'),
-  component: ComingSoonPage,
+  component: NewRequisitionPage,
 })
 
 const requisitionRoute = createRoute({
