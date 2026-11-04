@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Any
 
 from intent_api.application.analysis import why_wording
-from intent_api.domain.analysis.analysis import Analysis
+from intent_api.domain.analysis.analysis import Analysis, Finding
 from intent_api.domain.analysis.finding import Step
 from intent_api.domain.analysis.measure import MoverRow, TrendPoint
 
@@ -43,6 +43,25 @@ def table_blocks(analysis: Analysis) -> list[dict]:
         {"title": f"By {dimension}", "columns": TABLE_COLUMNS, "rows": [row_json(row) for row in rows]}
         for dimension, rows in analysis.tables.items() if rows
     ]
+
+
+def finding_item(analysis: Analysis, finding: Finding, role: str) -> dict:
+    return {
+        "name": finding.name, "dimension": finding.dimension, "role": role, "direction": why_wording.direction(finding.change),
+        "change_text": why_wording.change_text(finding), "amount_text": why_wording.amount_text(analysis, finding),
+        "share_text": why_wording.share_text(analysis, finding) if role == "mover" else None,
+        "price_text": why_wording.price_text(analysis, finding) if role == "mover" else None,
+        "paths": why_wording.path_phrases(finding),
+    }
+
+
+def findings_block(analysis: Analysis, company: str) -> dict:
+    return {
+        "headline": why_wording.headline(analysis, company),
+        "items": [finding_item(analysis, f, "mover") for f in analysis.findings] + [finding_item(analysis, f, "offset") for f in analysis.offsets],
+        "coverage": {"explained_percent": str(analysis.explained_percent), "unexplained_percent": str(analysis.unexplained_percent), "text": why_wording.unexplained_sentence(analysis)},
+        "notes": why_wording.notes(analysis, company),
+    }
 
 
 def evidence_blocks(analysis: Analysis) -> list[dict]:

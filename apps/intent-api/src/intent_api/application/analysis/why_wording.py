@@ -110,3 +110,43 @@ def lines(analysis: Analysis, company: str = "all") -> list[str]:
     if company == "all":
         out.append(GROUP_LIMIT)
     return out
+
+
+def direction(change: Decimal) -> str:
+    return "up" if change > 0 else "down" if change < 0 else "flat"
+
+
+def change_text(finding: Finding) -> str:
+    return percent_text(finding.change_percent) or "from nothing"
+
+
+def amount_text(analysis: Analysis, finding: Finding) -> str:
+    return f"{analysis.currency} {number(abs(finding.change))}"
+
+
+def share_text(analysis: Analysis, finding: Finding) -> str | None:
+    if analysis.significant and finding.share_percent is not None:
+        return f"{finding.share_percent:.1f}% of the change"
+    return None
+
+
+def price_text(analysis: Analysis, finding: Finding) -> str | None:
+    if finding.kind != "price":
+        return None
+    return f"Mostly price: the price effect is {analysis.currency} {number(abs(finding.price_effect))} and the volume effect {analysis.currency} {number(abs(finding.volume_effect))}."
+
+
+def path_phrases(finding: Finding) -> list[list[str]]:
+    phrases, offset = [], 0
+    for path in finding.paths:
+        phrases.append([step_sentence(step, finding.causes[offset + i].key) for i, step in enumerate(path)])
+        offset += len(path)
+    return phrases
+
+
+def notes(analysis: Analysis, company: str) -> list[str]:
+    out = [other_currency_sentence(analysis, currency, change) for currency, change in analysis.other_currencies]
+    out += analysis.limits
+    if company == "all":
+        out.append(GROUP_LIMIT)
+    return out

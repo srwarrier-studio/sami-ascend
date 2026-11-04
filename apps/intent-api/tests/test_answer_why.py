@@ -35,18 +35,18 @@ def types(blocks):
 class TestTheBlocks:
     def test_a_headline_a_trend_a_table_and_the_evidence(self):
         blocks, _ = answer()
-        assert types(blocks)[:2] == ["text", "trend"] and "table" in types(blocks)
+        assert types(blocks)[:2] == ["findings", "trend"] and "table" in types(blocks)
 
     def test_the_first_sentence_names_the_scope_and_the_currency(self):
-        text = answer("sabinsa")[0][0].data["lines"][0]
+        text = answer("sabinsa")[0][0].data["headline"]
         assert text.startswith("Sales of Sami-Sabinsa fell 10.0% in INR from July 2026 to August 2026")
 
     def test_the_group_says_all_companies_and_warns_about_the_dilution(self):
-        lines = answer("all")[0][0].data["lines"]
-        assert lines[0].startswith("Sales of all your companies fell") and lines[-1] == why_wording.GROUP_LIMIT
+        data = answer("all")[0][0].data
+        assert data["headline"].startswith("Sales of all your companies fell") and data["notes"][-1] == why_wording.GROUP_LIMIT
 
     def test_a_single_company_has_no_group_warning(self):
-        assert why_wording.GROUP_LIMIT not in answer("organica")[0][0].data["lines"]
+        assert why_wording.GROUP_LIMIT not in answer("organica")[0][0].data["notes"]
 
     def test_the_trend_is_marked_with_the_two_months(self):
         blocks, mock = answer()
@@ -63,12 +63,12 @@ class TestScopeAndCurrency:
 
     def test_the_currency_with_the_biggest_change_is_used(self):
         comparisons = {**fall_by_customer(ROWS), ("sales", None): [GRAND, total("40", "100", "USD")]}
-        lines = answer(mock=source(comparisons))[0][0].data["lines"]
-        assert " in USD " in lines[0] and any("also changed" in line and "INR" in line for line in lines)
+        data = answer(mock=source(comparisons))[0][0].data
+        assert " in USD " in data["headline"] and any("also changed" in line and "INR" in line for line in data["notes"])
 
     def test_a_named_currency_is_answered_in_that_currency(self):
         comparisons = {**fall_by_customer(ROWS), ("sales", None): [GRAND, total("40", "100", "USD")]}
-        assert " in INR " in answer(currency="INR", mock=source(comparisons))[0][0].data["lines"][0]
+        assert " in INR " in answer(currency="INR", mock=source(comparisons))[0][0].data["headline"]
 
     def test_a_currency_without_data_says_so(self):
         assert "no data in USD" in answer(currency="USD")[0][0].data["lines"][0]
@@ -106,3 +106,24 @@ class TestReadingTheCurrency:
     ])
     def test_a_currency_word_names_the_currency(self, text, expected):
         assert read_currency(text) == expected
+
+
+class TestTheFindingsBlock:
+    def test_a_mover_is_an_item_with_its_figures_and_share(self):
+        item = answer("sabinsa")[0][0].data["items"][0]
+        assert item["name"] == "Name A" and item["role"] == "mover" and item["direction"] == "down"
+        assert item["change_text"] == "90.0%" and item["amount_text"].startswith("INR ") and item["share_text"].endswith("of the change")
+
+    def test_coverage_carries_the_numbers_and_the_sentence(self):
+        coverage = answer("sabinsa")[0][0].data["coverage"]
+        assert coverage["text"] and Decimal(coverage["explained_percent"]) + Decimal(coverage["unexplained_percent"]) == 100
+
+    def test_a_refusal_stays_one_text_block(self):
+        blocks, _ = answer(period=Period("month", 2026, 11, date(2026, 11, 1), date(2026, 11, 30), False, "November 2026"))
+        assert [b.type for b in blocks] == ["text"]
+
+    def test_a_cause_is_a_path_of_phrases_and_no_cause_is_an_empty_path_list(self):
+        assert answer("sabinsa")[0][0].data["items"][0]["paths"] == []
+        gap = MockDataSource({"contract": []}, None, INFOS, fall_by_customer(ROWS), TRENDS)
+        paths = answer("sabinsa", mock=gap)[0][0].data["items"][0]["paths"]
+        assert paths and paths[0][0].startswith("no valid contract for")

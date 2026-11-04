@@ -29,7 +29,7 @@ class AnswerWhy:
             trend = scoped.trend(token, rule.metric, period.start, TREND_MONTHS) if analysis.currency else []
         except DataUnavailable as error:
             raise MetricsUnavailable(str(error)) from error
-        blocks = [Block("text", {"lines": why_wording.lines(analysis, company)})]
+        blocks = [Block("findings", analysis_blocks.findings_block(analysis, company))] if analysis.currency else [Block("text", {"lines": why_wording.lines(analysis, company)})]
         if trend:
             blocks.append(Block("trend", analysis_blocks.trend_block(analysis, trend)))
         blocks += [Block("table", data) for data in analysis_blocks.table_blocks(analysis)]
