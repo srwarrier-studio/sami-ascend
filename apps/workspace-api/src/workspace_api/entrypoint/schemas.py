@@ -4,6 +4,12 @@ from decimal import Decimal
 from pydantic import BaseModel, Field
 
 from workspace_api.domain.entities.order_request import OrderRequest
+from workspace_api.domain.entities.purchase_requisition import (
+    NewPurchaseRequisition,
+    NewPurchaseRequisitionItem,
+    PurchaseRequisition,
+    PurchaseRequisitionPage,
+)
 from workspace_api.domain.entities.sales_order import (
     NewSalesOrder,
     NewSalesOrderItem,
@@ -99,3 +105,68 @@ class OrderRequestResponse(BaseModel):
 
 class OrderRequestsResponse(BaseModel):
     requests: list[OrderRequestResponse]
+
+
+class NewPurchaseRequisitionItemBody(BaseModel):
+    material: str
+    plant: str
+    quantity: Decimal
+    unit: str
+    delivery_date: date
+    text: str | None = None
+
+
+class NewPurchaseRequisitionBody(BaseModel):
+    description: str = ""
+    items: list[NewPurchaseRequisitionItemBody] = Field(min_length=1)
+
+    def to_domain(self) -> NewPurchaseRequisition:
+        return NewPurchaseRequisition(
+            self.description,
+            [NewPurchaseRequisitionItem(i.material, i.plant, i.quantity, i.unit, i.delivery_date, i.text) for i in self.items],
+        )
+
+
+class PurchaseRequisitionItemResponse(BaseModel):
+    item: str
+    material: str
+    text: str
+    plant: str
+    company_code: str
+    quantity: Decimal
+    unit: str
+    net_amount: Decimal
+    currency: str
+    delivery_date: date
+    release_status: str
+    release_status_code: str
+    ordered: bool
+    deleted: bool
+    purchase_order: str
+
+
+class PurchaseRequisitionResponse(BaseModel):
+    purchase_requisition: str
+    description: str
+    created_by_user: str
+    created_on: date | None
+    total_net_amount: Decimal
+    items: list[PurchaseRequisitionItemResponse]
+
+    @classmethod
+    def from_domain(cls, requisition: PurchaseRequisition) -> "PurchaseRequisitionResponse":
+        return cls.model_validate(requisition, from_attributes=True)
+
+
+class PurchaseRequisitionPageResponse(BaseModel):
+    requisitions: list[PurchaseRequisitionResponse]
+    total: int
+
+    @classmethod
+    def from_domain(cls, page: PurchaseRequisitionPage) -> "PurchaseRequisitionPageResponse":
+        return cls.model_validate(page, from_attributes=True)
+
+
+class ReleaseBody(BaseModel):
+    release_code: str = Field(min_length=1, max_length=4)
+    item: str | None = None
