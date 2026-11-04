@@ -1,0 +1,1 @@
+{"@odata.context":"$metadata#PurchaseReqnItem(PurchaseRequisition,PurReqnReleaseStatus,ProcessingStatus,PurchaseRequisitionItem)","@odata.metadataEtag":"W/\"20260727114643\"","value":[{"@odata.etag":"W/\"SADL-000000000000000000000C~0.0000000\"","PurchaseRequisition":"10000010","PurchaseRequisitionItem":"10","PurReqnReleaseStatus":"02","ProcessingStatus":"N"}]}

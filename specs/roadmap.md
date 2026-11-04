@@ -106,7 +106,7 @@ All three phases use mock data (session, sales data and board store behind inter
 - 05 why-blocks: a why answer carries one `findings` block written for a manager: a plain headline with short amounts, what moved most with one "Possible reason" sentence per cause, a coverage sentence and the notes; all from fixed templates. done (tag `intent-api-phase-05-done`, 2026-11-04).
 
 ## procure to pay (owner priority after butterfly 21, planned)
-- shared 13 p2p-study: the six steps in SAP order (purchase requisition, release, purchase order, goods receipt, invoice verification with three-way match, payment) mapped to SAP's standard APIs, rules and documents. todo
+- shared 13 p2p-study: the six steps in SAP order (purchase requisition, release, purchase order, goods receipt, invoice verification with three-way match, payment) mapped to SAP's standard APIs, rules and documents, in `docs/sap/p2p-mapping.md` with real Hub samples under `docs/sap/standard/` (requisition and order V4; material document, supplier invoice and accounting items V2, no V4 exists). The sandbox is read only, so create bodies, refusals, release and payment posting are listed as assumptions. done (tag `shared-phase-13-done`, 2026-11-04).
 - then one butterfly phase per step with writes and the document flow, then workspace-api and workspace-web per step. todo
 
 ## ai-dashboard (POC, later, local-first)
