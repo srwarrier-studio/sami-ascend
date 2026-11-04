@@ -7,6 +7,7 @@ import {
   useRouteContext,
 } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
+import type { PurchaseRequisitionClient } from './api/purchaseRequisitions'
 import type { SalesOrderClient } from './api/salesOrders'
 import type { Session } from './session/useSession'
 import { LoginPage } from './pages/LoginPage'
@@ -14,6 +15,9 @@ import { HomePage } from './pages/HomePage'
 import { NotAllowedPage } from './pages/NotAllowedPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { NewOrderPage } from './pages/NewOrderPage'
+import { NewRequisitionPage } from './pages/NewRequisitionPage'
+import { RequisitionPage } from './pages/RequisitionPage'
+import { RequisitionsPage } from './pages/RequisitionsPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
 import { Shell } from './Shell'
 import { allowedEntries } from './menu'
@@ -24,6 +28,7 @@ export type RouterContext = {
   login: (username: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
   salesOrders: SalesOrderClient
+  purchaseRequisitions: PurchaseRequisitionClient
 }
 
 function RootLayout() {
@@ -91,12 +96,36 @@ const newOrderRoute = createRoute({
   component: NewOrderPage,
 })
 
+const requisitionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/purchase-requisitions',
+  beforeLoad: requireMenuAccess('/purchase-requisitions'),
+  component: RequisitionsPage,
+})
+
+const newRequisitionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/purchase-requisitions/new',
+  beforeLoad: requireMenuAccess('/purchase-requisitions/new'),
+  component: NewRequisitionPage,
+})
+
+const requisitionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/purchase-requisitions/$number',
+  beforeLoad: requireMenuAccess('/purchase-requisitions'),
+  component: RequisitionPage,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   homeRoute,
   notAllowedRoute,
   salesOrdersRoute,
   newOrderRoute,
+  requisitionsRoute,
+  newRequisitionRoute,
+  requisitionRoute,
 ])
 
 export const createAppRouter = (context: RouterContext, history?: RouterHistory) =>
