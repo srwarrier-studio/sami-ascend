@@ -11,11 +11,13 @@ import { listPresets } from '../boards/presets'
 import { MAX_WIDGETS, arrangeWidgets, buildWidgets, insertWidget, removeWidget } from '../boards/layout'
 import type { SharedBoard } from '../boards/boardStore'
 import { useBoards } from '../boards/useBoards'
+import { useUiSettings } from '../uiSettings'
 
 export function BoardsPage() {
   const navigate = useNavigate()
   const search = useSearch({ from: '/' })
-  const { boardStore, catalog, catalogClient, boardExporter, session, company, ui, setUi } = useRouteContext({ from: '/' })
+  const { boardStore, catalog, catalogClient, boardExporter, session, company } = useRouteContext({ from: '/' })
+  const { ui, setUi } = useUiSettings()
   const { colorScheme, setColorScheme } = useColorScheme()
   const { boards, active, select, reload, add, rename, remove, setWidgets } = useBoards(boardStore, search.board)
   const [editing, setEditing] = useState(false)

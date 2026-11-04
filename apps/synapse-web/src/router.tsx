@@ -40,8 +40,6 @@ export type RouterContext = {
   boardExporter: BoardExporter
   company: string | null
   setCompany: (id: string) => void
-  ui: UiSettings
-  setUi: (ui: UiSettings) => void
 }
 
 function RootLayout() {

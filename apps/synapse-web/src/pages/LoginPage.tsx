@@ -5,6 +5,7 @@ import { Button, SignInCard, notifications } from '@sami/ui'
 import { SynapseLogo } from '../brand/SynapseLogo'
 import { SynapseNetwork } from '../login/SynapseNetwork'
 import classes from '../login/Login.module.css'
+import { useUiSettings } from '../uiSettings'
 
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -20,7 +21,8 @@ function MicrosoftMark() {
 }
 
 export function LoginPage() {
-  const { login, ui } = useRouteContext({ from: '/login' })
+  const { login } = useRouteContext({ from: '/login' })
+  const { ui } = useUiSettings()
   const [problem, setProblem] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 

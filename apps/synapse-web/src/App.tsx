@@ -17,6 +17,7 @@ import type { CatalogClient } from './catalog/catalogClient'
 import { useCatalog } from './catalog/useCatalog'
 import { createAppRouter } from './router'
 import type { RouterContext, UiSettings } from './router'
+import { UiSettingsContext } from './uiSettings'
 import type { SessionClient } from './session/sessionClient'
 import { useCompany } from './session/useCompany'
 import { useSession } from './session/useSession'
@@ -80,5 +81,9 @@ export default function App({ client, boardStore = defaultBoardStore, chatPlanne
         </Stack>
       </Container>
     )
-  return <Routed context={{ session, login, logout, catalogClient, catalog: catalog.status === 'ready' ? catalog.entries : [], boardStore, chatPlanner, intentClient, boardExporter, company, setCompany, ui, setUi: onUiChange }} history={history} />
+  return (
+    <UiSettingsContext.Provider value={{ ui, setUi: onUiChange }}>
+      <Routed context={{ session, login, logout, catalogClient, catalog: catalog.status === 'ready' ? catalog.entries : [], boardStore, chatPlanner, intentClient, boardExporter, company, setCompany }} history={history} />
+    </UiSettingsContext.Provider>
+  )
 }

@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Popover, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core'
+import { ActionIcon, Button, Group, Popover, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core'
 import { GearSixIcon, PlusIcon, SquaresFourIcon } from '@phosphor-icons/react'
 import type { MotionMode } from './UiProvider'
 import { presets } from './palettes'
@@ -32,7 +32,20 @@ function QuickConfig({ config, onChange }: { config: PageBarConfig; onChange: Pa
           <Text size="xs" fw={600} c="dimmed" tt="uppercase">
             Palette
           </Text>
-          <SegmentedControl size="xs" radius="xl" aria-label="Palette" value={config.palette} data={palettes} onChange={(palette) => onChange({ ...config, palette: palette as PresetName })} />
+          <Group gap="xs" role="group" aria-label="Palette">
+            {palettes.map((palette) => (
+              <Button
+                key={palette.value}
+                size="compact-xs"
+                radius="xl"
+                variant={config.palette === palette.value ? 'filled' : 'light'}
+                aria-pressed={config.palette === palette.value}
+                onClick={() => onChange({ ...config, palette: palette.value })}
+              >
+                {palette.label}
+              </Button>
+            ))}
+          </Group>
           <Text size="xs" fw={600} c="dimmed" tt="uppercase">
             Theme
           </Text>
