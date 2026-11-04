@@ -23,7 +23,7 @@ from butterfly.infrastructure.sqlite.money import quantity_to_minor, to_minor
 from butterfly.infrastructure.sqlite.schema import REPLACED_ON_RESEED
 
 SEEDS = ("small", "story")
-LAYOUT = "6"
+LAYOUT = "7"
 DERIVED_TABLES = ["cash_payment", "export_shipment", "stock_value_month", "stock_movement", "material_stock", "customer_invoice"]
 
 
@@ -145,11 +145,12 @@ def write_exports(db: Database, shipments: list[ExportShipment]) -> None:
 def write_orders(db: Database, orders: list[SalesOrder], origin: str = "seed") -> None:
     db.insert_many(
         f"INSERT INTO sales_order (sales_order, sales_order_type, sold_to_party, customer_name, order_date, requested_delivery_date, transaction_currency, "
-        f"total_net_amount, overall_status, created_by_user, creation_date_time, last_change_date_time, company_code, country, origin, total_net_amount_local, local_currency) VALUES ({marks(17)})",
+        f"total_net_amount, overall_status, created_by_user, creation_date_time, last_change_date_time, company_code, country, origin, total_net_amount_local, local_currency, sales_organization, distribution_channel, division, purchase_order_by_customer) VALUES ({marks(21)})",
         [
             (
                 o.sales_order, o.sales_order_type, o.sold_to_party, o.customer_name, iso(o.order_date), iso(o.requested_delivery_date), o.transaction_currency,
                 to_minor(o.total_net_amount), o.overall_status, o.created_by_user, iso(o.creation_date_time), iso(o.last_change_date_time), o.company_code, o.country, origin, to_minor(o.total_net_amount_local), o.local_currency,
+                o.sales_organization, o.distribution_channel, o.division, o.purchase_order_by_customer,
             )
             for o in orders
         ],

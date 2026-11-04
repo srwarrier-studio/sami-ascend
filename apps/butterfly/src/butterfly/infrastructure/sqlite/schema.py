@@ -28,7 +28,11 @@ CREATE TABLE IF NOT EXISTS sales_order (
     country TEXT NOT NULL,
     origin TEXT NOT NULL DEFAULT 'seed',
     total_net_amount_local INTEGER NOT NULL DEFAULT 0,
-    local_currency TEXT NOT NULL DEFAULT 'INR'
+    local_currency TEXT NOT NULL DEFAULT 'INR',
+    sales_organization TEXT NOT NULL DEFAULT '',
+    distribution_channel TEXT NOT NULL DEFAULT '10',
+    division TEXT NOT NULL DEFAULT '00',
+    purchase_order_by_customer TEXT
 );
 CREATE INDEX IF NOT EXISTS sales_order_by_date ON sales_order (order_date, transaction_currency, company_code);
 
@@ -254,6 +258,10 @@ ADDED_COLUMNS = [
     ("sales_order", "total_net_amount_local", "INTEGER NOT NULL DEFAULT 0"),
     ("sales_order", "local_currency", "TEXT NOT NULL DEFAULT 'INR'"),
     ("sales_order_item", "net_amount_local", "INTEGER NOT NULL DEFAULT 0"),
+    ("sales_order", "sales_organization", "TEXT NOT NULL DEFAULT ''"),
+    ("sales_order", "distribution_channel", "TEXT NOT NULL DEFAULT '10'"),
+    ("sales_order", "division", "TEXT NOT NULL DEFAULT '00'"),
+    ("sales_order", "purchase_order_by_customer", "TEXT"),
     ("purchase_delivery", "net_amount_local", "INTEGER NOT NULL DEFAULT 0"),
     ("purchase_delivery", "local_currency", "TEXT NOT NULL DEFAULT 'INR'"),
     ("customer_invoice", "net_amount_local", "INTEGER NOT NULL DEFAULT 0"),
@@ -264,6 +272,10 @@ BACKFILL = [
     "UPDATE sales_order SET total_net_amount_local = CASE transaction_currency WHEN 'USD' THEN total_net_amount * 80 ELSE total_net_amount END WHERE total_net_amount_local = 0 AND total_net_amount != 0",
     "UPDATE sales_order_item SET net_amount_local = (SELECT CASE o.transaction_currency WHEN 'USD' THEN sales_order_item.net_amount * 80 ELSE sales_order_item.net_amount END FROM sales_order o WHERE o.sales_order = sales_order_item.sales_order) WHERE net_amount_local = 0 AND net_amount != 0",
 ]
+
+BACKFILL.append(
+    "UPDATE sales_order SET sales_organization = CASE company_code WHEN 'INA1' THEN '1010' WHEN 'INA2' THEN '1020' WHEN 'INA3' THEN '1030' ELSE '' END WHERE sales_organization = ''"
+)
 
 REPLACED_ON_RESEED = [
     "cash_payment",

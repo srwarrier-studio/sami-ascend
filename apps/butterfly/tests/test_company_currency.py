@@ -129,7 +129,11 @@ class TestAnApiOrderAndTheMigration:
         path = str(tmp_path / "butterfly.db")
         db = Database(path)
         prepare(db, "small", "august-contract", date.today())
-        db.execute("INSERT INTO sales_order VALUES ('0000099999', 'OR', '0000100001', NULL, '2026-11-03', NULL, 'USD', 625000, 'A', 'ME', '2026-11-03T09:00:00+00:00', '2026-11-03T09:00:00+00:00', 'INA1', 'US', 'api', 625000, 'INR')")
+        db.execute(
+            "INSERT INTO sales_order (sales_order, sales_order_type, sold_to_party, customer_name, order_date, requested_delivery_date, transaction_currency, total_net_amount, overall_status, "
+            "created_by_user, creation_date_time, last_change_date_time, company_code, country, origin, total_net_amount_local, local_currency) "
+            "VALUES ('0000099999', 'OR', '0000100001', NULL, '2026-11-03', NULL, 'USD', 625000, 'A', 'ME', '2026-11-03T09:00:00+00:00', '2026-11-03T09:00:00+00:00', 'INA1', 'US', 'api', 625000, 'INR')"
+        )
         db.execute("INSERT INTO sales_order_item VALUES ('0000099999', '000010', 'RM-1001', NULL, 10000, 'KG', 625000, 625000)")
         for view in [row["name"] for row in db.query("SELECT name FROM sqlite_master WHERE type = 'view'")]:
             db.execute(f"DROP VIEW {view}")

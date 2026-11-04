@@ -14,7 +14,8 @@ SCALES = {"total_net_amount": MONEY_SCALE, "total_net_amount_local": MONEY_SCALE
 
 ORDER_UPDATE = (
     "UPDATE sales_order SET sales_order_type = ?, sold_to_party = ?, customer_name = ?, order_date = ?, requested_delivery_date = ?, transaction_currency = ?, "
-    "total_net_amount = ?, overall_status = ?, created_by_user = ?, creation_date_time = ?, last_change_date_time = ?, company_code = ?, country = ? WHERE sales_order = ?"
+    "total_net_amount = ?, overall_status = ?, created_by_user = ?, creation_date_time = ?, last_change_date_time = ?, company_code = ?, country = ?, "
+    "sales_organization = ?, distribution_channel = ?, division = ?, purchase_order_by_customer = ? WHERE sales_order = ?"
 )
 
 
@@ -76,7 +77,7 @@ class SqliteSalesOrderRepo(SalesOrderRepo):
                 (
                     order.sales_order_type, order.sold_to_party, order.customer_name, iso(order.order_date), iso(order.requested_delivery_date), order.transaction_currency,
                     to_minor(order.total_net_amount), order.overall_status, order.created_by_user, iso(order.creation_date_time), iso(order.last_change_date_time),
-                    order.company_code, order.country, order.sales_order,
+                    order.company_code, order.country, order.sales_organization, order.distribution_channel, order.division, order.purchase_order_by_customer, order.sales_order,
                 ),
             )
             self.db.execute("DELETE FROM sales_order_item WHERE sales_order = ?", (order.sales_order,))

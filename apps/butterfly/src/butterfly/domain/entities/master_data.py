@@ -4,6 +4,8 @@ from decimal import Decimal
 USD_DIVISOR = Decimal(80)
 LOCAL_CURRENCY = "INR"
 CENTS = Decimal("0.01")
+SALES_ORGANIZATIONS = {"INA1": "1010", "INA2": "1020", "INA3": "1030"}
+ISO_UNITS = {"KG": "KGM", "PC": "PCE", "L": "LTR"}
 
 
 def in_currency(amount: Decimal, currency: str) -> Decimal:

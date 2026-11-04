@@ -43,6 +43,10 @@ def order_from_row(row: sqlite3.Row, items: list[SalesOrderItem]) -> SalesOrder:
         items=items,
         company_code=row["company_code"],
         country=row["country"],
+        sales_organization=row["sales_organization"],
+        distribution_channel=row["distribution_channel"],
+        division=row["division"],
+        purchase_order_by_customer=row["purchase_order_by_customer"],
     )
 
 

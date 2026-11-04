@@ -1,4 +1,5 @@
 import hashlib
+import re
 from datetime import date
 from decimal import Decimal
 
@@ -25,8 +26,11 @@ def seed_with(*events):
     return build_story_seed(TODAY, Scenario("test", events))
 
 
+ADDED_ORDER_FIELDS = re.compile(r", sales_organization='[^']*', distribution_channel='[^']*', division='[^']*', purchase_order_by_customer=(?:None|'[^']*')\)")
+
+
 def digest(rows) -> str:
-    return hashlib.sha256(repr(rows).encode()).hexdigest()[:16]
+    return hashlib.sha256(ADDED_ORDER_FIELDS.sub(")", repr(rows)).encode()).hexdigest()[:16]
 
 
 def fingerprints(day: date) -> dict:
