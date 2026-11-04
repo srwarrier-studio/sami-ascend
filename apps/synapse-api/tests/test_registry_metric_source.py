@@ -17,9 +17,9 @@ ROOT = "http://sap/root/"
 REGISTRY = load_registry(REGISTRY_PATH)
 SALES = REGISTRY.metrics["sales"]
 
-DAY = {"OrderDate": "2026-10-26", "TotalNetAmount": "845000.00", "OrderCount": 14, "Currency": "INR"}
-CUSTOMER = {"SoldToParty": "0000100001", "CustomerName": "Acme Industries", "OrderDate": "2026-10-27", "TotalNetAmount": "125000.00", "OrderCount": 2, "Currency": "INR"}
-MATERIAL = {"Material": "RM-1001", "MaterialDescription": "Steel rod 12mm", "OrderDate": "2026-10-27", "TotalQuantity": "500.000", "QuantityUnit": "KG", "TotalNetAmount": "625000.00", "Currency": "INR"}
+DAY = {"OrderDate": "2026-10-26", "TotalNetAmount": "845000.00", "OrderCount": 14, "Currency": "INR", "TotalNetAmountLocal": "845000.00", "LocalCurrency": "INR"}
+CUSTOMER = {"SoldToParty": "0000100001", "CustomerName": "Acme Industries", "OrderDate": "2026-10-27", "TotalNetAmount": "125000.00", "OrderCount": 2, "Currency": "INR", "TotalNetAmountLocal": "125000.00", "LocalCurrency": "INR"}
+MATERIAL = {"Material": "RM-1001", "MaterialDescription": "Steel rod 12mm", "OrderDate": "2026-10-27", "TotalQuantity": "500.000", "QuantityUnit": "KG", "TotalNetAmount": "625000.00", "Currency": "INR", "TotalNetAmountLocal": "625000.00", "LocalCurrency": "INR"}
 
 
 def source(handler, service="sales") -> RegistryMetricSource:
@@ -152,3 +152,10 @@ class TestAServerThatCapsThePage:
             return httpx.Response(200, json={"value": [], "@odata.nextLink": "next"})
 
         assert source(handler).rows(SALES, "day", START, END) == []
+
+
+class TestRupees:
+    def test_a_dollar_document_is_read_as_its_rupee_amount(self):
+        dollars = {**DAY, "TotalNetAmount": "100.00", "Currency": "USD", "TotalNetAmountLocal": "8000.00", "LocalCurrency": "INR"}
+        [row] = source(ok(dollars)).rows(SALES, "day", START, END)
+        assert (row.amount, row.currency) == (Decimal("8000.00"), "INR")
