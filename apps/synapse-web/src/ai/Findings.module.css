@@ -1,4 +1,16 @@
-.path {
-  border-left: 0.125rem solid var(--mantine-color-default-border);
-  padding-left: var(--mantine-spacing-sm);
+.up {
+  color: var(--mantine-color-teal-filled);
+}
+
+.down {
+  color: var(--mantine-color-red-filled);
+}
+
+.flat {
+  color: var(--mantine-color-dimmed);
+}
+
+.icon {
+  flex: none;
+  margin-top: 0.25rem;
 }

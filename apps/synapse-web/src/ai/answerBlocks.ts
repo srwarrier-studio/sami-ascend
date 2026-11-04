@@ -8,11 +8,9 @@ export type FindingItem = {
   dimension: string
   role: 'mover' | 'offset'
   direction: 'up' | 'down' | 'flat'
-  changeText: string
-  amountText: string
-  shareText: string | null
+  detail: string
   priceText: string | null
-  paths: string[][]
+  reasons: string[]
 }
 export type FindingsBlock = { type: 'findings'; headline: string; items: FindingItem[]; coverage: { explainedPercent: number; text: string }; notes: string[] }
 export type AnswerBlock = TextBlock | TrendBlock | TableBlock | EvidenceBlock | FindingsBlock
@@ -24,12 +22,11 @@ const records = (value: unknown): value is Record<string, unknown>[] => Array.is
 const text = (value: unknown) => (typeof value === 'string' ? value : null)
 
 function parseItem(item: Record<string, unknown>): FindingItem | null {
-  const { name, dimension, role, direction, change_text, amount_text } = item
-  if (typeof name !== 'string' || typeof dimension !== 'string' || typeof change_text !== 'string' || typeof amount_text !== 'string') return null
+  const { name, dimension, role, direction, detail } = item
+  if (typeof name !== 'string' || typeof dimension !== 'string' || typeof detail !== 'string') return null
   if (role !== 'mover' && role !== 'offset') return null
   if (direction !== 'up' && direction !== 'down' && direction !== 'flat') return null
-  const paths = Array.isArray(item.paths) && item.paths.every(strings) ? (item.paths as string[][]) : []
-  return { name, dimension, role, direction, changeText: change_text, amountText: amount_text, shareText: text(item.share_text), priceText: text(item.price_text), paths }
+  return { name, dimension, role, direction, detail, priceText: text(item.price_text), reasons: strings(item.reasons) ? item.reasons : [] }
 }
 
 export function parseBlock(block: unknown): AnswerBlock | null {
