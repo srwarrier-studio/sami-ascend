@@ -39,7 +39,7 @@ class TestTheBlocks:
 
     def test_the_first_sentence_names_the_scope_and_the_currency(self):
         text = answer("sabinsa")[0][0].data["headline"]
-        assert text.startswith("Sales of Sami-Sabinsa fell 10.0% in INR from July 2026 to August 2026")
+        assert text.startswith("Sales of Sami-Sabinsa fell 10.0% in August 2026, to INR 900 from INR 1K")
 
     def test_the_group_says_all_companies_and_warns_about_the_dilution(self):
         data = answer("all")[0][0].data
@@ -64,11 +64,11 @@ class TestScopeAndCurrency:
     def test_the_currency_with_the_biggest_change_is_used(self):
         comparisons = {**fall_by_customer(ROWS), ("sales", None): [GRAND, total("40", "100", "USD")]}
         data = answer(mock=source(comparisons))[0][0].data
-        assert " in USD " in data["headline"] and any("also changed" in line and "INR" in line for line in data["notes"])
+        assert "to USD 40 from USD 100" in data["headline"] and any("also changed" in line and "INR" in line for line in data["notes"])
 
     def test_a_named_currency_is_answered_in_that_currency(self):
         comparisons = {**fall_by_customer(ROWS), ("sales", None): [GRAND, total("40", "100", "USD")]}
-        assert " in INR " in answer(currency="INR", mock=source(comparisons))[0][0].data["headline"]
+        assert "INR" in answer(currency="INR", mock=source(comparisons))[0][0].data["headline"]
 
     def test_a_currency_without_data_says_so(self):
         assert "no data in USD" in answer(currency="USD")[0][0].data["lines"][0]
@@ -109,21 +109,32 @@ class TestReadingTheCurrency:
 
 
 class TestTheFindingsBlock:
-    def test_a_mover_is_an_item_with_its_figures_and_share(self):
+    def test_a_mover_reads_as_a_plain_line(self):
         item = answer("sabinsa")[0][0].data["items"][0]
-        assert item["name"] == "Name A" and item["role"] == "mover" and item["direction"] == "down"
-        assert item["change_text"] == "90.0%" and item["amount_text"].startswith("INR ") and item["share_text"].endswith("of the change")
+        assert item["name"] == "Name A" and item["role"] == "mover" and item["direction"] == "down" and item["dimension"] == "customer"
+        assert item["detail"] == "down INR 900 (90.0%), 80.0% of the total fall"
 
-    def test_coverage_carries_the_numbers_and_the_sentence(self):
-        coverage = answer("sabinsa")[0][0].data["coverage"]
-        assert coverage["text"] and Decimal(coverage["explained_percent"]) + Decimal(coverage["unexplained_percent"]) == 100
+    def test_the_headline_is_plain_and_short(self):
+        assert answer("sabinsa")[0][0].data["headline"] == "Sales of Sami-Sabinsa fell 10.0% in August 2026, to INR 900 from INR 1K in July 2026."
+
+    def test_coverage_is_one_plain_sentence(self):
+        assert answer("sabinsa")[0][0].data["coverage"]["text"] == "We found no cause for this in the data we hold."
+        gap = MockDataSource({"contract": []}, None, INFOS, fall_by_customer(ROWS), TRENDS)
+        coverage = answer("sabinsa", mock=gap)[0][0].data["coverage"]
+        assert coverage["text"].startswith("We can explain about ") and Decimal(coverage["explained_percent"]) > 0
 
     def test_a_refusal_stays_one_text_block(self):
         blocks, _ = answer(period=Period("month", 2026, 11, date(2026, 11, 1), date(2026, 11, 30), False, "November 2026"))
         assert [b.type for b in blocks] == ["text"]
 
-    def test_a_cause_is_a_path_of_phrases_and_no_cause_is_an_empty_path_list(self):
-        assert answer("sabinsa")[0][0].data["items"][0]["paths"] == []
+    def test_a_cause_is_one_reason_sentence_and_no_cause_is_no_reason(self):
+        assert answer("sabinsa")[0][0].data["items"][0]["reasons"] == []
         gap = MockDataSource({"contract": []}, None, INFOS, fall_by_customer(ROWS), TRENDS)
-        paths = answer("sabinsa", mock=gap)[0][0].data["items"][0]["paths"]
-        assert paths and paths[0][0].startswith("no valid contract for")
+        reasons = answer("sabinsa", mock=gap)[0][0].data["items"][0]["reasons"]
+        assert reasons and reasons[0].startswith("Possible reason: there was no valid contract for ")
+
+    def test_amounts_are_short_and_dates_read_naturally(self):
+        from intent_api.application.analysis.why_wording import compact, day_text
+
+        assert [compact(Decimal(v)) for v in ("999", "1000", "113578.37", "2500000", "1200000000")] == ["999", "1K", "113.6K", "2.5M", "1.2B"]
+        assert day_text("2026-08-02") == "2 Aug 2026"

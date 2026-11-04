@@ -199,7 +199,7 @@ class TestWhy:
         response, _ = self.ask()
         blocks = response.json()["answers"][0]["blocks"]
         assert response.status_code == 200 and [b["type"] for b in blocks][:2] == ["findings", "trend"]
-        assert blocks[0]["headline"].startswith("Sales of all your companies fell 10.0% in INR from July 2026 to August 2026")
+        assert blocks[0]["headline"].startswith("Sales of all your companies fell 10.0% in August 2026, to INR 900 from INR 1K")
 
     def test_the_company_scopes_the_analysis(self):
         analysis = august_data()
