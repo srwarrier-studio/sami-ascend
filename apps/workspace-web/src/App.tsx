@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { RouterProvider } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
-import { Loader } from '@sami/ui'
+import { Alert, Button, Container, Loader, Stack } from '@sami/ui'
 import type { AuthClient } from './api/auth'
 import { purchaseRequisitionClient } from './api/purchaseRequisitions'
 import type { PurchaseRequisitionClient } from './api/purchaseRequisitions'
@@ -38,7 +38,18 @@ export default function App({
   purchaseRequisitions = purchaseRequisitionClient,
   history,
 }: AppProps) {
-  const { session, login, logout } = useSession(client)
+  const { session, login, logout, retry } = useSession(client)
   if (session.status === 'loading') return <Loader />
+  if (session.status === 'unavailable')
+    return (
+      <Container size="xs" py="xl">
+        <Stack>
+          <Alert color="red" title="Cannot reach the sign-in service">
+            Check that auth-api is running, then try again.
+          </Alert>
+          <Button onClick={retry}>Try again</Button>
+        </Stack>
+      </Container>
+    )
   return <Routed context={{ session, login, logout, salesOrders, purchaseRequisitions }} history={history} />
 }

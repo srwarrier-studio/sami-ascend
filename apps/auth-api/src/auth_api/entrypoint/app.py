@@ -36,7 +36,7 @@ password_hasher = Argon2PasswordHasher()
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL, settings.ADMIN_URL],
+    allow_origins=[settings.FRONTEND_URL, settings.ADMIN_URL, settings.WORKSPACE_URL],
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,
