@@ -82,6 +82,12 @@ class TestAV2Row:
         assert list(row) == list(REAL_V2)
         assert same_kinds({k: v for k, v in row.items() if k != "__metadata"}, {k: v for k, v in REAL_V2.items() if k != "__metadata"}) == []
 
+    def test_the_etag_is_the_v2_datetimeoffset_kind(self, client):
+        etag = get(client, f"{V2}/A_SalesOrder?$top=1")[1]["d"]["results"][0]["__metadata"]["etag"]
+        real = REAL_V2["__metadata"]["etag"]
+        shape = re.compile(r"W/\"datetimeoffset'\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}\.\d{7}Z'\"")
+        assert shape.fullmatch(etag) and shape.fullmatch(real)
+
     def test_has_no_company_field_like_sap(self, client):
         row = get(client, f"{V2}/A_SalesOrder?$top=1")[1]["d"]["results"][0]
         assert not [name for name in row if "Company" in name]

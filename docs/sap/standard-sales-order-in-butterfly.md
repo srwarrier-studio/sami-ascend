@@ -28,6 +28,8 @@ Also served: `$metadata` (the real file, byte for byte), `/<set>/$count` (plain 
 | `$apply` | `groupby((fields),aggregate(Amount with sum as Alias))`, also after `filter(...)/` | refused (400) |
 | Company | `BillingCompanyCode` | no company field |
 
+Etags: V2 rows carry the real kind, `W/"datetimeoffset'2016-09-02T06%3A15%3A47.1257050Z'"`, built from the last change time; the create and change phase must compare `If-Match` against that same string. V4 etags are opaque (`W/"..."`) as in SAP.
+
 Refusals copy the sandbox: an amount filter without `TransactionCurrency` (V4), `$orderby` on an
 aggregate alias, `countdistinct` (501), unknown properties, each in the service's own error body.
 

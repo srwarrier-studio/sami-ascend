@@ -39,11 +39,12 @@ class ItemRow:
     transaction_currency: str
     etag: str
     requested_delivery_date: date | None
+    changed: datetime
 
 
 def item_rows(order: SalesOrder) -> list[ItemRow]:
     return [
-        ItemRow(i.sales_order, i.sales_order_item, i.material, i.material_description, i.quantity, i.quantity_unit, i.net_amount, order.transaction_currency, order.etag, order.requested_delivery_date)
+        ItemRow(i.sales_order, i.sales_order_item, i.material, i.material_description, i.quantity, i.quantity_unit, i.net_amount, order.transaction_currency, order.etag, order.requested_delivery_date, order.last_change_date_time)
         for i in order.items
     ]
 
@@ -63,6 +64,12 @@ def short(token: str) -> str:
 def milliseconds(value: date | datetime) -> int:
     moment = value if isinstance(value, datetime) else datetime(value.year, value.month, value.day, tzinfo=timezone.utc)
     return int(moment.timestamp() * 1000)
+
+
+def datetimeoffset_etag(moment: datetime) -> str:
+    utc = moment.astimezone(timezone.utc)
+    stamp_text = f"{utc:%Y-%m-%dT%H:%M:%S}.{utc.microsecond:06d}0Z"
+    return f"W/\"datetimeoffset'{stamp_text.replace(':', '%3A')}'\""
 
 
 def money_text(value: Decimal) -> str:
@@ -272,7 +279,7 @@ class V2:
         row = {name: self.blank(edm) for name, edm in self.order_type.properties}
         row |= {name: value for name, value in self.order_values(order).items() if name in row}
         key = f"'{plain(order.sales_order)}'"
-        meta = self.metadata_block(self.order_set, "A_SalesOrderType", key, order.etag, base)
+        meta = self.metadata_block(self.order_set, "A_SalesOrderType", key, datetimeoffset_etag(order.last_change_date_time), base)
         if select is not None:
             row = {name: row[name] for name, _ in self.order_type.properties if name in select}
             links = {}
@@ -286,7 +293,7 @@ class V2:
         row = {name: self.blank(edm) for name, edm in self.item_type.properties}
         row |= {name: value for name, value in self.item_values(item).items() if name in row}
         key = f"SalesOrder='{plain(item.sales_order)}',SalesOrderItem='{plain(item.sales_order_item)}'"
-        meta = self.metadata_block(self.item_set, "A_SalesOrderItemType", key, item.etag, base)
+        meta = self.metadata_block(self.item_set, "A_SalesOrderItemType", key, datetimeoffset_etag(item.changed), base)
         if select is not None:
             return {"__metadata": meta} | {name: row[name] for name, _ in self.item_type.properties if name in select}
         links = {nav: {"__deferred": {"uri": f"{meta['uri']}/{nav}"}} for nav in self.item_type.navigation}
