@@ -48,6 +48,41 @@ CREATE TABLE IF NOT EXISTS sales_order_item (
     PRIMARY KEY (sales_order, sales_order_item)
 );
 
+CREATE TABLE IF NOT EXISTS purchase_requisition (
+    purchase_requisition TEXT PRIMARY KEY,
+    requisition_type TEXT NOT NULL,
+    description TEXT NOT NULL,
+    created_by_user TEXT NOT NULL,
+    creation_date_time TEXT NOT NULL,
+    last_change_date_time TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS purchase_requisition_item (
+    purchase_requisition TEXT NOT NULL REFERENCES purchase_requisition (purchase_requisition) ON DELETE CASCADE,
+    purchase_requisition_item TEXT NOT NULL,
+    material TEXT NOT NULL,
+    item_text TEXT NOT NULL,
+    material_group TEXT NOT NULL,
+    requested_quantity INTEGER NOT NULL,
+    base_unit TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    plant TEXT NOT NULL,
+    company_code TEXT NOT NULL,
+    purchasing_organization TEXT NOT NULL,
+    purchasing_group TEXT NOT NULL,
+    delivery_date TEXT NOT NULL,
+    release_status TEXT NOT NULL,
+    processing_status TEXT NOT NULL,
+    release_codes TEXT NOT NULL,
+    ordered_quantity INTEGER NOT NULL,
+    purchasing_document TEXT NOT NULL,
+    purchasing_document_item TEXT NOT NULL,
+    supplier TEXT NOT NULL,
+    is_deleted INTEGER NOT NULL,
+    PRIMARY KEY (purchase_requisition, purchase_requisition_item)
+);
+
 CREATE TABLE IF NOT EXISTS sales_contract (
     sales_contract TEXT PRIMARY KEY,
     predecessor_contract TEXT,
