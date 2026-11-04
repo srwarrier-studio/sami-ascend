@@ -88,6 +88,8 @@ from butterfly.domain.repositories.inventory_repo import InventoryRepo
 from butterfly.domain.repositories.production_repo import ProductionRepo
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
+from butterfly.infrastructure.api.standard.dialects import V2, V4
+from butterfly.infrastructure.api.standard.service import build_router
 from butterfly.infrastructure.api.odata import (
     DRIVERS_ROOT,
     EXPORT_ROOT,
@@ -468,6 +470,8 @@ def create_app(
 
     app.add_middleware(RequestIdMiddleware)
     app.include_router(router)
+    app.include_router(build_router(V4(), repo))
+    app.include_router(build_router(V2(), repo))
     app.include_router(drivers_router)
     app.include_router(inventory_router)
     app.include_router(production_router)

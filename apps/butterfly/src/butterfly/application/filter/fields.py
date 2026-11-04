@@ -419,3 +419,36 @@ PURCHASE_SUMMARY_BY_MATERIAL_GROUP_FIELDS = {
     "LocalCurrency": ("local_currency", FieldType.STRING),
 }
 PURCHASE_SUMMARY_BY_MATERIAL_FIELDS = SALES_SUMMARY_BY_MATERIAL_FIELDS
+
+
+STANDARD_V4_ORDER_FIELDS = {
+    "SalesOrder": ("sales_order", FieldType.STRING),
+    "SalesOrderType": ("sales_order_type", FieldType.STRING),
+    "SoldToParty": ("sold_to_party", FieldType.STRING),
+    "SalesOrganization": ("sales_organization", FieldType.STRING),
+    "DistributionChannel": ("distribution_channel", FieldType.STRING),
+    "OrganizationDivision": ("division", FieldType.STRING),
+    "CreatedByUser": ("created_by_user", FieldType.STRING),
+    "LastChangeDateTime": ("last_change_date_time", FieldType.DATETIME),
+    "PurchaseOrderByCustomer": ("purchase_order_by_customer", FieldType.STRING),
+    "SalesOrderDate": ("order_date", FieldType.DATE),
+    "RequestedDeliveryDate": ("requested_delivery_date", FieldType.DATE),
+    "TotalNetAmount": ("total_net_amount", FieldType.DECIMAL),
+    "TransactionCurrency": ("transaction_currency", FieldType.STRING),
+    "BillingCompanyCode": ("company_code", FieldType.STRING),
+    "OverallSDProcessStatus": ("overall_status", FieldType.STRING),
+}
+
+STANDARD_V2_ORDER_FIELDS = {name: field for name, field in STANDARD_V4_ORDER_FIELDS.items() if name != "BillingCompanyCode"}
+
+STANDARD_V4_ITEM_FIELDS = {
+    "SalesOrder": ("sales_order", FieldType.STRING),
+    "SalesOrderItem": ("sales_order_item", FieldType.STRING),
+    "Product": ("material", FieldType.STRING),
+    "SalesOrderItemText": ("material_description", FieldType.STRING),
+    "RequestedQuantity": ("quantity", FieldType.DECIMAL),
+    "NetAmount": ("net_amount", FieldType.DECIMAL),
+    "TransactionCurrency": ("transaction_currency", FieldType.STRING),
+}
+
+STANDARD_V2_ITEM_FIELDS = {("Material" if name == "Product" else name): field for name, field in STANDARD_V4_ITEM_FIELDS.items()}
