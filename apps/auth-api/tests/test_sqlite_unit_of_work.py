@@ -122,3 +122,4 @@ def test_a_login_audit_event_keeps_its_detail(tmp_path):
 
     with uow:
         assert uow.conn.execute("SELECT detail FROM audit_log").fetchone()["detail"] == "bad_password"
+

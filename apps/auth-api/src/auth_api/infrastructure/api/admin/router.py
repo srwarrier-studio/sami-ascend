@@ -1,4 +1,5 @@
 import sqlite3
+from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -22,13 +23,14 @@ def refuse(status: int, code: str, message: str = "") -> HTTPException:
     return HTTPException(status_code=status, detail={"code": code, "message": message or code})
 
 
-def create_admin_router(uow: AuthUnitOfWork, hasher: PasswordHasher, auth: AuthDependencies) -> APIRouter:
+def create_admin_router(new_uow: Callable[[], AuthUnitOfWork], hasher: PasswordHasher, auth: AuthDependencies) -> APIRouter:
     router = APIRouter(prefix="/admin")
     admin_claims = auth.require_roles(Role.ADMIN)
 
     def current_admin(claims: Annotated[TokenClaims, Depends(admin_claims)]) -> User:
-        with uow:
-            user = uow.user_repo.find_by_id(claims.userid)
+        db = new_uow()
+        with db:
+            user = db.user_repo.find_by_id(claims.userid)
         if user is None or user.disabled or Role.ADMIN not in user.roles:
             raise HTTPException(status_code=401, detail="Session expired, please log in again")
         return user
@@ -37,7 +39,7 @@ def create_admin_router(uow: AuthUnitOfWork, hasher: PasswordHasher, auth: AuthD
 
     @router.get("/users")
     def list_users(admin: Admin, q: str = "") -> list[UserOut]:
-        return [UserOut.from_domain(user) for user in ListUsers(uow).execute(q)]
+        return [UserOut.from_domain(user) for user in ListUsers(new_uow()).execute(q)]
 
     @router.post("/users", status_code=201)
     def create_user(admin: Admin, body: CreateUserBody) -> UserOut:
@@ -47,7 +49,7 @@ def create_admin_router(uow: AuthUnitOfWork, hasher: PasswordHasher, auth: AuthD
             companies=[company.value for company in body.companies], entra_username=body.entra_username,
         )
         try:
-            userid = CreateManagedUser(uow, hasher).execute(dto)
+            userid = CreateManagedUser(new_uow(), hasher).execute(dto)
         except UserAlreadyExists as error:
             raise refuse(409, "USER_ALREADY_EXISTS", str(error))
         except WeakPassword as error:
@@ -56,14 +58,15 @@ def create_admin_router(uow: AuthUnitOfWork, hasher: PasswordHasher, auth: AuthD
             raise refuse(422, "INVALID_USER", str(error))
         except sqlite3.IntegrityError:
             raise refuse(409, "ENTRA_USERNAME_TAKEN", "That Entra username belongs to another user")
-        with uow:
-            return UserOut.from_domain(uow.user_repo.find_by_id(userid))
+        db = new_uow()
+        with db:
+            return UserOut.from_domain(db.user_repo.find_by_id(userid))
 
     @router.patch("/users/{userid}")
     def update_user(admin: Admin, userid: str, body: UpdateUserBody) -> UserOut:
         changes = UserChanges(body.fullname, body.sap_username, body.entra_username, body.roles, body.companies, body.disabled)
         try:
-            user = UpdateUser(uow).execute(userid, changes, str(admin.userid.value), admin.email.value)
+            user = UpdateUser(new_uow()).execute(userid, changes, str(admin.userid.value), admin.email.value)
         except UserNotFound:
             raise refuse(404, "USER_NOT_FOUND")
         except LastAdmin:
@@ -93,7 +96,7 @@ def create_admin_router(uow: AuthUnitOfWork, hasher: PasswordHasher, auth: AuthD
         start: Annotated[str | None, Query(alias="from")] = None,
         end: Annotated[str | None, Query(alias="to")] = None,
     ) -> AuditPage:
-        events = ReadAuditLog(uow).execute(AuditFilter(actor and actor.lower(), action, outcome, start, end), limit + 1, before)
+        events = ReadAuditLog(new_uow()).execute(AuditFilter(actor and actor.lower(), action, outcome, start, end), limit + 1, before)
         page = events[:limit]
         return AuditPage(items=[AuditOut.from_domain(event) for event in page], next=page[-1].id if len(events) > limit else None)
 

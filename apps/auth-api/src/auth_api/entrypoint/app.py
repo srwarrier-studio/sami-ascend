@@ -24,13 +24,19 @@ from auth_api.infrastructure.sqlite.sqlite_unit_of_work import SqliteAuthUnitOfW
 setup_logging("auth-api")
 
 auth_provider = MSALAuthProvider()
-uow = SqliteAuthUnitOfWork(settings.DATABASE_PATH)
+
+
+def new_uow() -> SqliteAuthUnitOfWork:
+    return SqliteAuthUnitOfWork(settings.DATABASE_PATH)
+
+
+new_uow()
 password_hasher = Argon2PasswordHasher()
 
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL],
+    allow_origins=[settings.FRONTEND_URL, settings.ADMIN_URL],
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,
@@ -56,7 +62,7 @@ def set_access_token_cookie(response: Response, token: str):
 def login_with_password(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], response: Response
 ):
-    usecase = LoginWithPassword(uow, password_hasher, token_service)
+    usecase = LoginWithPassword(new_uow(), password_hasher, token_service)
     try:
         token = usecase.execute(
             LoginWithPasswordDTO(email_id=form_data.username, password=form_data.password)
@@ -87,7 +93,7 @@ def entra_callback(request: Request):
     if "error" in result:
         return login_failed
 
-    usecase = LoginWithEntra(uow, token_service)
+    usecase = LoginWithEntra(new_uow(), token_service)
     try:
         token = usecase.execute(LoginWithEntraDTO(email_id=result["user"]["email"] or ""))
     except InvalidCredentials:
@@ -100,8 +106,9 @@ def entra_callback(request: Request):
 
 @router_head.get("/me")
 def me(claims: Annotated[TokenClaims, Depends(current_claims)]) -> Me:
-    with uow:
-        user = uow.user_repo.find_by_id(claims.userid)
+    db = new_uow()
+    with db:
+        user = db.user_repo.find_by_id(claims.userid)
     if user is None or user.disabled:
         raise HTTPException(status_code=401, detail="Session expired, please log in again")
     return Me(
@@ -119,7 +126,7 @@ def logout(response: Response):
 
 
 app.include_router(router_head, prefix="/v1/auth", tags=["Auth"])
-app.include_router(create_admin_router(uow, password_hasher, auth), prefix="/v1/auth", tags=["Admin"])
+app.include_router(create_admin_router(new_uow, password_hasher, auth), prefix="/v1/auth", tags=["Admin"])
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001, log_config=None)

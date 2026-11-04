@@ -37,7 +37,7 @@ def seed(uow, email, roles, disabled=False):
 
 def client_for(uow, user=None) -> TestClient:
     app = FastAPI()
-    app.include_router(create_admin_router(uow, hasher, AuthDependencies(TokenVerifier(SECRET))))
+    app.include_router(create_admin_router(lambda: SqliteAuthUnitOfWork(uow.database_path), hasher, AuthDependencies(TokenVerifier(SECRET))))
     client = TestClient(app)
     if user:
         client.cookies.set(ACCESS_TOKEN_COOKIE, tokens.issue(user))
@@ -206,3 +206,16 @@ class TestAuditLog:
             LoginWithPassword(uow, hasher, tokens).execute(LoginWithPasswordDTO("bob@sami.com", "wrong"))
         assert [r["action"] for r in api.get(BASE + "/audit-log?action=user.*").json()["items"]] == ["user.create"]
         assert [r["action"] for r in api.get(BASE + "/audit-log?action=login.*").json()["items"]] == ["login.password"]
+
+
+class TestConcurrentRequests:
+    def test_overlapping_requests_do_not_share_a_connection(self, uow, api):
+        from concurrent.futures import ThreadPoolExecutor
+
+        def call(path):
+            return api.get(BASE + path).status_code
+
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            codes = list(pool.map(call, ["/roles", "/companies", "/users", "/audit-log"] * 40))
+
+        assert set(codes) == {200}

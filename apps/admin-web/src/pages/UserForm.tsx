@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Alert, Button, Group, Modal, MultiSelect, PasswordInput, Stack, Text, TextInput } from '@sami/ui'
+import { Alert, Button, Checkbox, Group, Modal, PasswordInput, Stack, Text, TextInput } from '@sami/ui'
 import { AdminError } from '../api/adminClient'
 import type { AdminClient, AdminUser } from '../api/adminClient'
 import { companyLabel, roleHelp } from '../roles'
@@ -61,7 +61,6 @@ export function UserForm({ opened, user, ownId, roles, companies, admin, onClose
     )
 
   const ready = form.fullname.trim() && form.sap_username.trim() && (user || form.email.includes('@'))
-  const helped = form.roles.filter((role) => roleHelp[role])
 
   return (
     <Modal opened={opened} onClose={onClose} title={user ? `Edit ${user.fullname}` : 'New user'} size="lg">
@@ -74,13 +73,20 @@ export function UserForm({ opened, user, ownId, roles, companies, admin, onClose
         <TextInput label="Email" disabled={!!user} value={form.email} onChange={(event) => set({ email: event.currentTarget.value })} />
         <TextInput label="SAP username" value={form.sap_username} onChange={(event) => set({ sap_username: event.currentTarget.value })} />
         <TextInput label="Entra username" description="Only when it differs from the email" value={form.entra_username} onChange={(event) => set({ entra_username: event.currentTarget.value })} />
-        <MultiSelect label="Roles" data={roles} value={form.roles} onChange={(value) => set({ roles: value })} />
-        {helped.map((role) => (
-          <Text key={role} size="xs" c="dimmed">
-            {`${role}: ${roleHelp[role]}`}
-          </Text>
-        ))}
-        <MultiSelect label="Companies" data={companies.map((value) => ({ value, label: companyLabel[value] ?? value }))} value={form.companies} onChange={(value) => set({ companies: value })} />
+        <Checkbox.Group label="Roles" value={form.roles} onChange={(value) => set({ roles: value })}>
+          <Stack gap="xs" mt="xs">
+            {roles.map((role) => (
+              <Checkbox key={role} value={role} label={role} description={roleHelp[role]} />
+            ))}
+          </Stack>
+        </Checkbox.Group>
+        <Checkbox.Group label="Companies" value={form.companies} onChange={(value) => set({ companies: value })}>
+          <Stack gap="xs" mt="xs">
+            {companies.map((company) => (
+              <Checkbox key={company} value={company} label={companyLabel[company] ?? company} />
+            ))}
+          </Stack>
+        </Checkbox.Group>
         {!user && <PasswordInput label="Password" description="Leave empty for Entra-only users" value={form.password} onChange={(event) => set({ password: event.currentTarget.value })} />}
         {confirming && user && (
           <Alert color="red" title={user.disabled ? `Enable ${user.fullname}?` : `Disable ${user.fullname}?`}>

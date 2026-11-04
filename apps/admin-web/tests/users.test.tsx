@@ -121,3 +121,17 @@ describe('editing a user', () => {
     expect(screen.queryByRole('button', { name: 'Disable' })).not.toBeInTheDocument()
   })
 })
+
+describe('when auth-api cannot be reached', () => {
+  it('says so and lets the admin try again', async () => {
+    const down: AuthClient = { ...client(null), me: vi.fn().mockRejectedValueOnce(new Error('network')).mockResolvedValue(admin) }
+    render(
+      <UiProvider palette={presets.graphite}>
+        <App client={down} admin={fakeAdmin()} history={createMemoryHistory({ initialEntries: ['/users'] })} />
+      </UiProvider>,
+    )
+    expect(await screen.findByText('Cannot reach the sign-in service')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(await screen.findByRole('heading', { name: 'Users' })).toBeInTheDocument()
+  })
+})

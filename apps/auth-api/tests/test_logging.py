@@ -13,3 +13,10 @@ def test_request_gets_an_id_and_an_access_log_line(caplog):
 
     assert len(response.headers["x-request-id"]) == 36
     assert any(r.getMessage().startswith("GET /v1/auth/me 401") for r in caplog.records)
+
+
+def test_the_admin_portal_origin_is_allowed_for_cors():
+    response = TestClient(app).options("/v1/auth/me", headers={"Origin": "http://localhost:5176", "Access-Control-Request-Method": "GET"})
+
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5176"
+    assert response.headers["access-control-allow-credentials"] == "true"

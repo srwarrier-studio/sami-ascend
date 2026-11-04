@@ -17,7 +17,7 @@ def mock_users(monkeypatch):
     from auth_api.entrypoint import app as app_module
     from auth_api.infrastructure.mock.mock_unit_of_work import MockAuthUnitOfWork
 
-    monkeypatch.setattr(app_module, "uow", MockAuthUnitOfWork())
+    monkeypatch.setattr(app_module, "new_uow", MockAuthUnitOfWork)
 
 
 def me_for(companies):
