@@ -13,6 +13,7 @@ from butterfly.domain.entities.master_data import (
 )
 from butterfly.domain.entities.purchase_requisition import PurchaseRequisition, PurchaseRequisitionItem
 from butterfly.domain.errors import ValidationDetail, ValidationFailed
+from butterfly.domain.entities.release_rule import RELEASE_RULES, ReleaseRule, with_release_status
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.domain.repositories.purchase_requisition_repo import PurchaseRequisitionRepo
 
@@ -84,10 +85,11 @@ class Checker:
 
 
 class CreatePurchaseRequisition:
-    def __init__(self, repo: PurchaseRequisitionRepo, master_data: MasterDataRepo, now: Callable[[], datetime] = utc_now):
+    def __init__(self, repo: PurchaseRequisitionRepo, master_data: MasterDataRepo, now: Callable[[], datetime] = utc_now, rules: tuple[ReleaseRule, ...] = RELEASE_RULES):
         self.repo = repo
         self.master_data = master_data
         self.now = now
+        self.rules = rules
 
     def execute(self, body: dict[str, Any]) -> PurchaseRequisition:
         moment = self.now().astimezone(timezone.utc).replace(microsecond=0)
@@ -104,6 +106,7 @@ class CreatePurchaseRequisition:
         items = [self.item(check, entry, number, position) for position, entry in enumerate(raw)]
         if check.details:
             raise ValidationFailed(check.details)
+        items = [with_release_status(item, requisition_type, self.rules) for item in items]
         requisition = PurchaseRequisition(number, requisition_type, body.get("PurReqnDescription", ""), CREATED_BY, moment, moment, items)
         self.repo.add(requisition)
         return requisition

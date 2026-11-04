@@ -194,10 +194,10 @@ class TestCreating:
         post(client, {"_PurchaseRequisitionItem": [valid_item()]})
         assert post(client, {"_PurchaseRequisitionItem": [valid_item()]}).json()["PurchaseRequisition"] == "10000001"
 
-    def test_a_new_item_is_unreleased_and_unordered_with_the_defaults(self):
+    def test_a_new_item_is_unordered_with_the_defaults(self):
         client, _ = writable()
         item = post(client, {"_PurchaseRequisitionItem": [valid_item()]}).json()["_PurchaseRequisitionItem"][0]
-        assert item["PurReqnReleaseStatus"] == "01" and item["ProcessingStatus"] == "N"
+        assert item["ProcessingStatus"] == "N"
         assert item["PurchasingGroup"] == "001" and item["PurchasingOrganization"] and item["CompanyCode"] and item["PurReqnItemCurrency"] == "INR"
         assert item["CreatedByUser"] == "BUTTERFLY" and item["PurReqCreationDate"] == "2026-10-27" and item["ItemNetAmount"] > 0
 
@@ -278,7 +278,7 @@ class TestChangingAQuantity:
         client, repo = writable()
         etag = stored(client)
         requisition = repo.get("10000000")
-        requisition.items[0] = replace(requisition.items[0], release_status="03")
+        requisition.items[0] = replace(requisition.items[0], release_status="03", release_codes=("01",))
         refused = change(client, etag, {"RequestedQuantity": 7, "BaseUnitISOCode": "PCE"})
         assert refused.status_code == 400 and refused.json()["error"]["details"][0]["code"] == "ITEM_NOT_CHANGEABLE"
 

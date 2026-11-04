@@ -6,7 +6,8 @@ from typing import Any, Callable
 from butterfly.application.usecase.create_purchase_requisition import decimal_of
 from butterfly.application.usecase.create_sales_order import utc_now
 from butterfly.domain.entities.master_data import ISO_UNITS
-from butterfly.domain.entities.purchase_requisition import NOT_RELEASED, PurchaseRequisition, PurchaseRequisitionItem
+from butterfly.domain.entities.purchase_requisition import PurchaseRequisition, PurchaseRequisitionItem
+from butterfly.domain.entities.release_rule import RELEASE_RULES, ReleaseRule, with_release_status
 from butterfly.domain.errors import ETagMismatch, ETagRequired, ValidationDetail, ValidationFailed
 from butterfly.domain.repositories.purchase_requisition_repo import PurchaseRequisitionRepo
 
@@ -23,15 +24,16 @@ def locked(item: PurchaseRequisitionItem) -> str | None:
         return "is deleted"
     if item.processing_status != "N" or item.ordered_quantity > 0:
         return "is already ordered"
-    if item.release_status != NOT_RELEASED:
-        return "is released or in release"
+    if item.release_codes:
+        return "is already in release or released"
     return None
 
 
 class ItemEdit:
-    def __init__(self, repo: PurchaseRequisitionRepo, now: Callable[[], datetime] = utc_now):
+    def __init__(self, repo: PurchaseRequisitionRepo, now: Callable[[], datetime] = utc_now, rules: tuple[ReleaseRule, ...] = RELEASE_RULES):
         self.repo = repo
         self.now = now
+        self.rules = rules
 
     def load(self, number: str, item_number: str, if_match: str | None) -> tuple[PurchaseRequisition, PurchaseRequisitionItem]:
         requisition = self.repo.get(number)
@@ -74,7 +76,8 @@ class ChangePurchaseRequisitionItem(ItemEdit):
             details.append(ValidationDetail("NOTHING_TO_CHANGE", "Send RequestedQuantity and BaseUnitISOCode.", "body"))
         if details:
             raise ValidationFailed(details)
-        return self.save(requisition, replace(item, requested_quantity=quantity.quantize(Decimal("0.001"))))
+        changed = replace(item, requested_quantity=quantity.quantize(Decimal("0.001")))
+        return self.save(requisition, with_release_status(changed, requisition.requisition_type, self.rules))
 
 
 class DeletePurchaseRequisitionItem(ItemEdit):

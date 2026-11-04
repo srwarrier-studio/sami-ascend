@@ -87,9 +87,12 @@ from butterfly.domain.repositories.finance_repo import FinanceRepo
 from butterfly.domain.repositories.inventory_repo import InventoryRepo
 from butterfly.domain.repositories.production_repo import ProductionRepo
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
+from butterfly.application.usecase.release_purchase_requisition import ReleasePurchaseRequisition
+from butterfly.domain.entities.release_rule import RELEASE_RULES, ReleaseRule
 from butterfly.domain.repositories.purchase_requisition_repo import PurchaseRequisitionRepo
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.api.standard.dialects import V2, V4
+from butterfly.infrastructure.api.release import build_release_router
 from butterfly.infrastructure.api.standard.requisition import build_requisition_router
 from butterfly.infrastructure.api.standard.service import build_router
 from butterfly.infrastructure.api.odata import (
@@ -169,6 +172,7 @@ def create_app(
     exports: ExportRepo | None = None,
     finance: FinanceRepo | None = None,
     requisitions: PurchaseRequisitionRepo | None = None,
+    release_rules: tuple[ReleaseRule, ...] = RELEASE_RULES,
     now: Callable[[], datetime] = utc_now,
 ) -> FastAPI:
     master_data = master_data or InMemoryMasterDataRepo()
@@ -478,7 +482,8 @@ def create_app(
     app.include_router(router)
     app.include_router(build_router(V4(), repo))
     app.include_router(build_router(V2(), repo))
-    app.include_router(build_requisition_router(requisitions, master_data, now))
+    app.include_router(build_requisition_router(requisitions, master_data, now, release_rules))
+    app.include_router(build_release_router(ReleasePurchaseRequisition(requisitions, now, release_rules)))
     app.include_router(drivers_router)
     app.include_router(inventory_router)
     app.include_router(production_router)

@@ -23,6 +23,7 @@ from butterfly.application.usecase.change_purchase_requisition_item import (
 )
 from butterfly.application.usecase.create_purchase_requisition import CreatePurchaseRequisition
 from butterfly.application.usecase.create_sales_order import utc_now
+from butterfly.domain.entities.release_rule import RELEASE_RULES, ReleaseRule
 from butterfly.domain.errors import ETagMismatch, ETagRequired, InvalidQuery, ValidationDetail, ValidationFailed
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.domain.repositories.purchase_requisition_repo import PurchaseRequisitionRepo
@@ -284,7 +285,7 @@ def domain_failure(error: Exception) -> tuple[int, dict] | None:
     return None
 
 
-def build_requisition_router(repo: PurchaseRequisitionRepo, master_data: MasterDataRepo, now: Callable[[], datetime] = utc_now) -> APIRouter:
+def build_requisition_router(repo: PurchaseRequisitionRepo, master_data: MasterDataRepo, now: Callable[[], datetime] = utc_now, rules: tuple[ReleaseRule, ...] = RELEASE_RULES) -> APIRouter:
     service = Service(repo)
     router = APIRouter(prefix=ROOT)
 
@@ -369,7 +370,7 @@ def build_requisition_router(repo: PurchaseRequisitionRepo, master_data: MasterD
     @router.post(f"/{HEADERS}")
     @guarded
     async def create(request: Request):
-        requisition = CreatePurchaseRequisition(repo, master_data, now).execute(await json_body(request))
+        requisition = CreatePurchaseRequisition(repo, master_data, now, rules).execute(await json_body(request))
         row = service.header_row(requisition, None, [])
         location = f"{str(request.base_url).rstrip('/')}{ROOT}/{HEADERS}('{requisition.purchase_requisition}')"
         body = service.entity_body(service.context(HEADERS, None, [], ITEMS_OF_HEADER), row)
@@ -378,7 +379,7 @@ def build_requisition_router(repo: PurchaseRequisitionRepo, master_data: MasterD
     @router.patch(f"/{ITEMS}(PurchaseRequisition='" + "{key}',PurchaseRequisitionItem='{item_key}')")
     @guarded
     async def change(request: Request, key: str, item_key: str):
-        use_case = ChangePurchaseRequisitionItem(repo, now)
+        use_case = ChangePurchaseRequisitionItem(repo, now, rules)
         requisition = use_case.execute(key, item_key, request.headers.get("if-match"), await json_body(request))
         return service.item_entity(request, requisition.purchase_requisition, item_key)
 
