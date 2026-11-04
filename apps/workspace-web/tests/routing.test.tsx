@@ -28,6 +28,16 @@ describe('loading', () => {
   })
 })
 
+describe('when auth-api cannot be reached', () => {
+  it('says so and lets the user try again', async () => {
+    const down: AuthClient = { ...fakeClient(sales), me: vi.fn().mockRejectedValueOnce(new Error('network')).mockResolvedValue(sales) }
+    open('/', down)
+    expect(await screen.findByText('Cannot reach the sign-in service')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument()
+  })
+})
+
 describe('signed out', () => {
   it('redirects home to login', async () => {
     open('/', fakeClient(null))

@@ -20,3 +20,10 @@ def test_the_admin_portal_origin_is_allowed_for_cors():
 
     assert response.headers["access-control-allow-origin"] == "http://localhost:5176"
     assert response.headers["access-control-allow-credentials"] == "true"
+
+
+def test_the_workspace_origin_is_allowed_for_cors():
+    response = TestClient(app).options("/v1/auth/me", headers={"Origin": "http://localhost:5173", "Access-Control-Request-Method": "GET"})
+
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+    assert response.headers["access-control-allow-credentials"] == "true"

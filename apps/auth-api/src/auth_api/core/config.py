@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     SESSION_SECRET: str
     FRONTEND_URL: str = "http://localhost:5173"
     ADMIN_URL: str = "http://localhost:5176"
+    WORKSPACE_URL: str = "http://localhost:5173"
     DATABASE_PATH: str = str(ENV_FILE.parent / "auth.db")
 
 settings = Settings()
