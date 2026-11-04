@@ -99,6 +99,7 @@ All three phases use mock data (session, sales data and board store behind inter
 - 02 sales-order-entry: form to enter a sales order with clear validation messages. done (tag `workspace-web-phase-02-done`, 2026-10-27)
 - 03 sales-order-list: list and open the user's recent orders. todo
 - 04 order-status: the new-order page understands the queue answers of workspace-api 03 (queued, unknown, order not saved), clears the form so nothing is entered twice, and shows a Waiting for SAP panel of the user's open orders. Depends on workspace-api 03. done (tag `workspace-web-phase-04-done`, 2026-10-31).
+- 05 purchase-requisitions: list with status badges and paging, detail page with Release for approvers (`management`), and the new requisition form with item rows and SAP's messages on the right field, against workspace-api 05; menu and route guards by role (`purchase`, `management`). The screens were tested with mocks only; the owner checks them in the browser. done (tag `workspace-web-phase-05-done`, 2026-11-05).
 
 ## intent-api (reads a manager's question into approved scenarios)
 - 01 scenario-rules: new FastAPI service (port 8006) with `POST /v1/intent/match` behind the cookie check, the scenario library `scenarios.toml` (6 domains, 14 draft scenarios, `scenarios check` and `show`), Laya (`typed-decisions`, run as its own service, no data leaves the company) choosing the domain and then the scenarios clause by clause, rules for `covers`, the floors and every refusal (`not_about_business`, `not_sure`, `no_scenarios`, `nothing_matched`, `cannot_classify_now` when Laya is down), the `unanswered.jsonl` log and command, and `intent-api eval` with a held-out part (79% exactly right on held-out answerable questions, 15% wrong answers; see the phase notes). Slots, data, answers and the web app come in later phases. done (tag `intent-api-phase-01-done`, 2026-11-01).
@@ -109,7 +110,7 @@ All three phases use mock data (session, sales data and board store behind inter
 
 ## procure to pay (owner priority after butterfly 21, planned)
 - shared 13 p2p-study: the six steps in SAP order (purchase requisition, release, purchase order, goods receipt, invoice verification with three-way match, payment) mapped to SAP's standard APIs, rules and documents, in `docs/sap/p2p-mapping.md` with real Hub samples under `docs/sap/standard/` (requisition and order V4; material document, supplier invoice and accounting items V2, no V4 exists). The sandbox is read only, so create bodies, refusals, release and payment posting are listed as assumptions. done (tag `shared-phase-13-done`, 2026-11-04).
-- then one butterfly phase per step with writes and the document flow, then workspace-api and workspace-web per step. Done so far: butterfly 22 (requisition). Next: butterfly 23 purchase order (V4), then material document (V2), supplier invoice (V2), payment, document-flow checks. todo
+- then one butterfly phase per step with writes and the document flow, then workspace-api and workspace-web per step. Done so far: butterfly 22, workspace-api 05 and workspace-web 05 (the requisition slice, end to end). Next: butterfly 23 purchase order (V4), then material document (V2), supplier invoice (V2), payment, document-flow checks. todo
 
 ## ai-dashboard (POC, later, local-first)
 - Not scheduled. Starts after synapse-web 03. See `notes.md` for the constraints. todo
