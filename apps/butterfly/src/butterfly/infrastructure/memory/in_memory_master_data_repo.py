@@ -1,7 +1,7 @@
-from butterfly.domain.entities.master_data import Customer, Material, Product, Supplier
+from butterfly.domain.entities.master_data import Customer, Material, Plant, Product, Supplier
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.infrastructure.memory.companies import COMPANIES
-from butterfly.infrastructure.memory.master_lists import products, suppliers
+from butterfly.infrastructure.memory.master_lists import plants, products, suppliers
 
 CURRENCIES = {"INR", "USD"}
 COMPANY_CODES = {company.code for company in COMPANIES}
@@ -40,3 +40,6 @@ class InMemoryMasterDataRepo(MasterDataRepo):
 
     def list_suppliers(self) -> list[Supplier]:
         return suppliers()
+
+    def list_plants(self) -> list[Plant]:
+        return plants()

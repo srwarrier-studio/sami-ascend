@@ -512,3 +512,14 @@ STANDARD_PRODUCT_UNIT_FIELDS = {
     "AlternativeUnit": ("alternative_unit", FieldType.STRING),
     "BaseUnit": ("base_unit", FieldType.STRING),
 }
+
+STANDARD_PLANT_FIELDS = {
+    "Plant": ("plant", FieldType.STRING),
+    "PlantName": ("name", FieldType.STRING),
+    "ValuationArea": ("plant", FieldType.STRING),
+    "SalesOrganization": ("sales_organization", FieldType.STRING),
+    "DefaultPurchasingOrganization": ("purchasing_organization", FieldType.STRING),
+    "DistributionChannel": ("distribution_channel", FieldType.STRING),
+    "Division": ("division", FieldType.STRING),
+    "Language": ("language", FieldType.STRING),
+}

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from butterfly.domain.entities.master_data import Customer, Material, Product, Supplier
+from butterfly.domain.entities.master_data import Customer, Material, Plant, Product, Supplier
 
 
 class MasterDataRepo(ABC):
@@ -24,3 +24,6 @@ class MasterDataRepo(ABC):
 
     @abstractmethod
     def list_suppliers(self) -> list[Supplier]: ...
+
+    @abstractmethod
+    def list_plants(self) -> list[Plant]: ...

@@ -1,4 +1,4 @@
-from butterfly.domain.entities.master_data import Product, Supplier
+from butterfly.domain.entities.master_data import PLANT_COMPANIES, Plant, Product, Supplier
 from butterfly.infrastructure.memory.companies import COMPANIES
 from butterfly.infrastructure.memory.inventory_master import GROUP_OF
 
@@ -22,3 +22,8 @@ def products() -> list[Product]:
 
 def suppliers() -> list[Supplier]:
     return [Supplier(supplier_id, name, company.code) for company in COMPANIES for supplier_id, name in company.suppliers]
+
+
+def plants() -> list[Plant]:
+    names = {company.code: company.name for company in COMPANIES}
+    return [Plant(plant, f"{names[code]} plant", code) for plant, code in PLANT_COMPANIES.items()]

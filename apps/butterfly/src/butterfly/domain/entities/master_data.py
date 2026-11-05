@@ -58,3 +58,10 @@ class Supplier:
     supplier_id: str
     name: str
     company_code: str
+
+
+@dataclass(frozen=True)
+class Plant:
+    plant: str
+    name: str
+    company_code: str

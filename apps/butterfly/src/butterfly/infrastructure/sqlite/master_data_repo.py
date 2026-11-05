@@ -1,7 +1,7 @@
-from butterfly.domain.entities.master_data import Customer, Material, Product, Supplier
+from butterfly.domain.entities.master_data import Customer, Material, Plant, Product, Supplier
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.infrastructure.memory.in_memory_master_data_repo import CURRENCIES
-from butterfly.infrastructure.memory.master_lists import products, suppliers
+from butterfly.infrastructure.memory.master_lists import plants, products, suppliers
 from butterfly.infrastructure.sqlite.database import Database
 from butterfly.infrastructure.sqlite.money import from_minor
 from butterfly.infrastructure.sqlite.seeder import write_master_data
@@ -38,3 +38,6 @@ class SqliteMasterDataRepo(MasterDataRepo):
 
     def list_suppliers(self) -> list[Supplier]:
         return suppliers()
+
+    def list_plants(self) -> list[Plant]:
+        return plants()
