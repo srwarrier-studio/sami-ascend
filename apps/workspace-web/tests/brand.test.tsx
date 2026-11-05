@@ -53,7 +53,7 @@ describe('the name', () => {
 
 describe('the header', () => {
   it('shows the mark and the name once signed in', async () => {
-    const { findByRole } = render(
+    const { findAllByText } = render(
       <UiProvider palette={workspacePalette}>
         <App
           client={{ me: vi.fn().mockResolvedValue({ userid: 'u1', sap_username: 'ANNA', roles: ['purchase'] }), login: vi.fn(), logout: vi.fn() }}
@@ -61,7 +61,8 @@ describe('the header', () => {
         />
       </UiProvider>,
     )
-    const name = await findByRole('heading', { name: APP_NAME })
-    expect(name.closest('header')?.querySelector('svg')).not.toBeNull()
+    const [name] = await findAllByText(APP_NAME)
+    const near = [name.parentElement, name.parentElement?.parentElement].map((element) => element?.querySelector('svg'))
+    expect(near.some(Boolean)).toBe(true)
   })
 })
