@@ -41,7 +41,7 @@ describe('when auth-api cannot be reached', () => {
 describe('signed out', () => {
   it('redirects home to login', async () => {
     open('/', fakeClient(null))
-    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sami Workspace' })).toBeInTheDocument()
   })
 })
 
@@ -53,17 +53,17 @@ describe('login page', () => {
 
   it('shows an error and stays on bad credentials', async () => {
     open('/login', fakeClient(null, false))
-    await userEvent.type(await screen.findByLabelText('Username'), 'anna')
-    await userEvent.type(screen.getByLabelText('Password'), 'bad')
+    await userEvent.type(await screen.findByLabelText(/work email/i), 'anna@sami.test')
+    await userEvent.type(screen.getByLabelText(/^password/i), 'bad')
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
-    expect(await screen.findByText('Incorrect username or password')).toBeInTheDocument()
+    expect(await screen.findByText('Incorrect email or password')).toBeInTheDocument()
   })
 
   it('lands on home after good credentials', async () => {
     const client = fakeClient(null)
     open('/login', client)
-    await userEvent.type(await screen.findByLabelText('Username'), 'anna')
-    await userEvent.type(screen.getByLabelText('Password'), 'pw')
+    await userEvent.type(await screen.findByLabelText(/work email/i), 'anna@sami.test')
+    await userEvent.type(screen.getByLabelText(/^password/i), 'pw')
     vi.mocked(client.me).mockResolvedValue(sales)
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
     expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument()
@@ -110,7 +110,7 @@ describe('sales orders guard', () => {
 
   it('sends a signed-out user to login', async () => {
     open('/sales-orders', fakeClient(null))
-    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sami Workspace' })).toBeInTheDocument()
   })
 })
 
@@ -131,6 +131,6 @@ describe('shell', () => {
     open('/', client)
     await userEvent.click(await screen.findByRole('button', { name: 'Sign out' }))
     expect(client.logout).toHaveBeenCalled()
-    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sami Workspace' })).toBeInTheDocument()
   })
 })

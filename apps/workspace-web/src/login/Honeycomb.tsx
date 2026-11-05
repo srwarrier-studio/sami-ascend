@@ -1,18 +1,19 @@
 import { useEffect, useRef } from 'react'
-import { drawFlow } from './drawFlow'
-import type { Colors } from './drawFlow'
-import classes from './ProcessFlow.module.css'
+import { drawHoneycomb } from './drawHoneycomb'
+import type { Colors } from './drawHoneycomb'
+import { FrameMeter } from './frameMeter'
+import classes from './Honeycomb.module.css'
 
-const FRAME = 1000 / 30
+const FRAME = 1000 / 24
 const MAX_PIXEL_RATIO = 1.5
 
 const readColors = (element: HTMLElement): Colors => {
   const style = getComputedStyle(element)
   const shade = (n: number) => style.getPropertyValue(`--mantine-color-brand-${n}`).trim() || 'white'
-  return { ground: shade(9), line: shade(3), glow: shade(4), card: shade(1), ink: shade(2) }
+  return { line: shade(3), fill: shade(6) }
 }
 
-export function ProcessFlow({ animated }: { animated: boolean }) {
+export function Honeycomb({ animated }: { animated: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -25,8 +26,9 @@ export function ProcessFlow({ animated }: { animated: boolean }) {
     let height = 0
     let frame = 0
     let last = 0
+    const meter = new FrameMeter()
 
-    const draw = (now: number) => drawFlow(ctx, colors, width, height, (now - started) / 1000, animated)
+    const draw = (now: number) => drawHoneycomb(ctx, colors, width, height, animated ? (now - started) / 1000 : 0)
 
     const resize = () => {
       const ratio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO)
@@ -41,7 +43,12 @@ export function ProcessFlow({ animated }: { animated: boolean }) {
       frame = requestAnimationFrame(tick)
       if (now - last < FRAME) return
       last = now
+      const before = performance.now()
       draw(now)
+      if (meter.tooSlow(performance.now() - before)) {
+        cancelAnimationFrame(frame)
+        element.dataset.animated = 'false'
+      }
     }
 
     resize()
@@ -54,5 +61,5 @@ export function ProcessFlow({ animated }: { animated: boolean }) {
     }
   }, [animated])
 
-  return <canvas ref={canvas} className={classes.flow} aria-hidden="true" data-animated={animated} />
+  return <canvas ref={canvas} className={classes.honeycomb} aria-hidden="true" data-animated={animated} />
 }

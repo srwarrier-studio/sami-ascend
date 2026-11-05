@@ -110,13 +110,13 @@
   color: var(--login-soft);
 }
 
-.content form .microsoft {
+.content form [data-login-alt] {
   background: var(--login-field);
   border: thin solid var(--login-edge);
   color: var(--login-ink);
 }
 
-.content form .microsoft:hover {
+.content form [data-login-alt]:hover {
   background: var(--login-field-focus);
 }
 
