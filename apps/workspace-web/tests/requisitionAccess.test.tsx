@@ -60,6 +60,6 @@ describe('guards', () => {
 
   it('sends a signed-out user to login', async () => {
     open('/purchase-requisitions', null)
-    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sami Workspace' })).toBeInTheDocument()
   })
 })

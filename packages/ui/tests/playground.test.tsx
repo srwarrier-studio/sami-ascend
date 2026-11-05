@@ -47,7 +47,7 @@ describe('theme lab', () => {
         <ThemeLab lab={defaultLab} onChange={() => undefined} />
       </UiProvider>,
     )
-    for (const label of ['Teal', 'Blue', 'Indigo', 'Graphite', 'Copper', 'Soft', 'Sharp', 'Full', 'Minimal', 'Top', 'Side']) {
+    for (const label of ['Teal', 'Green', 'Blue', 'Indigo', 'Graphite', 'Copper', 'Soft', 'Sharp', 'Full', 'Minimal', 'Top', 'Side']) {
       expect(screen.getByText(label)).toBeInTheDocument()
     }
   })
