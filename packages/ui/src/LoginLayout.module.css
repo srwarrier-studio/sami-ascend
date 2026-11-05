@@ -1,0 +1,125 @@
+.page {
+  --login-ground: color-mix(in srgb, var(--mantine-color-brand-9) 45%, black);
+  --login-ground-deep: color-mix(in srgb, var(--mantine-color-brand-9) 12%, black);
+  --login-ink: color-mix(in srgb, var(--mantine-color-brand-0) 85%, white);
+  --login-soft: var(--mantine-color-brand-2);
+  --login-line: var(--mantine-color-brand-3);
+  --login-accent: var(--mantine-color-brand-4);
+  --login-button: var(--mantine-color-brand-6);
+  --login-button-hover: var(--mantine-color-brand-7);
+  --login-card: color-mix(in srgb, var(--mantine-color-brand-9) 40%, black);
+  --login-field: color-mix(in srgb, var(--login-line) 12%, transparent);
+  --login-field-focus: color-mix(in srgb, var(--login-line) 18%, transparent);
+  --login-edge: color-mix(in srgb, var(--login-line) 35%, transparent);
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem 1rem;
+  background: radial-gradient(ellipse at 30% 20%, var(--login-ground) 0%, color-mix(in srgb, var(--login-ground) 45%, var(--login-ground-deep)) 55%, var(--login-ground-deep) 100%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 22rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.content > * {
+  width: 100%;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--login-ink);
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  color: var(--login-ink);
+  filter: drop-shadow(0 0 1rem color-mix(in srgb, var(--login-accent) 45%, transparent));
+}
+
+.name {
+  margin: 0.5rem 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.content form,
+:global(:root[data-mantine-color-scheme]) .page .content form {
+  --mantine-color-text: var(--login-ink);
+  --mantine-color-dimmed: var(--login-soft);
+  --mantine-color-error: var(--mantine-color-red-4);
+  --input-bg: var(--login-field);
+  --input-bd: var(--login-edge);
+  --input-bd-focus: var(--login-accent);
+  --input-color: var(--login-ink);
+  --input-placeholder-color: var(--login-line);
+  --button-bg: var(--login-button);
+  --button-hover: var(--login-button-hover);
+  color: var(--login-ink);
+  background: color-mix(in srgb, var(--login-card) 82%, transparent);
+  border: thin solid color-mix(in srgb, var(--login-line) 25%, transparent);
+  box-shadow: 0 0 3rem color-mix(in srgb, var(--login-button) 25%, transparent);
+}
+
+.content form span[aria-hidden='true'] {
+  display: none;
+}
+
+.content form input,
+.content form [class*='mantine-PasswordInput-input'] {
+  background: var(--login-field);
+  border: thin solid var(--login-edge);
+  color: var(--login-ink);
+}
+
+.content form input:focus,
+.content form [class*='mantine-PasswordInput-input']:focus-within {
+  border-color: var(--login-accent);
+  background: var(--login-field-focus);
+}
+
+.content form input[class*='mantine-PasswordInput-innerInput'] {
+  background: transparent;
+  border: 0;
+}
+
+.content form input:-webkit-autofill {
+  -webkit-text-fill-color: var(--login-ink);
+  box-shadow: 0 0 0 6rem var(--login-card) inset;
+}
+
+.content form button[type='button'] {
+  color: var(--login-soft);
+}
+
+.content form [data-login-alt] {
+  background: var(--login-field);
+  border: thin solid var(--login-edge);
+  color: var(--login-ink);
+}
+
+.content form [data-login-alt]:hover {
+  background: var(--login-field-focus);
+}
+
+.content form [class*='mantine-Divider-label'] {
+  color: var(--login-soft);
+}

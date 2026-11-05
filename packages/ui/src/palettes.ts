@@ -6,7 +6,7 @@ export type Palette = {
   colors: Record<string, MantineColorsTuple>
 }
 
-export type PresetName = 'midnight' | 'teal' | 'blue' | 'indigo' | 'graphite' | 'copper'
+export type PresetName = 'midnight' | 'teal' | 'green' | 'blue' | 'indigo' | 'graphite' | 'copper'
 
 const slate: MantineColorsTuple = [
   '#f6f8fa',
@@ -99,6 +99,19 @@ const copper: MantineColorsTuple = [
   '#472305',
 ]
 
+const green: MantineColorsTuple = [
+  '#f0f7f4',
+  '#dbede5',
+  '#b8dbca',
+  '#8cc6aa',
+  '#59ac85',
+  '#299461',
+  '#008043',
+  '#026837',
+  '#04542d',
+  '#054325',
+]
+
 const midnightBrand: MantineColorsTuple = [
   '#eef3ff',
   '#dbe6fe',
@@ -145,6 +158,7 @@ function withBrand(brand: MantineColorsTuple): Palette {
 export const presets: Record<PresetName, Palette> = {
   midnight: { primaryColor: 'brand', primaryShade: 6, colors: { brand: midnightBrand, gray: midnightGray, dark: midnightDark } },
   teal: withBrand(teal),
+  green: withBrand(green),
   blue: withBrand(blue),
   indigo: withBrand(indigo),
   graphite: withBrand(graphite),
@@ -168,6 +182,6 @@ export const premiumSurfaces: { light: Surfaces; dark: Surfaces } = {
   },
 }
 
-export const workspacePalette: Palette = presets.blue
+export const workspacePalette: Palette = presets.green
 
 export const synapsePalette: Palette = presets.midnight
