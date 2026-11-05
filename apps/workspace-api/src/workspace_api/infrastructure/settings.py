@@ -6,6 +6,9 @@ DEFAULT_ORDER_DB = str(Path(__file__).resolve().parents[3] / "orders.db")
 DEFAULT_SAP_BASE_URL = "http://localhost:8003/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/0001/"
 DEFAULT_REQUISITION_URL = "http://localhost:8003/sap/opu/odata4/sap/api_purchaserequisition_2/srvd_a2x/sap/purchaserequisition/0001/"
 DEFAULT_RELEASE_URL = "http://localhost:8003/butterfly/purchase-requisitions/"
+DEFAULT_PRODUCT_URL = "http://localhost:8003/sap/opu/odata4/sap/api_product/srvd_a2x/sap/product/0001/"
+DEFAULT_PLANT_URL = "http://localhost:8003/sap/opu/odata4/sap/api_plant_2/srvd_a2x/sap/plant/0001/"
+DEFAULT_PARTNER_URL = "http://localhost:8003/sap/opu/odata/sap/API_BUSINESS_PARTNER/"
 DEFAULT_PLANTS_BY_COMPANY = {"INA1": ("1000",), "INA2": ("2000",), "INA3": ("3000",)}
 
 
@@ -14,6 +17,9 @@ class Settings:
     sap_base_url: str = field(default_factory=lambda: os.environ.get("SAP_BASE_URL", DEFAULT_SAP_BASE_URL))
     sap_requisition_url: str = field(default_factory=lambda: os.environ.get("SAP_REQUISITION_URL", DEFAULT_REQUISITION_URL))
     sap_release_url: str = field(default_factory=lambda: os.environ.get("SAP_RELEASE_URL", DEFAULT_RELEASE_URL))
+    sap_product_url: str = field(default_factory=lambda: os.environ.get("SAP_PRODUCT_URL", DEFAULT_PRODUCT_URL))
+    sap_plant_url: str = field(default_factory=lambda: os.environ.get("SAP_PLANT_URL", DEFAULT_PLANT_URL))
+    sap_partner_url: str = field(default_factory=lambda: os.environ.get("SAP_PARTNER_URL", DEFAULT_PARTNER_URL))
     plants_by_company: dict[str, tuple[str, ...]] = field(default_factory=lambda: dict(DEFAULT_PLANTS_BY_COMPANY))
     sap_timeout_seconds: float = 10.0
     jwt_secret: str = field(default_factory=lambda: os.environ.get("JWT_SECRET", ""))
