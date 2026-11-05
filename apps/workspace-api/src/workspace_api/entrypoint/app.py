@@ -11,23 +11,31 @@ from token_verification.token_claims import TokenClaims
 
 from workspace_api.application.usecase.create_purchase_requisition import CreatePurchaseRequisition
 from workspace_api.application.usecase.create_sales_order import CreateSalesOrder, Submitter
+from workspace_api.application.usecase.list_plants import ListPlants
+from workspace_api.application.usecase.search_business_partners import SearchCustomers, SearchSuppliers
+from workspace_api.application.usecase.search_materials import SearchMaterials
 from workspace_api.application.usecase.get_purchase_requisition import GetPurchaseRequisition
 from workspace_api.application.usecase.list_purchase_requisitions import ListPurchaseRequisitions
 from workspace_api.application.usecase.list_sales_orders import ListSalesOrders
 from workspace_api.application.usecase.release_purchase_requisition import ReleasePurchaseRequisition
 from workspace_api.domain.entities.order_request import OrderRequest
 from workspace_api.domain.errors import CompanyNotAllowed, InvalidQuery, PurchaseRequisitionNotFound, SalesOrderRejected, SapUnavailable, StoreUnavailable
+from workspace_api.domain.gateways.master_data_gateway import MasterDataGateway
 from workspace_api.domain.gateways.purchase_requisition_gateway import PurchaseRequisitionGateway
 from workspace_api.domain.gateways.sales_order_gateway import SalesOrderGateway
 from workspace_api.domain.repositories.order_request_store import OrderRequestStore
 from workspace_api.entrypoint.schemas import (
+    CustomerPageResponse,
+    MaterialPageResponse,
     NewPurchaseRequisitionBody,
     NewSalesOrderBody,
     OrderRequestResponse,
     OrderRequestsResponse,
+    PlantsResponse,
     PurchaseRequisitionPageResponse,
     PurchaseRequisitionResponse,
     ReleaseBody,
+    SupplierPageResponse,
     SalesOrderPageResponse,
     SalesOrderResponse,
 )
@@ -39,6 +47,7 @@ def create_app(
     settings: Settings,
     orders: OrderRequestStore | None = None,
     requisitions: PurchaseRequisitionGateway | None = None,
+    master_data: MasterDataGateway | None = None,
 ) -> FastAPI:
     auth = AuthDependencies(TokenVerifier(settings.jwt_secret))
     sales_only = Depends(auth.require_roles(Role.SALES))
@@ -101,6 +110,36 @@ def create_app(
             released = ReleasePurchaseRequisition(requisitions).execute(number, codes(claims), body.release_code, body.item)
             return PurchaseRequisitionResponse.from_domain(released)
 
+    if master_data is not None:
+        any_user = Depends(auth.require_roles(Role.PURCHASE, Role.SALES, Role.MANAGEMENT))
+        material_user = Depends(auth.require_roles(Role.PURCHASE, Role.SALES))
+        customer_user = Depends(auth.require_roles(Role.SALES))
+        supplier_user = Depends(auth.require_roles(Role.PURCHASE))
+        master_data_router = APIRouter(prefix="/master-data")
+
+        def company_codes(claims: TokenClaims) -> list[str]:
+            return [company.code for company in claims.companies]
+
+        @master_data_router.get("/plants")
+        def plants(claims: Annotated[TokenClaims, any_user]) -> PlantsResponse:
+            found = ListPlants(master_data, settings.plants_by_company).execute(company_codes(claims))
+            return PlantsResponse.model_validate({"plants": found}, from_attributes=True)
+
+        @master_data_router.get("/materials")
+        def materials(claims: Annotated[TokenClaims, material_user], q: str | None = None, plant: str | None = None, top: int = 20, skip: int = 0) -> MaterialPageResponse:
+            page = SearchMaterials(master_data, settings.plants_by_company).execute(q, plant, company_codes(claims), top, skip)
+            return MaterialPageResponse.model_validate(page, from_attributes=True)
+
+        @master_data_router.get("/customers")
+        def customers(claims: Annotated[TokenClaims, customer_user], q: str | None = None, top: int = 20, skip: int = 0) -> CustomerPageResponse:
+            page = SearchCustomers(master_data).execute(q, company_codes(claims), top, skip)
+            return CustomerPageResponse.model_validate({"customers": page.partners, "total": page.total}, from_attributes=True)
+
+        @master_data_router.get("/suppliers")
+        def suppliers(claims: Annotated[TokenClaims, supplier_user], q: str | None = None, top: int = 20, skip: int = 0) -> SupplierPageResponse:
+            page = SearchSuppliers(master_data).execute(q, company_codes(claims), top, skip)
+            return SupplierPageResponse.model_validate({"suppliers": page.partners, "total": page.total}, from_attributes=True)
+
     app = FastAPI()
 
     @app.exception_handler(PurchaseRequisitionNotFound)
@@ -137,6 +176,8 @@ def create_app(
     )
     app.add_middleware(RequestIdMiddleware)
     app.include_router(router, prefix="/v1/workspace", tags=["Sales orders"])
+    if master_data is not None:
+        app.include_router(master_data_router, prefix="/v1/workspace", tags=["Master data"])
     if requisitions is not None:
         app.include_router(requisition_router, prefix="/v1/workspace", tags=["Purchase requisitions"])
     return app

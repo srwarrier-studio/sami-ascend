@@ -44,3 +44,14 @@ A requisition: `purchase_requisition`, `description`, `created_by_user`, `create
 Errors: `401`, `403`, `404 NOT_FOUND`, `422 VALIDATION_FAILED` with `details` (`code`, `target`, `message`; targets are `items/0/material`, `items/1/quantity`, `release_code`, `item`), `503 SAP_UNAVAILABLE`. There is no queue for requisitions: the user retries on `503`. The list reads up to 1000 requisitions from SAP and filters and pages here.
 
 Tests that use butterfly in process need it installed: `uv run --package workspace-api --with pytest --with-editable apps/butterfly pytest apps/workspace-api`. `test_order_queue_butterfly.py::test_an_order_refused_three_times_is_posted_once_when_sap_recovers` fails on `main` too (order number 12033 against 12031, the small seed grew).
+
+## Master data (workspace-web contract)
+`create_app(..., master_data=MasterDataGateway)`; `run.py` wires `ButterflyMasterDataGateway` over butterfly's real product (V4), plant (V4) and business partner (V2) services (`SAP_PRODUCT_URL`, `SAP_PLANT_URL`, `SAP_PARTNER_URL`, default butterfly on port 8003). The user's plants are `plants_by_company` of their companies (placeholders `1000`, `2000`, `3000`).
+
+Routes under `/v1/workspace/master-data` (all `GET`):
+- `/plants` (roles `purchase`, `sales`, `management`): `{plants: [{plant, name, company_code}]}`, the plants of the user's companies.
+- `/materials?q=&plant=&top=20&skip=0` (roles `purchase`, `sales`): `{materials: [{material, description, unit, iso_unit, material_group, material_type, plants}], total}`, materials held in the plant given or in all the user's plants, in number order, `q` matches the start of the number or a word of the description (case sensitive). A `plant` the user does not have is `403 COMPANY_NOT_ALLOWED`. `unit` is the SAP base unit the document items take.
+- `/customers?q=&top=&skip=` (role `sales`) and `/suppliers?q=&top=&skip=` (role `purchase`): `{customers|suppliers: [{number, name, company_codes}], total}`, the user's companies only; `q` matches the start of the number or a word of the name.
+- `top` 1 to 50, `skip` 0 or more, `q` at most 40 characters (else `422 INVALID_QUERY`). `401`, `403`, `503 SAP_UNAVAILABLE` (no fallback data).
+
+Ceilings: each call reads at most 1000 rows from SAP and joins and pages here (`LIST_LIMIT`); a search is case sensitive as SAP's `contains` is; the group-wide plant mapping is a placeholder.
