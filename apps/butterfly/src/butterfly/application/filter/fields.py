@@ -523,3 +523,46 @@ STANDARD_PLANT_FIELDS = {
     "Division": ("division", FieldType.STRING),
     "Language": ("language", FieldType.STRING),
 }
+
+STANDARD_CUSTOMER_FIELDS = {
+    "Customer": ("customer", FieldType.STRING),
+    "CustomerName": ("name", FieldType.STRING),
+    "CustomerFullName": ("name", FieldType.STRING),
+    "BPCustomerName": ("name", FieldType.STRING),
+    "BPCustomerFullName": ("name", FieldType.STRING),
+    "CustomerAccountGroup": ("account_group", FieldType.STRING),
+}
+
+STANDARD_CUSTOMER_COMPANY_FIELDS = {
+    "Customer": ("customer", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+    "CustomerAccountGroup": ("account_group", FieldType.STRING),
+}
+
+STANDARD_CUSTOMER_SALES_AREA_FIELDS = {
+    "Customer": ("customer", FieldType.STRING),
+    "SalesOrganization": ("sales_organization", FieldType.STRING),
+    "DistributionChannel": ("distribution_channel", FieldType.STRING),
+    "Division": ("division", FieldType.STRING),
+    "CustomerAccountGroup": ("account_group", FieldType.STRING),
+}
+
+STANDARD_SUPPLIER_FIELDS = {
+    "Supplier": ("supplier", FieldType.STRING),
+    "SupplierName": ("name", FieldType.STRING),
+    "SupplierFullName": ("name", FieldType.STRING),
+    "SupplierAccountGroup": ("account_group", FieldType.STRING),
+}
+
+STANDARD_SUPPLIER_COMPANY_FIELDS = {
+    "Supplier": ("supplier", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+    "SupplierAccountGroup": ("account_group", FieldType.STRING),
+}
+
+STANDARD_SUPPLIER_PURCHASING_ORG_FIELDS = {
+    "Supplier": ("supplier", FieldType.STRING),
+    "PurchasingOrganization": ("purchasing_organization", FieldType.STRING),
+    "PurchasingGroup": ("purchasing_group", FieldType.STRING),
+    "SupplierAccountGroup": ("account_group", FieldType.STRING),
+}
