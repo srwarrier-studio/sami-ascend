@@ -1,29 +1,33 @@
 import type { ErrorDetail } from './api/salesOrders'
 import type { NewRequisition } from './api/purchaseRequisitions'
+import type { RemoteOption } from './components/RemoteSelect'
+
+export type MaterialOption = RemoteOption & { unit: string }
 
 export type RequisitionItemForm = {
-  material: string
   plant: string
+  material: MaterialOption | null
   quantity: string
-  unit: string
   deliveryDate: string
   text: string
 }
 
 export type RequisitionForm = { description: string; items: RequisitionItemForm[] }
 
-export const emptyItem = (): RequisitionItemForm => ({
-  material: '',
-  plant: '',
+export const emptyItem = (plant = ''): RequisitionItemForm => ({
+  plant,
+  material: null,
   quantity: '',
-  unit: '',
   deliveryDate: '',
   text: '',
 })
 
-export const initialForm = (): RequisitionForm => ({ description: '', items: [emptyItem()] })
+export const initialForm = (plant = ''): RequisitionForm => ({ description: '', items: [emptyItem(plant)] })
 
-export const addItem = (form: RequisitionForm): RequisitionForm => ({ ...form, items: [...form.items, emptyItem()] })
+export const addItem = (form: RequisitionForm): RequisitionForm => ({
+  ...form,
+  items: [...form.items, emptyItem(form.items[form.items.length - 1]?.plant ?? '')],
+})
 
 export const removeItem = (form: RequisitionForm, index: number): RequisitionForm =>
   form.items.length === 1 ? form : { ...form, items: form.items.filter((_, i) => i !== index) }
@@ -31,20 +35,20 @@ export const removeItem = (form: RequisitionForm, index: number): RequisitionFor
 export const toNewRequisition = (form: RequisitionForm): NewRequisition => ({
   description: form.description.trim(),
   items: form.items.map((item) => ({
-    material: item.material.trim(),
+    material: item.material?.value ?? '',
     plant: item.plant.trim(),
     quantity: item.quantity.trim(),
-    unit: item.unit.trim(),
+    unit: item.material?.unit ?? '',
     delivery_date: item.deliveryDate.trim(),
     ...(item.text.trim() ? { text: item.text.trim() } : {}),
   })),
 })
 
-const itemFields: Record<string, keyof RequisitionItemForm> = {
+const itemFields: Record<string, string> = {
   material: 'material',
+  unit: 'material',
   plant: 'plant',
   quantity: 'quantity',
-  unit: 'unit',
   delivery_date: 'deliveryDate',
   text: 'text',
 }

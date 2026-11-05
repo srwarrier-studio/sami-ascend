@@ -3,6 +3,8 @@ import { RouterProvider } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
 import { Alert, Button, Container, Loader, Stack } from '@sami/ui'
 import type { AuthClient } from './api/auth'
+import { masterDataClient } from './api/masterData'
+import type { MasterDataClient } from './api/masterData'
 import { purchaseRequisitionClient } from './api/purchaseRequisitions'
 import type { PurchaseRequisitionClient } from './api/purchaseRequisitions'
 import { salesOrderClient } from './api/salesOrders'
@@ -15,6 +17,7 @@ type AppProps = {
   client: AuthClient
   salesOrders?: SalesOrderClient
   purchaseRequisitions?: PurchaseRequisitionClient
+  masterData?: MasterDataClient
   history?: RouterHistory
 }
 
@@ -36,6 +39,7 @@ export default function App({
   client,
   salesOrders = salesOrderClient,
   purchaseRequisitions = purchaseRequisitionClient,
+  masterData = masterDataClient,
   history,
 }: AppProps) {
   const { session, login, logout, retry } = useSession(client)
@@ -51,5 +55,5 @@ export default function App({
         </Stack>
       </Container>
     )
-  return <Routed context={{ session, login, logout, salesOrders, purchaseRequisitions }} history={history} />
+  return <Routed context={{ session, login, logout, salesOrders, purchaseRequisitions, masterData }} history={history} />
 }

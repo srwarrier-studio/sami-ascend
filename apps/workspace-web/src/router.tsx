@@ -7,6 +7,7 @@ import {
   useRouteContext,
 } from '@tanstack/react-router'
 import type { RouterHistory } from '@tanstack/react-router'
+import type { MasterDataClient } from './api/masterData'
 import type { PurchaseRequisitionClient } from './api/purchaseRequisitions'
 import type { SalesOrderClient } from './api/salesOrders'
 import type { Session } from './session/useSession'
@@ -29,6 +30,7 @@ export type RouterContext = {
   logout: () => Promise<void>
   salesOrders: SalesOrderClient
   purchaseRequisitions: PurchaseRequisitionClient
+  masterData: MasterDataClient
 }
 
 function RootLayout() {
