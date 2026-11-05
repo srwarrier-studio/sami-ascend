@@ -39,8 +39,8 @@ describe('the premium look', () => {
     expect(document.documentElement.innerHTML).not.toContain('--sami-surface:#ffffff')
   })
 
-  it('uses the midnight palette for synapse and keeps workspace on blue', () => {
+  it('uses the midnight palette for synapse and gives workspace its own green', () => {
     expect(synapsePalette).toBe(presets.midnight)
-    expect(workspacePalette).toBe(presets.blue)
+    expect(workspacePalette).toBe(presets.green)
   })
 })

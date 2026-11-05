@@ -13,8 +13,8 @@ function contrastWithWhite(hex: string) {
 }
 
 describe('palette presets', () => {
-  it('offers the six presets', () => {
-    expect(Object.keys(presets)).toEqual(['midnight', 'teal', 'blue', 'indigo', 'graphite', 'copper'])
+  it('offers the seven presets', () => {
+    expect(Object.keys(presets)).toEqual(['midnight', 'teal', 'green', 'blue', 'indigo', 'graphite', 'copper'])
   })
 
   it.each(Object.entries(presets))('%s has ten hex shades for brand, gray and dark', (_name, palette) => {
@@ -28,8 +28,13 @@ describe('palette presets', () => {
     expect(contrastWithWhite(palette.colors.brand[palette.primaryShade])).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('gives synapse the midnight preset and workspace the blue preset', () => {
+  it('gives synapse the midnight preset', () => {
     expect(synapsePalette).toBe(presets.midnight)
-    expect(workspacePalette).toBe(presets.blue)
+  })
+
+  it('gives workspace its own green with the brand color as the main shade', () => {
+    expect(workspacePalette.colors.brand[workspacePalette.primaryShade]).toBe('#008043')
+    expect(workspacePalette).toBe(presets.green)
+    expect(contrastWithWhite('#008043')).toBeGreaterThanOrEqual(4.5)
   })
 })
