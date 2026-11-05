@@ -7,6 +7,9 @@ SPECS = Path(os.environ.get("BUTTERFLY_STANDARD_SPECS", Path(__file__).resolve()
 V4_METADATA = SPECS / "api_salesorder-v4" / "metadata.xml"
 V2_METADATA = SPECS / "api_sales_order_srv-v2" / "metadata.xml"
 REQUISITION_METADATA = SPECS / "api_purchaserequisition_2" / "metadata.xml"
+PRODUCT_METADATA = SPECS / "api_product" / "metadata.xml"
+PLANT_METADATA = SPECS / "api_plant_2" / "metadata.xml"
+PARTNER_METADATA = SPECS / "api_business_partner-v2" / "metadata.xml"
 
 
 @dataclass(frozen=True)

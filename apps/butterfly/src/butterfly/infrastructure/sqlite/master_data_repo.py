@@ -1,6 +1,7 @@
-from butterfly.domain.entities.master_data import Customer, Material
+from butterfly.domain.entities.master_data import Customer, Material, Plant, Product, Supplier
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.infrastructure.memory.in_memory_master_data_repo import CURRENCIES
+from butterfly.infrastructure.memory.master_lists import plants, products, suppliers
 from butterfly.infrastructure.sqlite.database import Database
 from butterfly.infrastructure.sqlite.money import from_minor
 from butterfly.infrastructure.sqlite.seeder import write_master_data
@@ -27,3 +28,16 @@ class SqliteMasterDataRepo(MasterDataRepo):
 
     def currency_exists(self, currency: str) -> bool:
         return currency in CURRENCIES
+
+    def list_customers(self) -> list[Customer]:
+        rows = self.db.query("SELECT * FROM customer ORDER BY rowid")
+        return [Customer(row["customer_id"], row["name"], row["country"], row["company_code"]) for row in rows]
+
+    def list_products(self) -> list[Product]:
+        return products()
+
+    def list_suppliers(self) -> list[Supplier]:
+        return suppliers()
+
+    def list_plants(self) -> list[Plant]:
+        return plants()

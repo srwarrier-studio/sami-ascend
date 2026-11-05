@@ -37,3 +37,31 @@ class Material:
 
     def price_in(self, currency: str) -> Decimal:
         return in_currency(self.price, currency)
+
+
+@dataclass(frozen=True)
+class Product:
+    material_id: str
+    description: str
+    unit: str
+    material_group: str
+    material_type: str
+    company_code: str
+
+    @property
+    def iso_unit(self) -> str:
+        return ISO_UNITS.get(self.unit, self.unit)
+
+
+@dataclass(frozen=True)
+class Supplier:
+    supplier_id: str
+    name: str
+    company_code: str
+
+
+@dataclass(frozen=True)
+class Plant:
+    plant: str
+    name: str
+    company_code: str

@@ -484,3 +484,85 @@ STANDARD_REQUISITION_ITEM_FIELDS = {
     "PurReqnItemCurrency": ("currency", FieldType.STRING),
     "ItemNetAmount": ("net_amount", FieldType.DECIMAL),
 }
+
+STANDARD_PRODUCT_FIELDS = {
+    "Product": ("product", FieldType.STRING),
+    "ProductType": ("product_type", FieldType.STRING),
+    "ProductGroup": ("product_group", FieldType.STRING),
+    "BaseUnit": ("base_unit", FieldType.STRING),
+    "BaseISOUnit": ("base_iso_unit", FieldType.STRING),
+    "Division": ("division", FieldType.STRING),
+    "__description": ("description", FieldType.STRING),
+}
+
+STANDARD_PRODUCT_DESCRIPTION_FIELDS = {
+    "Product": ("product", FieldType.STRING),
+    "Language": ("language", FieldType.STRING),
+    "ProductDescription": ("product_description", FieldType.STRING),
+}
+
+STANDARD_PRODUCT_PLANT_FIELDS = {
+    "Product": ("product", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "BaseUnit": ("base_unit", FieldType.STRING),
+}
+
+STANDARD_PRODUCT_UNIT_FIELDS = {
+    "Product": ("product", FieldType.STRING),
+    "AlternativeUnit": ("alternative_unit", FieldType.STRING),
+    "BaseUnit": ("base_unit", FieldType.STRING),
+}
+
+STANDARD_PLANT_FIELDS = {
+    "Plant": ("plant", FieldType.STRING),
+    "PlantName": ("name", FieldType.STRING),
+    "ValuationArea": ("plant", FieldType.STRING),
+    "SalesOrganization": ("sales_organization", FieldType.STRING),
+    "DefaultPurchasingOrganization": ("purchasing_organization", FieldType.STRING),
+    "DistributionChannel": ("distribution_channel", FieldType.STRING),
+    "Division": ("division", FieldType.STRING),
+    "Language": ("language", FieldType.STRING),
+}
+
+STANDARD_CUSTOMER_FIELDS = {
+    "Customer": ("customer", FieldType.STRING),
+    "CustomerName": ("name", FieldType.STRING),
+    "CustomerFullName": ("name", FieldType.STRING),
+    "BPCustomerName": ("name", FieldType.STRING),
+    "BPCustomerFullName": ("name", FieldType.STRING),
+    "CustomerAccountGroup": ("account_group", FieldType.STRING),
+}
+
+STANDARD_CUSTOMER_COMPANY_FIELDS = {
+    "Customer": ("customer", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+    "CustomerAccountGroup": ("account_group", FieldType.STRING),
+}
+
+STANDARD_CUSTOMER_SALES_AREA_FIELDS = {
+    "Customer": ("customer", FieldType.STRING),
+    "SalesOrganization": ("sales_organization", FieldType.STRING),
+    "DistributionChannel": ("distribution_channel", FieldType.STRING),
+    "Division": ("division", FieldType.STRING),
+    "CustomerAccountGroup": ("account_group", FieldType.STRING),
+}
+
+STANDARD_SUPPLIER_FIELDS = {
+    "Supplier": ("supplier", FieldType.STRING),
+    "SupplierName": ("name", FieldType.STRING),
+    "SupplierFullName": ("name", FieldType.STRING),
+    "SupplierAccountGroup": ("account_group", FieldType.STRING),
+}
+
+STANDARD_SUPPLIER_COMPANY_FIELDS = {
+    "Supplier": ("supplier", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+    "SupplierAccountGroup": ("account_group", FieldType.STRING),
+}
+
+STANDARD_SUPPLIER_PURCHASING_ORG_FIELDS = {
+    "Supplier": ("supplier", FieldType.STRING),
+    "PurchasingOrganization": ("purchasing_organization", FieldType.STRING),
+    "PurchasingGroup": ("purchasing_group", FieldType.STRING),
+    "SupplierAccountGroup": ("account_group", FieldType.STRING),
+}

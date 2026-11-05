@@ -22,9 +22,10 @@ V2_MEDIA = "application/json; charset=utf-8"
 
 
 class Refusal(Exception):
-    def __init__(self, kind: str, token: str = ""):
+    def __init__(self, kind: str, token: str = "", type_name: str = ""):
         self.kind = kind
         self.token = token
+        self.type_name = type_name
 
 
 @dataclass(frozen=True)
@@ -303,10 +304,7 @@ class V2:
         return ""
 
     def list_body(self, context: str, rows: list, total: int | None) -> dict:
-        body = {"results": rows}
-        if total is not None:
-            body["__count"] = str(total)
-        return {"d": body}
+        return {"d": ({"__count": str(total)} if total is not None else {}) | {"results": rows}}
 
     def entity_body(self, context: str, row: dict) -> dict:
         return {"d": row}
