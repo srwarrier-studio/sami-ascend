@@ -93,6 +93,7 @@ from butterfly.domain.repositories.purchase_requisition_repo import PurchaseRequ
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 from butterfly.infrastructure.api.standard.dialects import V2, V4
 from butterfly.infrastructure.api.release import build_release_router
+from butterfly.infrastructure.api.standard.product import build_product_router
 from butterfly.infrastructure.api.standard.requisition import build_requisition_router
 from butterfly.infrastructure.api.standard.service import build_router
 from butterfly.infrastructure.api.odata import (
@@ -483,6 +484,7 @@ def create_app(
     app.include_router(build_router(V4(), repo))
     app.include_router(build_router(V2(), repo))
     app.include_router(build_requisition_router(requisitions, master_data, now, release_rules))
+    app.include_router(build_product_router(master_data))
     app.include_router(build_release_router(ReleasePurchaseRequisition(requisitions, now, release_rules)))
     app.include_router(drivers_router)
     app.include_router(inventory_router)

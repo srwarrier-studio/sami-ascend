@@ -114,11 +114,12 @@ class TestReading:
     def test_expand_the_items_of_a_requisition(self, client):
         body = get(client, "PurchaseReqn('10000000')?$expand=_PurchaseRequisitionItem($select=PurchaseRequisitionItem,PurReqnReleaseStatus)").json()
         assert [i["PurchaseRequisitionItem"] for i in body["_PurchaseRequisitionItem"]] == ["10", "20"]
-        assert body["@odata.context"] == "$metadata#PurchaseReqn(_PurchaseRequisitionItem(PurchaseRequisitionItem,PurReqnReleaseStatus))/$entity"
+        assert body["@odata.context"] == "$metadata#PurchaseReqn(_PurchaseRequisitionItem(PurchaseRequisitionItem,PurReqnReleaseStatus,PurchaseRequisition))/$entity"
 
     def test_expand_the_requisition_of_an_item(self, client):
         row = get(client, "PurchaseReqnItem?$expand=_PurReqn&$top=1").json()["value"][0]
         assert row["_PurReqn"]["PurchaseRequisition"] == "10000000"
+        assert get(client, "PurchaseReqnItem?$expand=_PurReqn&$select=PurchaseRequisition&$top=1").json()["@odata.context"] == "$metadata#PurchaseReqnItem(PurchaseRequisition,PurchaseRequisitionItem,_PurReqn())"
 
     def test_items_of_one_requisition_by_navigation(self, client):
         assert len(get(client, "PurchaseReqn('10000000')/_PurchaseRequisitionItem").json()["value"]) == 2

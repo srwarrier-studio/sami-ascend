@@ -484,3 +484,31 @@ STANDARD_REQUISITION_ITEM_FIELDS = {
     "PurReqnItemCurrency": ("currency", FieldType.STRING),
     "ItemNetAmount": ("net_amount", FieldType.DECIMAL),
 }
+
+STANDARD_PRODUCT_FIELDS = {
+    "Product": ("product", FieldType.STRING),
+    "ProductType": ("product_type", FieldType.STRING),
+    "ProductGroup": ("product_group", FieldType.STRING),
+    "BaseUnit": ("base_unit", FieldType.STRING),
+    "BaseISOUnit": ("base_iso_unit", FieldType.STRING),
+    "Division": ("division", FieldType.STRING),
+    "__description": ("description", FieldType.STRING),
+}
+
+STANDARD_PRODUCT_DESCRIPTION_FIELDS = {
+    "Product": ("product", FieldType.STRING),
+    "Language": ("language", FieldType.STRING),
+    "ProductDescription": ("product_description", FieldType.STRING),
+}
+
+STANDARD_PRODUCT_PLANT_FIELDS = {
+    "Product": ("product", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "BaseUnit": ("base_unit", FieldType.STRING),
+}
+
+STANDARD_PRODUCT_UNIT_FIELDS = {
+    "Product": ("product", FieldType.STRING),
+    "AlternativeUnit": ("alternative_unit", FieldType.STRING),
+    "BaseUnit": ("base_unit", FieldType.STRING),
+}
