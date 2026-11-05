@@ -41,7 +41,7 @@ Source tags: **[sample]** real Hub sandbox response saved under `docs/sap/standa
 Errors [sample]: unknown key 404 `/IWBEP/CM_V4S_RUN/000`; bad filter 400.
 
 ## Customer
-**Service.** `API_BUSINESS_PARTNER` V2, `/sap/opu/odata/sap/API_BUSINESS_PARTNER/` [sample]. Saved: `docs/sap/standard/api_business_partner-v2/`. The V4 guesses tried (`api_businesspartner`, `api_businesspartner_2`, `api_business_partner`, `api_customer`) all answer 403, so no V4 was found; **to confirm by searching the Hub for a V4 business partner or customer API**.
+**Service.** `API_BUSINESS_PARTNER` V2, `/sap/opu/odata/sap/API_BUSINESS_PARTNER/` [sample]. Saved: `docs/sap/standard/api_business_partner-v2/`. The V4 guesses tried (`api_businesspartner`, `api_businesspartner_2`, `api_business_partner`, `api_customer`) all answer 403, so no V4 was found. The owner searched the Hub for a V4 business partner API on 2026-11-05 and found none: **V2 is the only version** (confirmed).
 
 **Fields** [sample]: `A_Customer`: `Customer` (key), `CustomerName`, `CustomerFullName`, `CustomerAccountGroup`, and more. By company: `A_CustomerCompany` (`Customer` + `CompanyCode`, `PaymentTerms`, `ReconciliationAccount`), by sales area: `A_CustomerSalesArea` (`SalesOrganization`, `DistributionChannel`, `Division`, `Currency`). Navigations from `A_Customer`: `to_CustomerCompany`, `to_CustomerSalesArea`.
 
@@ -59,11 +59,10 @@ Same service [sample]. `A_Supplier`: `Supplier` (key), `SupplierName`, `Supplier
 | # | Assumption | Who |
 |---|---|---|
 | 1 | Which of `API_PRODUCT` (V4), `API_PLANT_2` (V4) and `API_BUSINESS_PARTNER` (V2) are available and activated on the 2022 on-premise system | consultants |
-| 2 | A V4 business partner, customer or supplier API exists on the Hub | owner (Hub search) |
-| 3 | Plant to company mapping (the API does not give it) | consultants |
-| 4 | Which materials a company may use is decided by the plant (`ProductPlant`) | consultants |
-| 5 | Description language `EN` | owner |
-| 6 | The real material numbers, units and plants of the three companies (the sandbox data is SAP demo data) | consultants |
+| 2 | Plant to company mapping (the API does not give it) | consultants |
+| 3 | Which materials a company may use is decided by the plant (`ProductPlant`) | consultants |
+| 4 | Description language `EN` | owner |
+| 5 | The real material numbers, units and plants of the three companies (the sandbox data is SAP demo data) | consultants |
 
 ## Follow-up plan (for the owner to agree before any code)
 | Order | Phase | Size |
