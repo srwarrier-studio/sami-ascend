@@ -1,9 +1,10 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryHistory } from '@tanstack/react-router'
 import { UiProvider, workspacePalette } from '@sami/ui'
 import App from '../src/App'
 import type { AuthClient } from '../src/api/auth'
+import type { MasterDataClient } from '../src/api/masterData'
 import type { CreateResult, OrderRequest, SalesOrderClient } from '../src/api/salesOrders'
 import { REFRESH_MS } from '../src/pages/WaitingOrders'
 
@@ -15,7 +16,7 @@ const auth: AuthClient = {
 
 const waiting = (id: string, status: OrderRequest['status'], attempts = 0, customer = '0000100001'): OrderRequest => ({
   id, status, attempts, created_at: '2026-10-31T09:00:00Z', message: null,
-  order: { sales_order_type: 'OR', sold_to_party: customer, transaction_currency: 'INR', requested_delivery_date: null, items: [{ material: 'RM-1001', quantity: '5', quantity_unit: 'KG' }, { material: 'RM-1002', quantity: '1', quantity_unit: 'KG' }] },
+  order: { sales_order_type: 'OR', sold_to_party: customer, company_code: 'INA1', transaction_currency: 'INR', requested_delivery_date: null, items: [{ material: 'RM-1001', quantity: '5', quantity_unit: 'KG' }, { material: 'RM-1002', quantity: '1', quantity_unit: 'KG' }] },
 })
 
 const client = (create: CreateResult, lists: OrderRequest[][] | Error = [[]]): SalesOrderClient => {
@@ -28,18 +29,34 @@ const client = (create: CreateResult, lists: OrderRequest[][] | Error = [[]]): S
   return { create: vi.fn().mockResolvedValue(create), openRequests }
 }
 
+const masterData: MasterDataClient = {
+  plants: vi.fn().mockResolvedValue([]),
+  materials: vi.fn().mockResolvedValue([{ material: 'RM-1001', description: 'Steel', unit: 'KG', iso_unit: 'KGM', material_group: 'G', material_type: 'FERT', plants: ['1000'] }]),
+  customers: vi.fn().mockResolvedValue([{ number: '0000100001', name: 'Harborline', company_codes: ['INA1'] }]),
+  suppliers: vi.fn().mockResolvedValue([]),
+}
+
 const open = (salesOrders: SalesOrderClient) =>
   render(
     <UiProvider palette={workspacePalette}>
-      <App client={auth} salesOrders={salesOrders} history={createMemoryHistory({ initialEntries: ['/sales-orders/new'] })} />
+      <App client={auth} salesOrders={salesOrders} masterData={masterData} history={createMemoryHistory({ initialEntries: ['/sales-orders/new'] })} />
     </UiProvider>,
   )
 
+const field = (label: string) => screen.getAllByLabelText(label).filter((element) => element.tagName === 'INPUT')[0]
+
+const choose = async (label: string, option: string) => {
+  const input = field(label)
+  await userEvent.click(input)
+  await waitFor(() => expect(document.getElementById(input.getAttribute('aria-controls') ?? '')).not.toBeNull())
+  await userEvent.click(await within(document.getElementById(input.getAttribute('aria-controls') ?? '') as HTMLElement).findByText(option))
+}
+
 const fill = async () => {
-  await userEvent.type(await screen.findByLabelText('Customer number'), '0000100001')
-  await userEvent.type(screen.getByLabelText('Material'), 'RM-1001')
-  await userEvent.type(screen.getByLabelText('Quantity'), '5')
-  await userEvent.type(screen.getByLabelText('Unit'), 'KG')
+  await screen.findByLabelText('Order type')
+  await choose('Customer', '0000100001 Harborline')
+  await choose('Material', 'RM-1001 Steel')
+  await userEvent.type(field('Quantity'), '5')
 }
 const submit = () => userEvent.click(screen.getByRole('button', { name: 'Create order' }))
 
@@ -51,8 +68,8 @@ describe('answers that mean the order is safe', () => {
     await fill()
     await submit()
     expect(await screen.findByText('Saved. SAP could not take the order right now; it will be sent automatically.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Customer number')).toHaveValue('')
-    expect(screen.getByLabelText('Material')).toHaveValue('')
+    expect(field('Customer')).toHaveValue('')
+    expect(field('Material')).toHaveValue('')
     expect(await screen.findByText('Will be sent automatically')).toBeInTheDocument()
     expect(orders.openRequests).toHaveBeenCalledTimes(2)
   })
@@ -63,7 +80,7 @@ describe('answers that mean the order is safe', () => {
     await fill()
     await submit()
     expect(await screen.findByText(/Do not enter it again/)).toBeInTheDocument()
-    expect(screen.getByLabelText('Customer number')).toHaveValue('')
+    expect(field('Customer')).toHaveValue('')
     expect(await screen.findByText('Check in SAP')).toBeInTheDocument()
   })
 })
@@ -74,14 +91,14 @@ describe('an order that was not saved', () => {
     await fill()
     await submit()
     expect(await screen.findByText('The order could not be saved and nothing was sent. Try again.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Material')).toHaveValue('RM-1001')
+    expect(field('Material')).toHaveValue('RM-1001 Steel')
   })
 })
 
 describe('the Waiting for SAP panel', () => {
   it('is hidden when nothing waits', async () => {
     open(client({ ok: true, salesOrder: '1' }, [[]]))
-    await screen.findByLabelText('Customer number')
+    await screen.findByLabelText('Order type')
     expect(screen.queryByText('Waiting for SAP')).not.toBeInTheDocument()
   })
 
@@ -105,7 +122,7 @@ describe('the Waiting for SAP panel', () => {
   it('shows one grey line when it cannot load and leaves the form alone', async () => {
     open(client({ ok: true, salesOrder: '1' }, new Error('down')))
     expect(await screen.findByText('Could not load waiting orders')).toBeInTheDocument()
-    expect(screen.getByLabelText('Customer number')).toBeEnabled()
+    expect(field('Customer')).toBeEnabled()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })
@@ -117,7 +134,7 @@ describe('refreshing', () => {
   it('reloads every 15 seconds and stops when the page is left', async () => {
     const orders = client({ ok: true, salesOrder: '1' }, [[], [waiting('a', 'queued')]])
     const { unmount } = open(orders)
-    await screen.findByLabelText('Customer number')
+    await screen.findByLabelText('Order type')
     expect(orders.openRequests).toHaveBeenCalledTimes(1)
     await act(async () => {
       await vi.advanceTimersByTimeAsync(REFRESH_MS)

@@ -5,6 +5,7 @@ export type NewOrderItem = { material: string; quantity: string; quantity_unit: 
 export type NewOrder = {
   sales_order_type: string
   sold_to_party: string
+  company_code: string
   transaction_currency: string
   requested_delivery_date: string | null
   items: NewOrderItem[]
