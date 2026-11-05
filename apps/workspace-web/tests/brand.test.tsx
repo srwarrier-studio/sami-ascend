@@ -1,5 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { render } from '@testing-library/react'
+import { createMemoryHistory } from '@tanstack/react-router'
+import { UiProvider, workspacePalette } from '@sami/ui'
+import App from '../src/App'
 import { WorkspaceLogo } from '../src/brand/WorkspaceLogo'
 import { APP_NAME, TAGLINE } from '../src/config'
 
@@ -45,5 +48,20 @@ describe('the browser tab', () => {
 describe('the name', () => {
   it('has a tagline', () => {
     expect(TAGLINE).toBe('Work, delivered.')
+  })
+})
+
+describe('the header', () => {
+  it('shows the mark and the name once signed in', async () => {
+    const { findByRole } = render(
+      <UiProvider palette={workspacePalette}>
+        <App
+          client={{ me: vi.fn().mockResolvedValue({ userid: 'u1', sap_username: 'ANNA', roles: ['purchase'] }), login: vi.fn(), logout: vi.fn() }}
+          history={createMemoryHistory({ initialEntries: ['/'] })}
+        />
+      </UiProvider>,
+    )
+    const name = await findByRole('heading', { name: APP_NAME })
+    expect(name.closest('header')?.querySelector('svg')).not.toBeNull()
   })
 })
