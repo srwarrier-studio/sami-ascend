@@ -11,3 +11,6 @@ Training/sap-intent-v2/
 Training/*.jsonl
 *.db-wal
 *.db-shm
+
+# API client request collections (local testing)
+api-docs/
