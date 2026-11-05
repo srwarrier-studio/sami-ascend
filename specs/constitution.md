@@ -7,6 +7,19 @@ one, change this file first, with the owner's approval.
 Replace the legacy SAP dynpro screens with a web UI for S/4HANA. React frontends talk to
 Python (FastAPI) backends. Backends talk to SAP OData (RAP). The browser never calls SAP.
 
+## Engineering bar
+This is a long-lived enterprise system, not a throwaway app. Every change is built to be
+robust, maintainable and scalable:
+- **Robust.** Handle failure on purpose: validate at boundaries, return honest errors, make
+  retries safe, never lose or silently change business data.
+- **Maintainable.** Clear layers, small readable classes, tests for every rule, and a spec that
+  says why. A new developer can change one thing without learning everything.
+- **Scalable.** No hidden global state, no per-user or per-company hardcoding. Behavior comes from
+  data and configuration, so more users, companies, plants and documents need no rewrite.
+- **Enterprise practice over shortcuts.** Do what a mature enterprise system does (separation of
+  duties, audit trail, role-based access, idempotent writes). If a shortcut is taken, record it in
+  `specs/notes.md` with the upgrade path. Never take one that weakens security or data integrity.
+
 ## How we work
 1. **Small phases.** A phase has one goal in one sentence. At most 5 task groups.
 2. **Small task groups.** About 5 files or 300 changed lines at most. If it grows, stop and split.
@@ -54,4 +67,7 @@ Python (FastAPI) backends. Backends talk to SAP OData (RAP). The browser never c
 
 ## Security
 - `docs/security-checklist.md` applies to every change. Section 1 on every PR.
+- Least privilege and separation of duties, as in enterprise systems: roles grant only what the job
+  needs. Administering users and creating business documents (orders, requisitions, later invoices
+  and payments) are different duties; one role does not get both unless the spec says so.
 - Never commit secrets. Authorization data stays in SAP; the app owns roles for page access.
