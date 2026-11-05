@@ -170,3 +170,44 @@ class PurchaseRequisitionPageResponse(BaseModel):
 class ReleaseBody(BaseModel):
     release_code: str = Field(min_length=1, max_length=4)
     item: str | None = None
+
+
+class PlantResponse(BaseModel):
+    plant: str
+    name: str
+    company_code: str
+
+
+class PlantsResponse(BaseModel):
+    plants: list[PlantResponse]
+
+
+class MaterialResponse(BaseModel):
+    material: str
+    description: str
+    unit: str
+    iso_unit: str
+    material_group: str
+    material_type: str
+    plants: list[str]
+
+
+class MaterialPageResponse(BaseModel):
+    materials: list[MaterialResponse]
+    total: int
+
+
+class PartnerResponse(BaseModel):
+    number: str
+    name: str
+    company_codes: list[str]
+
+
+class CustomerPageResponse(BaseModel):
+    customers: list[PartnerResponse]
+    total: int
+
+
+class SupplierPageResponse(BaseModel):
+    suppliers: list[PartnerResponse]
+    total: int
