@@ -1,6 +1,7 @@
-from butterfly.domain.entities.master_data import Customer, Material
+from butterfly.domain.entities.master_data import Customer, Material, Product, Supplier
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.infrastructure.memory.companies import COMPANIES
+from butterfly.infrastructure.memory.master_lists import products, suppliers
 
 CURRENCIES = {"INR", "USD"}
 COMPANY_CODES = {company.code for company in COMPANIES}
@@ -30,3 +31,12 @@ class InMemoryMasterDataRepo(MasterDataRepo):
 
     def currency_exists(self, currency: str) -> bool:
         return currency in CURRENCIES
+
+    def list_customers(self) -> list[Customer]:
+        return list(self.customers.values())
+
+    def list_products(self) -> list[Product]:
+        return products()
+
+    def list_suppliers(self) -> list[Supplier]:
+        return suppliers()

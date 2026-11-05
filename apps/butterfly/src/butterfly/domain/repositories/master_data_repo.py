@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from butterfly.domain.entities.master_data import Customer, Material
+from butterfly.domain.entities.master_data import Customer, Material, Product, Supplier
 
 
 class MasterDataRepo(ABC):
@@ -15,3 +15,12 @@ class MasterDataRepo(ABC):
 
     @abstractmethod
     def currency_exists(self, currency: str) -> bool: ...
+
+    @abstractmethod
+    def list_customers(self) -> list[Customer]: ...
+
+    @abstractmethod
+    def list_products(self) -> list[Product]: ...
+
+    @abstractmethod
+    def list_suppliers(self) -> list[Supplier]: ...
