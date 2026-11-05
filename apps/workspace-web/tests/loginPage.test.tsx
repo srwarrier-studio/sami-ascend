@@ -31,7 +31,7 @@ describe('the sign-in page', () => {
   it('shows the brand, the tagline and the card', async () => {
     open()
     expect(await screen.findByRole('heading', { name: 'Sami Workspace' })).toBeInTheDocument()
-    expect(screen.getByText('Plan. Order. Deliver.')).toBeInTheDocument()
+    expect(screen.getByText('Work, delivered.')).toBeInTheDocument()
     expect(screen.getByText('Sign in to Sami Workspace')).toBeInTheDocument()
   })
 
