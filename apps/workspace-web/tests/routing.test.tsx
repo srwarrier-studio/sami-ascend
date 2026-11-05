@@ -123,13 +123,14 @@ describe('shell', () => {
   it('keeps the shell on page not found', async () => {
     open('/nowhere', fakeClient(sales))
     await screen.findByRole('heading', { name: 'Page not found' })
-    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: new RegExp(sales.sap_username) })).toBeInTheDocument()
   })
 
   it('signs out and lands on login', async () => {
     const client = fakeClient(sales)
     open('/', client)
-    await userEvent.click(await screen.findByRole('button', { name: 'Sign out' }))
+    await userEvent.click(await screen.findByRole('button', { name: new RegExp(sales.sap_username) }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Sign out' }))
     expect(client.logout).toHaveBeenCalled()
     expect(await screen.findByRole('heading', { name: 'Sami Workspace' })).toBeInTheDocument()
   })

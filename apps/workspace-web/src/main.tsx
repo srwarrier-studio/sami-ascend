@@ -6,7 +6,7 @@ import { authClient } from './api/auth'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <UiProvider palette={workspacePalette}>
+    <UiProvider palette={workspacePalette} look="premium">
       <App client={authClient} />
     </UiProvider>
   </StrictMode>,
