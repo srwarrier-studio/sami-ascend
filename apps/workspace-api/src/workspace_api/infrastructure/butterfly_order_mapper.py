@@ -4,10 +4,17 @@ from decimal import Decimal
 from workspace_api.domain.entities.sales_order import NewSalesOrder, SalesOrder, SalesOrderItem
 
 
+KEY_LENGTH = 10
+
+
+def stored_form(number: str) -> str:
+    return number.zfill(KEY_LENGTH) if number.isdigit() else number
+
+
 def new_order_to_json(order: NewSalesOrder) -> dict:
     body = {
         "SalesOrderType": order.sales_order_type,
-        "SoldToParty": order.sold_to_party,
+        "SoldToParty": stored_form(order.sold_to_party),
         "TransactionCurrency": order.transaction_currency,
         "CompanyCode": order.company_code,
         "_Item": [

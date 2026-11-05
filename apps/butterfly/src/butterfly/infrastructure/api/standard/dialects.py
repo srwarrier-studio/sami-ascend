@@ -11,6 +11,7 @@ from butterfly.application.filter.fields import (
     STANDARD_V4_ORDER_FIELDS,
 )
 from butterfly.domain.entities.master_data import ISO_UNITS
+from butterfly.application.alpha import external
 from butterfly.domain.entities.sales_order import SalesOrder, SalesOrderItem
 from butterfly.infrastructure.api.standard.edmx import V2_METADATA, V4_METADATA, Metadata, load
 
@@ -50,8 +51,7 @@ def item_rows(order: SalesOrder) -> list[ItemRow]:
     ]
 
 
-def plain(number: str) -> str:
-    return str(int(number)) if number.isdigit() else number
+plain = external
 
 
 def stamp() -> str:
@@ -111,7 +111,7 @@ class V4:
         return {
             "SalesOrder": plain(order.sales_order),
             "SalesOrderType": order.sales_order_type,
-            "SoldToParty": order.sold_to_party,
+            "SoldToParty": external(order.sold_to_party),
             "SalesOrganization": order.sales_organization,
             "DistributionChannel": order.distribution_channel,
             "OrganizationDivision": order.division,
@@ -246,7 +246,7 @@ class V2:
             "SalesOrganization": order.sales_organization,
             "DistributionChannel": order.distribution_channel,
             "OrganizationDivision": order.division,
-            "SoldToParty": order.sold_to_party,
+            "SoldToParty": external(order.sold_to_party),
             "CreationDate": f"/Date({milliseconds(created.date())})/",
             "CreatedByUser": order.created_by_user,
             "LastChangeDate": f"/Date({milliseconds(changed.date())})/",

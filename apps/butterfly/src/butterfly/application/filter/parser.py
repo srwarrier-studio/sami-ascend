@@ -2,6 +2,7 @@ import re
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
+from butterfly.application.alpha import internal
 from butterfly.application.filter.fields import FieldType
 from butterfly.application.filter.nodes import (
     COMPARISONS,
@@ -153,14 +154,14 @@ class Parser:
         function = self.take()[0]
         self.expect("(")
         attribute, field_type = self.parse_field()
-        if field_type is not FieldType.STRING:
+        if field_type not in (FieldType.STRING, FieldType.KEY):
             raise InvalidQuery(f"{function}() works only on text fields.", TARGET)
         self.expect(",")
         text, kind = self.take()
         if kind != "string":
             raise InvalidQuery(f"{function}() needs a text value in quotes.", TARGET)
         self.expect(")")
-        return StringFunction(function, attribute, literal_value(text, kind))
+        return StringFunction(function, attribute, literal_value(text, kind), field_type is FieldType.KEY)
 
     def parse_comparison(self):
         attribute, field_type = self.parse_field()
@@ -168,9 +169,11 @@ class Parser:
         if kind != "ident" or name not in COMPARISONS:
             raise InvalidQuery(f"Unknown operator {name} in $filter.", TARGET)
         text, kind = self.take()
-        if LITERAL_TYPES.get(kind) is not field_type:
+        expected = FieldType.STRING if field_type is FieldType.KEY else field_type
+        if LITERAL_TYPES.get(kind) is not expected:
             raise InvalidQuery(f"Value {text} does not match the field type in $filter.", TARGET)
-        return Comparison(attribute, name, literal_value(text, kind))
+        value = literal_value(text, kind)
+        return Comparison(attribute, name, internal(value) if field_type is FieldType.KEY else value)
 
 
 def parse_filter(text: str, fields: dict):

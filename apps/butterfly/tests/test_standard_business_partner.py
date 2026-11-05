@@ -3,6 +3,7 @@ import json
 import pytest
 from conftest import make_client
 
+from butterfly.application.alpha import external as ext
 from butterfly.infrastructure.api.standard.business_partner import ROOT
 from butterfly.infrastructure.api.standard.edmx import PARTNER_METADATA, SPECS
 from butterfly.infrastructure.memory.companies import COMPANIES
@@ -62,7 +63,7 @@ class TestRows:
 
     def test_every_customer_is_listed_with_its_name(self, client):
         rows = get(client, "A_Customer?$top=100&$select=Customer,CustomerName").json()["d"]["results"]
-        assert {r["Customer"] for r in rows} == {c for c, _ in CUSTOMERS}
+        assert {r["Customer"] for r in rows} == {ext(c) for c, _ in CUSTOMERS}
         assert all(r["CustomerName"] for r in rows)
 
     def test_a_customer_has_a_company_row_and_a_sales_area_row(self, client):
@@ -74,14 +75,14 @@ class TestRows:
 
     def test_every_supplier_is_listed_with_its_company_and_purchasing_organization(self, client):
         rows = get(client, "A_Supplier?$top=100&$select=Supplier,SupplierName").json()["d"]["results"]
-        assert {(r["Supplier"], r["SupplierName"]) for r in rows} == {(s, n) for s, n, _ in SUPPLIERS}
+        assert {(r["Supplier"], r["SupplierName"]) for r in rows} == {(ext(s), n) for s, n, _ in SUPPLIERS}
         first = SUPPLIERS[0]
         companies = get(client, f"A_SupplierCompany?$filter=Supplier eq '{first[0]}'").json()["d"]["results"]
         orgs = get(client, f"A_SupplierPurchasingOrg?$filter=Supplier eq '{first[0]}'").json()["d"]["results"]
         assert [c["CompanyCode"] for c in companies] == [first[2]] and orgs[0]["PurchasingOrganization"] and orgs[0]["PurchasingGroup"] == "001"
 
     def test_a_key_gets_one_row_and_composite_keys_work(self, client):
-        assert get(client, f"A_Customer('{FIRST_CUSTOMER}')").json()["d"]["Customer"] == FIRST_CUSTOMER
+        assert get(client, f"A_Customer('{FIRST_CUSTOMER}')").json()["d"]["Customer"] == ext(FIRST_CUSTOMER)
         assert get(client, f"A_CustomerCompany(Customer='{FIRST_CUSTOMER}',CompanyCode='{FIRST_COMPANY}')").json()["d"]["CompanyCode"] == FIRST_COMPANY
         assert get(client, f"A_CustomerCompany(Customer='{FIRST_CUSTOMER}',CompanyCode='ZZZZ')").status_code == 404
 
@@ -89,23 +90,23 @@ class TestRows:
 class TestByCompany:
     def test_customers_of_one_company_through_the_company_rows(self, client):
         rows = get(client, "A_CustomerCompany?$filter=CompanyCode eq 'INA2'&$top=100&$select=Customer").json()["d"]["results"]
-        assert {r["Customer"] for r in rows} == {c for c, code in CUSTOMERS if code == "INA2"}
+        assert {r["Customer"] for r in rows} == {ext(c) for c, code in CUSTOMERS if code == "INA2"}
 
     def test_suppliers_of_one_company_through_the_company_rows(self, client):
         rows = get(client, "A_SupplierCompany?$filter=CompanyCode eq 'INA3'&$top=100&$select=Supplier").json()["d"]["results"]
-        assert {r["Supplier"] for r in rows} == {s for s, _, code in SUPPLIERS if code == "INA3"}
+        assert {r["Supplier"] for r in rows} == {ext(s) for s, _, code in SUPPLIERS if code == "INA3"}
 
 
 class TestSearching:
     def test_by_the_start_of_the_number(self, client):
         rows = get(client, f"A_Customer?$filter=startswith(Customer,'{FIRST_CUSTOMER[:6]}')&$select=Customer").json()["d"]["results"]
-        assert rows and all(r["Customer"].startswith(FIRST_CUSTOMER[:6]) for r in rows)
+        assert rows and all(r["Customer"].startswith(ext(FIRST_CUSTOMER)[:4]) or r["Customer"].startswith(FIRST_CUSTOMER[:6]) for r in rows)
 
     def test_by_a_word_of_the_name_the_v2_way(self, client):
         name = get(client, f"A_Customer('{FIRST_CUSTOMER}')").json()["d"]["CustomerName"]
         word = name.split()[0]
         body = get(client, f"A_Customer?$filter=substringof('{word}',CustomerName)&$inlinecount=allpages&$select=Customer,CustomerName").json()["d"]
-        assert body["__count"] == str(len(body["results"])) and FIRST_CUSTOMER in {r["Customer"] for r in body["results"]}
+        assert body["__count"] == str(len(body["results"])) and ext(FIRST_CUSTOMER) in {r["Customer"] for r in body["results"]}
 
     def test_pages_and_counts_as_a_string(self, client):
         body = get(client, "A_Customer?$top=2&$skip=1&$inlinecount=allpages&$select=Customer&$orderby=Customer").json()["d"]
@@ -134,7 +135,7 @@ class TestNavigating:
 
     def test_a_navigation_path_lists_the_children(self, client):
         rows = get(client, f"A_Customer('{FIRST_CUSTOMER}')/to_CustomerSalesArea").json()["d"]["results"]
-        assert len(rows) == 1 and rows[0]["Customer"] == FIRST_CUSTOMER
+        assert len(rows) == 1 and rows[0]["Customer"] == ext(FIRST_CUSTOMER)
 
     def test_the_count_comes_before_the_results(self, client):
         assert list(get(client, "A_Customer?$top=1&$inlinecount=allpages&$select=Customer").json()["d"]) == ["__count", "results"]
@@ -166,3 +167,34 @@ class TestRefusalsLikeTheSandbox:
         assert response.status_code == status
         assert (error["code"], error["message"]) == (real["code"], real["message"])
         assert list(error["innererror"]) == list(real["innererror"])
+
+
+class TestNumbersWithoutLeadingZeros:
+    def test_a_customer_number_is_shown_without_leading_zeros(self, client):
+        numbers = [r["Customer"] for r in get(client, "A_Customer?$top=100&$select=Customer").json()["d"]["results"]]
+        assert numbers and all(not n.startswith("0") for n in numbers)
+
+    def test_a_supplier_number_is_shown_without_leading_zeros(self, client):
+        numbers = [r["Supplier"] for r in get(client, "A_Supplier?$top=100&$select=Supplier").json()["d"]["results"]]
+        assert numbers and all(not n.startswith("0") for n in numbers)
+
+    def test_a_key_finds_the_same_customer_with_or_without_the_zeros(self, client):
+        padded = get(client, f"A_Customer('{FIRST_CUSTOMER}')").json()["d"]
+        plain = get(client, f"A_Customer('{ext(FIRST_CUSTOMER)}')").json()["d"]
+        assert padded["Customer"] == plain["Customer"] == ext(FIRST_CUSTOMER)
+
+    def test_a_filter_finds_the_same_customer_with_or_without_the_zeros(self, client):
+        for text in (FIRST_CUSTOMER, ext(FIRST_CUSTOMER)):
+            rows = get(client, f"A_Customer?$filter=Customer eq '{text}'&$select=Customer").json()["d"]["results"]
+            assert [r["Customer"] for r in rows] == [ext(FIRST_CUSTOMER)]
+
+    def test_the_company_rows_follow_the_same_number(self, client):
+        rows = get(client, f"A_CustomerCompany?$filter=Customer eq '{ext(FIRST_CUSTOMER)}'").json()["d"]["results"]
+        assert [r["CompanyCode"] for r in rows] == [FIRST_COMPANY]
+
+    def test_a_number_that_is_not_all_digits_is_left_alone(self, client):
+        assert get(client, "A_Customer('NOPE-1')").status_code == 404
+
+    def test_a_search_by_the_start_of_the_shown_number_finds_it(self, client):
+        rows = get(client, f"A_Customer?$filter=startswith(Customer,'{ext(FIRST_CUSTOMER)[:4]}')&$select=Customer").json()["d"]["results"]
+        assert ext(FIRST_CUSTOMER) in {r["Customer"] for r in rows}
