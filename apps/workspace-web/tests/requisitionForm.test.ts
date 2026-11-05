@@ -10,21 +10,31 @@ describe('the form', () => {
     expect(removeItem(removeItem(form, 0), 0).items).toHaveLength(1)
   })
 
-  it('builds the body trimmed, with the text only when given', () => {
+  it('builds the body from the chosen material and its unit, with the text only when given', () => {
+    const bolt = { value: ' RM-1001 ', label: 'RM-1001 Bolt', unit: 'KG' }
     const form = {
       description: ' Spares ',
       items: [
-        { material: ' RM-1001 ', plant: '1000', quantity: ' 5 ', unit: 'KG', deliveryDate: '2026-12-01', text: '' },
-        { material: 'RM-1002', plant: '1000', quantity: '2', unit: 'KG', deliveryDate: '2026-12-02', text: ' urgent ' },
+        { plant: '1000', material: bolt, quantity: ' 5 ', deliveryDate: '2026-12-01', text: '' },
+        { plant: '1000', material: { value: 'RM-1002', label: 'RM-1002 Nut', unit: 'PC' }, quantity: '2', deliveryDate: '2026-12-02', text: ' urgent ' },
       ],
     }
     expect(toNewRequisition(form)).toEqual({
       description: 'Spares',
       items: [
-        { material: 'RM-1001', plant: '1000', quantity: '5', unit: 'KG', delivery_date: '2026-12-01' },
-        { material: 'RM-1002', plant: '1000', quantity: '2', unit: 'KG', delivery_date: '2026-12-02', text: 'urgent' },
+        { material: ' RM-1001 ', plant: '1000', quantity: '5', unit: 'KG', delivery_date: '2026-12-01' },
+        { material: 'RM-1002', plant: '1000', quantity: '2', unit: 'PC', delivery_date: '2026-12-02', text: 'urgent' },
       ],
     })
+  })
+
+  it('sends empty material and unit when nothing was chosen, so SAP names the field', () => {
+    expect(toNewRequisition(initialForm('1000')).items[0]).toMatchObject({ material: '', unit: '', plant: '1000' })
+  })
+
+  it('starts the form on the only plant, and a new row repeats the last row\'s plant', () => {
+    expect(initialForm('1000').items[0].plant).toBe('1000')
+    expect(addItem(initialForm('2000')).items[1].plant).toBe('2000')
   })
 })
 
@@ -56,6 +66,10 @@ describe('mapping SAP details to fields', () => {
     )
     expect(errors.fields[fieldKey(0, 'quantity')]).toBe('first')
     expect(errors.general).toEqual(['second'])
+  })
+
+  it('shows a unit refusal under the material, because the unit follows it', () => {
+    expect(mapDetails([{ code: 'UNIT_INVALID', target: 'items/0/unit', message: 'Wrong unit' }], 1).fields[fieldKey(0, 'material')]).toBe('Wrong unit')
   })
 
   it.each([['items/5/material'], ['items'], ['items/0/surprise'], ['release_code']])('shows %s as a general message', (target) => {

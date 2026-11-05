@@ -4,6 +4,7 @@ import type { NewOrder } from '../src/api/salesOrders'
 const order: NewOrder = {
   sales_order_type: 'OR',
   sold_to_party: '0000100001',
+  company_code: 'INA1',
   transaction_currency: 'INR',
   requested_delivery_date: null,
   items: [{ material: 'RM-1001', quantity: '5', quantity_unit: 'KG' }],
