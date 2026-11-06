@@ -2,7 +2,6 @@
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 RUN="${DEV_RUN_DIR:-/tmp/sami-dev}"
-LAYA_BIN="${LAYA_BIN:-$HOME/laya-env/bin/laya-serve}"
 LAYA_CHECKPOINT="${LAYA_CHECKPOINT:-$ROOT/Training/sap-intent-v2}"
 LAYA_MODEL_NAME="${LAYA_MODEL_NAME:-sap-intent-v2}"
 mkdir -p "$RUN"
@@ -39,12 +38,10 @@ status() {
 
 case "${1:-start}" in
   start)
-    if [ -x "$LAYA_BIN" ] && [ -d "$LAYA_CHECKPOINT" ]; then
-      LAYA_PORT=8011 LAYA_DEFAULT_MODEL="$LAYA_MODEL_NAME" \
-        LAYA_EXTRA_MODELS="{\"$LAYA_MODEL_NAME\": \"$LAYA_CHECKPOINT\"}" \
-        start laya 8011 "$LAYA_BIN"
+    if command -v docker >/dev/null && [ -d "$LAYA_CHECKPOINT" ]; then
+      docker compose up -d --wait laya
     else
-      echo "laya: $LAYA_BIN or $LAYA_CHECKPOINT missing, skipped (intent-api will answer cannot_classify_now)"
+      echo "laya: Docker or $LAYA_CHECKPOINT missing, skipped (intent-api will answer cannot_classify_now)"
     fi
     start butterfly 8003 uv run --package butterfly butterfly
     start auth-api 8001 uv run --package auth-api python -m auth_api.entrypoint.app
@@ -57,7 +54,7 @@ case "${1:-start}" in
     start synapse-web 5174 pnpm --filter synapse-web exec vite --port 5174 --strictPort
     start admin-web 5176 pnpm --filter admin-web exec vite --port 5176 --strictPort
     ;;
-  stop) stop ;;
+  stop) stop; docker compose stop laya 2>/dev/null ;;
   status) status ;;
   *) echo "usage: scripts/dev.sh [start|stop|status]"; exit 2 ;;
 esac
