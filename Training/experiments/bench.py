@@ -45,13 +45,17 @@ def evaluate(scorer: Scorer, path: Path = HELDOUT, limit: int | None = None) -> 
     items = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
     items = items[:limit] if limit else items
     results, latencies = [], []
-    for item in items:
+    started_all = time.perf_counter()
+    for done, item in enumerate(items, start=1):
         question = item["questions"]["choice"]
         started = time.perf_counter()
         probabilities = scorer(item["state"]["question"], question["instructions"], question["criteria"])
         latencies.append(time.perf_counter() - started)
         best = max(probabilities, key=probabilities.get)
         results.append((probabilities[best], best == item["expected"]["choice"]))
+        if done % 50 == 0 or done == len(items):
+            elapsed = time.perf_counter() - started_all
+            print(f"{done}/{len(items)} elapsed {elapsed:.0f}s eta {elapsed / done * (len(items) - done):.0f}s", file=sys.stderr, flush=True)
     latencies.sort()
     return {
         "items": len(items),

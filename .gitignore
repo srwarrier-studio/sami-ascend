@@ -14,3 +14,4 @@ Training/*.jsonl
 
 # API client request collections (local testing)
 api-docs/
+Training/onnx-*/

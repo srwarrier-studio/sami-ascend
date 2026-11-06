@@ -777,3 +777,189 @@ id = "sales_nothing_d"
 domain = "Sales"
 nothing = true
 templates = ["how many orders came in {period}", "customers who have not ordered recently", "what price do we charge {customer} for {material}", "quota attainment {period}"]
+
+[[family]]
+id = "sales_trend_e"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["how has {country} been trending for us", "export trend to {country} this year", "is {customer} ordering more or less over the months", "month by month sales of {material}"]
+
+[[family]]
+id = "sales_trend_f"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["{customer} buying pattern {period}", "movement of {material} sales over recent months", "are sales to {country} rising or falling", "orders from {customer} over time"]
+
+[[family]]
+id = "sales_trend_g"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["how are exports to {country} developing", "is demand for {material} growing", "{customer} sales over the last quarters", "year to date sales of {material} by month"]
+
+[[family]]
+id = "sales_trend_h"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["has {country} business picked up lately", "sales of {material} across recent months", "does {customer} order more now than before", "export momentum to {country} {period}"]
+
+[[family]]
+id = "purchases_trend_e"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["how has buying from {country} been trending", "import trend from {country} this year", "are we buying more or less from {supplier} over the months", "month by month spend on {material}"]
+
+[[family]]
+id = "purchases_trend_f"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["{supplier} buying pattern {period}", "movement of {material} purchases over recent months", "is spend on imports from {country} rising or falling", "orders placed with {supplier} over time"]
+
+[[family]]
+id = "purchases_trend_g"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["how are imports from {country} developing", "is our buying of {material} growing", "{supplier} purchases over the last quarters", "year to date purchases of {material} by month"]
+
+[[family]]
+id = "purchases_trend_h"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["has buying from {country} picked up lately", "spend on {material} across recent months", "do we order more from {supplier} now than before", "import momentum from {country} {period}"]
+
+[[family]]
+id = "sales_top_materials_e"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["which product do we export most to {country}", "what sells best to {customer}", "ranking of materials by sales {period}", "most popular material among {country} buyers"]
+
+[[family]]
+id = "sales_top_materials_f"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["what is {customer} ordering most", "top selling extract {period}", "which material brings in the most export revenue", "best performing product line {period}"]
+
+[[family]]
+id = "sales_top_materials_g"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["rank products by revenue in {country}", "what does {customer} favour", "leading products {period}", "which of our materials is the biggest seller to {country}"]
+
+[[family]]
+id = "sales_top_materials_h"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["what moves the most volume to {country}", "the product {customer} orders most often", "top {n} selling materials {period}", "highest revenue material {period}"]
+
+[[family]]
+id = "purchases_top_materials_e"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["which material do we buy most from {country}", "what do we order most from {supplier}", "ranking of materials by spend {period}", "most expensive material we import from {country}"]
+
+[[family]]
+id = "purchases_top_materials_f"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["what are we buying most from {supplier}", "top material by spend {period}", "which raw material costs us the most", "biggest spend material line {period}"]
+
+[[family]]
+id = "purchases_top_materials_g"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["rank raw materials by cost from {country}", "what do we favour from {supplier}", "leading materials by purchases {period}", "which material is our biggest import from {country}"]
+
+[[family]]
+id = "purchases_top_materials_h"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["what takes the most spend from {country}", "the material we order most often from {supplier}", "top {n} purchased materials {period}", "highest cost material {period}"]
+
+[[family]]
+id = "sales_why_e"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["what is behind the drop in sales to {country} {period}", "why are {customer} orders down", "reason for the change in {material} revenue", "why did sales to {country} go up {period}"]
+
+[[family]]
+id = "sales_why_f"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["why has {customer} stopped ordering", "what explains the fall in exports {period}", "reason behind lower {material} sales", "why are exports to {country} lower than before"]
+
+[[family]]
+id = "sales_why_g"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["what drove the change in sales {period}", "why did {material} sales rise", "cause of the dip in {customer} orders", "what happened to {country} sales {period}"]
+
+[[family]]
+id = "sales_why_h"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["help me understand why {country} sales moved {period}", "what pushed {customer} orders up", "explain the swing in {material} revenue", "how come exports changed {period}"]
+
+[[family]]
+id = "purchases_why_e"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["what is behind the rise in imports from {country} {period}", "why are orders to {supplier} up", "reason for the change in {material} spend", "why did imports from {country} go down {period}"]
+
+[[family]]
+id = "purchases_why_f"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["why have we stopped buying from {supplier}", "what explains the jump in spend {period}", "reason behind higher {material} costs", "why are imports from {country} higher than before"]
+
+[[family]]
+id = "purchases_why_g"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["what drove the change in purchases {period}", "why did {material} spend fall", "cause of the dip in orders to {supplier}", "what happened to imports from {country} {period}"]
+
+[[family]]
+id = "purchases_why_h"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["help me understand why spend on {country} moved {period}", "what pushed {supplier} orders down", "explain the swing in {material} costs", "how come purchases changed {period}"]
+
+[[family]]
+id = "sales_top_customers_i"
+domain = "Sales"
+scenario = "sales_top_customers"
+templates = ["which buyers in {country} spend the most", "ranking of customers by revenue {period}", "who bought the most {material} {period}", "our best customers in {country}"]
+
+[[family]]
+id = "purchases_top_suppliers_i"
+domain = "Purchase"
+scenario = "purchases_top_suppliers"
+templates = ["which vendors in {country} do we spend most with", "ranking of suppliers by spend {period}", "who sold us the most {material} {period}", "our biggest suppliers in {country}"]
+
+[[family]]
+id = "finance_e"
+domain = "Finance"
+templates = ["what did {customer} pay us {period}", "which customers have unpaid invoices", "money collected from {country} {period}", "outstanding amounts from buyers"]
+
+[[family]]
+id = "finance_f"
+domain = "Finance"
+templates = ["how much did we pay out to vendors {period}", "payables due this week", "what is owed to {supplier}", "cash going out {period}"]
+
+[[family]]
+id = "finance_g"
+domain = "Finance"
+templates = ["did we meet the collection target {period}", "collections versus plan {period}", "how much have buyers in {country} paid so far", "cash received against goal {period}"]
+
+[[family]]
+id = "finance_h"
+domain = "Finance"
+templates = ["is any money stuck with {customer}", "amounts we still need to pay {supplier}", "cash inflow and outflow {period}", "what are the current dues from {country}"]
+
+[[family]]
+id = "not_business_h"
+domain = "Other"
+templates = ["what is the weather like today", "who is the president of {country}", "how far is the moon", "tell me a joke", "what is the tallest building in the world", "how many continents are there", "what is the speed of light", "who wrote hamlet"]
+
+[[family]]
+id = "not_business_i"
+domain = "Other"
+templates = ["what is the national language of {country}", "how many players are in a football team", "convert 10 miles to kilometres", "what year did the first moon landing happen", "what is the boiling point of water", "who invented the telephone", "what is the currency of {country}", "is a tomato a fruit"]
