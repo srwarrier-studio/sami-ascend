@@ -39,20 +39,17 @@ Notes that matter for the mock:
 - A goods receipt points back to the order with `PurchaseOrder` and `PurchaseOrderItem`; an invoice item points to the order item and
   the goods receipt (`ReferenceDocument` is a material document) [sample].
 
-## What butterfly does today
+## What butterfly does today (after butterfly 24)
 
 | Document | Butterfly now | Matches the research |
 |---|---|---|
-| Purchase requisition | 8 digits from `10000000`, next = highest + 1 | yes [sample] |
+| Purchase requisition | 8 digits from `10000000`, next from `NumberRange` | yes [sample] |
 | Material document | `4900000000 + n`, 10 digits, with `MaterialDocumentYear` | yes [sample] |
-| Sales order | 10 digits with zeros (`0000020001`), next = highest + 1 | **no**: the sandbox returns numbers without leading zeros (`43103`) |
-| Customer, supplier | 10 digits with zeros (`0000100001`, `0000200001`) | **no**: the sandbox returns `17100001` (customer) and `17300001` (supplier), no leading zeros |
-| Purchase order, supplier invoice, accounting document, payment | not built yet | to build with the families above |
+| Sales order | stored with ten digits (`0000020001`); the standard services (V2, V4) show `20001`; next from `NumberRange` | yes [sample] |
+| Customer, supplier | stored with ten digits (`0000100001`); the standard business partner service shows `100001`, the standard sales order and requisition services show them the same way | yes [sample]: the sandbox shows `17100001`, `17300001` |
+| Purchase order, supplier invoice, accounting document, payment | not built yet | to build with `NumberRange` and the families above |
 
-Finding: the sandbox services show numeric keys the way SAP's conversion exit prints them, without leading zeros, for
-sales orders, customers and suppliers. Butterfly pads them to ten digits. Both forms mean the same number inside SAP, but
-the apps would see different strings on go-live. Butterfly should return the unpadded form and accept either on input.
-Whether the company's own system pads (for example when it stores `0000100001` as a text key) is a [verify] question.
+How the standard services show numbers: SAP keeps a numeric key padded inside and prints it without leading zeros outside (the conversion exit ALPHA). Butterfly keeps its stored form and converts at the edge of its standard services only (`application/alpha.py`): numbers shown without leading zeros; keys, `$filter` values, `$apply` groups and create bodies accept either form; values that are not all digits are left alone. The older custom services (sales, drivers, finance, inventory, production, exports) still show the stored padded form, and the custom sales order create still requires the stored ten-digit customer number, so workspace-api pads an all-digit customer number it sends there.
 
 ## Rules for the butterfly implementation
 

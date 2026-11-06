@@ -1,3 +1,4 @@
+from butterfly.domain.entities.number_range import SALES_ORDER
 from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
 
@@ -13,8 +14,7 @@ class InMemorySalesOrderRepo(SalesOrderRepo):
         return self.orders.get(sales_order)
 
     def next_number(self) -> str:
-        latest = max((int(number) for number in self.orders), default=0)
-        return f"{latest + 1:010d}"
+        return f"{int(SALES_ORDER.next(self.orders)):010d}"
 
     def add(self, order: SalesOrder) -> None:
         self.orders[order.sales_order] = order
