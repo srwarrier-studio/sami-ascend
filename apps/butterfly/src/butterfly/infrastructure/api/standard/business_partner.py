@@ -8,12 +8,13 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
 
 from butterfly.application.alpha import external
+from butterfly.application.usecase.create_business_partner import CreateBusinessPartner
 from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.filter import fields as filter_fields
 from butterfly.application.filter.parser import parse_filter
 from butterfly.application.list_query import apply_list_query
 from butterfly.domain.entities.master_data import DEFAULT_PURCHASING_GROUP, PURCHASING_ORGANIZATIONS, SALES_ORGANIZATIONS
-from butterfly.domain.errors import InvalidQuery
+from butterfly.domain.errors import InvalidQuery, NumberRangeFull, ValidationFailed
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.infrastructure.api.standard.dialects import V2_MEDIA, Refusal, stamp
 from butterfly.infrastructure.api.standard.edmx import PARTNER_METADATA, load
@@ -317,6 +318,10 @@ class Service:
             raise Refusal("property", text.split(" ")[0].split("(")[0], entity.type_name) from error
         return Response(str(len([r for r in entity.rows() if condition is None or condition.matches(r)])), media_type="text/plain; charset=utf-8")
 
+    def failure(self, message: str, details: list[dict]) -> dict:
+        inner = {"transactionid": uuid.uuid4().hex.upper(), "timestamp": stamp() + "0", "errordetails": details}
+        return {"error": {"code": "BP/000", "message": {"lang": "en", "value": message}, "innererror": inner}}
+
     def refusal(self, error: Refusal) -> tuple[int, dict]:
         type_name = error.type_name
         kinds = {
@@ -346,6 +351,7 @@ class Service:
 def build_business_partner_router(master_data: MasterDataRepo) -> APIRouter:
     service = Service(master_data)
     router = APIRouter(prefix=ROOT)
+    create_partner = CreateBusinessPartner(master_data)
 
     def guarded(function):
         @wraps(function)
@@ -362,6 +368,24 @@ def build_business_partner_router(master_data: MasterDataRepo) -> APIRouter:
     @router.get("/$metadata")
     def metadata():
         return Response(service.metadata.content(), media_type="application/xml")
+
+    @router.post("/A_BusinessPartner")
+    async def create(request: Request):
+        try:
+            body = await request.json()
+        except ValueError:
+            body = None
+        if not isinstance(body, dict):
+            return JSONResponse(service.failure("The request body is not valid JSON", []), status_code=400, media_type=V2_MEDIA)
+        try:
+            created = create_partner.execute(body)
+        except ValidationFailed as error:
+            details = [{"code": d.code, "message": d.message, "propertyref": "", "severity": "error", "target": d.target} for d in error.details]
+            return JSONResponse(service.failure(error.details[0].message, details), status_code=400, media_type=V2_MEDIA)
+        except NumberRangeFull as error:
+            return JSONResponse(service.failure(str(error), []), status_code=400, media_type=V2_MEDIA)
+        row = service.row(service.sets["A_BusinessPartner"], next(r for r in service.partners() if r.customer_id == created.customer_id), None, None, str(request.base_url).rstrip("/"))
+        return JSONResponse({"d": row}, status_code=201, media_type=V2_MEDIA)
 
     def add_routes(entity: EntitySet):
         @router.get(f"/{entity.name}/$count")
