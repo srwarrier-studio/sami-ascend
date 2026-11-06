@@ -1261,5 +1261,1070 @@
   "source": "written",
   "id": "q121",
   "heldout": false
+ },
+ {
+  "question": "how much sales did we do in september?",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "seeded",
+  "id": "s001",
+  "heldout": true
+ },
+ {
+  "question": "whats the total sales for last month",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "seeded",
+  "id": "s002",
+  "heldout": true
+ },
+ {
+  "question": "sales in august 2026",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "seeded",
+  "id": "s003",
+  "heldout": true
+ },
+ {
+  "question": "pls share sales figure for the last quarter",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "seeded",
+  "id": "s004",
+  "heldout": true
+ },
+ {
+  "question": "revenue ytd",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "seeded",
+  "id": "s005",
+  "heldout": true
+ },
+ {
+  "question": "how much did we sell to Nordhaven Pharma this year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "seeded",
+  "id": "s006",
+  "heldout": true
+ },
+ {
+  "question": "export sales to usa in q2",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "seeded",
+  "id": "s007",
+  "heldout": true
+ },
+ {
+  "question": "whats our turnover this fy",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "seeded",
+  "id": "s008",
+  "heldout": true
+ },
+ {
+  "question": "how much business did we do in october",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "seeded",
+  "id": "s009",
+  "heldout": true
+ },
+ {
+  "question": "sales this month vs last month",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous"
+  ],
+  "source": "seeded",
+  "id": "s010",
+  "heldout": true
+ },
+ {
+  "question": "are we doing better than last month in sales",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous"
+  ],
+  "source": "seeded",
+  "id": "s011",
+  "heldout": true
+ },
+ {
+  "question": "how are sales compared to the previous quarter",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous"
+  ],
+  "source": "seeded",
+  "id": "s012",
+  "heldout": true
+ },
+ {
+  "question": "revenue now against the month before",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous"
+  ],
+  "source": "seeded",
+  "id": "s013",
+  "heldout": true
+ },
+ {
+  "question": "sales vs same period last year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_last_year"
+  ],
+  "source": "seeded",
+  "id": "s014",
+  "heldout": true
+ },
+ {
+  "question": "is this years revenue higher than last year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_last_year"
+  ],
+  "source": "seeded",
+  "id": "s015",
+  "heldout": true
+ },
+ {
+  "question": "sales yoy",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_last_year"
+  ],
+  "source": "seeded",
+  "id": "s016",
+  "heldout": true
+ },
+ {
+  "question": "how do exports to germany compare with last year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_last_year"
+  ],
+  "source": "seeded",
+  "id": "s017",
+  "heldout": true
+ },
+ {
+  "question": "sales trend last 6 months",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_trend"
+  ],
+  "source": "seeded",
+  "id": "s018",
+  "heldout": true
+ },
+ {
+  "question": "how has revenue been moving lately",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_trend"
+  ],
+  "source": "seeded",
+  "id": "s019",
+  "heldout": true
+ },
+ {
+  "question": "month wise sales this year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_trend"
+  ],
+  "source": "seeded",
+  "id": "s020",
+  "heldout": true
+ },
+ {
+  "question": "is curcumin 95 demand growing",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_trend"
+  ],
+  "source": "seeded",
+  "id": "s021",
+  "heldout": true
+ },
+ {
+  "question": "who are our top 5 customers this year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers"
+  ],
+  "source": "seeded",
+  "id": "s022",
+  "heldout": true
+ },
+ {
+  "question": "biggest buyers last quarter",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers"
+  ],
+  "source": "seeded",
+  "id": "s023",
+  "heldout": true
+ },
+ {
+  "question": "which customers contributed most to sales in august",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers"
+  ],
+  "source": "seeded",
+  "id": "s024",
+  "heldout": true
+ },
+ {
+  "question": "which product sells the most",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_materials"
+  ],
+  "source": "seeded",
+  "id": "s025",
+  "heldout": true
+ },
+ {
+  "question": "top 5 materials by sales this year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_materials"
+  ],
+  "source": "seeded",
+  "id": "s026",
+  "heldout": true
+ },
+ {
+  "question": "what is our best selling extract",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_materials"
+  ],
+  "source": "seeded",
+  "id": "s027",
+  "heldout": true
+ },
+ {
+  "question": "why did sales drop in august",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_why"
+  ],
+  "source": "seeded",
+  "id": "s028",
+  "heldout": true
+ },
+ {
+  "question": "what caused the dip in revenue last month",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_why"
+  ],
+  "source": "seeded",
+  "id": "s029",
+  "heldout": true
+ },
+ {
+  "question": "why are exports to japan lower this quarter",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_why"
+  ],
+  "source": "seeded",
+  "id": "s030",
+  "heldout": true
+ },
+ {
+  "question": "why did sales go up in july",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_why"
+  ],
+  "source": "seeded",
+  "id": "s031",
+  "heldout": true
+ },
+ {
+  "question": "whats our total purchase for last month",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "seeded",
+  "id": "s032",
+  "heldout": true
+ },
+ {
+  "question": "spend with Kaveri Growers this year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "seeded",
+  "id": "s033",
+  "heldout": true
+ },
+ {
+  "question": "pls tell the import cost for the last quarter",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "seeded",
+  "id": "s034",
+  "heldout": true
+ },
+ {
+  "question": "how much did we spend on raw materials in q2",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "seeded",
+  "id": "s035",
+  "heldout": true
+ },
+ {
+  "question": "purchases this month vs last month",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_previous"
+  ],
+  "source": "seeded",
+  "id": "s036",
+  "heldout": true
+ },
+ {
+  "question": "are we buying more than last month",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_previous"
+  ],
+  "source": "seeded",
+  "id": "s037",
+  "heldout": true
+ },
+ {
+  "question": "spend compared to the previous quarter",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_previous"
+  ],
+  "source": "seeded",
+  "id": "s038",
+  "heldout": true
+ },
+ {
+  "question": "purchases vs same period last year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_last_year"
+  ],
+  "source": "seeded",
+  "id": "s039",
+  "heldout": true
+ },
+ {
+  "question": "is this years spend higher than last year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_last_year"
+  ],
+  "source": "seeded",
+  "id": "s040",
+  "heldout": true
+ },
+ {
+  "question": "import cost yoy",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_last_year"
+  ],
+  "source": "seeded",
+  "id": "s041",
+  "heldout": true
+ },
+ {
+  "question": "purchase trend last 6 months",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_trend"
+  ],
+  "source": "seeded",
+  "id": "s042",
+  "heldout": true
+ },
+ {
+  "question": "how has spend been moving lately",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_trend"
+  ],
+  "source": "seeded",
+  "id": "s043",
+  "heldout": true
+ },
+ {
+  "question": "month wise purchases this year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_trend"
+  ],
+  "source": "seeded",
+  "id": "s044",
+  "heldout": true
+ },
+ {
+  "question": "who are our top 5 suppliers this year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_suppliers"
+  ],
+  "source": "seeded",
+  "id": "s045",
+  "heldout": true
+ },
+ {
+  "question": "biggest vendors last quarter",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_suppliers"
+  ],
+  "source": "seeded",
+  "id": "s046",
+  "heldout": true
+ },
+ {
+  "question": "which suppliers did we pay the most in august",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_suppliers"
+  ],
+  "source": "seeded",
+  "id": "s047",
+  "heldout": true
+ },
+ {
+  "question": "which material do we buy the most",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_materials"
+  ],
+  "source": "seeded",
+  "id": "s048",
+  "heldout": true
+ },
+ {
+  "question": "top 5 materials by purchase this year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_materials"
+  ],
+  "source": "seeded",
+  "id": "s049",
+  "heldout": true
+ },
+ {
+  "question": "what raw material costs us the most",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_materials"
+  ],
+  "source": "seeded",
+  "id": "s050",
+  "heldout": true
+ },
+ {
+  "question": "why did out purchase go up last month",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_why"
+  ],
+  "source": "seeded",
+  "id": "s051",
+  "heldout": true
+ },
+ {
+  "question": "what caused the rise in spend in august",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_why"
+  ],
+  "source": "seeded",
+  "id": "s052",
+  "heldout": true
+ },
+ {
+  "question": "why did we buy less from Medan Agro Traders",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_why"
+  ],
+  "source": "seeded",
+  "id": "s053",
+  "heldout": true
+ },
+ {
+  "question": "why are import costs higher this quarter",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_why"
+  ],
+  "source": "seeded",
+  "id": "s054",
+  "heldout": true
+ },
+ {
+  "question": "sales in september and how it compares to august",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value",
+   "sales_compare_previous"
+  ],
+  "source": "seeded",
+  "id": "s055",
+  "heldout": true
+ },
+ {
+  "question": "how much did we sell last month and is it better than the month before",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value",
+   "sales_compare_previous"
+  ],
+  "source": "seeded",
+  "id": "s056",
+  "heldout": true
+ },
+ {
+  "question": "top customers this year and why sales fell last month",
+  "part": "multi",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers",
+   "sales_why"
+  ],
+  "source": "seeded",
+  "id": "s057",
+  "heldout": true
+ },
+ {
+  "question": "purchases this year vs last year and the top suppliers",
+  "part": "multi",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_last_year",
+   "purchases_top_suppliers"
+  ],
+  "source": "seeded",
+  "id": "s058",
+  "heldout": true
+ },
+ {
+  "question": "how much do we owe m/s kalpavruksha?",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s059",
+  "heldout": true
+ },
+ {
+  "question": "whats our receivables status?",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s060",
+  "heldout": true
+ },
+ {
+  "question": "how much runway do we have for this month?",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s061",
+  "heldout": true
+ },
+ {
+  "question": "whats our daily sales outstanding?",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s062",
+  "heldout": true
+ },
+ {
+  "question": "whats our dso",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s063",
+  "heldout": true
+ },
+ {
+  "question": "days sales outstanding this quarter",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s064",
+  "heldout": true
+ },
+ {
+  "question": "how much is overdue from customers",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s065",
+  "heldout": true
+ },
+ {
+  "question": "list overdue invoices",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s066",
+  "heldout": true
+ },
+ {
+  "question": "what is our cash balance today",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s067",
+  "heldout": true
+ },
+ {
+  "question": "how many days of cash do we have",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s068",
+  "heldout": true
+ },
+ {
+  "question": "any payments pending to suppliers",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s069",
+  "heldout": true
+ },
+ {
+  "question": "outstanding payables",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s070",
+  "heldout": true
+ },
+ {
+  "question": "total receivables from us customers",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s071",
+  "heldout": true
+ },
+ {
+  "question": "advance received from customers",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s072",
+  "heldout": true
+ },
+ {
+  "question": "whats the collection efficiency this month",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s073",
+  "heldout": true
+ },
+ {
+  "question": "ageing of receivables",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s074",
+  "heldout": true
+ },
+ {
+  "question": "how much to pay to vendors this week",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s075",
+  "heldout": true
+ },
+ {
+  "question": "bank balance",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s076",
+  "heldout": true
+ },
+ {
+  "question": "how much does Lakeview Botanicals owe us",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s077",
+  "heldout": true
+ },
+ {
+  "question": "when will we receive payment from Brightwell Nutrition",
+  "part": "refuse",
+  "domain": "Finance",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s078",
+  "heldout": true
+ },
+ {
+  "question": "do we have enough ashwaganda extract for next month?",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s079",
+  "heldout": true
+ },
+ {
+  "question": "whats our inventory status?",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s080",
+  "heldout": true
+ },
+ {
+  "question": "stock of curcumin 95",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s081",
+  "heldout": true
+ },
+ {
+  "question": "which items are below reorder level",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s082",
+  "heldout": true
+ },
+ {
+  "question": "slow moving stock",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s083",
+  "heldout": true
+ },
+ {
+  "question": "inventory value",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s084",
+  "heldout": true
+ },
+ {
+  "question": "whats the stock in warehouse 2",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s085",
+  "heldout": true
+ },
+ {
+  "question": "material expiring in the next 30 days",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s086",
+  "heldout": true
+ },
+ {
+  "question": "how many days of stock for ginger extract",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s087",
+  "heldout": true
+ },
+ {
+  "question": "pls share closing stock of vanillin",
+  "part": "refuse",
+  "domain": "Inventory",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s088",
+  "heldout": true
+ },
+ {
+  "question": "whats our qc rejection rate?",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s089",
+  "heldout": true
+ },
+ {
+  "question": "whats the yield of the last batch",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s090",
+  "heldout": true
+ },
+ {
+  "question": "production output this month",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s091",
+  "heldout": true
+ },
+ {
+  "question": "plant utilisation",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s092",
+  "heldout": true
+ },
+ {
+  "question": "scrap percentage last month",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s093",
+  "heldout": true
+ },
+ {
+  "question": "any batch failed qc",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s094",
+  "heldout": true
+ },
+ {
+  "question": "downtime of line 2 this week",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s095",
+  "heldout": true
+ },
+ {
+  "question": "how many batches did we make in october",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s096",
+  "heldout": true
+ },
+ {
+  "question": "whats our oee",
+  "part": "refuse",
+  "domain": "Production",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s097",
+  "heldout": true
+ },
+ {
+  "question": "shipments dispatched this week",
+  "part": "refuse",
+  "domain": "Shipments",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s098",
+  "heldout": true
+ },
+ {
+  "question": "any delay in shipments to usa",
+  "part": "refuse",
+  "domain": "Shipments",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s099",
+  "heldout": true
+ },
+ {
+  "question": "containers in transit",
+  "part": "refuse",
+  "domain": "Shipments",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s100",
+  "heldout": true
+ },
+ {
+  "question": "pending dispatches",
+  "part": "refuse",
+  "domain": "Shipments",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s101",
+  "heldout": true
+ },
+ {
+  "question": "when will the container reach hamburg",
+  "part": "refuse",
+  "domain": "Shipments",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s102",
+  "heldout": true
+ },
+ {
+  "question": "whats the weather today",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s103",
+  "heldout": true
+ },
+ {
+  "question": "hello",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s104",
+  "heldout": true
+ },
+ {
+  "question": "what is the capital of india",
+  "part": "refuse",
+  "domain": "Other",
+  "scenarios": [],
+  "source": "seeded",
+  "id": "s105",
+  "heldout": true
  }
 ]

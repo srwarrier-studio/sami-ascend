@@ -143,3 +143,13 @@ class TestFiles:
         assert counts == {"train": sum(not item.heldout for item in ITEMS), "heldout": sum(item.heldout for item in ITEMS)}
         lines = (tmp_path / "train.jsonl").read_text().splitlines()
         assert len(lines) == counts["train"] and set(json.loads(lines[0])) == {"state", "questions", "expected"}
+
+
+class TestSecondTypo:
+    def test_a_question_can_get_two_typos(self):
+        import random
+
+        builder = BuildTrainingSet(LIBRARY, FAMILIES, SLOTS, Settings(typo_rate=1, second_typo_rate=1), EVALUATION)
+        original = "show the sales trend for last quarter"
+        most = max(sum(a != b for a, b in zip(original.split(), builder.styled(original, random.Random(seed)).lower().rstrip("?").split())) for seed in range(40))
+        assert most >= 2
