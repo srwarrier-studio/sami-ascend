@@ -23,6 +23,7 @@ SERVICE = "API_BUSINESS_PARTNER"
 LIST_OPTIONS = {"$filter", "$select", "$orderby", "$top", "$skip", "$inlinecount", "$expand", "$format"}
 SUBSTRINGOF = re.compile(r"substringof\(\s*('(?:[^']|'')*')\s*,\s*(\w+)\s*\)")
 CUSTOMER_GROUP, SUPPLIER_GROUP = "CUST", "SUPL"
+CUSTOMER_ROLES = ("FLCU00", "FLCU01")
 
 
 @dataclass(frozen=True)
@@ -46,6 +47,35 @@ class CustomerSalesAreaRow:
     distribution_channel: str = "10"
     division: str = "00"
     account_group: str = CUSTOMER_GROUP
+
+
+@dataclass(frozen=True)
+class PartnerRow:
+    customer_id: str
+    name: str
+    grouping: str
+    search_term: str
+    language: str
+    category: str = "2"
+
+
+@dataclass(frozen=True)
+class PartnerAddressRow:
+    customer_id: str
+    country: str
+    city: str
+    postal_code: str
+    street: str
+    house_number: str
+    region: str
+    language: str
+    address_id: str = "1"
+
+
+@dataclass(frozen=True)
+class PartnerRoleRow:
+    customer_id: str
+    role: str
 
 
 @dataclass(frozen=True)
@@ -107,6 +137,27 @@ class Service:
         name = lambda r: {"CustomerName": r.name, "CustomerFullName": r.name, "BPCustomerName": r.name, "BPCustomerFullName": r.name}  # noqa: E731
         return [
             EntitySet(
+                "A_BusinessPartner", "A_BusinessPartnerType", ("BusinessPartner",), f.STANDARD_PARTNER_FIELDS, self.partners,
+                lambda r: {
+                    "BusinessPartner": external(r.customer_id), "Customer": external(r.customer_id), "BusinessPartnerCategory": r.category,
+                    "BusinessPartnerFullName": r.name, "BusinessPartnerName": r.name, "OrganizationBPName1": r.name,
+                    "BusinessPartnerGrouping": r.grouping, "SearchTerm1": r.search_term, "Language": r.language, "CorrespondenceLanguage": r.language,
+                },
+                {"to_BusinessPartnerAddress": "A_BusinessPartnerAddress", "to_BusinessPartnerRole": "A_BusinessPartnerRole"}, "customer_id",
+            ),
+            EntitySet(
+                "A_BusinessPartnerAddress", "A_BusinessPartnerAddressType", ("BusinessPartner", "AddressID"), f.STANDARD_PARTNER_ADDRESS_FIELDS, self.partner_addresses,
+                lambda r: {
+                    "BusinessPartner": external(r.customer_id), "AddressID": r.address_id, "Country": r.country, "CityName": r.city, "PostalCode": r.postal_code,
+                    "StreetName": r.street, "HouseNumber": r.house_number, "Region": r.region, "Language": r.language,
+                },
+                {}, "customer_id",
+            ),
+            EntitySet(
+                "A_BusinessPartnerRole", "A_BusinessPartnerRoleType", ("BusinessPartner", "BusinessPartnerRole"), f.STANDARD_PARTNER_ROLE_FIELDS, self.partner_roles,
+                lambda r: {"BusinessPartner": external(r.customer_id), "BusinessPartnerRole": r.role}, {}, "customer_id",
+            ),
+            EntitySet(
                 "A_Customer", "A_CustomerType", ("Customer",), f.STANDARD_CUSTOMER_FIELDS, self.customers,
                 lambda r: {"Customer": external(r.customer), "CustomerAccountGroup": r.account_group} | name(r),
                 {"to_CustomerCompany": "A_CustomerCompany", "to_CustomerSalesArea": "A_CustomerSalesArea"}, "customer",
@@ -143,6 +194,18 @@ class Service:
                 {}, "supplier",
             ),
         ]
+
+    def partners(self) -> list[PartnerRow]:
+        return [PartnerRow(c.customer_id, c.name, c.grouping, c.search_term, c.language) for c in self.master_data.list_customers()]
+
+    def partner_addresses(self) -> list[PartnerAddressRow]:
+        return [
+            PartnerAddressRow(c.customer_id, c.country, c.city, c.postal_code, c.street, c.house_number, c.region, c.language)
+            for c in self.master_data.list_customers()
+        ]
+
+    def partner_roles(self) -> list[PartnerRoleRow]:
+        return [PartnerRoleRow(c.customer_id, role) for c in self.master_data.list_customers() for role in CUSTOMER_ROLES]
 
     def customers(self) -> list[CustomerRow]:
         return [CustomerRow(c.customer_id, c.name) for c in self.master_data.list_customers()]

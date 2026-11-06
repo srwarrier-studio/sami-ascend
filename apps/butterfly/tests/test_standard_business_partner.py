@@ -141,11 +141,27 @@ class TestNavigating:
         assert list(get(client, "A_Customer?$top=1&$inlinecount=allpages&$select=Customer").json()["d"]) == ["__count", "results"]
 
     def test_the_other_entity_sets_answer_empty(self, client):
-        assert get(client, "A_BusinessPartner").json() == {"d": {"results": []}}
+        assert get(client, "A_BusinessPartnerBank").json() == {"d": {"results": []}}
 
 
 def real_error(name: str) -> dict:
     return json.loads((SAMPLES / f"{name}.json").read_text())["error"]
+
+
+class TestPartnersOfTheCustomers:
+    def test_every_customer_is_a_partner_with_the_customer_roles(self, client):
+        partner = get(client, f"A_BusinessPartner('{FIRST_CUSTOMER}')").json()["d"]
+        roles = get(client, f"A_BusinessPartner('{FIRST_CUSTOMER}')/to_BusinessPartnerRole").json()["d"]["results"]
+        assert partner["BusinessPartner"] == partner["Customer"] == ext(FIRST_CUSTOMER) and partner["BusinessPartnerCategory"] == "2"
+        assert {r["BusinessPartnerRole"] for r in roles} == {"FLCU00", "FLCU01"}
+
+    def test_the_address_carries_the_country(self, client):
+        rows = get(client, f"A_BusinessPartner('{FIRST_CUSTOMER}')/to_BusinessPartnerAddress").json()["d"]["results"]
+        assert len(rows) == 1 and rows[0]["Country"] and rows[0]["AddressID"] == "1"
+
+    def test_a_partner_row_has_the_property_names_of_the_real_sample(self, client):
+        row = get(client, f"A_BusinessPartner('{FIRST_CUSTOMER}')").json()["d"]
+        assert set(real_row("partners-top2.json")) - {"__metadata"} <= set(row)
 
 
 class TestRefusalsLikeTheSandbox:

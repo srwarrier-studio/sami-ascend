@@ -548,6 +548,36 @@ STANDARD_CUSTOMER_SALES_AREA_FIELDS = {
     "CustomerAccountGroup": ("account_group", FieldType.STRING),
 }
 
+STANDARD_PARTNER_FIELDS = {
+    "BusinessPartner": ("customer_id", FieldType.KEY),
+    "Customer": ("customer_id", FieldType.KEY),
+    "BusinessPartnerCategory": ("category", FieldType.STRING),
+    "BusinessPartnerFullName": ("name", FieldType.STRING),
+    "BusinessPartnerName": ("name", FieldType.STRING),
+    "OrganizationBPName1": ("name", FieldType.STRING),
+    "BusinessPartnerGrouping": ("grouping", FieldType.STRING),
+    "SearchTerm1": ("search_term", FieldType.STRING),
+    "Language": ("language", FieldType.STRING),
+    "CorrespondenceLanguage": ("language", FieldType.STRING),
+}
+
+STANDARD_PARTNER_ADDRESS_FIELDS = {
+    "BusinessPartner": ("customer_id", FieldType.KEY),
+    "AddressID": ("address_id", FieldType.STRING),
+    "Country": ("country", FieldType.STRING),
+    "CityName": ("city", FieldType.STRING),
+    "PostalCode": ("postal_code", FieldType.STRING),
+    "StreetName": ("street", FieldType.STRING),
+    "HouseNumber": ("house_number", FieldType.STRING),
+    "Region": ("region", FieldType.STRING),
+    "Language": ("language", FieldType.STRING),
+}
+
+STANDARD_PARTNER_ROLE_FIELDS = {
+    "BusinessPartner": ("customer_id", FieldType.KEY),
+    "BusinessPartnerRole": ("role", FieldType.STRING),
+}
+
 STANDARD_SUPPLIER_FIELDS = {
     "Supplier": ("supplier", FieldType.KEY),
     "SupplierName": ("name", FieldType.STRING),
