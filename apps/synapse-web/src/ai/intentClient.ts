@@ -92,12 +92,20 @@ export class HttpIntentClient implements IntentClient {
   }
 }
 
+const NOTHING_MATCHED: IntentReply = {
+  reading: { domain: null, domainProbability: 0, problem: 'cannot_answer', reason: 'nothing_matched', scenarios: [], didYouMean: [] },
+  problem: 'cannot_answer',
+  reason: 'nothing_matched',
+  periods: [],
+  answers: [],
+}
+
 export class MockIntentClient implements IntentClient {
   private reply: IntentReply | Error
   calls: string[] = []
   companies: (string | null)[] = []
 
-  constructor(reply: IntentReply | Error = new IntentUnavailable('mock')) {
+  constructor(reply: IntentReply | Error = NOTHING_MATCHED) {
     this.reply = reply
   }
 

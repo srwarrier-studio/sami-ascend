@@ -217,11 +217,30 @@ describe('How the question was read', () => {
     expect(screen.getByRole('log', { name: 'Conversation' })).toHaveTextContent('what were sales for august')
   })
 
-  it('draws the widget reply with no reading when intent-api is not reachable', async () => {
+  it('says the AI service is not available, with no widgets, when intent-api is not reachable', async () => {
     open(new MockBoardStore(), new MockIntentClient(new Error('down')))
     await ask('show me top customers')
-    expect(await screen.findByText(/^Here is Top customers/)).toBeInTheDocument()
+    expect(await screen.findByText(/The AI service is not available right now/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+    expect(screen.queryByText(/^Here is/)).toBeNull()
     expect(screen.queryByText('Reading')).toBeNull()
+  })
+
+  it('asks the same question again from Try again, without repeating the question', async () => {
+    const intent = new MockIntentClient(new Error('down'))
+    open(new MockBoardStore(), intent)
+    await ask('show me top customers')
+    await userEvent.click(await screen.findByRole('button', { name: 'Try again' }))
+    await waitFor(() => expect(intent.calls).toEqual(['show me top customers', 'show me top customers']))
+    expect(await screen.findByRole('button', { name: 'Try again' })).toBeInTheDocument()
+    expect(screen.getAllByText('show me top customers')).toHaveLength(1)
+    expect(screen.getAllByText(/The AI service is not available right now/)).toHaveLength(1)
+  })
+
+  it('still builds a board when intent-api is not reachable', async () => {
+    open(new MockBoardStore(), new MockIntentClient(new Error('down')))
+    await ask('@builder build an inventory board')
+    expect(await screen.findByRole('dialog', { name: /Inventory review/ })).toBeInTheDocument()
   })
 
   it('shows the reading under a widget reply too', async () => {

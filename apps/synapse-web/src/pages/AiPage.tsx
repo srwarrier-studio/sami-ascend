@@ -15,11 +15,12 @@ import { buildWidgets } from '../boards/layout'
 import { CatalogWidget } from '../catalog/CatalogWidget'
 import classes from '../boards/Board.module.css'
 
-type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard; blocks?: AnswerBlock[]; intent?: IntentReading | null; examples?: boolean }
+type Message = { from: 'you' | 'ai'; text: string; catalogIds?: string[]; board?: ChatBoard; blocks?: AnswerBlock[]; intent?: IntentReading | null; examples?: boolean; retry?: string }
 
 const NO_FIGURES = 'The figures are not available right now.'
 const unusablePeriod = (periods: string[]) => `I could not use the period in your question (I read ${periods.join(' and ')}). Ask for one period that has already started.`
 
+const UNAVAILABLE = 'The AI service is not available right now. Please try again in a moment.'
 const WHY_FAILED = 'I could not explain that change right now. Ask for a figure, such as what were sales last month, or try again in a moment.'
 const OFF_TOPIC = 'I answer questions about our business figures, such as sales, customers and materials. Try one of these:'
 
@@ -45,16 +46,21 @@ export function AiPage() {
     list.scrollTop = answer ? Math.max(answer.offsetTop - list.offsetTop - 16, 0) : list.scrollHeight
   }, [messages, busy])
 
-  const send = async (message: string) => {
+  const send = async (message: string, again = false) => {
     const asked = message.trim()
     if (!asked || busy) return
     setBusy(true)
     setText('')
-    setMessages((all) => [...all, { from: 'you', text: asked }])
+    if (!again) setMessages((all) => [...all, { from: 'you', text: asked }])
     const forBoard = asked.toLowerCase().startsWith(BUILDER)
     const reply: IntentReply | null | 'figures_down' = forBoard ? null : await intentClient.answer(asked, company).catch((error) => (error instanceof IntentDataUnavailable ? 'figures_down' : null))
     if (reply === 'figures_down') {
       setMessages((all) => [...all, { from: 'ai', text: NO_FIGURES }])
+      setBusy(false)
+      return
+    }
+    if (reply === null && !forBoard) {
+      setMessages((all) => [...all, { from: 'ai', text: UNAVAILABLE, retry: asked }])
       setBusy(false)
       return
     }
@@ -179,6 +185,21 @@ export function AiPage() {
                 <Button mt="xs" size="xs" variant="light" onClick={() => setBoard(message.board ?? null)}>
                   Open board
                 </Button>
+              )}
+              {message.retry && (
+                <Group gap="xs" mt="xs">
+                  <Button
+                    size="xs"
+                    variant="light"
+                    disabled={busy}
+                    onClick={() => {
+                      setMessages((all) => all.filter((item) => item !== message))
+                      send(message.retry ?? '', true)
+                    }}
+                  >
+                    Try again
+                  </Button>
+                </Group>
               )}
               {message.examples && (
                 <Group gap="xs" mt="xs">
