@@ -10,3 +10,4 @@ class Role(StrEnum):
     QUALITY = "quality"
     SALES = "sales"
     ACCOUNTS = "accounts"
+    MASTER_DATA = "master-data"

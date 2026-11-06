@@ -28,6 +28,12 @@ def test_valid_token_returns_claims():
     assert claims.roles == [Role.STORES]
 
 
+def test_master_data_role_is_returned():
+    claims = TokenVerifier(SECRET).verify(make_token(roles=["master-data"]))
+
+    assert claims.roles == [Role.MASTER_DATA]
+
+
 def test_companies_are_returned():
     claims = TokenVerifier(SECRET).verify(make_token(companies=["organica", "sabinsa"]))
 

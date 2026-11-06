@@ -45,7 +45,7 @@ export const fakeAdmin = (users: AdminUser[] = [user()], audit: AuditEntry[] = [
       Object.assign(found, changes)
       return found
     },
-    roles: async () => ['admin', 'production', 'accounts'],
+    roles: async () => ['admin', 'production', 'accounts', 'master-data'],
     companies: async () => ['sabinsa', 'organica'],
     audit: async (filters, before, limit = 50) => {
       calls.push(`audit ${JSON.stringify(filters)} ${before} ${limit}`)
