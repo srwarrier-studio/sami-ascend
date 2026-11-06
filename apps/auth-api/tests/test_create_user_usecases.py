@@ -33,6 +33,16 @@ def test_creates_user_with_hashed_password_and_audit_event(uow):
     assert tuple(audit) == ("sarath", "user.create", "buyer@email.com")
 
 
+def test_creates_a_master_data_user(uow):
+    dto = user_dto("Master@Email.com")
+    dto.roles = ["master-data"]
+    CreateUser(uow, Argon2PasswordHasher()).execute(dto)
+
+    with uow:
+        user = uow.user_repo.find_by_email(EmailID("master@email.com"))
+    assert user.roles == [Role.MASTER_DATA]
+
+
 def test_rejects_short_password(uow):
     with pytest.raises(WeakPassword):
         CreateUser(uow, Argon2PasswordHasher()).execute(user_dto(password="short"))

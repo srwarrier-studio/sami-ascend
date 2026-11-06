@@ -100,6 +100,11 @@ class TestUsers:
     def test_lists_of_allowed_values(self, api):
         assert "production" in api.get(BASE + "/roles").json() and "organica" in api.get(BASE + "/companies").json()
 
+    def test_the_master_data_role_is_listed_and_can_be_given(self, api):
+        assert "master-data" in api.get(BASE + "/roles").json()
+        created = api.post(BASE + "/users", json={**NEW, "roles": ["master-data"]})
+        assert created.status_code == 201 and created.json()["roles"] == ["master-data"]
+
     def test_update_roles_and_companies(self, api):
         userid = api.post(BASE + "/users", json=NEW).json()["userid"]
         changed = api.patch(f"{BASE}/users/{userid}", json={"roles": ["accounts", "quality"], "companies": ["organica"]}).json()

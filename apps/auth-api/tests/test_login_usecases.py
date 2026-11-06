@@ -5,7 +5,7 @@ from auth_api.application.usecase.login_with_entra import LoginWithEntra
 from auth_api.application.usecase.login_with_password import LoginWithPassword
 from auth_api.domain.errors import InvalidCredentials
 from auth_api.infrastructure.interface.argon2_password_hasher import Argon2PasswordHasher
-from token_verification import TokenVerifier
+from token_verification import Role, TokenVerifier
 
 from auth_api.infrastructure.interface.jwt_token_service import JwtTokenService
 from auth_api.infrastructure.mock.mock_unit_of_work import MockAuthUnitOfWork
@@ -116,3 +116,9 @@ def test_the_caller_cannot_tell_an_unknown_email_from_a_bad_password():
         errors.append(str(caught.value))
 
     assert errors[0] == errors[1]
+
+
+def test_the_token_of_a_master_data_user_carries_the_role():
+    user = MOCK_USER.__class__(**{**MOCK_USER.__dict__, "roles": [Role.MASTER_DATA]})
+
+    assert verifier.verify(token_service.issue(user)).roles == [Role.MASTER_DATA]

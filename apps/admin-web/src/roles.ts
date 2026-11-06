@@ -7,6 +7,7 @@ export const roleHelp: Record<string, string> = {
   stores: 'Synapse inventory and production widgets.',
   production: 'Synapse production widgets.',
   quality: 'Synapse production widgets.',
+  'master-data': 'Checks and creates customer, supplier and material records in workspace.',
 }
 
 export const companyLabel: Record<string, string> = {

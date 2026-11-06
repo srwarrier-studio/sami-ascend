@@ -65,6 +65,11 @@ describe('signing in', () => {
     expect(canUseSynapse(['visitor'])).toBe(false)
     expect(canUseSynapse(['production'])).toBe(true)
   })
+
+  it('does not open Synapse for the master data role alone', () => {
+    expect(canUseSynapse(['master-data'])).toBe(false)
+    expect(canUseSynapse(['master-data', 'management'])).toBe(true)
+  })
 })
 
 describe('signed in', () => {
