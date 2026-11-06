@@ -108,3 +108,17 @@ class TestRefusals:
 
     def test_a_body_that_is_not_json_is_refused(self, client):
         assert client.post(f"{ROOT}/A_BusinessPartner", content="not json").status_code == 400
+
+
+class TestUsingTheNewCustomer:
+    def test_a_sales_order_can_be_created_for_it(self, client):
+        from butterfly.infrastructure.api.odata import ROOT as ORDERS_ROOT
+
+        post(client)
+        order = {
+            "SalesOrderType": "OR", "CompanyCode": "INA1", "SoldToParty": "0000200000", "RequestedDeliveryDate": "2026-11-05",
+            "TransactionCurrency": "INR", "_Item": [{"Material": "RM-1001", "Quantity": "5.000", "QuantityUnit": "KG"}],
+        }
+        response = client.post(ORDERS_ROOT + "SalesOrder", json=order)
+        assert response.status_code == 201
+        assert response.json()["CustomerName"] == "Lakefront Wellness Inc"
