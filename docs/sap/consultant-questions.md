@@ -75,3 +75,9 @@ None yet.
 47. Which number format do customers, suppliers and sales orders have in your system, and which grouping creates them? Butterfly shows numbers without leading zeros like the sandbox, converting at the edge of its standard services, so a different real format is a data change.
 48. Is an external number interval used for any document type (numbers typed by the user)?
 
+
+### Customer create (`customer-onboarding.md`, butterfly 25)
+Butterfly mirrors `POST A_BusinessPartner` with a deep insert (roles `FLCU00`/`FLCU01`, address, `to_Customer` with company and sales area rows) from the saved definitions; the sandbox cannot exercise it. The customer number comes from a placeholder range (200000 to 299999) and the refusal codes `BP001` to `BP012` are butterfly's own. Please confirm with a test create:
+49. The real customer number range and the grouping that creates customers (also question 47), and whether `Customer` always equals `BusinessPartner`.
+50. The exact refusals and codes for: no country, unknown company code, unknown currency, sales organization not belonging to the company, number taken, number range full, missing customer role.
+51. Whether one request may carry several company codes or sales areas (butterfly keeps the first of each), and whether a partner without customer data is created through the same call.

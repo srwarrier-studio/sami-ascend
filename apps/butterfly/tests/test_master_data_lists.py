@@ -1,6 +1,6 @@
 import pytest
 
-from butterfly.domain.entities.master_data import PLANT_COMPANIES
+from butterfly.domain.entities.master_data import PLANT_COMPANIES, Customer
 from butterfly.infrastructure.memory.companies import COMPANIES
 from butterfly.infrastructure.memory.in_memory_master_data_repo import InMemoryMasterDataRepo
 from butterfly.infrastructure.sqlite.master_data_repo import SqliteMasterDataRepo
@@ -15,6 +15,18 @@ class TestCustomers:
     def test_lists_every_customer_with_its_company(self, repo):
         listed = {(c.customer_id, c.company_code) for c in repo.list_customers()}
         assert listed == {(c.customer_id, company.code) for company in COMPANIES for c in company.customers}
+
+
+class TestAddingACustomer:
+    def test_first_number_is_the_start_of_the_range_padded_to_ten(self, repo):
+        assert repo.next_customer_number() == "0000200000"
+
+    def test_added_customer_is_read_back_with_its_fields_and_takes_the_next_number(self, repo):
+        number = repo.next_customer_number()
+        repo.add_customer(Customer(number, "Test Buyer LLC", "US", "INA1", city="Austin", payment_terms="0001"))
+        assert repo.get_customer(number) == Customer(number, "Test Buyer LLC", "US", "INA1", city="Austin", payment_terms="0001")
+        assert number in {c.customer_id for c in repo.list_customers()}
+        assert repo.next_customer_number() == "0000200001"
 
 
 class TestProducts:

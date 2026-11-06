@@ -8,12 +8,13 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
 
 from butterfly.application.alpha import external
+from butterfly.application.usecase.create_business_partner import CreateBusinessPartner
 from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.filter import fields as filter_fields
 from butterfly.application.filter.parser import parse_filter
 from butterfly.application.list_query import apply_list_query
 from butterfly.domain.entities.master_data import DEFAULT_PURCHASING_GROUP, PURCHASING_ORGANIZATIONS, SALES_ORGANIZATIONS
-from butterfly.domain.errors import InvalidQuery
+from butterfly.domain.errors import InvalidQuery, NumberRangeFull, ValidationFailed
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.infrastructure.api.standard.dialects import V2_MEDIA, Refusal, stamp
 from butterfly.infrastructure.api.standard.edmx import PARTNER_METADATA, load
@@ -23,6 +24,7 @@ SERVICE = "API_BUSINESS_PARTNER"
 LIST_OPTIONS = {"$filter", "$select", "$orderby", "$top", "$skip", "$inlinecount", "$expand", "$format"}
 SUBSTRINGOF = re.compile(r"substringof\(\s*('(?:[^']|'')*')\s*,\s*(\w+)\s*\)")
 CUSTOMER_GROUP, SUPPLIER_GROUP = "CUST", "SUPL"
+CUSTOMER_ROLES = ("FLCU00", "FLCU01")
 
 
 @dataclass(frozen=True)
@@ -46,6 +48,35 @@ class CustomerSalesAreaRow:
     distribution_channel: str = "10"
     division: str = "00"
     account_group: str = CUSTOMER_GROUP
+
+
+@dataclass(frozen=True)
+class PartnerRow:
+    customer_id: str
+    name: str
+    grouping: str
+    search_term: str
+    language: str
+    category: str = "2"
+
+
+@dataclass(frozen=True)
+class PartnerAddressRow:
+    customer_id: str
+    country: str
+    city: str
+    postal_code: str
+    street: str
+    house_number: str
+    region: str
+    language: str
+    address_id: str = "1"
+
+
+@dataclass(frozen=True)
+class PartnerRoleRow:
+    customer_id: str
+    role: str
 
 
 @dataclass(frozen=True)
@@ -107,6 +138,27 @@ class Service:
         name = lambda r: {"CustomerName": r.name, "CustomerFullName": r.name, "BPCustomerName": r.name, "BPCustomerFullName": r.name}  # noqa: E731
         return [
             EntitySet(
+                "A_BusinessPartner", "A_BusinessPartnerType", ("BusinessPartner",), f.STANDARD_PARTNER_FIELDS, self.partners,
+                lambda r: {
+                    "BusinessPartner": external(r.customer_id), "Customer": external(r.customer_id), "BusinessPartnerCategory": r.category,
+                    "BusinessPartnerFullName": r.name, "BusinessPartnerName": r.name, "OrganizationBPName1": r.name,
+                    "BusinessPartnerGrouping": r.grouping, "SearchTerm1": r.search_term, "Language": r.language, "CorrespondenceLanguage": r.language,
+                },
+                {"to_BusinessPartnerAddress": "A_BusinessPartnerAddress", "to_BusinessPartnerRole": "A_BusinessPartnerRole"}, "customer_id",
+            ),
+            EntitySet(
+                "A_BusinessPartnerAddress", "A_BusinessPartnerAddressType", ("BusinessPartner", "AddressID"), f.STANDARD_PARTNER_ADDRESS_FIELDS, self.partner_addresses,
+                lambda r: {
+                    "BusinessPartner": external(r.customer_id), "AddressID": r.address_id, "Country": r.country, "CityName": r.city, "PostalCode": r.postal_code,
+                    "StreetName": r.street, "HouseNumber": r.house_number, "Region": r.region, "Language": r.language,
+                },
+                {}, "customer_id",
+            ),
+            EntitySet(
+                "A_BusinessPartnerRole", "A_BusinessPartnerRoleType", ("BusinessPartner", "BusinessPartnerRole"), f.STANDARD_PARTNER_ROLE_FIELDS, self.partner_roles,
+                lambda r: {"BusinessPartner": external(r.customer_id), "BusinessPartnerRole": r.role}, {}, "customer_id",
+            ),
+            EntitySet(
                 "A_Customer", "A_CustomerType", ("Customer",), f.STANDARD_CUSTOMER_FIELDS, self.customers,
                 lambda r: {"Customer": external(r.customer), "CustomerAccountGroup": r.account_group} | name(r),
                 {"to_CustomerCompany": "A_CustomerCompany", "to_CustomerSalesArea": "A_CustomerSalesArea"}, "customer",
@@ -143,6 +195,18 @@ class Service:
                 {}, "supplier",
             ),
         ]
+
+    def partners(self) -> list[PartnerRow]:
+        return [PartnerRow(c.customer_id, c.name, c.grouping, c.search_term, c.language) for c in self.master_data.list_customers()]
+
+    def partner_addresses(self) -> list[PartnerAddressRow]:
+        return [
+            PartnerAddressRow(c.customer_id, c.country, c.city, c.postal_code, c.street, c.house_number, c.region, c.language)
+            for c in self.master_data.list_customers()
+        ]
+
+    def partner_roles(self) -> list[PartnerRoleRow]:
+        return [PartnerRoleRow(c.customer_id, role) for c in self.master_data.list_customers() for role in CUSTOMER_ROLES]
 
     def customers(self) -> list[CustomerRow]:
         return [CustomerRow(c.customer_id, c.name) for c in self.master_data.list_customers()]
@@ -254,6 +318,10 @@ class Service:
             raise Refusal("property", text.split(" ")[0].split("(")[0], entity.type_name) from error
         return Response(str(len([r for r in entity.rows() if condition is None or condition.matches(r)])), media_type="text/plain; charset=utf-8")
 
+    def failure(self, message: str, details: list[dict]) -> dict:
+        inner = {"transactionid": uuid.uuid4().hex.upper(), "timestamp": stamp() + "0", "errordetails": details}
+        return {"error": {"code": "BP/000", "message": {"lang": "en", "value": message}, "innererror": inner}}
+
     def refusal(self, error: Refusal) -> tuple[int, dict]:
         type_name = error.type_name
         kinds = {
@@ -283,6 +351,7 @@ class Service:
 def build_business_partner_router(master_data: MasterDataRepo) -> APIRouter:
     service = Service(master_data)
     router = APIRouter(prefix=ROOT)
+    create_partner = CreateBusinessPartner(master_data)
 
     def guarded(function):
         @wraps(function)
@@ -299,6 +368,24 @@ def build_business_partner_router(master_data: MasterDataRepo) -> APIRouter:
     @router.get("/$metadata")
     def metadata():
         return Response(service.metadata.content(), media_type="application/xml")
+
+    @router.post("/A_BusinessPartner")
+    async def create(request: Request):
+        try:
+            body = await request.json()
+        except ValueError:
+            body = None
+        if not isinstance(body, dict):
+            return JSONResponse(service.failure("The request body is not valid JSON", []), status_code=400, media_type=V2_MEDIA)
+        try:
+            created = create_partner.execute(body)
+        except ValidationFailed as error:
+            details = [{"code": d.code, "message": d.message, "propertyref": "", "severity": "error", "target": d.target} for d in error.details]
+            return JSONResponse(service.failure(error.details[0].message, details), status_code=400, media_type=V2_MEDIA)
+        except NumberRangeFull as error:
+            return JSONResponse(service.failure(str(error), []), status_code=400, media_type=V2_MEDIA)
+        row = service.row(service.sets["A_BusinessPartner"], next(r for r in service.partners() if r.customer_id == created.customer_id), None, None, str(request.base_url).rstrip("/"))
+        return JSONResponse({"d": row}, status_code=201, media_type=V2_MEDIA)
 
     def add_routes(entity: EntitySet):
         @router.get(f"/{entity.name}/$count")

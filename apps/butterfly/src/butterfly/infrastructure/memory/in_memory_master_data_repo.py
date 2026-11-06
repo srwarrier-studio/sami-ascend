@@ -1,3 +1,4 @@
+from butterfly.domain.entities.number_range import CUSTOMER
 from butterfly.domain.entities.master_data import Customer, Material, Plant, Product, Supplier
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.infrastructure.memory.companies import COMPANIES
@@ -22,6 +23,12 @@ class InMemoryMasterDataRepo(MasterDataRepo):
 
     def get_customer(self, customer_id: str) -> Customer | None:
         return self.customers.get(customer_id)
+
+    def next_customer_number(self) -> str:
+        return CUSTOMER.next(self.customers).zfill(10)
+
+    def add_customer(self, customer: Customer) -> None:
+        self.customers[customer.customer_id] = customer
 
     def get_material(self, material_id: str) -> Material | None:
         return self.materials.get(material_id)

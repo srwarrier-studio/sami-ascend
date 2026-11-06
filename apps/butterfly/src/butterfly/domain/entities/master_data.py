@@ -25,6 +25,21 @@ class Customer:
     name: str
     country: str = "IN"
     company_code: str = "INA1"
+    grouping: str = ""
+    account_group: str = "CUST"
+    search_term: str = ""
+    language: str = "EN"
+    city: str = ""
+    postal_code: str = ""
+    street: str = ""
+    house_number: str = ""
+    region: str = ""
+    currency: str = ""
+    payment_terms: str = ""
+    reconciliation_account: str = ""
+    incoterms: str = ""
+    tax_type: str = ""
+    tax_number: str = ""
 
 
 @dataclass(frozen=True)

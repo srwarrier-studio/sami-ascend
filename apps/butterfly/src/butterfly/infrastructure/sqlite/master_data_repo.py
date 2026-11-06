@@ -1,3 +1,6 @@
+from dataclasses import fields
+
+from butterfly.domain.entities.number_range import CUSTOMER
 from butterfly.domain.entities.master_data import Customer, Material, Plant, Product, Supplier
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.infrastructure.memory.in_memory_master_data_repo import CURRENCIES
@@ -5,6 +8,13 @@ from butterfly.infrastructure.memory.master_lists import plants, products, suppl
 from butterfly.infrastructure.sqlite.database import Database
 from butterfly.infrastructure.sqlite.money import from_minor
 from butterfly.infrastructure.sqlite.seeder import write_master_data
+
+
+CUSTOMER_COLUMNS = [field.name for field in fields(Customer)]
+
+
+def customer_from(row) -> Customer:
+    return Customer(**{name: row[name] for name in CUSTOMER_COLUMNS})
 
 
 class SqliteMasterDataRepo(MasterDataRepo):
@@ -16,7 +26,15 @@ class SqliteMasterDataRepo(MasterDataRepo):
 
     def get_customer(self, customer_id: str) -> Customer | None:
         rows = self.db.query("SELECT * FROM customer WHERE customer_id = ?", (customer_id,))
-        return Customer(rows[0]["customer_id"], rows[0]["name"], rows[0]["country"], rows[0]["company_code"]) if rows else None
+        return customer_from(rows[0]) if rows else None
+
+    def next_customer_number(self) -> str:
+        return CUSTOMER.next(row["customer_id"] for row in self.db.query("SELECT customer_id FROM customer")).zfill(10)
+
+    def add_customer(self, customer: Customer) -> None:
+        names = ", ".join(CUSTOMER_COLUMNS)
+        marks = ", ".join("?" for _ in CUSTOMER_COLUMNS)
+        self.db.execute(f"INSERT INTO customer ({names}) VALUES ({marks})", tuple(getattr(customer, name) for name in CUSTOMER_COLUMNS))
 
     def get_material(self, material_id: str) -> Material | None:
         rows = self.db.query("SELECT * FROM material WHERE material_id = ?", (material_id,))
@@ -31,7 +49,7 @@ class SqliteMasterDataRepo(MasterDataRepo):
 
     def list_customers(self) -> list[Customer]:
         rows = self.db.query("SELECT * FROM customer ORDER BY rowid")
-        return [Customer(row["customer_id"], row["name"], row["country"], row["company_code"]) for row in rows]
+        return [customer_from(row) for row in rows]
 
     def list_products(self) -> list[Product]:
         return products()
