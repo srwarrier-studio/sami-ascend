@@ -7,7 +7,7 @@ Laya, the domain classifier intent-api depends on, starts with the rest of the d
 intent-api answers `503 cannot_classify_now` when Laya is down, and synapse-web then falls back to a keyword match on widget titles, which shows unrelated widgets (2026-11-06). `scripts/dev.sh` only started Laya when `~/laya-env/bin/laya-serve` existed, and it did not on this machine. Laya is not part of the repo, so every new machine or clean checkout loses it.
 
 ## Behavior
-- **`docker-compose.yml` at the repo root** with one service, `laya`:
+- **`compose.yaml` at the repo root** with one service, `laya`:
   - Image built from `infra/laya/Dockerfile`: Python 3.14, torch from the CPU index (no CUDA libraries), `laya[serve]`, running `laya-serve` on `0.0.0.0:8011` inside the container.
   - Published as `127.0.0.1:8011:8011`, so intent-api on the host reaches it at `http://localhost:8011` unchanged and nothing outside the machine can.
   - The fine-tuned checkpoint `Training/sap-intent-v2` is mounted read-only; a new checkpoint from Colab is copied there and the service restarted, with no rebuild. The model name, default model and extra-model settings are the same as `scripts/dev.sh` used (`sap-intent-v2`).

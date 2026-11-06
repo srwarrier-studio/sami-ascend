@@ -1,0 +1,21 @@
+services:
+  laya:
+    build: infra/laya
+    ports:
+      - "127.0.0.1:8011:8011"
+    environment:
+      LAYA_DEFAULT_MODEL: sap-intent-v2
+      LAYA_EXTRA_MODELS: '{"sap-intent-v2": "/models/sap-intent-v2"}'
+    volumes:
+      - ./Training/sap-intent-v2:/models/sap-intent-v2:ro
+      - laya-cache:/cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,urllib.error\ntry: urllib.request.urlopen('http://127.0.0.1:8011/')\nexcept urllib.error.HTTPError: pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+volumes:
+  laya-cache:
