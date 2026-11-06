@@ -9,7 +9,7 @@ Every service runs from the root `compose.yaml`.
 | `mock-sap` | 8003 | the mock SAP (butterfly) |
 | `synapse-api` | 8004 | Synapse data and boards |
 | `intent-api` | 8006 | reads management questions |
-| `intent-classifier` | 8011 | Laya, the domain classifier (`Training/sap-intent-v2`) |
+| `onnx-classifier` | 8012 | the domain and scenario classifier (`Training/classifier-model`) |
 | `workspace-web` | 5173 | workspace app |
 | `synapse-web` | 5174 | Synapse app |
 | `admin-web` | 5176 | admin app |

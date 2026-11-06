@@ -5,7 +5,7 @@ import pytest
 from onnx_classifier.entrypoint.app import build_score_choice
 from onnx_classifier.infrastructure.settings import Settings
 
-MODEL_DIR = Path(__file__).resolve().parents[3] / "Training" / "onnx-deberta" / "serve"
+MODEL_DIR = Path(__file__).resolve().parents[3] / "Training" / "classifier-model"
 DOMAINS = {
     "Sales": "sales, exports, customers, countries, revenue",
     "Purchase": "purchases, imports, suppliers, raw materials, spend",
@@ -17,7 +17,7 @@ DOMAINS = {
 }
 
 
-@pytest.mark.skipif(not (MODEL_DIR / "model.onnx").exists(), reason="the trained model is not in Training/onnx-deberta/serve")
+@pytest.mark.skipif(not (MODEL_DIR / "model.onnx").exists(), reason="the trained model is not in Training/classifier-model")
 class TestRealModel:
     @pytest.mark.parametrize("question,expected", [
         ("which receivables are overdue", "Finance"),

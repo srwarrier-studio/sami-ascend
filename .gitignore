@@ -5,13 +5,9 @@ node_modules
 __pycache__
 unanswered.jsonl
 Training/out/
-Training/intent-tuned/
-Training/*.zip
-Training/sap-intent-v2/
-Training/*.jsonl
 *.db-wal
 *.db-shm
 
 # API client request collections (local testing)
 api-docs/
-Training/onnx-*/
+Training/classifier-model/

@@ -134,15 +134,15 @@ services:
       - "127.0.0.1:8006:8006"
     environment:
       FRONTEND_URL: http://localhost:5174
-      LAYA_URL: http://intent-classifier:8011
-      LAYA_MODEL: sap-intent-v2
+      LAYA_URL: ${LAYA_URL:-http://onnx-classifier:8012}
+      LAYA_MODEL: ${LAYA_MODEL:-typed-decisions}
       DOMAIN_MIN_PROBABILITY: "0.4"
       SYNAPSE_URL: http://synapse-api:8004
       UNANSWERED_LOG: /data/unanswered.jsonl
     volumes:
       - intent-data:/data
     depends_on:
-      intent-classifier:
+      onnx-classifier:
         condition: service_healthy
       synapse-api:
         condition: service_healthy
@@ -159,23 +159,27 @@ services:
         - {action: rebuild, path: ./apps/intent-api/pyproject.toml}
         - {action: sync+restart, path: ./apps/intent-api, target: /app/apps/intent-api, ignore: [tests, "**/__pycache__", "*.db", "*.jsonl", pyproject.toml]}
         - {action: sync+restart, path: ./docs/sap, target: /app/docs/sap}
-  intent-classifier:
-    build: infra/classifier
+  onnx-classifier:
+    build:
+      context: apps/onnx-classifier
+      dockerfile: ../../infra/onnx-classifier/Dockerfile
     ports:
-      - "127.0.0.1:8011:8011"
+      - "127.0.0.1:8012:8012"
     environment:
-      LAYA_DEFAULT_MODEL: sap-intent-v2
-      LAYA_EXTRA_MODELS: '{"sap-intent-v2": "/models/sap-intent-v2"}'
+      THREADS: "2"
     volumes:
-      - ./Training/sap-intent-v2:/models/sap-intent-v2:ro
-      - classifier-cache:/cache
+      - ./Training/classifier-model:/models/serve:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,urllib.error\ntry: urllib.request.urlopen('http://127.0.0.1:8011/')\nexcept urllib.error.HTTPError: pass"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8012/health')"]
       interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 60s
+      timeout: 3s
+      retries: 12
+    develop:
+      watch:
+        - {action: rebuild, path: ./apps/onnx-classifier/uv.lock}
+        - {action: rebuild, path: ./apps/onnx-classifier/pyproject.toml}
+        - {action: sync+restart, path: ./apps/onnx-classifier/src, target: /app/src, ignore: ["**/__pycache__"]}
 
   workspace-web:
     <<: *web
@@ -247,7 +251,6 @@ services:
         - {action: sync+restart, path: ./apps/admin-web/vite.config.ts, target: /app/apps/admin-web/vite.config.ts}
         - {action: sync, path: ./apps/admin-web, target: /app/apps/admin-web, ignore: [node_modules, dist, tests, package.json, vite.config.ts]}
 volumes:
-  classifier-cache:
   mock-sap-data:
   synapse-data:
   workspace-data:

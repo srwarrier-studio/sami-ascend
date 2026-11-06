@@ -8,39 +8,24 @@ Reads a manager's question and decides which approved scenarios it asks for, usi
 ## Test
 `uv run --package intent-api --with pytest python -m pytest apps/intent-api`
 
-## Laya (the domain classifier)
-intent-api asks Laya which domain a question belongs to (`scenarios.toml` lists the domains). Laya runs as its own service in the root `compose.yaml` (image in `infra/classifier/`), with `Training/sap-intent-v2` mounted read-only and a named volume for its cache:
+## The classifier
+intent-api asks a classifier which domain and scenario a question belongs to. By default that is `onnx-classifier` (`apps/onnx-classifier`, DeBERTa-v3-small on ONNX Runtime, about 290 MB of memory, port 8012). The address is `LAYA_URL` (default `http://onnx-classifier:8012` in compose):
 
 ```
-docker compose up -d --wait intent-classifier
+docker compose up -d --wait intent-api
 ```
-Laya listens on `127.0.0.1:8011`. The first start downloads about 650 MB of base model files into the cache volume (the Docker disk needs room for it); later starts take seconds. A new checkpoint from Colab is copied into `Training/sap-intent-v2` and `docker compose restart intent-classifier` serves it, with no rebuild. `docker compose down` keeps the cache; `docker compose down -v` deletes it.
-
-Without Docker, the host install still works:
-
-```
-uv venv --python 3.14 laya-env
-uv pip install --python laya-env/bin/python torch --index-url https://download.pytorch.org/whl/cpu
-uv pip install --python laya-env/bin/python "laya[serve]"
-LAYA_HOST=127.0.0.1 LAYA_PORT=8011 LAYA_MODELS=typed-decisions laya-env/bin/laya-serve
-```
-Then set `LAYA_URL=http://localhost:8011` (and `LAYA_API_KEY` if the server has one; `LAYA_MODEL` defaults to `typed-decisions`) and try:
-
-```
-uv run --package intent-api intent-api domain "What were sales for August?"
-```
-It prints the domain and its probability, `refused (Other)` when Laya says the question is not about the business, or `cannot_classify_now` when Laya cannot be reached. Notes on Laya are in `docs/laya/`.
+The request and response format is Laya's `POST /v1/systemone` (the earlier classifier, removed on 2026-11-07, its checkpoint is on Hugging Face), so the client in `infrastructure/laya_choice_classifier.py` and the `LAYA_*` settings keep that name. If the classifier is down, intent-api answers `cannot_classify_now`.
 
 ## Scenario library
 `scenarios.toml` lists the domains (`[domain.<Name>]` with a short description) and the approved scenarios (`[[scenario]]` with `id`, `domain`, `description`, `examples`, `needs`, `covers`). `uv run --package intent-api intent-api scenarios check` validates it and `scenarios show` prints it by domain. A new kind of question is a new `[[scenario]]` entry; the code knows no flow.
 
 ## Match
-`POST /v1/intent/match` with `{"question": "..."}` (management or admin cookie). It asks Laya for the domain, then for the scenarios of that domain, and returns the domain with its probability and every domain's score, the scenarios offered, and the selected scenarios with their probabilities. A refusal is `200` with `problem: "cannot_answer"`, a `reason` (`not_about_business`, `not_sure`, `no_scenarios`, `nothing_matched`) and `did_you_mean` (the two nearest domains); it is also appended to `unanswered.jsonl` (setting `UNANSWERED_LOG`, ignored by git). When Laya cannot be reached the answer is `503` with `problem: "cannot_classify_now"`. `uv run --package intent-api intent-api unanswered` lists the refused questions by nearest domain.
+`POST /v1/intent/match` with `{"question": "..."}` (management or admin cookie). It asks the classifier for the domain, then for the scenarios of that domain, and returns the domain with its probability and every domain's score, the scenarios offered, and the selected scenarios with their probabilities. A refusal is `200` with `problem: "cannot_answer"`, a `reason` (`not_about_business`, `not_sure`, `no_scenarios`, `nothing_matched`) and `did_you_mean` (the two nearest domains); it is also appended to `unanswered.jsonl` (setting `UNANSWERED_LOG`, ignored by git). When Laya cannot be reached the answer is `503` with `problem: "cannot_classify_now"`. `uv run --package intent-api intent-api unanswered` lists the refused questions by nearest domain.
 
 Settings: `DOMAIN_MIN_PROBABILITY` (0.4) and `SCENARIO_MIN_PROBABILITY` (0.3), both chosen with the evaluation, and `MAX_SCENARIOS` (4).
 
 ## Evaluation
-`evals/questions.json` holds the questions (`id`, `question`, `part` single, multi or refuse, expected `domain`, expected `scenarios`, `heldout`). Questions with no scenarios must be refused: other domains that have no scenarios yet, forecasts, and anything not about the business. About a third are held out. With Laya running:
+`evals/questions.json` holds the questions (`id`, `question`, `part` single, multi or refuse, expected `domain`, expected `scenarios`, `heldout`). Questions with no scenarios must be refused: other domains that have no scenarios yet, forecasts, and anything not about the business. About a third are held out. With the classifier running:
 
 ```
 LAYA_URL=http://localhost:8011 uv run --package intent-api intent-api eval [--show] [--domain-min 0.4 --scenario-min 0.3]
@@ -53,7 +38,7 @@ It prints, for the chosen floors and for a grid of others, how many answerable q
 ## Why-questions (company scope and currency)
 `sales_why` and `purchases_why` have `response = "why"` in `answers.toml`: "why did sales fall in August" is answered by the analysis (graph, movers, causes, offset) built from synapse-api reads, with no model in the answer. It needs one finished month. The request takes `company` (`all` by default, `sabinsa`, `neutraceuticals` or `organica`), sent to every synapse-api read (a company the user does not have is `403 {"problem": "company_not_allowed"}`); the currency is read from the question (`USD`, `INR`, dollars, rupees, `$`, `₹`) or is the one with the biggest change, and the first sentence names the company and the currency. The graph is `graph.toml` (how-to in `docs/graph-maintenance.md`): `uv run --package intent-api intent-api graph check` validates it against `apps/synapse-api/registry.toml` and the contracts, `graph show [--mermaid]` prints it. `uv run --package intent-api --with-editable apps/butterfly --with-editable apps/synapse-api intent-api why-eval [--final]` asks one question per butterfly scenario in process for `sabinsa` (sales in `USD`, purchases in `INR`) and scores the causes against `apps/butterfly/scenarios/*.json`: all 10 development scenarios pass, and with `--final` 11 of 14 pass (the held-back `two-causes`, `cancellations` and `supplier-switch` are known unsolved). Settings: `SIGNIFICANT_PERCENT`, `MOVER_MIN_PERCENT`, `MOVER_MIN_SHARE`, `PRICE_MAJORITY_PERCENT`.
 
-## Training data (for fine-tuning Laya on Google Colab)
+## Training data (for fine-tuning the classifier on Google Colab)
 `Training/families.toml` holds invented slot values and question families (one meaning said in different ways); nothing in it is a real name or figure. `uv run --package intent-api intent-api training build [--fraction 0.5] [--seed N]` expands it, with a fixed seed, into `Training/out/train.jsonl` and `Training/out/heldout.jsonl` (ignored by git): one row per item in the same form the app sends to Laya (the question as `{"question": text}`, the same instructions and short option descriptions), domain items and scenario items, spelling mistakes added, two-clause questions, and some scenario items that offer only some of the scenarios. Every fourth family of a group is held out, no question from `evals/questions.json` is used, and the files pass Laya's own `dry_run`.
 
-`intent-api training check` runs the checks (no overlap between training and held-out families or with the evaluation questions, every domain and scenario taught and tested, balance, refusals at least a fifth, no duplicates or conflicting answers). `Training/intent-training.ipynb` is the notebook for a remote GPU (it stops if there is none): run `training build`, put `Training/out/train.jsonl` and `heldout.jsonl` (invented questions only) next to it, run the cells, and download the zipped checkpoint. Never run it on a laptop. To use the tuned checkpoint, unzip it and start `laya-serve` with `LAYA_EXTRA_MODELS={"intent-tuned-2": "<folder>"}`, then set `LAYA_MODEL=intent-tuned-2` for intent-api.
+`intent-api training check` runs the checks (no overlap between training and held-out families or with the evaluation questions, every domain and scenario taught and tested, balance, refusals at least a fifth, no duplicates or conflicting answers). `apps/onnx-classifier/tools/cross-encoder.ipynb` is the notebook for a remote GPU (Colab); see `apps/onnx-classifier/README.md` for the steps from the Colab export to `Training/classifier-model/`.

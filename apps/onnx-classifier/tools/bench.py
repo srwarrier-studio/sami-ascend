@@ -9,7 +9,7 @@ import httpx
 
 Scorer = Callable[[str, str, dict[str, str]], dict[str, float]]
 
-HELDOUT = Path(__file__).resolve().parent.parent / "heldout.jsonl"
+HELDOUT = Path(__file__).resolve().parents[3] / "Training" / "out" / "heldout.jsonl"
 
 
 def http_scorer(url: str, api_key: str = "", model: str = "typed-decisions") -> Scorer:
