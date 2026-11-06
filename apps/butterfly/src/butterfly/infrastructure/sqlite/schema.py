@@ -290,6 +290,21 @@ CREATE INDEX IF NOT EXISTS cash_payment_by_date ON cash_payment (posting_date, c
 """
 
 ADDED_COLUMNS = [
+    ("customer", "grouping", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "account_group", "TEXT NOT NULL DEFAULT 'CUST'"),
+    ("customer", "search_term", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "language", "TEXT NOT NULL DEFAULT 'EN'"),
+    ("customer", "city", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "postal_code", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "street", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "house_number", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "region", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "currency", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "payment_terms", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "reconciliation_account", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "incoterms", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "tax_type", "TEXT NOT NULL DEFAULT ''"),
+    ("customer", "tax_number", "TEXT NOT NULL DEFAULT ''"),
     ("sales_order", "total_net_amount_local", "INTEGER NOT NULL DEFAULT 0"),
     ("sales_order", "local_currency", "TEXT NOT NULL DEFAULT 'INR'"),
     ("sales_order_item", "net_amount_local", "INTEGER NOT NULL DEFAULT 0"),
