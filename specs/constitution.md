@@ -43,6 +43,11 @@ robust, maintainable and scalable:
    - Important knowledge moves to `specs/notes.md`; `specs/roadmap.md` gets the status line.
    - Tag `<app>-phase-<nn>-done`, then delete the phase folder.
    - Merge without squashing, so the phase folder stays in history as change-management evidence.
+9. **Before a new phase starts**, the agent stops and asks the owner to clear the context. First it makes sure
+   everything the next session needs is stored in files and not only in the conversation: the roadmap and notes
+   are current, decisions and open questions are written down, open branches and their next task are listed
+   (in the agent's memory index and in `specs/notes.md`), and nothing is left uncommitted or in a stash. The new
+   phase then starts from those files.
 
 ## Code style
 - Clean architecture with these folders per backend app: `domain` (entities, value objects,
