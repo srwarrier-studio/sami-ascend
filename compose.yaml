@@ -6,6 +6,13 @@ x-python: &python
   env_file: .env
   restart: unless-stopped
 
+x-web: &web
+  build:
+    context: .
+    dockerfile: infra/web/Dockerfile
+  image: sami-ascend-web
+  restart: unless-stopped
+
 services:
   mock-sap:
     <<: *python
@@ -37,6 +44,81 @@ services:
       timeout: 3s
       retries: 12
 
+  synapse-api:
+    <<: *python
+    command: synapse-api
+    ports:
+      - "127.0.0.1:8004:8004"
+    environment:
+      FRONTEND_URL: http://localhost:5174
+      BOARDS_DB_PATH: /data/boards.db
+      SAP_BASE_URL: http://mock-sap:8003/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/0001/
+      DRIVERS_BASE_URL: http://mock-sap:8003/sap/opu/odata4/sap/zui_drivers_o4/srvd_a2x/sap/zdrivers/0001/
+      INVENTORY_BASE_URL: http://mock-sap:8003/sap/opu/odata4/sap/zui_inventory_o4/srvd_a2x/sap/zinventory/0001/
+      PRODUCTION_BASE_URL: http://mock-sap:8003/sap/opu/odata4/sap/zui_production_o4/srvd_a2x/sap/zproduction/0001/
+      EXPORT_BASE_URL: http://mock-sap:8003/sap/opu/odata4/sap/zui_export_o4/srvd_a2x/sap/zexport/0001/
+      FINANCE_BASE_URL: http://mock-sap:8003/sap/opu/odata4/sap/zui_finance_o4/srvd_a2x/sap/zfinance/0001/
+    volumes:
+      - synapse-data:/data
+    depends_on:
+      mock-sap:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8004), 2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  workspace-api:
+    <<: *python
+    command: workspace-api
+    ports:
+      - "127.0.0.1:8002:8002"
+    environment:
+      FRONTEND_URL: http://localhost:5173
+      ORDER_DB: /data/orders.db
+      SAP_BASE_URL: http://mock-sap:8003/sap/opu/odata4/sap/zui_sales_o4/srvd_a2x/sap/zsales/0001/
+      SAP_REQUISITION_URL: http://mock-sap:8003/sap/opu/odata4/sap/api_purchaserequisition_2/srvd_a2x/sap/purchaserequisition/0001/
+      SAP_RELEASE_URL: http://mock-sap:8003/butterfly/purchase-requisitions/
+      SAP_PRODUCT_URL: http://mock-sap:8003/sap/opu/odata4/sap/api_product/srvd_a2x/sap/product/0001/
+      SAP_PLANT_URL: http://mock-sap:8003/sap/opu/odata4/sap/api_plant_2/srvd_a2x/sap/plant/0001/
+      SAP_PARTNER_URL: http://mock-sap:8003/sap/opu/odata/sap/API_BUSINESS_PARTNER/
+    volumes:
+      - workspace-data:/data
+    depends_on:
+      mock-sap:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8002), 2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  intent-api:
+    <<: *python
+    command: intent-api
+    ports:
+      - "127.0.0.1:8006:8006"
+    environment:
+      FRONTEND_URL: http://localhost:5174
+      LAYA_URL: http://intent-classifier:8011
+      LAYA_MODEL: sap-intent-v2
+      DOMAIN_MIN_PROBABILITY: "0.4"
+      SYNAPSE_URL: http://synapse-api:8004
+      UNANSWERED_LOG: /data/unanswered.jsonl
+    volumes:
+      - intent-data:/data
+    depends_on:
+      intent-classifier:
+        condition: service_healthy
+      synapse-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8006), 2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
   intent-classifier:
     build: infra/classifier
     ports:
@@ -52,9 +134,60 @@ services:
       test: ["CMD", "python", "-c", "import urllib.request,urllib.error\ntry: urllib.request.urlopen('http://127.0.0.1:8011/')\nexcept urllib.error.HTTPError: pass"]
       interval: 10s
       timeout: 5s
-      retries: 12
+      retries: 30
       start_period: 60s
+
+  workspace-web:
+    <<: *web
+    command: pnpm --filter workspace-web exec vite --host 0.0.0.0 --port 5173 --strictPort
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      auth-api:
+        condition: service_healthy
+      workspace-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').connect(5173, '127.0.0.1').on('connect', () => process.exit(0)).on('error', () => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+
+  synapse-web:
+    <<: *web
+    command: pnpm --filter synapse-web exec vite --host 0.0.0.0 --port 5174 --strictPort
+    ports:
+      - "127.0.0.1:5174:5174"
+    depends_on:
+      auth-api:
+        condition: service_healthy
+      synapse-api:
+        condition: service_healthy
+      intent-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').connect(5174, '127.0.0.1').on('connect', () => process.exit(0)).on('error', () => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+
+  admin-web:
+    <<: *web
+    command: pnpm --filter admin-web exec vite --host 0.0.0.0 --port 5176 --strictPort
+    ports:
+      - "127.0.0.1:5176:5176"
+    depends_on:
+      auth-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').connect(5176, '127.0.0.1').on('connect', () => process.exit(0)).on('error', () => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
 
 volumes:
   classifier-cache:
   mock-sap-data:
+  synapse-data:
+  workspace-data:
+  intent-data:
