@@ -9,7 +9,14 @@ Reads a manager's question and decides which approved scenarios it asks for, usi
 `uv run --package intent-api --with pytest python -m pytest apps/intent-api`
 
 ## Laya (the domain classifier)
-intent-api asks Laya which domain a question belongs to (`scenarios.toml` lists the domains). Laya runs as its own process; it is not a dependency of this app. On the host:
+intent-api asks Laya which domain a question belongs to (`scenarios.toml` lists the domains). Laya runs as its own service in the root `compose.yaml` (image in `infra/laya/`), with `Training/sap-intent-v2` mounted read-only and a named volume for its cache:
+
+```
+docker compose up -d --wait laya
+```
+Laya listens on `127.0.0.1:8011`. The first start downloads about 650 MB of base model files into the cache volume (the Docker disk needs room for it); later starts take seconds. A new checkpoint from Colab is copied into `Training/sap-intent-v2` and `docker compose restart laya` serves it, with no rebuild. `docker compose down` keeps the cache; `docker compose down -v` deletes it.
+
+Without Docker, the host install still works:
 
 ```
 uv venv --python 3.14 laya-env
@@ -17,7 +24,7 @@ uv pip install --python laya-env/bin/python torch --index-url https://download.p
 uv pip install --python laya-env/bin/python "laya[serve]"
 LAYA_HOST=127.0.0.1 LAYA_PORT=8011 LAYA_MODELS=typed-decisions laya-env/bin/laya-serve
 ```
-Install torch from the CPU index first so the CUDA libraries are not pulled in. The first start downloads the checkpoint. Then set `LAYA_URL=http://localhost:8011` (and `LAYA_API_KEY` if the server has one; `LAYA_MODEL` defaults to `typed-decisions`) and try:
+Then set `LAYA_URL=http://localhost:8011` (and `LAYA_API_KEY` if the server has one; `LAYA_MODEL` defaults to `typed-decisions`) and try:
 
 ```
 uv run --package intent-api intent-api domain "What were sales for August?"
