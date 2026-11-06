@@ -39,7 +39,7 @@ status() {
 case "${1:-start}" in
   start)
     if command -v docker >/dev/null && [ -d "$LAYA_CHECKPOINT" ]; then
-      docker compose up -d --wait laya
+      docker compose up -d --wait intent-classifier
     else
       echo "laya: Docker or $LAYA_CHECKPOINT missing, skipped (intent-api will answer cannot_classify_now)"
     fi
@@ -54,7 +54,7 @@ case "${1:-start}" in
     start synapse-web 5174 pnpm --filter synapse-web exec vite --port 5174 --strictPort
     start admin-web 5176 pnpm --filter admin-web exec vite --port 5176 --strictPort
     ;;
-  stop) stop; docker compose stop laya 2>/dev/null ;;
+  stop) stop; docker compose stop intent-classifier 2>/dev/null ;;
   status) status ;;
   *) echo "usage: scripts/dev.sh [start|stop|status]"; exit 2 ;;
 esac

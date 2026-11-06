@@ -1,6 +1,44 @@
+x-python: &python
+  build:
+    context: .
+    dockerfile: infra/api/Dockerfile
+  image: sami-ascend-api
+  env_file: .env
+  restart: unless-stopped
+
 services:
-  laya:
-    build: infra/laya
+  mock-sap:
+    <<: *python
+    command: butterfly
+    ports:
+      - "127.0.0.1:8003:8003"
+    environment:
+      BUTTERFLY_DB: /data/mock-sap.db
+    volumes:
+      - mock-sap-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8003), 2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  auth-api:
+    <<: *python
+    command: python -m auth_api.entrypoint.app
+    ports:
+      - "127.0.0.1:8001:8001"
+    environment:
+      DATABASE_PATH: /data/auth.db
+    volumes:
+      - ./auth.db:/data/auth.db
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8001), 2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  intent-classifier:
+    build: infra/classifier
     ports:
       - "127.0.0.1:8011:8011"
     environment:
@@ -8,7 +46,7 @@ services:
       LAYA_EXTRA_MODELS: '{"sap-intent-v2": "/models/sap-intent-v2"}'
     volumes:
       - ./Training/sap-intent-v2:/models/sap-intent-v2:ro
-      - laya-cache:/cache
+      - classifier-cache:/cache
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,urllib.error\ntry: urllib.request.urlopen('http://127.0.0.1:8011/')\nexcept urllib.error.HTTPError: pass"]
@@ -18,4 +56,5 @@ services:
       start_period: 60s
 
 volumes:
-  laya-cache:
+  classifier-cache:
+  mock-sap-data:
