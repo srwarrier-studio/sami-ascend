@@ -25,7 +25,7 @@ The request and response format is Laya's `POST /v1/systemone` (the earlier clas
 Settings: `DOMAIN_MIN_PROBABILITY` (0.4) and `SCENARIO_MIN_PROBABILITY` (0.3), both chosen with the evaluation, and `MAX_SCENARIOS` (4).
 
 ## Evaluation
-`evals/questions.json` holds the questions (`id`, `question`, `part` single, multi or refuse, expected `domain`, expected `scenarios`, `heldout`). Questions with no scenarios must be refused: other domains that have no scenarios yet, forecasts, and anything not about the business. About a third are held out. With the classifier running:
+`evals/questions.json` holds the questions (`id`, `question`, `part` single, multi or refuse, expected `domain`, expected `scenarios`, `heldout`). Questions with no scenarios must be refused: other domains that have no scenarios yet, forecasts, and anything not about the business. About 60% are held out (the 105 questions seeded from the owner's, source `seeded`, are all held out); 87 are for tuning thresholds. With the classifier running:
 
 ```
 LAYA_URL=http://localhost:8011 uv run --package intent-api intent-api eval [--show] [--domain-min 0.4 --scenario-min 0.3]
