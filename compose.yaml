@@ -13,6 +13,14 @@ x-web: &web
   image: sami-ascend-web
   restart: unless-stopped
 
+x-watch:
+  - &rebuild-lock {action: rebuild, path: ./uv.lock}
+  - &logging {action: sync+restart, path: ./packages/structured-logging/src, target: /app/packages/structured-logging/src, ignore: ["**/__pycache__"]}
+  - &tokens {action: sync+restart, path: ./packages/token-verification/src, target: /app/packages/token-verification/src, ignore: ["**/__pycache__"]}
+  - &rebuild-pnpm {action: rebuild, path: ./pnpm-lock.yaml}
+  - &ui {action: sync, path: ./packages/ui/src, target: /app/packages/ui/src}
+  - &ui-package {action: rebuild, path: ./packages/ui/package.json}
+
 services:
   mock-sap:
     <<: *python
@@ -28,7 +36,14 @@ services:
       interval: 5s
       timeout: 3s
       retries: 12
-
+    develop:
+      watch:
+        - *rebuild-lock
+        - *logging
+        - *tokens
+        - {action: rebuild, path: ./apps/butterfly/pyproject.toml}
+        - {action: sync+restart, path: ./apps/butterfly, target: /app/apps/butterfly, ignore: [tests, "**/__pycache__", "*.db", "*.jsonl", pyproject.toml]}
+        - {action: sync+restart, path: ./docs/sap, target: /app/docs/sap}
   auth-api:
     <<: *python
     command: python -m auth_api.entrypoint.app
@@ -43,7 +58,13 @@ services:
       interval: 5s
       timeout: 3s
       retries: 12
-
+    develop:
+      watch:
+        - *rebuild-lock
+        - *logging
+        - *tokens
+        - {action: rebuild, path: ./apps/auth-api/pyproject.toml}
+        - {action: sync+restart, path: ./apps/auth-api, target: /app/apps/auth-api, ignore: [tests, "**/__pycache__", "*.db", "*.jsonl", pyproject.toml]}
   synapse-api:
     <<: *python
     command: synapse-api
@@ -68,7 +89,13 @@ services:
       interval: 5s
       timeout: 3s
       retries: 12
-
+    develop:
+      watch:
+        - *rebuild-lock
+        - *logging
+        - *tokens
+        - {action: rebuild, path: ./apps/synapse-api/pyproject.toml}
+        - {action: sync+restart, path: ./apps/synapse-api, target: /app/apps/synapse-api, ignore: [tests, "**/__pycache__", "*.db", "*.jsonl", pyproject.toml]}
   workspace-api:
     <<: *python
     command: workspace-api
@@ -93,7 +120,13 @@ services:
       interval: 5s
       timeout: 3s
       retries: 12
-
+    develop:
+      watch:
+        - *rebuild-lock
+        - *logging
+        - *tokens
+        - {action: rebuild, path: ./apps/workspace-api/pyproject.toml}
+        - {action: sync+restart, path: ./apps/workspace-api, target: /app/apps/workspace-api, ignore: [tests, "**/__pycache__", "*.db", "*.jsonl", pyproject.toml]}
   intent-api:
     <<: *python
     command: intent-api
@@ -118,7 +151,14 @@ services:
       interval: 5s
       timeout: 3s
       retries: 12
-
+    develop:
+      watch:
+        - *rebuild-lock
+        - *logging
+        - *tokens
+        - {action: rebuild, path: ./apps/intent-api/pyproject.toml}
+        - {action: sync+restart, path: ./apps/intent-api, target: /app/apps/intent-api, ignore: [tests, "**/__pycache__", "*.db", "*.jsonl", pyproject.toml]}
+        - {action: sync+restart, path: ./docs/sap, target: /app/docs/sap}
   intent-classifier:
     build: infra/classifier
     ports:
@@ -152,7 +192,14 @@ services:
       interval: 5s
       timeout: 3s
       retries: 24
-
+    develop:
+      watch:
+        - *rebuild-pnpm
+        - *ui-package
+        - *ui
+        - {action: rebuild, path: ./apps/workspace-web/package.json}
+        - {action: sync+restart, path: ./apps/workspace-web/vite.config.ts, target: /app/apps/workspace-web/vite.config.ts}
+        - {action: sync, path: ./apps/workspace-web, target: /app/apps/workspace-web, ignore: [node_modules, dist, tests, package.json, vite.config.ts]}
   synapse-web:
     <<: *web
     command: pnpm --filter synapse-web exec vite --host 0.0.0.0 --port 5174 --strictPort
@@ -170,7 +217,14 @@ services:
       interval: 5s
       timeout: 3s
       retries: 24
-
+    develop:
+      watch:
+        - *rebuild-pnpm
+        - *ui-package
+        - *ui
+        - {action: rebuild, path: ./apps/synapse-web/package.json}
+        - {action: sync+restart, path: ./apps/synapse-web/vite.config.ts, target: /app/apps/synapse-web/vite.config.ts}
+        - {action: sync, path: ./apps/synapse-web, target: /app/apps/synapse-web, ignore: [node_modules, dist, tests, package.json, vite.config.ts]}
   admin-web:
     <<: *web
     command: pnpm --filter admin-web exec vite --host 0.0.0.0 --port 5176 --strictPort
@@ -184,7 +238,14 @@ services:
       interval: 5s
       timeout: 3s
       retries: 24
-
+    develop:
+      watch:
+        - *rebuild-pnpm
+        - *ui-package
+        - *ui
+        - {action: rebuild, path: ./apps/admin-web/package.json}
+        - {action: sync+restart, path: ./apps/admin-web/vite.config.ts, target: /app/apps/admin-web/vite.config.ts}
+        - {action: sync, path: ./apps/admin-web, target: /app/apps/admin-web, ignore: [node_modules, dist, tests, package.json, vite.config.ts]}
 volumes:
   classifier-cache:
   mock-sap-data:
