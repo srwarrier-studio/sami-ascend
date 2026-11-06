@@ -1,0 +1,21 @@
+[project]
+name = "onnx-classifier"
+version = "0.1.0"
+description = "Answers Laya-style choice questions with a fine-tuned cross-encoder running on ONNX Runtime"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.34",
+    "onnxruntime>=1.23",
+    "tokenizers>=0.22",
+    "numpy>=2",
+    "pydantic-settings>=2",
+]
+
+[project.scripts]
+onnx-classifier = "onnx_classifier:main"
+
+[build-system]
+requires = ["uv_build>=0.9.26,<0.10.0"]
+build-backend = "uv_build"

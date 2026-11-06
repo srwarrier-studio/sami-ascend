@@ -7,6 +7,7 @@ dependencies = [
 ]
 
 [tool.uv.workspace]
+exclude = ["apps/onnx-classifier"]
 members = [
     "apps/auth-api",
     "apps/butterfly",
