@@ -1,5 +1,6 @@
 from collections.abc import Callable
 
+from butterfly.domain.entities.number_range import SALES_ORDER
 from butterfly.domain.entities.master_data import to_local
 from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.domain.repositories.sales_order_repo import SalesOrderRepo
@@ -58,8 +59,8 @@ class SqliteSalesOrderRepo(SalesOrderRepo):
         return order_from_row(rows[0], items)
 
     def next_number(self) -> str:
-        latest = self.db.query("SELECT MAX(CAST(sales_order AS INTEGER)) AS latest FROM sales_order")[0]["latest"] or 0
-        return f"{latest + 1:010d}"
+        taken = [row["sales_order"] for row in self.db.query("SELECT sales_order FROM sales_order")]
+        return f"{int(SALES_ORDER.next(taken)):010d}"
 
     def add(self, order: SalesOrder) -> None:
         with self.db.transaction():

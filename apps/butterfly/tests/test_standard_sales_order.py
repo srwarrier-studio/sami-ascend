@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 from conftest import ORDERS, make_client
 
+from butterfly.application.alpha import external as ext
 from butterfly.domain.entities.master_data import SALES_ORGANIZATIONS
 from butterfly.domain.entities.sales_order import SalesOrder
 from butterfly.infrastructure.api.standard.dialects import V2_ROOT, V4_ROOT
@@ -61,7 +62,7 @@ class TestAV4Row:
     def test_carries_the_order_values_the_real_names(self, client):
         row = get(client, f"{V4}/SalesOrder?$filter=SalesOrder eq '{KEY}'")[1]["value"][0]
         assert row["SalesOrder"] == KEY.lstrip("0")
-        assert row["SoldToParty"] == FIRST.sold_to_party and row["SalesOrderType"] == FIRST.sales_order_type
+        assert row["SoldToParty"] == ext(FIRST.sold_to_party) and row["SalesOrderType"] == FIRST.sales_order_type
         assert row["BillingCompanyCode"] == FIRST.company_code
         assert row["SalesOrganization"] == SALES_ORGANIZATIONS[FIRST.company_code]
         assert row["SalesOrderDate"] == FIRST.order_date.isoformat()
@@ -171,7 +172,7 @@ class TestV4Apply:
         body = get(client, f"{V4}/SalesOrder?$apply=groupby((SoldToParty,TransactionCurrency),aggregate(TotalNetAmount with sum as Total))&$top=1000")[1]
         expected: dict = {}
         for order in ORDERS:
-            expected[(order.sold_to_party, order.transaction_currency)] = expected.get((order.sold_to_party, order.transaction_currency), Decimal(0)) + order.total_net_amount
+            expected[(ext(order.sold_to_party), order.transaction_currency)] = expected.get((ext(order.sold_to_party), order.transaction_currency), Decimal(0)) + order.total_net_amount
         assert body["@odata.context"] == "$metadata#SalesOrder(SoldToParty,TransactionCurrency,Total)"
         assert {(r["SoldToParty"], r["TransactionCurrency"]): Decimal(str(r["Total"])) for r in body["value"]} == expected
         assert all(r["Total@odata.type"] == "#Decimal" and r["@odata.etag"] == 'W/""' for r in body["value"])
@@ -253,3 +254,20 @@ class TestTheStoredModel:
         order = SalesOrder("7", "OR", "C1", None, FIRST.order_date, None, "INR", Decimal(1), "A", "U", FIRST.creation_date_time, FIRST.last_change_date_time, sales_organization="9999", distribution_channel="20", division="05", purchase_order_by_customer="PO-9")
         stored = SqliteSalesOrderRepo.from_orders([order]).get("7")
         assert (stored.sales_organization, stored.distribution_channel, stored.division, stored.purchase_order_by_customer) == ("9999", "20", "05", "PO-9")
+
+
+class TestCustomerNumbers:
+    def test_the_sold_to_party_is_shown_without_leading_zeros_in_v4_and_v2(self, client):
+        v4 = get(client, f"{V4}/SalesOrder?$top=1")[1]["value"][0]["SoldToParty"]
+        v2 = get(client, f"{V2}/A_SalesOrder?$top=1")[1]["d"]["results"][0]["SoldToParty"]
+        assert v4 == v2 and not v4.startswith("0")
+
+    def test_a_filter_on_the_sold_to_party_works_with_or_without_the_zeros(self, client):
+        for text in (FIRST.sold_to_party, ext(FIRST.sold_to_party)):
+            body = get(client, f"{V4}/SalesOrder?$filter=SoldToParty eq '{text}'&$top=1000&$select=SoldToParty")[1]
+            assert body["value"] and {r["SoldToParty"] for r in body["value"]} == {ext(FIRST.sold_to_party)}
+
+    def test_a_filter_on_the_order_number_works_with_or_without_the_zeros(self, client):
+        for text in (KEY, KEY.lstrip("0")):
+            body = get(client, f"{V4}/SalesOrder?$filter=SalesOrder eq '{text}'&$select=SalesOrder")[1]
+            assert [r["SalesOrder"] for r in body["value"]] == [KEY.lstrip("0")]

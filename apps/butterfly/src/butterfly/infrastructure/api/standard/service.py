@@ -6,7 +6,9 @@ from functools import wraps
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
 
+from butterfly.application.alpha import external
 from butterfly.application.dto.list_query_dto import ListQuery
+from butterfly.application.filter.fields import FieldType
 from butterfly.application.filter.parser import parse_filter
 from butterfly.application.list_query import apply_list_query
 from butterfly.domain.entities.sales_order import SalesOrder
@@ -218,7 +220,7 @@ class Service:
         for group_key in sorted(groups, key=lambda key: tuple("" if part is None else str(part) for part in key)):
             line = {"@odata.etag": 'W/""'}
             for name, part in zip(keys, group_key):
-                line[name] = part.isoformat() if hasattr(part, "isoformat") else part
+                line[name] = external(part) if fields[name][1] is FieldType.KEY else part.isoformat() if hasattr(part, "isoformat") else part
             for _, _, alias in aggregates:
                 line[alias] = float(sum(groups[group_key], Decimal(0)))
                 line[f"{alias}@odata.type"] = "#Decimal"

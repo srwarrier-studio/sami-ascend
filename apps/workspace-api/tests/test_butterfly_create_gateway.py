@@ -80,6 +80,28 @@ class TestCreateRequest:
             "_Item": [{"Material": "RM-1001", "Quantity": "50.000", "QuantityUnit": "KG"}],
         }
 
+    def test_sends_a_customer_number_as_the_master_data_shows_it_in_the_stored_form(self):
+        seen = {}
+
+        def handler(request):
+            seen["body"] = json.loads(request.content)
+            return httpx.Response(201, json=CREATED)
+
+        shown = NewSalesOrder("OR", "100001", "INR", date(2026, 11, 5), [NewSalesOrderItem("RM-1001", Decimal("1"), "KG")], "INA1")
+        gateway(handler).create(shown)
+        assert seen["body"]["SoldToParty"] == "0000100001"
+
+    def test_leaves_a_customer_number_that_is_not_all_digits(self):
+        seen = {}
+
+        def handler(request):
+            seen["body"] = json.loads(request.content)
+            return httpx.Response(201, json=CREATED)
+
+        other = NewSalesOrder("OR", "USCU-L-200", "INR", date(2026, 11, 5), [NewSalesOrderItem("RM-1001", Decimal("1"), "KG")], "INA1")
+        gateway(handler).create(other)
+        assert seen["body"]["SoldToParty"] == "USCU-L-200"
+
     def test_omits_delivery_date_when_not_given(self):
         seen = {}
 

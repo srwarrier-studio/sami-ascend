@@ -4,6 +4,7 @@ from datetime import date, datetime, timezone
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any, Callable
 
+from butterfly.application.alpha import internal
 from butterfly.application.usecase.create_sales_order import utc_now
 from butterfly.domain.entities.master_data import (
     DEFAULT_PURCHASING_GROUP,
@@ -137,7 +138,7 @@ class CreatePurchaseRequisition:
             number, f"{(position + 1) * 10}", material.material_id, entry.get("PurchaseRequisitionItemText") or material.description,
             entry.get("MaterialGroup", ""), quantity, unit,
             (price if price is not None else material.price_in(currency)).quantize(Decimal("0.01"), ROUND_HALF_UP), currency, plant, company,
-            PURCHASING_ORGANIZATIONS[company], entry.get("PurchasingGroup", DEFAULT_PURCHASING_GROUP), delivery, supplier=entry.get("Supplier", ""),
+            PURCHASING_ORGANIZATIONS[company], entry.get("PurchasingGroup", DEFAULT_PURCHASING_GROUP), delivery, supplier=internal(entry.get("Supplier", "")),
         )
 
     def material(self, check: Checker, entry: dict, company: str | None, prefix: str):

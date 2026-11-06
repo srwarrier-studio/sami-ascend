@@ -69,3 +69,9 @@ None yet.
 43. Are vendor payments identified by the clearing of vendor open items; can the purchase order be read from the clearing document?
 44. Which rate converts a foreign-currency payment into rupees: the rate of the payment date or of the invoice? `Amount` should be what finance books.
 45. Is there a monthly collection target in SAP (a plan version), or is it a number the business keeps outside SAP?
+
+### Document and master numbers (`document-numbers.md`)
+46. Which number ranges are in use for purchase requisitions, purchase orders, material documents, supplier invoices and the accounting document types `RE`, `KR`, `KZ`, `DR`, `DZ`; are material documents, invoices and accounting documents year dependent in your company codes; does an invoice share its number with its accounting document?
+47. Which number format do customers, suppliers and sales orders have in your system, and which grouping creates them? Butterfly shows numbers without leading zeros like the sandbox, converting at the edge of its standard services, so a different real format is a data change.
+48. Is an external number interval used for any document type (numbers typed by the user)?
+

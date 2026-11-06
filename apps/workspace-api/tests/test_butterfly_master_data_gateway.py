@@ -4,6 +4,7 @@ import pytest
 pytest.importorskip("butterfly")
 from test_butterfly_requisition_gateway import InProcessButterfly, Unreachable
 
+from butterfly.application.alpha import external as ext
 from butterfly.infrastructure.memory.companies import COMPANIES
 from workspace_api.domain.errors import SapNotReached
 from workspace_api.infrastructure.butterfly_master_data_gateway import ButterflyMasterDataGateway, any_of, literal
@@ -67,25 +68,25 @@ class TestMaterials:
 class TestCustomersAndSuppliers:
     def test_customers_of_the_company_with_their_names(self):
         page = gateway().customers(None, ["INA1"], 100, 0)
-        assert {p.number for p in page.partners} == {c.customer_id for c in INA1.customers} and page.total == len(INA1.customers)
+        assert {p.number for p in page.partners} == {ext(c.customer_id) for c in INA1.customers} and page.total == len(INA1.customers)
         assert all(p.name and p.company_codes == ["INA1"] for p in page.partners)
 
     def test_customers_search_by_number_and_by_name(self):
         target = INA1.customers[0]
         by_start = gateway().customers(target.customer_id[:8], ["INA1"], 10, 0)
-        assert target.customer_id in {p.number for p in by_start.partners}
+        assert ext(target.customer_id) in {p.number for p in by_start.partners}
         by_name = gateway().customers(target.name.split()[0], ["INA1"], 10, 0)
-        assert target.customer_id in {p.number for p in by_name.partners}
+        assert ext(target.customer_id) in {p.number for p in by_name.partners}
         by_number = gateway().customers(target.customer_id, ["INA1"], 10, 0)
-        assert [p.number for p in by_number.partners] == [target.customer_id]
+        assert [p.number for p in by_number.partners] == [ext(target.customer_id)]
 
     def test_customers_of_another_company_are_not_listed(self):
         mine = {p.number for p in gateway().customers(None, ["INA1"], 100, 0).partners}
-        assert not mine & {c.customer_id for c in COMPANIES[1].customers}
+        assert not mine & {ext(c.customer_id) for c in COMPANIES[1].customers}
 
     def test_suppliers_of_the_company(self):
         page = gateway().suppliers(None, ["INA2"], 100, 0)
-        assert {(p.number, p.name) for p in page.partners} == set(COMPANIES[1].suppliers)
+        assert {(p.number, p.name) for p in page.partners} == {(ext(s), n) for s, n in COMPANIES[1].suppliers}
 
     def test_a_search_with_a_quote_does_not_break_the_call(self):
         assert gateway().suppliers("O'Brien", ["INA2"], 10, 0).total == 0

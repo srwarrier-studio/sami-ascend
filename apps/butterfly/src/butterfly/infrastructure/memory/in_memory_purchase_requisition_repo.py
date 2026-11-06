@@ -1,5 +1,6 @@
+from butterfly.domain.entities.number_range import PURCHASE_REQUISITION
 from butterfly.domain.entities.purchase_requisition import PurchaseRequisition
-from butterfly.domain.repositories.purchase_requisition_repo import FIRST_NUMBER, PurchaseRequisitionRepo
+from butterfly.domain.repositories.purchase_requisition_repo import PurchaseRequisitionRepo
 
 
 class InMemoryPurchaseRequisitionRepo(PurchaseRequisitionRepo):
@@ -13,7 +14,7 @@ class InMemoryPurchaseRequisitionRepo(PurchaseRequisitionRepo):
         return self.requisitions.get(purchase_requisition)
 
     def next_number(self) -> str:
-        return str(max((int(number) for number in self.requisitions), default=FIRST_NUMBER - 1) + 1)
+        return PURCHASE_REQUISITION.next(self.requisitions)
 
     def add(self, requisition: PurchaseRequisition) -> None:
         self.requisitions[requisition.purchase_requisition] = requisition

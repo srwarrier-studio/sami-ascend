@@ -9,6 +9,7 @@ from functools import wraps
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
 
+from butterfly.application.alpha import external
 from butterfly.application.filter.fields import STANDARD_REQUISITION_FIELDS, STANDARD_REQUISITION_ITEM_FIELDS
 from butterfly.application.filter.parser import parse_filter
 from butterfly.domain.entities.master_data import ISO_UNITS
@@ -91,7 +92,7 @@ class Service:
             "OrderedQuantity": float(item.ordered_quantity),
             "DeliveryDate": item.delivery_date.isoformat(),
             "ProcessingStatus": item.processing_status,
-            "Supplier": item.supplier,
+            "Supplier": external(item.supplier),
             "IsDeleted": item.is_deleted,
             "CreatedByUser": item.created_by_user,
             "PurReqCreationDate": item.creation_date.isoformat() if item.creation_date else None,

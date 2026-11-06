@@ -7,6 +7,7 @@ from functools import wraps
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
 
+from butterfly.application.alpha import external
 from butterfly.application.dto.list_query_dto import ListQuery
 from butterfly.application.filter import fields as filter_fields
 from butterfly.application.filter.parser import parse_filter
@@ -107,36 +108,36 @@ class Service:
         return [
             EntitySet(
                 "A_Customer", "A_CustomerType", ("Customer",), f.STANDARD_CUSTOMER_FIELDS, self.customers,
-                lambda r: {"Customer": r.customer, "CustomerAccountGroup": r.account_group} | name(r),
+                lambda r: {"Customer": external(r.customer), "CustomerAccountGroup": r.account_group} | name(r),
                 {"to_CustomerCompany": "A_CustomerCompany", "to_CustomerSalesArea": "A_CustomerSalesArea"}, "customer",
             ),
             EntitySet(
                 "A_CustomerCompany", "A_CustomerCompanyType", ("Customer", "CompanyCode"), f.STANDARD_CUSTOMER_COMPANY_FIELDS, self.customer_companies,
-                lambda r: {"Customer": r.customer, "CompanyCode": r.company_code, "CustomerAccountGroup": r.account_group}, {}, "customer",
+                lambda r: {"Customer": external(r.customer), "CompanyCode": r.company_code, "CustomerAccountGroup": r.account_group}, {}, "customer",
             ),
             EntitySet(
                 "A_CustomerSalesArea", "A_CustomerSalesAreaType", ("Customer", "SalesOrganization", "DistributionChannel", "Division"),
                 f.STANDARD_CUSTOMER_SALES_AREA_FIELDS, self.customer_sales_areas,
                 lambda r: {
-                    "Customer": r.customer, "SalesOrganization": r.sales_organization, "DistributionChannel": r.distribution_channel,
+                    "Customer": external(r.customer), "SalesOrganization": r.sales_organization, "DistributionChannel": r.distribution_channel,
                     "Division": r.division, "CustomerAccountGroup": r.account_group,
                 },
                 {}, "customer",
             ),
             EntitySet(
                 "A_Supplier", "A_SupplierType", ("Supplier",), f.STANDARD_SUPPLIER_FIELDS, self.suppliers,
-                lambda r: {"Supplier": r.supplier, "SupplierName": r.name, "SupplierFullName": r.name, "SupplierAccountGroup": r.account_group},
+                lambda r: {"Supplier": external(r.supplier), "SupplierName": r.name, "SupplierFullName": r.name, "SupplierAccountGroup": r.account_group},
                 {"to_SupplierCompany": "A_SupplierCompany", "to_SupplierPurchasingOrg": "A_SupplierPurchasingOrg"}, "supplier",
             ),
             EntitySet(
                 "A_SupplierCompany", "A_SupplierCompanyType", ("Supplier", "CompanyCode"), f.STANDARD_SUPPLIER_COMPANY_FIELDS, self.supplier_companies,
-                lambda r: {"Supplier": r.supplier, "CompanyCode": r.company_code, "SupplierAccountGroup": r.account_group}, {}, "supplier",
+                lambda r: {"Supplier": external(r.supplier), "CompanyCode": r.company_code, "SupplierAccountGroup": r.account_group}, {}, "supplier",
             ),
             EntitySet(
                 "A_SupplierPurchasingOrg", "A_SupplierPurchasingOrgType", ("Supplier", "PurchasingOrganization"),
                 f.STANDARD_SUPPLIER_PURCHASING_ORG_FIELDS, self.supplier_purchasing_orgs,
                 lambda r: {
-                    "Supplier": r.supplier, "PurchasingOrganization": r.purchasing_organization, "PurchasingGroup": r.purchasing_group,
+                    "Supplier": external(r.supplier), "PurchasingOrganization": r.purchasing_organization, "PurchasingGroup": r.purchasing_group,
                     "SupplierAccountGroup": r.account_group,
                 },
                 {}, "supplier",
@@ -231,14 +232,14 @@ class Service:
         self.check_options(request, {"$select", "$expand", "$format"})
         select = self.selection(request.query_params.get("$select"), entity)
         expand = self.expansion(request.query_params.get("$expand"), entity)
-        wanted = tuple(keys)
-        found = next((r for r in entity.rows() if tuple(entity.values(r)[k] for k in entity.keys) == wanted), None)
+        wanted = tuple(external(key) for key in keys)
+        found = next((r for r in entity.rows() if tuple(external(entity.values(r)[k]) for k in entity.keys) == wanted), None)
         if found is None:
             raise Refusal("missing", type_name=entity.type_name)
         return {"d": self.row(entity, found, select, expand, str(request.base_url).rstrip("/"))}
 
     def children_of(self, request: Request, entity: EntitySet, key: str, nav: str) -> dict:
-        found = next((r for r in entity.rows() if entity.values(r)[entity.keys[0]] == key), None)
+        found = next((r for r in entity.rows() if external(entity.values(r)[entity.keys[0]]) == external(key)), None)
         if found is None:
             raise Refusal("missing", type_name=entity.type_name)
         child = self.sets[entity.children[nav]]

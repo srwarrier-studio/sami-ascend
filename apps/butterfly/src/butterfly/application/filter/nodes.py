@@ -2,6 +2,8 @@ import operator
 from dataclasses import dataclass
 from typing import Any
 
+from butterfly.application.alpha import external
+
 COMPARISONS = {
     "eq": operator.eq,
     "ne": operator.ne,
@@ -33,10 +35,14 @@ class StringFunction:
     name: str
     attribute: str
     text: str
+    alpha: bool = False
 
     def matches(self, row) -> bool:
         actual = getattr(row, self.attribute)
-        return actual is not None and STRING_FUNCTIONS[self.name](actual, self.text)
+        if actual is None:
+            return False
+        shown = [actual, external(actual)] if self.alpha else [actual]
+        return any(STRING_FUNCTIONS[self.name](value, self.text) for value in shown)
 
 
 @dataclass(frozen=True)

@@ -1,7 +1,8 @@
 from datetime import date
 
+from butterfly.domain.entities.number_range import PURCHASE_REQUISITION
 from butterfly.domain.entities.purchase_requisition import PurchaseRequisition, PurchaseRequisitionItem
-from butterfly.domain.repositories.purchase_requisition_repo import FIRST_NUMBER, PurchaseRequisitionRepo
+from butterfly.domain.repositories.purchase_requisition_repo import PurchaseRequisitionRepo
 from butterfly.infrastructure.sqlite.database import Database
 from butterfly.infrastructure.sqlite.mappers import moment
 from butterfly.infrastructure.sqlite.money import from_minor, quantity_from_minor, quantity_to_minor, to_minor
@@ -70,8 +71,8 @@ class SqlitePurchaseRequisitionRepo(PurchaseRequisitionRepo):
         )
 
     def next_number(self) -> str:
-        latest = self.db.query("SELECT MAX(CAST(purchase_requisition AS INTEGER)) AS latest FROM purchase_requisition")[0]["latest"]
-        return str((latest or FIRST_NUMBER - 1) + 1)
+        taken = [row["purchase_requisition"] for row in self.db.query("SELECT purchase_requisition FROM purchase_requisition")]
+        return PURCHASE_REQUISITION.next(taken)
 
     def add(self, requisition: PurchaseRequisition) -> None:
         with self.db.transaction():

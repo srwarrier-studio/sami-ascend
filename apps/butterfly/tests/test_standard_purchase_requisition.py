@@ -311,3 +311,16 @@ class TestDeletingAnItem:
         client.delete(url, headers={"If-Match": etag})
         new_etag = get(client, "PurchaseReqn('10000000')").json()["@odata.etag"]
         assert client.delete(url, headers={"If-Match": new_etag}).status_code == 400
+
+
+class TestSupplierNumber:
+    def test_a_supplier_given_with_or_without_the_zeros_is_shown_without_them(self):
+        client, repo = writable()
+        for text in ("0000200001", "200001"):
+            body = post(client, {"_PurchaseRequisitionItem": [valid_item(Supplier=text)]}).json()
+            assert body["_PurchaseRequisitionItem"][0]["Supplier"] == "200001"
+        assert {i.supplier for r in repo.list_all() for i in r.items} == {"0000200001"}
+
+    def test_no_supplier_stays_empty(self):
+        client, _ = writable()
+        assert post(client, {"_PurchaseRequisitionItem": [valid_item()]}).json()["_PurchaseRequisitionItem"][0]["Supplier"] == ""

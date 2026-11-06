@@ -6,6 +6,7 @@ class FieldType(Enum):
     DATE = "date"
     DATETIME = "datetime"
     DECIMAL = "decimal"
+    KEY = "key"
 
 
 SALES_ORDER_FIELDS = {
@@ -422,9 +423,9 @@ PURCHASE_SUMMARY_BY_MATERIAL_FIELDS = SALES_SUMMARY_BY_MATERIAL_FIELDS
 
 
 STANDARD_V4_ORDER_FIELDS = {
-    "SalesOrder": ("sales_order", FieldType.STRING),
+    "SalesOrder": ("sales_order", FieldType.KEY),
     "SalesOrderType": ("sales_order_type", FieldType.STRING),
-    "SoldToParty": ("sold_to_party", FieldType.STRING),
+    "SoldToParty": ("sold_to_party", FieldType.KEY),
     "SalesOrganization": ("sales_organization", FieldType.STRING),
     "DistributionChannel": ("distribution_channel", FieldType.STRING),
     "OrganizationDivision": ("division", FieldType.STRING),
@@ -442,7 +443,7 @@ STANDARD_V4_ORDER_FIELDS = {
 STANDARD_V2_ORDER_FIELDS = {name: field for name, field in STANDARD_V4_ORDER_FIELDS.items() if name != "BillingCompanyCode"}
 
 STANDARD_V4_ITEM_FIELDS = {
-    "SalesOrder": ("sales_order", FieldType.STRING),
+    "SalesOrder": ("sales_order", FieldType.KEY),
     "SalesOrderItem": ("sales_order_item", FieldType.STRING),
     "Product": ("material", FieldType.STRING),
     "SalesOrderItemText": ("material_description", FieldType.STRING),
@@ -478,7 +479,7 @@ STANDARD_REQUISITION_ITEM_FIELDS = {
     "OrderedQuantity": ("ordered_quantity", FieldType.DECIMAL),
     "DeliveryDate": ("delivery_date", FieldType.DATE),
     "ProcessingStatus": ("processing_status", FieldType.STRING),
-    "Supplier": ("supplier", FieldType.STRING),
+    "Supplier": ("supplier", FieldType.KEY),
     "CreatedByUser": ("created_by_user", FieldType.STRING),
     "PurReqCreationDate": ("creation_date", FieldType.DATE),
     "PurReqnItemCurrency": ("currency", FieldType.STRING),
@@ -525,7 +526,7 @@ STANDARD_PLANT_FIELDS = {
 }
 
 STANDARD_CUSTOMER_FIELDS = {
-    "Customer": ("customer", FieldType.STRING),
+    "Customer": ("customer", FieldType.KEY),
     "CustomerName": ("name", FieldType.STRING),
     "CustomerFullName": ("name", FieldType.STRING),
     "BPCustomerName": ("name", FieldType.STRING),
@@ -534,13 +535,13 @@ STANDARD_CUSTOMER_FIELDS = {
 }
 
 STANDARD_CUSTOMER_COMPANY_FIELDS = {
-    "Customer": ("customer", FieldType.STRING),
+    "Customer": ("customer", FieldType.KEY),
     "CompanyCode": ("company_code", FieldType.STRING),
     "CustomerAccountGroup": ("account_group", FieldType.STRING),
 }
 
 STANDARD_CUSTOMER_SALES_AREA_FIELDS = {
-    "Customer": ("customer", FieldType.STRING),
+    "Customer": ("customer", FieldType.KEY),
     "SalesOrganization": ("sales_organization", FieldType.STRING),
     "DistributionChannel": ("distribution_channel", FieldType.STRING),
     "Division": ("division", FieldType.STRING),
@@ -548,20 +549,20 @@ STANDARD_CUSTOMER_SALES_AREA_FIELDS = {
 }
 
 STANDARD_SUPPLIER_FIELDS = {
-    "Supplier": ("supplier", FieldType.STRING),
+    "Supplier": ("supplier", FieldType.KEY),
     "SupplierName": ("name", FieldType.STRING),
     "SupplierFullName": ("name", FieldType.STRING),
     "SupplierAccountGroup": ("account_group", FieldType.STRING),
 }
 
 STANDARD_SUPPLIER_COMPANY_FIELDS = {
-    "Supplier": ("supplier", FieldType.STRING),
+    "Supplier": ("supplier", FieldType.KEY),
     "CompanyCode": ("company_code", FieldType.STRING),
     "SupplierAccountGroup": ("account_group", FieldType.STRING),
 }
 
 STANDARD_SUPPLIER_PURCHASING_ORG_FIELDS = {
-    "Supplier": ("supplier", FieldType.STRING),
+    "Supplier": ("supplier", FieldType.KEY),
     "PurchasingOrganization": ("purchasing_organization", FieldType.STRING),
     "PurchasingGroup": ("purchasing_group", FieldType.STRING),
     "SupplierAccountGroup": ("account_group", FieldType.STRING),

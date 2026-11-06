@@ -2,8 +2,6 @@ from abc import ABC, abstractmethod
 
 from butterfly.domain.entities.purchase_requisition import PurchaseRequisition
 
-FIRST_NUMBER = 10000000
-
 
 class PurchaseRequisitionRepo(ABC):
     @abstractmethod

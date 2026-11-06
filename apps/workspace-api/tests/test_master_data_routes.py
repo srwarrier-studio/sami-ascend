@@ -7,6 +7,7 @@ from test_butterfly_requisition_gateway import Unreachable
 from test_routes_access import SECRET, token_with
 from token_verification.fastapi_deps import ACCESS_TOKEN_COOKIE
 
+from butterfly.application.alpha import external as ext
 from butterfly.infrastructure.memory.companies import COMPANIES
 from workspace_api.domain.entities.master_data import BusinessPartner, Material, Plant
 from workspace_api.entrypoint.app import create_app
@@ -101,17 +102,17 @@ class TestMaterials:
 class TestCustomersAndSuppliers:
     def test_customers_of_the_users_company_only(self):
         body = sales().get(f"{BASE}/customers?top=50").json()
-        assert {c["number"] for c in body["customers"]} == {c.customer_id for c in INA1.customers} and body["total"] == len(INA1.customers)
+        assert {c["number"] for c in body["customers"]} == {ext(c.customer_id) for c in INA1.customers} and body["total"] == len(INA1.customers)
         assert all(c["company_codes"] == ["INA1"] and c["name"] for c in body["customers"])
 
     def test_customers_are_searched_by_number_and_name(self):
         target = INA1.customers[0]
-        assert target.customer_id in {c["number"] for c in sales().get(f"{BASE}/customers", params={"q": target.name.split()[0]}).json()["customers"]}
-        assert [c["number"] for c in sales().get(f"{BASE}/customers", params={"q": target.customer_id}).json()["customers"]] == [target.customer_id]
+        assert ext(target.customer_id) in {c["number"] for c in sales().get(f"{BASE}/customers", params={"q": target.name.split()[0]}).json()["customers"]}
+        assert [c["number"] for c in sales().get(f"{BASE}/customers", params={"q": target.customer_id}).json()["customers"]] == [ext(target.customer_id)]
 
     def test_suppliers_of_the_users_company_only(self):
         body = purchase().get(f"{BASE}/suppliers").json()
-        assert {(s["number"], s["name"]) for s in body["suppliers"]} == set(INA1.suppliers)
+        assert {(s["number"], s["name"]) for s in body["suppliers"]} == {(ext(s), n) for s, n in INA1.suppliers}
 
     def test_pages(self):
         body = sales().get(f"{BASE}/customers?top=2&skip=1").json()
