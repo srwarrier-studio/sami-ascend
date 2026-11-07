@@ -37,3 +37,7 @@ class InMemoryDriverRepo(DriverRepo):
 
     def components(self) -> list[ProductionOrderComponent]:
         return list(self._components)
+
+    @property
+    def delivery_rows(self) -> list[PurchaseDelivery]:
+        return self._deliveries
