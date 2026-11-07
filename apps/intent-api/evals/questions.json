@@ -2326,5 +2326,280 @@
   "source": "seeded",
   "id": "s105",
   "heldout": true
+ },
+ {
+  "question": "whta is sales of current month",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p01",
+  "heldout": true
+ },
+ {
+  "question": "sales month to date",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p02",
+  "heldout": true
+ },
+ {
+  "question": "how much have we sold year to date",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p03",
+  "heldout": true
+ },
+ {
+  "question": "what were sales this quarter",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p04",
+  "heldout": true
+ },
+ {
+  "question": "sales for Q3",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p05",
+  "heldout": true
+ },
+ {
+  "question": "how much did we sell last quarter",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p06",
+  "heldout": true
+ },
+ {
+  "question": "sales in the first half of the year",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p07",
+  "heldout": true
+ },
+ {
+  "question": "what were sales in FY 2025-26",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p08",
+  "heldout": true
+ },
+ {
+  "question": "sales this financial year so far",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p09",
+  "heldout": true
+ },
+ {
+  "question": "how much have we sold since april",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p10",
+  "heldout": true
+ },
+ {
+  "question": "sales from april to june",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p11",
+  "heldout": true
+ },
+ {
+  "question": "sales btw july and september",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p12",
+  "heldout": true
+ },
+ {
+  "question": "what were sales over the last 30 days",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p13",
+  "heldout": true
+ },
+ {
+  "question": "purchases in the last three months",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "written",
+  "id": "p14",
+  "heldout": true
+ },
+ {
+  "question": "how much did we buy in june and may",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "written",
+  "id": "p15",
+  "heldout": true
+ },
+ {
+  "question": "what did we spend yesterday",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_value"
+  ],
+  "source": "written",
+  "id": "p16",
+  "heldout": true
+ },
+ {
+  "question": "sales this week",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p17",
+  "heldout": true
+ },
+ {
+  "question": "sales in september against august",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_compare_previous"
+  ],
+  "source": "written",
+  "id": "p18",
+  "heldout": true
+ },
+ {
+  "question": "purchases in Q2 vs Q1",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_compare_previous"
+  ],
+  "source": "written",
+  "id": "p19",
+  "heldout": true
+ },
+ {
+  "question": "how much did we sell",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p20",
+  "heldout": true
+ },
+ {
+  "question": "sales to Nordhaven Pharma last month",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p21",
+  "heldout": true
+ },
+ {
+  "question": "how many kg of curcumin did we sell in september",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p22",
+  "heldout": true
+ },
+ {
+  "question": "what were sales last month in euros",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_value"
+  ],
+  "source": "written",
+  "id": "p23",
+  "heldout": true
+ },
+ {
+  "question": "our top 3 customers last quarter",
+  "part": "single",
+  "domain": "Sales",
+  "scenarios": [
+   "sales_top_customers"
+  ],
+  "source": "written",
+  "id": "p24",
+  "heldout": true
+ },
+ {
+  "question": "top 50 suppliers this year",
+  "part": "single",
+  "domain": "Purchase",
+  "scenarios": [
+   "purchases_top_suppliers"
+  ],
+  "source": "written",
+  "id": "p25",
+  "heldout": true
  }
 ]
