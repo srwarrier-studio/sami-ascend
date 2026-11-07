@@ -41,8 +41,15 @@ class AnswerScenario:
         comparisons = self.source.compare(token, rule.metric, window, None, 1)
         if not comparisons:
             return [self.text(wording.nothing_recorded(rule.metric, period))]
-        before = str(window.compare_start.year) if period.kind == "year" else window.compare_start.strftime("%B %Y")
+        before = self.before_label(period, window)
         return [self.text(*[wording.compare_line(rule.metric, period, before, comparison) for comparison in comparisons])]
+
+    def before_label(self, period: Period, window) -> str:
+        if period.kind == "year":
+            return str(window.compare_start.year)
+        if period.kind == "month":
+            return window.compare_start.strftime("%B %Y")
+        return f"{window.compare_start:%d %b %Y} to {window.compare_end:%d %b %Y}"
 
     def trend(self, rule: AnswerRule, period: Period, token: str) -> list[Block]:
         months = YEAR_TREND_MONTHS if period.kind == "year" else MONTH_TREND_MONTHS

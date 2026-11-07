@@ -8,6 +8,11 @@ from intent_api.domain.errors import PeriodNotSupported
 TODAY = date(2026, 11, 15)
 
 
+def bounds(text):
+    period = read(text)
+    return period.label, period.start, period.end, period.complete
+
+
 def read(text, against=None):
     return ReadPeriod().execute(text, TODAY, against)
 
@@ -112,3 +117,67 @@ class TestComparisonBase:
 
     def test_without_a_comparison_last_year_is_a_period(self):
         assert refused("sales in March compared with last year").periods == ["March 2026", "2025"]
+
+
+class TestCurrentAndPreviousWording:
+    @pytest.mark.parametrize("text", ["sales current month", "sales present month", "sales mtd", "sales month to date"])
+    def test_the_month_so_far(self, text):
+        assert bounds(text) == ("November 2026", date(2026, 11, 1), TODAY, False)
+
+    def test_previous_month_is_last_month(self):
+        assert read("sales previous month").label == "October 2026"
+
+    @pytest.mark.parametrize("text", ["sales ytd", "sales year to date", "sales current year", "sales so far this year", "sales till date", "sales so far"])
+    def test_the_year_so_far(self, text):
+        assert bounds(text) == ("2026", date(2026, 1, 1), TODAY, False)
+
+
+class TestQuarters:
+    def test_this_quarter_runs_to_today(self):
+        assert bounds("sales this quarter") == ("Q4 2026", date(2026, 10, 1), TODAY, False)
+
+    def test_last_quarter(self):
+        assert bounds("sales last quarter") == ("Q3 2026", date(2026, 7, 1), date(2026, 9, 30), True)
+
+    def test_a_bare_quarter_is_calendar_and_the_latest_one_not_in_the_future(self):
+        assert bounds("sales in Q3") == ("Q3 2026", date(2026, 7, 1), date(2026, 9, 30), True)
+
+    def test_a_spelled_out_quarter(self):
+        assert read("sales third quarter").label == "Q3 2026"
+
+    def test_a_quarter_with_a_year(self):
+        assert bounds("sales Q1 2025") == ("Q1 2025", date(2025, 1, 1), date(2025, 3, 31), True)
+
+    def test_halves(self):
+        assert [read(f"sales {name}").label for name in ("H1", "first half", "H2 2025")] == ["H1 2026", "H1 2026", "H2 2025"]
+
+
+class TestFinancialYear:
+    @pytest.mark.parametrize("text", ["FY 2025-26", "FY26", "2025-26", "last financial year", "last fy"])
+    def test_april_to_march(self, text):
+        assert bounds(f"sales {text}") == ("FY 2025-26", date(2025, 4, 1), date(2026, 3, 31), True)
+
+    def test_this_financial_year_runs_to_today(self):
+        assert bounds("sales this financial year") == ("FY 2026-27", date(2026, 4, 1), TODAY, False)
+
+    def test_a_fiscal_quarter_needs_fy_written(self):
+        assert bounds("sales FY Q3") == ("FY 2026-27 Q3", date(2026, 10, 1), TODAY, False)
+        assert bounds("sales FY Q4 2025-26") == ("FY 2025-26 Q4", date(2026, 1, 1), date(2026, 3, 31), True)
+
+
+class TestSinceAndLastN:
+    def test_since_a_month_runs_to_today(self):
+        assert bounds("sales since april") == ("April 2026 to date", date(2026, 4, 1), TODAY, False)
+
+    def test_last_n_days(self):
+        assert bounds("sales last 30 days") == ("the last 30 days", date(2026, 10, 17), TODAY, False)
+
+    def test_last_n_months_are_whole_finished_months(self):
+        assert bounds("sales past 3 months") == ("the last 3 months", date(2026, 8, 1), date(2026, 10, 31), True)
+
+
+class TestUnreadTimeWords:
+    @pytest.mark.parametrize("word", ["yesterday", "today", "week", "day", "12/10/2026"])
+    def test_they_are_refused_by_name(self, word):
+        error = refused(f"sales {word}")
+        assert (error.periods, error.reason) == ([word], "time words that cannot be read")
