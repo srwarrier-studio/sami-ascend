@@ -1,7 +1,7 @@
 import calendar
 import difflib
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, timedelta
 
 from intent_api.domain.entities.period import Period
@@ -134,10 +134,9 @@ class ReadPeriod:
             return [], []
         mentions, unsupported = [], []
         for found in self.fallback.find(remaining, today):
-            if found.grain == "month":
-                mentions.append(Mention(self.month(found.day.year, found.day.month, today), None))
-            elif found.grain == "year":
-                mentions.append(Mention(self.year(found.day.year, today), None))
+            if found.grain in ("month", "year"):
+                period = self.month(found.day.year, found.day.month, today) if found.grain == "month" else self.year(found.day.year, today)
+                mentions.append(Mention(replace(period, note=f"I read \u201c{found.text}\u201d as {period.label}."), None))
             else:
                 unsupported.append((found.grain, found.text))
         return mentions, unsupported
@@ -282,7 +281,8 @@ class ReadPeriod:
 
     def last_finished_month(self, today: date) -> Period:
         last = today.replace(day=1) - timedelta(days=1)
-        return self.month(last.year, last.month, today)
+        period = self.month(last.year, last.month, today)
+        return replace(period, note=f"No period was named, so this is {period.label}.")
 
     def month(self, year: int, month: int, today: date) -> Period:
         start = date(year, month, 1)

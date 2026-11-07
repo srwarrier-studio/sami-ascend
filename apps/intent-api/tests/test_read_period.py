@@ -269,3 +269,15 @@ class TestFallback:
         with pytest.raises(PeriodNotSupported) as error:
             with_fallback("sales some day", FoundDate("some day", grain, TODAY))
         assert error.value.periods == ["some day"]
+
+
+class TestNotes:
+    def test_no_period_named_is_noted(self):
+        assert read("who are our top customers").note == "No period was named, so this is October 2026."
+
+    def test_a_period_named_by_the_reader_has_no_note(self):
+        assert read("sales in june").note is None
+
+    def test_a_period_found_by_the_fallback_says_which_words_were_read_as_what(self):
+        period, _ = with_fallback("sales a quarter back", FoundDate("a quarter back", "month", date(2026, 8, 15)))
+        assert period.note == "I read “a quarter back” as August 2026."

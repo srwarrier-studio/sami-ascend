@@ -11,3 +11,4 @@ class Period:
     end: date
     complete: bool
     label: str
+    note: str | None = None

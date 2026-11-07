@@ -65,3 +65,17 @@ def ranking_title(by: str, period: Period, currency: str, multiple: bool) -> str
 
 def truncated_line(by: str, top: int) -> str:
     return f"Only the {top} {NOUNS[by]} with the biggest change were read, so a large one that barely changed may be missing."
+
+
+READABLE = "Data is monthly, so I can read a month, a quarter, a year, a financial year (April to March) or a range such as April to June."
+
+
+def period_refusal(detail: str, periods: list[str]) -> str:
+    named = ", ".join(f"\u201c{item}\u201d" for item in periods)
+    if detail == "time words that cannot be read":
+        return f"I could not read {named} as a period. {READABLE}"
+    if detail == "a period that has not started":
+        return f"{named} has not started yet, so there is nothing to report. {READABLE}"
+    if detail.startswith("more than") and detail.endswith("periods"):
+        return f"You named {len(periods)} periods ({', '.join(periods)}), which is more than I can show at once. Ask for up to {detail.split()[2]}."
+    return f"I could not settle on one period: {', '.join(periods)}. {READABLE}"
