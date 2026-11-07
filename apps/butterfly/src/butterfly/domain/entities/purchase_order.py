@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, replace
-from datetime import datetime
+from datetime import datetime, timezone
 
 from butterfly.domain.entities.drivers import PurchaseDelivery
 
@@ -38,3 +38,9 @@ class PurchaseOrder:
     creation_date_time: datetime
     last_change_date_time: datetime
     items: list[PurchaseOrderItem] = field(default_factory=list)
+
+    @property
+    def etag(self) -> str:
+        moment = self.last_change_date_time
+        moment = moment.astimezone(timezone.utc) if moment.tzinfo else moment
+        return f'W/"{moment.strftime("%Y%m%d%H%M%S")}"'

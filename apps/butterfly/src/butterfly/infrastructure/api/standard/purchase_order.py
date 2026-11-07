@@ -15,7 +15,8 @@ from butterfly.application.filter.parser import parse_filter
 from butterfly.domain.entities.purchase_order import PurchaseOrder, PurchaseOrderItem
 from butterfly.application.usecase.create_purchase_order import CreatePurchaseOrder
 from butterfly.application.usecase.create_sales_order import utc_now
-from butterfly.domain.errors import InvalidQuery, NumberRangeFull, ValidationDetail, ValidationFailed
+from butterfly.application.usecase.delete_purchase_order_item import DeletePurchaseOrderItem, PurchaseOrderNotFound
+from butterfly.domain.errors import ETagMismatch, ETagRequired, InvalidQuery, NumberRangeFull, ValidationDetail, ValidationFailed
 from butterfly.domain.repositories.master_data_repo import MasterDataRepo
 from butterfly.domain.repositories.purchase_requisition_repo import PurchaseRequisitionRepo
 from butterfly.domain.repositories.purchase_order_repo import PurchaseOrderRepo
@@ -294,11 +295,17 @@ def build_purchase_order_router(
         elif isinstance(error, ValidationFailed):
             details = [{"code": d.code, "message": d.message, "target": d.target} for d in error.details]
             status, body = failure(400, "VALIDATION_FAILED", "The purchase order has errors.", details=details)
+        elif isinstance(error, ETagRequired):
+            status, body = failure(428, "ETAG_REQUIRED", "An If-Match header with the etag from the last read is required.")
+        elif isinstance(error, ETagMismatch):
+            status, body = failure(412, "ETAG_MISMATCH", "The purchase order was changed by someone else. Reload and try again.")
+        elif isinstance(error, PurchaseOrderNotFound):
+            status, body = service.refusal(Refusal("missing"))
         else:
             status, body = failure(400, "NUMBER_RANGE_FULL", "The purchase order number range is full.")
         return JSONResponse(body, status_code=status, media_type=V4_MEDIA)
 
-    caught = (Refusal, ValidationFailed, NumberRangeFull)
+    caught = (Refusal, ValidationFailed, NumberRangeFull, ETagRequired, ETagMismatch, PurchaseOrderNotFound)
 
     def guarded(function: Callable):
         if inspect.iscoroutinefunction(function):
@@ -343,7 +350,7 @@ def build_purchase_order_router(
     @router.get(f"/{HEADERS}(" + "'{key}')")
     @guarded
     def header(request: Request, key: str):
-        return service.header_entity(request, key)
+        return with_etag(service.header_entity(request, key), service.find(key))
 
     @router.get(f"/{HEADERS}(" + "'{key}')/" + ITEMS_OF_HEADER)
     @guarded
@@ -358,7 +365,14 @@ def build_purchase_order_router(
     @router.get(f"/{ITEMS}(PurchaseOrder='" + "{key}',PurchaseOrderItem='{item_key}')")
     @guarded
     def item(request: Request, key: str, item_key: str):
-        return service.item_entity(request, key, item_key)
+        return with_etag(service.item_entity(request, key, item_key), service.find(key))
+
+    @router.patch(f"/{ITEMS}(PurchaseOrder='" + "{key}',PurchaseOrderItem='{item_key}')")
+    @guarded
+    async def change(request: Request, key: str, item_key: str):
+        use_case = DeletePurchaseOrderItem(repo, requisitions, now)
+        order = use_case.execute(key, item_key, request.headers.get("if-match"), await json_body(request))
+        return with_etag(service.item_entity(request, key, item_key), order)
 
     @router.get(f"/{ITEMS}(PurchaseOrder='" + "{key}',PurchaseOrderItem='{item_key}')/" + LINES_OF_ITEM)
     @guarded
@@ -369,6 +383,9 @@ def build_purchase_order_router(
     @guarded
     def lines(request: Request):
         return service.line_list(request)
+
+    def with_etag(body: dict, order: PurchaseOrder) -> JSONResponse:
+        return JSONResponse(body, headers={"ETag": order.etag}, media_type=V4_MEDIA)
 
     async def json_body(request: Request) -> dict:
         try:
