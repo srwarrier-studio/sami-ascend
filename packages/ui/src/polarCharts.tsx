@@ -17,11 +17,11 @@ export type DonutSlice = { label: string; value: number; tone?: Tone }
 export type DonutChartProps = { slices: DonutSlice[]; title?: string; info?: string; measure?: string }
 export type GaugeChartProps = { value: number; target: number; title?: string; info?: string; measure?: string; valueFormat?: ValueFormat; caption?: string }
 
-const DONUT_HEIGHT = CHART_MIN_HEIGHT
+const DONUT_HEIGHT = 140
 const GAUGE_HEIGHT = CHART_MIN_HEIGHT
 const PALETTE_SIZE = 6
 const MAX_SLICES = 6
-const TWO_COLUMNS_FROM = 5
+const TWO_COLUMNS_FROM = 4
 const SLICE_GAP = 0.03
 const GAUGE_SWEEP = Math.PI * 0.75
 const tones: Record<Tone, string> = {
