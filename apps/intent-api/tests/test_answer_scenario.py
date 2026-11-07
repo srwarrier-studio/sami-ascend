@@ -258,3 +258,17 @@ class TestTwoNamedPeriods:
         window = source.calls[0][3]
         assert (window.compare_start, window.compare_end) == (date(2026, 8, 1), date(2026, 8, 31))
         assert lines(result) == ["Sales for June 2026 were INR 6,480,000, down 4.2% from August 2026 (INR 6,764,000)."]
+
+
+class TestTopN:
+    def ranked(self, top):
+        pairs = [(f"Customer {index}", 100 - index) for index in range(1, 13)]
+        source = FakeMetricSource(comparisons=[comparison(rows=rows(*pairs))])
+        result = AnswerScenario(source).execute(rule("ranking", by="customer"), JUNE, "tok", top=top)
+        return [row["name"] for row in result.blocks[1].data["rows"]]
+
+    def test_the_asked_number_of_rows_is_shown(self):
+        assert len(self.ranked(3)) == 3
+
+    def test_without_a_number_the_default_is_shown(self):
+        assert len(self.ranked(None)) == 5

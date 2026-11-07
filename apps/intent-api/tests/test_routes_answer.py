@@ -167,6 +167,22 @@ class TestRefused:
         assert body["message"].startswith("I could not read \u201cyesterday\u201d as a period. Data is monthly")
         assert (body["answers"], source.calls) == ([], [])
 
+    @pytest.mark.parametrize("question, sentence", [
+        ("sales to Nordhaven Pharma last month", "I cannot filter by a named customer"),
+        ("how many kg of curcumin did we sell", "I hold values in money, not quantities"),
+        ("sales last month in euros", "I only hold rupees and dollars"),
+    ])
+    def test_a_qualifier_that_cannot_be_applied_is_refused_with_a_sentence(self, question, sentence):
+        test, source = client([IN_SALES, Decision("sales_value", 0.8)])
+        body = test.post(URL, json={"question": question}).json()
+        assert (body["problem"], body["reason"], body["answers"], source.calls) == ("cannot_answer", "not_answerable_yet", [], [])
+        assert sentence in body["message"]
+
+    def test_a_top_above_the_maximum_says_so(self):
+        test, _ = client([IN_SALES, Decision("sales_top_customers", 0.9)])
+        body = test.post(URL, json={"question": "top 50 customers in June"}).json()
+        assert body["answers"][0]["blocks"][0]["lines"] == ["You asked for the top 50; I show at most 10."]
+
     def test_a_period_in_the_future_is_refused(self):
         test, _ = client([IN_SALES, Decision("sales_value", 0.8)])
         assert test.post(URL, json={"question": "sales in 2027"}).json()["periods"] == ["2027"]

@@ -79,3 +79,19 @@ def period_refusal(detail: str, periods: list[str]) -> str:
     if detail.startswith("more than") and detail.endswith("periods"):
         return f"You named {len(periods)} periods ({', '.join(periods)}), which is more than I can show at once. Ask for up to {detail.split()[2]}."
     return f"I could not settle on one period: {', '.join(periods)}. {READABLE}"
+
+
+def qualifier_refusal(names: list[str], quantities: list[str], currencies: list[str]) -> str:
+    quoted = lambda items: ", ".join(f"\u201c{item}\u201d" for item in items)
+    sentences = []
+    if names:
+        sentences.append(f"I cannot filter by a named customer, supplier, material or country yet ({quoted(names)}), so I will not give you the company-wide figure as if it were theirs.")
+    if quantities:
+        sentences.append(f"I hold values in money, not quantities or counts ({quoted(quantities)}).")
+    if currencies:
+        sentences.append(f"I only hold rupees and dollars, not {quoted(currencies)}.")
+    return " ".join(sentences)
+
+
+def top_limit_line(asked: int, shown: int) -> str:
+    return f"You asked for the top {asked}; I show at most {shown}."

@@ -1,0 +1,7 @@
+[words]
+company_markers = ["m/s", "ltd", "limited", "pvt", "inc", "llc", "gmbh", "corp"]
+quantity = ["kg", "kgs", "kilogram", "kilograms", "tonne", "tonnes", "ton", "tons", "litre", "litres", "liter", "liters", "units", "pieces", "pcs", "orders", "invoices", "quantity", "volume", "number of", "how many"]
+other_currencies = ["eur", "euro", "euros", "gbp", "pound", "pounds", "yen", "jpy", "aud", "cad", "aed", "dirham", "dirhams", "£", "€"]
+countries = ["usa", "uk", "uae", "america", "europe", "asia", "africa", "united states", "united kingdom", "germany", "france", "italy", "spain", "netherlands", "belgium", "canada", "mexico", "brazil", "japan", "china", "korea", "australia", "singapore", "dubai", "russia", "turkey", "egypt", "nigeria", "south africa", "saudi arabia", "israel", "poland", "switzerland", "sweden", "ireland", "vietnam", "thailand", "malaysia", "indonesia", "bangladesh", "nepal"]
+own_names = ["sabinsa", "neutraceuticals", "organica", "sami"]
+ignored_capitals = ["i", "indian", "indias", "india", "rupees", "dollars", "fy", "q"]
