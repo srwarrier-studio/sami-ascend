@@ -1,7 +1,0 @@
-# Tasks
-
-- [x] 1. Period phrases in `ReadPeriod`: current, present and previous month, MTD, YTD, this and last quarter, Q1 to Q4, H1 and H2, "so far this year", "since <month>", "last N days, weeks or months", the April to March financial year, with the probe phrasings as a test table. Done when every phrasing gives its period or a refusal that names the unread words.
-- [x] 2. Ranges and two-period comparisons: "from april to june", "between july and september", "jun, jul and aug" as a range; "September against August" as a comparison of the two named periods; more than two periods still refused. Done when value, compare and trend answer for a range and compare answers for two named periods.
-- [x] 3. The assumed period and unread time words: the reply says when no period was named and the last finished month was used, `How was this read` carries the period as read, and a question with a time word that is not read (yesterday, today, week, day, a date) is refused naming those words. Done when no question is answered for a different period without saying so.
-- [x] 4. Qualifiers that cannot be applied: named customer, supplier, material or country (refused with a sentence), quantity and unit questions, unsupported currencies, and top N applied up to a maximum. Done when none returns an unfiltered figure without saying so.
-- [x] 5. Evaluation questions for each phrase family (held out), README and roadmap line. Done when the 226 existing questions still match as before and the new ones pass.
