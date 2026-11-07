@@ -13,6 +13,9 @@ from intent_api.domain.errors import PeriodNotSupported
 from intent_api.domain.gateways.unanswered_log import UnansweredLog
 
 
+MAX_PERIODS = 6
+
+
 class AnswerQuestion:
     def __init__(self, matcher: MatchQuestion, rules: dict[str, AnswerRule], scenarios: AnswerScenario, periods: ReadPeriod, log: UnansweredLog | None = None):
         self.matcher = matcher
@@ -31,13 +34,28 @@ class AnswerQuestion:
             if rule is None:
                 continue
             try:
-                period = self.periods.execute(question, today, rule.against)
+                answers += self.answer_periods(question, rule, token, company, today)
             except PeriodNotSupported as error:
                 return self.refused(question, Reply(match, reason=PERIOD_NOT_SUPPORTED, periods=tuple(error.periods)))
-            answers.append(self.scenarios.execute(rule, period, token, company, read_currency(question), today, read_direction(question)))
         if not answers:
             return self.refused(question, Reply(match, reason=NOT_ANSWERABLE_YET))
         return Reply(match, tuple(answers))
+
+    def answer_periods(self, question: str, rule: AnswerRule, token: str, company: str, today: date) -> list:
+        currency, direction = read_currency(question), read_direction(question)
+        base = None
+        try:
+            periods = [self.periods.execute(question, today, rule.against)]
+        except PeriodNotSupported as error:
+            if error.reason != "more than one period":
+                raise
+            periods = self.periods.each(question, today, rule.against)
+            pair = self.periods.pair(question, today, rule.against) if rule.response == "compare" else None
+            if pair:
+                periods, base = [pair[0]], pair[1]
+            elif len(periods) > MAX_PERIODS:
+                raise PeriodNotSupported([period.label for period in periods], f"more than {MAX_PERIODS} periods")
+        return [self.scenarios.execute(rule, period, token, company, currency, today, direction, base) for period in periods]
 
     def refused(self, question: str, reply: Reply) -> Reply:
         if self.log:

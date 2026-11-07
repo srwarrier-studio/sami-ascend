@@ -106,6 +106,12 @@ class TestAnswered:
         assert [item["scenario"] for item in body["answers"]] == ["sales_top_customers", "sales_trend"]
         assert [block["type"] for block in body["answers"][1]["blocks"]] == ["text", "trend"]
 
+    def test_several_periods_give_one_answer_for_each_in_the_order_written(self):
+        test, _ = client([IN_SALES, Decision("sales_value", 0.8), Decision("nothing", 0.9)])
+        body = test.post(URL, json={"question": "sales in June and May"}).json()
+        lines = [item["blocks"][0]["lines"][0] for item in body["answers"]]
+        assert [line.split(" were")[0] for line in lines] == ["Sales for June 2026", "Sales for May 2026"]
+
     def test_the_period_is_read_from_the_whole_question(self):
         test, source = client([IN_SALES, Decision("sales_value", 0.8)])
         test.post(URL, json={"question": "sales in March last year"})
@@ -134,10 +140,10 @@ class TestRefused:
         assert body["reading"]["scenarios"][0]["id"] == "sales_why"
         assert source.calls == []
 
-    def test_two_periods_are_refused_with_the_periods_named(self):
-        test, source = client([IN_SALES, Decision("sales_value", 0.8), Decision("sales_value", 0.8)])
-        body = test.post(URL, json={"question": "sales in June and in May"}).json()
-        assert (body["problem"], body["reason"], body["periods"]) == ("cannot_answer", "period_not_supported", ["June 2026", "May 2026"])
+    def test_more_periods_than_the_reply_can_hold_are_refused_with_them_named(self):
+        test, source = client([IN_SALES, *[Decision("sales_value", 0.8)] * 7])
+        body = test.post(URL, json={"question": "sales in 2018, 2019, 2020, 2021, 2022, 2023 and 2024"}).json()
+        assert (body["problem"], body["reason"], len(body["periods"])) == ("cannot_answer", "period_not_supported", 7)
         assert source.calls == []
 
     def test_a_period_in_the_future_is_refused(self):

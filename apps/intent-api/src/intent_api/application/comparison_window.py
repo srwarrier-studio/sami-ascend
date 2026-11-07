@@ -5,7 +5,9 @@ from intent_api.domain.entities.figures import Window
 from intent_api.domain.entities.period import Period
 
 
-def comparison_window(period: Period, against: str | None) -> Window:
+def comparison_window(period: Period, against: str | None, base: Period | None = None) -> Window:
+    if base is not None:
+        return Window(period.start, period.end, base.start, base.end if period.complete else min(base.end, base.start + (period.end - period.start)))
     if period.kind == "year":
         start = date(period.year - 1, 1, 1)
         last_day = date(period.year - 1, 12, 31)
@@ -32,4 +34,5 @@ def span_window(period: Period, against: str | None) -> Window:
         start = date(index // 12, index % 12 + 1, 1)
     else:
         start = period.start - length - timedelta(days=1)
-    return Window(period.start, period.end, start, start + length)
+    full_end = period.start - timedelta(days=1) if against != "last_year" and period.start.day == 1 else start + length
+    return Window(period.start, period.end, start, min(full_end, start + length) if not period.complete else full_end)

@@ -1,41 +1,30 @@
 import calendar
+import difflib
 import re
 from dataclasses import dataclass
 from datetime import date, timedelta
 
 from intent_api.domain.entities.period import Period
 from intent_api.domain.errors import PeriodNotSupported
+from intent_api.domain.gateways.fallback_periods import FallbackPeriods
 
 MONTHS = {name.lower(): number for number, name in enumerate(calendar.month_name) if name}
 MONTHS.update({name.lower(): number for number, name in enumerate(calendar.month_abbr) if name})
 MONTHS["sept"] = 9
 MONTH_NAMES = "|".join(sorted(MONTHS, key=len, reverse=True))
+NUMBER_WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12}
 ORDINALS = {"first": 1, "second": 2, "third": 3, "fourth": 4}
 UNIT_DAYS = {"day": 1, "week": 7}
 YEAR = r"(?:19|20)\d\d"
 
-UNREAD_WORDS = re.compile(r"\b(yesterday|today|tonight|tomorrow|weekly|daily|weekend|weekday|week|day)\b")
 DATE = re.compile(r"\b\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}\b")
+FUZZY_MIN_LENGTH = 5
+FUZZY_CUTOFF = 0.88
+BASE_VOCABULARY = ("quarter", "half", "month", "since", "first", "second", "third", "fourth")
 
-FY_QUARTER = re.compile(rf"\bfy\s*q(?P<q>[1-4])(?:\s*(?P<a>\d{{4}})\s*[-/]\s*(?P<b>\d{{2,4}})|\s*(?P<short>\d\d))?\b")
-FY_RANGE = re.compile(rf"\b(?:(?:fy|financial\s+year)\s*)?(?P<a>{YEAR})\s*[-/]\s*(?P<b>\d{{2,4}})\b")
-FY_SHORT = re.compile(r"\bfy\s*(?P<short>\d\d)\b")
-FY_RELATIVE = re.compile(r"\b(?P<which>this|current|last|previous)\s+(?:fy|financial\s+year|fiscal\s+year)\b")
-QUARTER_NUMBER = re.compile(rf"\bq(?P<q>[1-4])(?:\s+(?P<year>{YEAR})\b)?")
-QUARTER_ORDINAL = re.compile(rf"\b(?P<ord>first|second|third|fourth)\s+quarter(?:\s+(?P<year>{YEAR})\b)?")
-QUARTER_RELATIVE = re.compile(r"\b(?P<which>this|current|last|previous)\s+quarter\b")
-HALF_NUMBER = re.compile(rf"\bh(?P<h>[12])(?:\s+(?P<year>{YEAR})\b)?")
-HALF_ORDINAL = re.compile(rf"\b(?P<ord>first|second)\s+half(?:\s+(?P<year>{YEAR})\b)?")
-LAST_N = re.compile(r"\b(?:last|past|previous)\s+(?P<n>\d+)\s+(?P<unit>day|week|month|year)s?\b")
-YEAR_TO_DATE = re.compile(r"\b(?:ytd|year\s+to\s+date|so\s+far\s+this\s+year|till\s+date|to\s+date|so\s+far)\b")
-MONTH_TO_DATE = re.compile(r"\b(?:mtd|month\s+to\s+date|so\s+far\s+this\s+month)\b")
-SINCE_MONTH = re.compile(rf"\bsince\s+(?P<month>{MONTH_NAMES})\b(?:\s+(?P<year>{YEAR})\b)?")
-MONTH_MENTION = re.compile(rf"\b(?P<month>{MONTH_NAMES})\b(?:\s+(?P<year>{YEAR})\b)?(?P<last_year>\s+last\s+year\b)?")
-LAST_MONTH = re.compile(r"\b(?:last|previous|prior)\s+month\b")
-THIS_MONTH = re.compile(r"\b(?:this|current|present)\s+month\b")
-LAST_YEAR = re.compile(r"\b(?:last|previous|prior)\s+year\b")
-THIS_YEAR = re.compile(r"\b(?:this|current|present)\s+year\b")
-BARE_YEAR = re.compile(rf"\b(?P<year>{YEAR})\b")
+
+def alternatives(items: list[str]) -> str:
+    return "|".join(r"\s+".join(map(re.escape, item.split())) for item in sorted(items, key=len, reverse=True))
 
 
 @dataclass(frozen=True)
@@ -45,21 +34,56 @@ class Mention:
 
 
 class ReadPeriod:
+    def __init__(self, words: dict[str, list[str]], fallback: FallbackPeriods | None = None):
+        self.fallback = fallback
+        self.patterns = self.build_patterns(words)
+        self.unreadable = self.patterns["UNREAD_WORDS"]
+        singles = {word for group in words.values() for word in group if " " not in word and len(word) >= FUZZY_MIN_LENGTH}
+        self.vocabulary = sorted(singles | set(BASE_VOCABULARY) | {name for name in MONTHS if len(name) >= FUZZY_MIN_LENGTH})
+
+    def build_patterns(self, words: dict[str, list[str]]) -> dict[str, re.Pattern]:
+        last, this = alternatives(words["last"]), alternatives(words["this"])
+        to, between, and_ = alternatives(words["range_to"]), alternatives(words["between"]), alternatives(words["and"])
+        fy = alternatives(words["financial_year"])
+        month = rf"(?:{MONTH_NAMES})(?:\s+{YEAR})?"
+        patterns = {
+            "METRIC_PHRASES": rf"\b(?:{alternatives(words['metric_phrases'])})\b",
+            "UNREAD_WORDS": rf"\b({alternatives(words['unreadable'])})\b",
+            "FY_QUARTER": rf"\b(?:{fy})\s*q(?P<q>[1-4])(?:\s*(?P<a>\d{{4}})\s*[-/]\s*(?P<b>\d{{2,4}})|\s*(?P<short>\d\d))?\b",
+            "FY_RANGE": rf"\b(?:(?:{fy})\s*)?(?P<a>{YEAR})\s*[-/]\s*(?P<b>\d{{2,4}})\b",
+            "FY_SHORT": rf"\b(?:{fy})\s*(?P<short>\d\d)\b",
+            "FY_RELATIVE": rf"\b(?P<which>{this}|{last})\s+(?:{fy})\b",
+            "QUARTER_NUMBER": rf"\bq(?P<q>[1-4])(?:\s+(?P<year>{YEAR})\b)?",
+            "QUARTER_ORDINAL": rf"\b(?P<ord>first|second|third|fourth)\s+quarter(?:\s+(?P<year>{YEAR})\b)?",
+            "QUARTER_RELATIVE": rf"\b(?P<which>{this}|{last})\s+quarter\b",
+            "HALF_NUMBER": rf"\bh(?P<h>[12])(?:\s+(?P<year>{YEAR})\b)?",
+            "HALF_ORDINAL": rf"\b(?P<ord>first|second)\s+half(?:\s+(?P<year>{YEAR})\b)?",
+            "LAST_N": rf"\b(?:{last})\s+(?P<n>\d+|{"|".join(NUMBER_WORDS)})\s+(?P<unit>day|week|month|year)s?\b",
+            "YEAR_TO_DATE": rf"\b(?:{alternatives(words['year_to_date'])})\b",
+            "MONTH_TO_DATE": rf"\b(?:{alternatives(words['month_to_date'])})\b",
+            "SINCE_MONTH": rf"\bsince\s+(?P<month>{MONTH_NAMES})\b(?:\s+(?P<year>{YEAR})\b)?",
+            "RANGE": rf"\b(?:(?:{between})\s+{month}\s+(?:{to}|{and_})|(?:from\s+)?{month}\s+(?:{to}))\s+{month}\b",
+            "MONTH_LIST": rf"\b{month}(?:\s*,\s*{month})+(?:\s*,?\s*(?:{and_})\s+{month})?\b",
+            "MONTH_MENTION": rf"\b(?P<month>{MONTH_NAMES})\b(?:\s+(?P<year>{YEAR})\b)?(?P<last_year>\s+last\s+year\b)?",
+            "LAST_MONTH": rf"\b(?:{last})\s+month\b",
+            "THIS_MONTH": rf"\b(?:{this})\s+month\b",
+            "LAST_YEAR": rf"\b(?:{last})\s+year\b",
+            "THIS_YEAR": rf"\b(?:{this})\s+year\b",
+            "BARE_YEAR": rf"\b(?P<year>{YEAR})\b",
+        }
+        return {name: re.compile(pattern) for name, pattern in patterns.items()}
+
+    def correct_typos(self, text: str) -> str:
+        def fix(found: re.Match) -> str:
+            word = found.group(0)
+            if word in self.vocabulary:
+                return word
+            close = difflib.get_close_matches(word, self.vocabulary, n=1, cutoff=FUZZY_CUTOFF)
+            return close[0] if close else word
+        return re.sub(rf"[a-z]{{{FUZZY_MIN_LENGTH},}}", fix, text)
+
     def execute(self, text: str, today: date, against: str | None = None) -> Period:
-        lowered = text.lower()
-        dates = [found.group(0) for found in DATE.finditer(lowered)]
-        remaining = DATE.sub(" ", lowered)
-        mentions: list[Mention] = []
-        for pattern, build in self.readers():
-            def take(found: re.Match) -> str:
-                mentions.append(build(found, today))
-                return " " * len(found.group(0))
-            remaining = pattern.sub(take, remaining)
-        unread = dates + [found.group(0) for found in UNREAD_WORDS.finditer(remaining)]
-        if unread:
-            raise PeriodNotSupported(unread, "time words that cannot be read")
-        mentions = self.without_comparison_base(mentions, against)
-        periods = list(dict.fromkeys(mention.period for mention in mentions))
+        periods = self.read_all(text, today, against)
         if not periods:
             return self.last_finished_month(today)
         if len(periods) > 1:
@@ -68,27 +92,79 @@ class ReadPeriod:
             raise PeriodNotSupported([periods[0].label], "a period that has not started")
         return periods[0]
 
+    def each(self, text: str, today: date, against: str | None = None) -> list[Period]:
+        periods = self.read_all(text, today, against)
+        for period in periods:
+            if period.start > today:
+                raise PeriodNotSupported([period.label], "a period that has not started")
+        return periods
+
+    def pair(self, text: str, today: date, against: str | None = None) -> tuple[Period, Period] | None:
+        periods = self.read_all(text, today, against)
+        if len(periods) != 2:
+            return None
+        for period in periods:
+            if period.start > today:
+                raise PeriodNotSupported([period.label], "a period that has not started")
+        return periods[0], periods[1]
+
+    def read_all(self, text: str, today: date, against: str | None) -> list[Period]:
+        lowered = self.correct_typos(text.lower())
+        dates = [found.group(0) for found in DATE.finditer(lowered)]
+        remaining = DATE.sub(" ", lowered)
+        remaining = self.patterns["METRIC_PHRASES"].sub(" ", remaining)
+        mentions: list[Mention] = []
+        for pattern, build in self.readers():
+            def take(found: re.Match) -> str:
+                mentions.append(build(found, today))
+                return " " * len(found.group(0))
+            remaining = pattern.sub(take, remaining)
+        fallback_mentions, unsupported = self.read_with_fallback(remaining, today)
+        mentions += fallback_mentions
+        for _, phrase in unsupported:
+            remaining = remaining.replace(phrase, " ")
+        unread = dates + [phrase for _, phrase in unsupported] + [found.group(0) for found in self.unreadable.finditer(remaining)]
+        if unread:
+            raise PeriodNotSupported(unread, "time words that cannot be read")
+        mentions = self.without_comparison_base(mentions, against)
+        return list(dict.fromkeys(mention.period for mention in mentions))
+
+    def read_with_fallback(self, remaining: str, today: date) -> tuple[list[Mention], list[tuple[str, str]]]:
+        if self.fallback is None or not remaining.strip():
+            return [], []
+        mentions, unsupported = [], []
+        for found in self.fallback.find(remaining, today):
+            if found.grain == "month":
+                mentions.append(Mention(self.month(found.day.year, found.day.month, today), None))
+            elif found.grain == "year":
+                mentions.append(Mention(self.year(found.day.year, today), None))
+            else:
+                unsupported.append((found.grain, found.text))
+        return mentions, unsupported
+
     def readers(self):
         return [
-            (FY_QUARTER, self.fy_quarter),
-            (FY_RANGE, self.fy_range),
-            (FY_SHORT, self.fy_short),
-            (FY_RELATIVE, self.fy_relative),
-            (QUARTER_NUMBER, lambda f, t: self.quarter(int(f.group("q")), f.group("year"), t)),
-            (QUARTER_ORDINAL, lambda f, t: self.quarter(ORDINALS[f.group("ord")], f.group("year"), t)),
-            (QUARTER_RELATIVE, self.quarter_relative),
-            (HALF_NUMBER, lambda f, t: self.half(int(f.group("h")), f.group("year"), t)),
-            (HALF_ORDINAL, lambda f, t: self.half(ORDINALS[f.group("ord")], f.group("year"), t)),
-            (LAST_N, self.last_n),
-            (MONTH_TO_DATE, lambda f, t: Mention(self.month(t.year, t.month, t), None)),
-            (YEAR_TO_DATE, lambda f, t: Mention(self.year(t.year, t), None)),
-            (SINCE_MONTH, self.since),
-            (MONTH_MENTION, self.named_month),
-            (LAST_MONTH, self.last_month),
-            (THIS_MONTH, lambda f, t: Mention(self.month(t.year, t.month, t), None)),
-            (LAST_YEAR, lambda f, t: Mention(self.year(t.year - 1, t), "last_year_alone")),
-            (THIS_YEAR, lambda f, t: Mention(self.year(t.year, t), None)),
-            (BARE_YEAR, lambda f, t: Mention(self.year(int(f.group("year")), t), None)),
+            (self.patterns["FY_QUARTER"], self.fy_quarter),
+            (self.patterns["FY_RANGE"], self.fy_range),
+            (self.patterns["FY_SHORT"], self.fy_short),
+            (self.patterns["FY_RELATIVE"], self.fy_relative),
+            (self.patterns["QUARTER_NUMBER"], lambda f, t: self.quarter(int(f.group("q")), f.group("year"), t)),
+            (self.patterns["QUARTER_ORDINAL"], lambda f, t: self.quarter(ORDINALS[f.group("ord")], f.group("year"), t)),
+            (self.patterns["QUARTER_RELATIVE"], self.quarter_relative),
+            (self.patterns["HALF_NUMBER"], lambda f, t: self.half(int(f.group("h")), f.group("year"), t)),
+            (self.patterns["HALF_ORDINAL"], lambda f, t: self.half(ORDINALS[f.group("ord")], f.group("year"), t)),
+            (self.patterns["LAST_N"], self.last_n),
+            (self.patterns["MONTH_TO_DATE"], lambda f, t: Mention(self.month(t.year, t.month, t), None)),
+            (self.patterns["YEAR_TO_DATE"], lambda f, t: Mention(self.year(t.year, t), None)),
+            (self.patterns["SINCE_MONTH"], self.since),
+            (self.patterns["RANGE"], self.month_range),
+            (self.patterns["MONTH_LIST"], self.month_range),
+            (self.patterns["MONTH_MENTION"], self.named_month),
+            (self.patterns["LAST_MONTH"], self.last_month),
+            (self.patterns["THIS_MONTH"], lambda f, t: Mention(self.month(t.year, t.month, t), None)),
+            (self.patterns["LAST_YEAR"], lambda f, t: Mention(self.year(t.year - 1, t), "last_year_alone")),
+            (self.patterns["THIS_YEAR"], lambda f, t: Mention(self.year(t.year, t), None)),
+            (self.patterns["BARE_YEAR"], lambda f, t: Mention(self.year(int(f.group("year")), t), None)),
         ]
 
     def without_comparison_base(self, mentions: list[Mention], against: str | None) -> list[Mention]:
@@ -108,6 +184,22 @@ class ReadPeriod:
             year = today.year if month <= today.month else today.year - 1
         return Mention(self.month(year, month, today), None)
 
+    def month_range(self, found: re.Match, today: date) -> Mention:
+        text = found.group(0)
+        words = [m for m in self.patterns["MONTH_MENTION"].finditer(text)]
+        months = [self.named_month(m, today).period for m in words]
+        if len(months) == 2 and months[0].start > months[1].start and not re.search(YEAR, text):
+            months[0] = self.month(months[0].year - 1, months[0].month, today)
+        first = min(months, key=lambda m: m.start)
+        last = max(months, key=lambda m: m.start)
+        end = date(last.year, last.month, calendar.monthrange(last.year, last.month)[1])
+        return Mention(self.span(first.start, end, today, self.range_label(first, last)), None)
+
+    def range_label(self, first: Period, last: Period) -> str:
+        if first.year == last.year:
+            return f"{calendar.month_name[first.month]} to {calendar.month_name[last.month]} {last.year}"
+        return f"{first.label} to {last.label}"
+
     def last_month(self, found: re.Match, today: date) -> Mention:
         first = today.replace(day=1) - timedelta(days=1)
         return Mention(self.month(first.year, first.month, today), "last_month")
@@ -119,7 +211,8 @@ class ReadPeriod:
         return Mention(self.span(start, today, today, f"{calendar.month_name[month]} {year} to date"), None)
 
     def last_n(self, found: re.Match, today: date) -> Mention:
-        count, unit = int(found.group("n")), found.group("unit")
+        number, unit = found.group("n"), found.group("unit")
+        count = int(number) if number.isdigit() else NUMBER_WORDS[number]
         if unit in UNIT_DAYS:
             start = today - timedelta(days=count * UNIT_DAYS[unit] - 1)
             return Mention(self.span(start, today, today, f"the last {count} {unit}s"), None)

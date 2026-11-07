@@ -5,15 +5,16 @@ import pytest
 
 from intent_api.application.answer_scenario import AnswerScenario
 from intent_api.application.read_period import ReadPeriod
+from tests.fakes import period_reader
 from intent_api.domain.entities.answer import AnswerRule
 from intent_api.domain.entities.figures import Comparison, MonthFigure, Row, TrendPoint
 from intent_api.domain.errors import MetricsUnavailable
 from tests.fakes import FakeMetricSource
 
 TODAY = date(2026, 11, 15)
-JUNE = ReadPeriod().execute("in june", TODAY)
-THIS_MONTH = ReadPeriod().execute("this month", TODAY)
-LAST_YEAR = ReadPeriod().execute("last year", TODAY)
+JUNE = period_reader().execute("in june", TODAY)
+THIS_MONTH = period_reader().execute("this month", TODAY)
+LAST_YEAR = period_reader().execute("last year", TODAY)
 
 
 def money(value) -> Decimal:
@@ -143,12 +144,12 @@ class TestTrend:
 
     def test_this_year_ends_the_trend_at_the_last_finished_month(self):
         source = FakeMetricSource(months=[figure()])
-        answer(source, "trend", ReadPeriod().execute("this year", TODAY))
+        answer(source, "trend", period_reader().execute("this year", TODAY))
         assert source.calls[0][3:] == (date(2026, 10, 1), 12)
 
     def test_a_running_january_ends_the_trend_in_december(self):
         source = FakeMetricSource(months=[figure()])
-        answer(source, "trend", ReadPeriod().execute("this month", date(2027, 1, 10)))
+        answer(source, "trend", period_reader().execute("this month", date(2027, 1, 10)))
         assert source.calls[0][3:] == (date(2026, 12, 1), 6)
 
     def test_two_currencies_give_two_charts(self):
@@ -226,3 +227,34 @@ class TestFailures:
         source.down = True
         with pytest.raises(MetricsUnavailable):
             answer(source, response, against="previous" if response == "compare" else None, by="customer" if response == "ranking" else None)
+
+
+APRIL_TO_JUNE = period_reader().execute("from april to june", TODAY)
+AUGUST = period_reader().execute("in august", TODAY)
+
+
+class TestRanges:
+    def test_value_for_a_range(self):
+        result = answer(FakeMetricSource(comparisons=[comparison()]), "value", APRIL_TO_JUNE)
+        assert lines(result) == ["Sales for April to June 2026 were INR 6,480,000."]
+
+    def test_compare_for_a_range_uses_the_months_before_it(self):
+        source = FakeMetricSource(comparisons=[comparison()])
+        result = answer(source, "compare", APRIL_TO_JUNE, against="previous")
+        window = source.calls[0][3]
+        assert (window.compare_start, window.compare_end) == (date(2026, 1, 1), date(2026, 3, 31))
+        assert "from 01 Jan 2026 to 31 Mar 2026" in lines(result)[0]
+
+    def test_trend_for_a_range_ends_with_its_last_month(self):
+        source = FakeMetricSource(months=[figure()])
+        answer(source, "trend", APRIL_TO_JUNE)
+        assert source.calls[0][3] == date(2026, 6, 1)
+
+
+class TestTwoNamedPeriods:
+    def test_compare_uses_the_named_base(self):
+        source = FakeMetricSource(comparisons=[comparison()])
+        result = AnswerScenario(source).execute(rule("compare", against="previous"), JUNE, "tok", base=AUGUST)
+        window = source.calls[0][3]
+        assert (window.compare_start, window.compare_end) == (date(2026, 8, 1), date(2026, 8, 31))
+        assert lines(result) == ["Sales for June 2026 were INR 6,480,000, down 4.2% from August 2026 (INR 6,764,000)."]

@@ -12,6 +12,7 @@ from intent_api.application.read_period import ReadPeriod
 from intent_api.domain.analysis.question import Question
 from intent_api.infrastructure.graph_loader import load_graph
 from intent_api.infrastructure.in_process_stack import stack_for
+from intent_api.infrastructure.period_words_loader import load_period_words
 from intent_api.infrastructure.settings import GRAPH_FILE
 
 EVALS = Path(__file__).resolve().parents[3] / "evals"
@@ -25,7 +26,7 @@ HINTS = {"cancelled_orders": "needs a sales_order record type in the registry, a
 def run_case(case: dict, graph=None, company: str = STORY_COMPANY, currency: str | None = "default") -> tuple[Score, dict]:
     truth = json.loads((SCENARIOS / f"{case['scenario']}.json").read_text())
     source, token = stack_for(case["scenario"], EVAL_TODAY)
-    month = ReadPeriod().execute(case["question"], EVAL_TODAY).start
+    month = ReadPeriod(load_period_words()).execute(case["question"], EVAL_TODAY).start
     question = Question(truth["metric"], read_direction(case["question"]), month, currency=CURRENCIES[truth["metric"]] if currency == "default" else currency)
     scoped = source.for_company(None if company == "all" else company)
     analysis = AnalyseQuestion(scoped, graph or load_graph(GRAPH_FILE)).execute(question, token, EVAL_TODAY)
