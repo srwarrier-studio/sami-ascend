@@ -9,12 +9,12 @@ Reads a manager's question and decides which approved scenarios it asks for, usi
 `uv run --package intent-api --with pytest python -m pytest apps/intent-api`
 
 ## Laya (the domain classifier)
-intent-api asks Laya which domain a question belongs to (`scenarios.toml` lists the domains). Laya runs as its own service in the root `compose.yaml` (image in `infra/laya/`), with `Training/sap-intent-v2` mounted read-only and a named volume for its cache:
+intent-api asks Laya which domain a question belongs to (`scenarios.toml` lists the domains). Laya runs as its own service in the root `compose.yaml` (image in `infra/classifier/`), with `Training/sap-intent-v2` mounted read-only and a named volume for its cache:
 
 ```
-docker compose up -d --wait laya
+docker compose up -d --wait intent-classifier
 ```
-Laya listens on `127.0.0.1:8011`. The first start downloads about 650 MB of base model files into the cache volume (the Docker disk needs room for it); later starts take seconds. A new checkpoint from Colab is copied into `Training/sap-intent-v2` and `docker compose restart laya` serves it, with no rebuild. `docker compose down` keeps the cache; `docker compose down -v` deletes it.
+Laya listens on `127.0.0.1:8011`. The first start downloads about 650 MB of base model files into the cache volume (the Docker disk needs room for it); later starts take seconds. A new checkpoint from Colab is copied into `Training/sap-intent-v2` and `docker compose restart intent-classifier` serves it, with no rebuild. `docker compose down` keeps the cache; `docker compose down -v` deletes it.
 
 Without Docker, the host install still works:
 
