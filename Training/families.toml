@@ -8,6 +8,22 @@ country = ["the USA", "Germany", "Japan", "the UAE", "Brazil", "South Korea", "t
 n = ["three", "five", "ten", "3", "5", "10"]
 past = ["in December last year", "in March last year", "in the third quarter of last year", "last year", "in 2024", "in 2025", "for the whole of 2025"]
 yoy = ["in 2026 compared to 2025", "in 2025 versus 2024", "for 2026 against 2025", "in 2024 compared with 2023", "this year compared to 2025"]
+ask = ["show me", "tell me", "give me", "i need", "can you share", "kindly share", "let me know", "please show"]
+ask_x = ["i would like to see", "could you pull up", "get me", "pls send", "i want to know", "any update on", "need to know"]
+sales_noun = ["sales", "revenue", "turnover", "billing", "invoicing", "the top line"]
+sales_noun_x = ["sales figures", "business done", "income from sales", "earnings", "sales numbers", "invoiced value"]
+buy_noun = ["purchases", "spend", "buying", "procurement", "purchase cost", "outgoings"]
+buy_noun_x = ["purchase figures", "money spent on buying", "procurement cost", "buying numbers", "import cost"]
+sales_verb = ["did we sell", "did we earn", "did we make", "did we invoice", "did we bill", "did we book"]
+sales_verb_x = ["did we turn over", "have we sold", "have we billed", "did the business do", "did we bring in"]
+buy_verb = ["did we buy", "did we spend", "did we pay out", "did we procure", "did we order", "did we import"]
+buy_verb_x = ["have we bought", "have we spent", "did we shell out", "have we imported", "did we put into buying"]
+period_more = ["in Q2", "YTD", "so far this year", "since April", "in the last 30 days", "in fy 2025-26"]
+period_more_x = ["in Q3", "MTD", "in the last 90 days", "for the half year", "in the current quarter", "since January"]
+change = ["drop", "fall", "rise", "jump", "dip", "increase", "decline"]
+change_x = ["slump", "surge", "slide", "spike", "swing"]
+dir = ["down", "up", "lower", "higher"]
+dir_x = ["weaker", "stronger", "softer", "firmer"]
 
 # One family is one meaning said in different ways. Every fourth family of a group (by id) is held out for testing.
 [[family]]
@@ -777,3 +793,717 @@ id = "sales_nothing_d"
 domain = "Sales"
 nothing = true
 templates = ["how many orders came in {period}", "customers who have not ordered recently", "what price do we charge {customer} for {material}", "quota attainment {period}"]
+
+[[family]]
+id = "sales_trend_e"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["how has {country} been trending for us", "export trend to {country} this year", "is {customer} ordering more or less over the months", "month by month sales of {material}"]
+
+[[family]]
+id = "sales_trend_f"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["{customer} buying pattern {period}", "movement of {material} sales over recent months", "are sales to {country} rising or falling", "orders from {customer} over time"]
+
+[[family]]
+id = "sales_trend_g"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["how are exports to {country} developing", "is demand for {material} growing", "{customer} sales over the last quarters", "year to date sales of {material} by month"]
+
+[[family]]
+id = "sales_trend_h"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["has {country} business picked up lately", "sales of {material} across recent months", "does {customer} order more now than before", "export momentum to {country} {period}"]
+
+[[family]]
+id = "purchases_trend_e"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["how has buying from {country} been trending", "import trend from {country} this year", "are we buying more or less from {supplier} over the months", "month by month spend on {material}"]
+
+[[family]]
+id = "purchases_trend_f"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["{supplier} buying pattern {period}", "movement of {material} purchases over recent months", "is spend on imports from {country} rising or falling", "orders placed with {supplier} over time"]
+
+[[family]]
+id = "purchases_trend_g"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["how are imports from {country} developing", "is our buying of {material} growing", "{supplier} purchases over the last quarters", "year to date purchases of {material} by month"]
+
+[[family]]
+id = "purchases_trend_h"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["has buying from {country} picked up lately", "spend on {material} across recent months", "do we order more from {supplier} now than before", "import momentum from {country} {period}"]
+
+[[family]]
+id = "sales_top_materials_e"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["which product do we export most to {country}", "what sells best to {customer}", "ranking of materials by sales {period}", "most popular material among {country} buyers"]
+
+[[family]]
+id = "sales_top_materials_f"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["what is {customer} ordering most", "top selling extract {period}", "which material brings in the most export revenue", "best performing product line {period}"]
+
+[[family]]
+id = "sales_top_materials_g"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["rank products by revenue in {country}", "what does {customer} favour", "leading products {period}", "which of our materials is the biggest seller to {country}"]
+
+[[family]]
+id = "sales_top_materials_h"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["what moves the most volume to {country}", "the product {customer} orders most often", "top {n} selling materials {period}", "highest revenue material {period}"]
+
+[[family]]
+id = "purchases_top_materials_e"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["which material do we buy most from {country}", "what do we order most from {supplier}", "ranking of materials by spend {period}", "most expensive material we import from {country}"]
+
+[[family]]
+id = "purchases_top_materials_f"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["what are we buying most from {supplier}", "top material by spend {period}", "which raw material costs us the most", "biggest spend material line {period}"]
+
+[[family]]
+id = "purchases_top_materials_g"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["rank raw materials by cost from {country}", "what do we favour from {supplier}", "leading materials by purchases {period}", "which material is our biggest import from {country}"]
+
+[[family]]
+id = "purchases_top_materials_h"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["what takes the most spend from {country}", "the material we order most often from {supplier}", "top {n} purchased materials {period}", "highest cost material {period}"]
+
+[[family]]
+id = "sales_why_e"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["what is behind the drop in sales to {country} {period}", "why are {customer} orders down", "reason for the change in {material} revenue", "why did sales to {country} go up {period}"]
+
+[[family]]
+id = "sales_why_f"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["why has {customer} stopped ordering", "what explains the fall in exports {period}", "reason behind lower {material} sales", "why are exports to {country} lower than before"]
+
+[[family]]
+id = "sales_why_g"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["what drove the change in sales {period}", "why did {material} sales rise", "cause of the dip in {customer} orders", "what happened to {country} sales {period}"]
+
+[[family]]
+id = "sales_why_h"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["help me understand why {country} sales moved {period}", "what pushed {customer} orders up", "explain the swing in {material} revenue", "how come exports changed {period}"]
+
+[[family]]
+id = "purchases_why_e"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["what is behind the rise in imports from {country} {period}", "why are orders to {supplier} up", "reason for the change in {material} spend", "why did imports from {country} go down {period}"]
+
+[[family]]
+id = "purchases_why_f"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["why have we stopped buying from {supplier}", "what explains the jump in spend {period}", "reason behind higher {material} costs", "why are imports from {country} higher than before"]
+
+[[family]]
+id = "purchases_why_g"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["what drove the change in purchases {period}", "why did {material} spend fall", "cause of the dip in orders to {supplier}", "what happened to imports from {country} {period}"]
+
+[[family]]
+id = "purchases_why_h"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["help me understand why spend on {country} moved {period}", "what pushed {supplier} orders down", "explain the swing in {material} costs", "how come purchases changed {period}"]
+
+[[family]]
+id = "sales_top_customers_i"
+domain = "Sales"
+scenario = "sales_top_customers"
+templates = ["which buyers in {country} spend the most", "ranking of customers by revenue {period}", "who bought the most {material} {period}", "our best customers in {country}"]
+
+[[family]]
+id = "purchases_top_suppliers_i"
+domain = "Purchase"
+scenario = "purchases_top_suppliers"
+templates = ["which vendors in {country} do we spend most with", "ranking of suppliers by spend {period}", "who sold us the most {material} {period}", "our biggest suppliers in {country}"]
+
+[[family]]
+id = "finance_e"
+domain = "Finance"
+templates = ["what did {customer} pay us {period}", "which customers have unpaid invoices", "money collected from {country} {period}", "outstanding amounts from buyers"]
+
+[[family]]
+id = "finance_f"
+domain = "Finance"
+templates = ["how much did we pay out to vendors {period}", "payables due this week", "what is owed to {supplier}", "cash going out {period}"]
+
+[[family]]
+id = "finance_g"
+domain = "Finance"
+templates = ["did we meet the collection target {period}", "collections versus plan {period}", "how much have buyers in {country} paid so far", "cash received against goal {period}"]
+
+[[family]]
+id = "finance_h"
+domain = "Finance"
+templates = ["is any money stuck with {customer}", "amounts we still need to pay {supplier}", "cash inflow and outflow {period}", "what are the current dues from {country}"]
+
+[[family]]
+id = "not_business_h"
+domain = "Other"
+templates = ["what is the weather like today", "who is the president of {country}", "how far is the moon", "say something funny", "what is the tallest building in the world", "how many continents are there", "what is the speed of light", "who wrote hamlet"]
+
+[[family]]
+id = "not_business_i"
+domain = "Other"
+templates = ["what is the national language of {country}", "how many players are in a football team", "convert 10 miles to kilometres", "what year did the first moon landing happen", "what is the boiling point of water", "who invented the telephone", "what is the currency of {country}", "is a tomato a fruit"]
+
+[[family]]
+id = "sales_value_i"
+domain = "Sales"
+scenario = "sales_value"
+templates = ["overseas sales to {country} {period}", "local market sales {period}", "revenue from {customer} {period}", "{material} sales {period}"]
+
+[[family]]
+id = "sales_value_j"
+domain = "Sales"
+scenario = "sales_value"
+templates = ["sales figure for {customer} {period}", "export revenue {period}", "domestic revenue {past}", "turnover from {country} {period}"]
+
+[[family]]
+id = "sales_value_k"
+domain = "Sales"
+scenario = "sales_value"
+templates = ["sales of {material} to {country} {period}", "sales in {country} {period}", "revenue from exports {period}", "{customer} invoiced amount {period}"]
+
+[[family]]
+id = "sales_value_l"
+domain = "Sales"
+scenario = "sales_value"
+templates = ["foreign sales {period}", "sales to {customer} {past}", "home market revenue {period}", "{material} turnover {period}"]
+
+[[family]]
+id = "purchases_value_i"
+domain = "Purchase"
+scenario = "purchases_value"
+templates = ["imports sourced from {country} {period}", "local purchases {period}", "spend with {supplier} {period}", "{material} purchases {period}"]
+
+[[family]]
+id = "purchases_value_j"
+domain = "Purchase"
+scenario = "purchases_value"
+templates = ["purchase figure for {supplier} {period}", "import spend {period}", "domestic purchases {past}", "payments to suppliers in {country} {period}"]
+
+[[family]]
+id = "purchases_value_k"
+domain = "Purchase"
+scenario = "purchases_value"
+templates = ["purchases of {material} from {country} {period}", "buying in {country} {period}", "spend on imports {period}", "{supplier} billed amount {period}"]
+
+[[family]]
+id = "purchases_value_l"
+domain = "Purchase"
+scenario = "purchases_value"
+templates = ["foreign purchases {period}", "buying from {supplier} {past}", "home market spend {period}", "{material} costs {period}"]
+
+[[family]]
+id = "sales_trend_i"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["{material} sales trend", "{country} export trend {period}", "sales trend by month {period}", "trend of {customer}"]
+
+[[family]]
+id = "sales_trend_j"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["monthly sales {period}", "{customer} monthly orders", "export trend {period}", "sales movement in {country}"]
+
+[[family]]
+id = "sales_trend_k"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["{material} sales over the months", "sales curve {period}", "{country} sales month wise", "order trend of {customer}"]
+
+[[family]]
+id = "sales_trend_l"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["sales direction lately", "{material} demand trend {period}", "month wise export sales {period}", "{customer} order pattern"]
+
+[[family]]
+id = "purchases_trend_i"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["{material} purchase trend", "{country} import trend {period}", "purchase trend by month {period}", "trend of {supplier}"]
+
+[[family]]
+id = "purchases_trend_j"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["monthly purchases {period}", "{supplier} monthly orders", "import trend {period}", "buying movement in {country}"]
+
+[[family]]
+id = "purchases_trend_k"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["{material} buying over the months", "spend curve {period}", "{country} imports month wise", "order trend with {supplier}"]
+
+[[family]]
+id = "purchases_trend_l"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["spend direction lately", "{material} cost trend {period}", "month wise import spend {period}", "{supplier} order pattern"]
+
+[[family]]
+id = "sales_top_customers_j"
+domain = "Sales"
+scenario = "sales_top_customers"
+templates = ["best buyers {period}", "top {n} customers", "biggest buyers in {country}", "customer ranking {period}"]
+
+[[family]]
+id = "sales_top_customers_k"
+domain = "Sales"
+scenario = "sales_top_customers"
+templates = ["largest customers {period}", "who buys the most {period}", "top buyers of {material}", "leading customers in {country}"]
+
+[[family]]
+id = "sales_top_customers_l"
+domain = "Sales"
+scenario = "sales_top_customers"
+templates = ["main customers {period}", "highest buying customers {period}", "buyer ranking in {country}", "top {n} clients {period}"]
+
+[[family]]
+id = "purchases_top_suppliers_j"
+domain = "Purchase"
+scenario = "purchases_top_suppliers"
+templates = ["best suppliers {period}", "top {n} suppliers", "biggest vendors from {country}", "supplier ranking {period}"]
+
+[[family]]
+id = "purchases_top_suppliers_k"
+domain = "Purchase"
+scenario = "purchases_top_suppliers"
+templates = ["largest suppliers {period}", "who do we buy the most from {period}", "top sellers of {material}", "leading suppliers in {country}"]
+
+[[family]]
+id = "purchases_top_suppliers_l"
+domain = "Purchase"
+scenario = "purchases_top_suppliers"
+templates = ["chief suppliers {period}", "highest spend suppliers {period}", "vendor ranking in {country}", "top {n} vendors {period}"]
+
+[[family]]
+id = "sales_value_m1"
+domain = "Sales"
+scenario = "sales_value"
+templates = ["{ask} {sales_noun} {period}", "{ask} {sales_noun} to {country} {period}", "{sales_noun} {period_more}", "how much {sales_verb} {period}"]
+
+[[family]]
+id = "sales_value_m2"
+domain = "Sales"
+scenario = "sales_value"
+templates = ["{ask} {sales_noun} from {customer} {period}", "{sales_noun} of {material} {period_more}", "{ask} total {sales_noun} {period}", "what {sales_noun} did we have {period}"]
+
+[[family]]
+id = "sales_value_m3"
+domain = "Sales"
+scenario = "sales_value"
+templates = ["{sales_noun} for {customer} {period}", "{ask} the {sales_noun} {past}", "{ask} {sales_noun} {period_more}", "how much {sales_verb} with {customer} {period}"]
+
+[[family]]
+id = "sales_value_m4"
+domain = "Sales"
+scenario = "sales_value"
+templates = ["{ask_x} {sales_noun_x} {period}", "{ask_x} {sales_noun_x} for {country} {period_more_x}", "{sales_noun_x} {period_more_x}", "how much {sales_verb_x} {period}"]
+
+[[family]]
+id = "sales_trend_m1"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["{ask} the {sales_noun} trend", "{sales_noun} trend {period_more}", "how has {sales_noun} moved {period_more}", "is {sales_noun} going up or down"]
+
+[[family]]
+id = "sales_trend_m2"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["{sales_noun} month by month {period_more}", "how are {sales_noun} looking lately", "{ask} {sales_noun} over the last few months", "{sales_noun} movement for {customer}"]
+
+[[family]]
+id = "sales_trend_m3"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["{ask} how {sales_noun} have behaved {period_more}", "{sales_noun} pattern {period}", "are {sales_noun} improving over time", "{ask} {sales_noun} by month"]
+
+[[family]]
+id = "sales_trend_m4"
+domain = "Sales"
+scenario = "sales_trend"
+templates = ["{ask_x} the direction of {sales_noun_x} {period_more_x}", "is {sales_noun_x} picking up or slowing", "{sales_noun_x} development {period_more_x}", "{ask_x} how {sales_noun_x} have been going"]
+
+[[family]]
+id = "sales_compare_previous_m1"
+domain = "Sales"
+scenario = "sales_compare_previous"
+templates = ["{sales_noun} {period} against the previous period", "{ask} {sales_noun} vs last month", "how do {sales_noun} compare with last quarter", "{sales_noun} this month versus last month"]
+
+[[family]]
+id = "sales_compare_previous_m2"
+domain = "Sales"
+scenario = "sales_compare_previous"
+templates = ["are {sales_noun} up from last month", "{ask} {sales_noun} compared to the previous month", "{sales_noun} now against the month before", "{ask} {sales_noun} against last week"]
+
+[[family]]
+id = "sales_compare_previous_m3"
+domain = "Sales"
+scenario = "sales_compare_previous"
+templates = ["{sales_noun} for {customer} versus the previous period", "{ask} how {sales_noun} changed from last month", "{sales_noun} against the prior quarter", "did {sales_noun} improve over last month"]
+
+[[family]]
+id = "sales_compare_previous_m4"
+domain = "Sales"
+scenario = "sales_compare_previous"
+templates = ["{ask_x} {sales_noun_x} next to the earlier month", "has {sales_noun_x} gone {dir_x} than last month", "{sales_noun_x} relative to the previous quarter", "{ask_x} {sales_noun_x} week on week"]
+
+[[family]]
+id = "sales_compare_last_year_m1"
+domain = "Sales"
+scenario = "sales_compare_last_year"
+templates = ["{sales_noun} {period} vs last year", "{ask} {sales_noun} against same period last year", "how do {sales_noun} compare to last year", "{sales_noun} {yoy}"]
+
+[[family]]
+id = "sales_compare_last_year_m2"
+domain = "Sales"
+scenario = "sales_compare_last_year"
+templates = ["are {sales_noun} higher than last year", "{ask} {sales_noun} year on year", "{sales_noun} versus the same time last year", "{ask} {sales_noun} against {past}"]
+
+[[family]]
+id = "sales_compare_last_year_m3"
+domain = "Sales"
+scenario = "sales_compare_last_year"
+templates = ["{sales_noun} for {customer} compared to last year", "{ask} how {sales_noun} changed from a year ago", "{sales_noun} against last fiscal year", "did {sales_noun} beat last year"]
+
+[[family]]
+id = "sales_compare_last_year_m4"
+domain = "Sales"
+scenario = "sales_compare_last_year"
+templates = ["{ask_x} {sales_noun_x} next to the same month a year back", "has {sales_noun_x} gone {dir_x} than a year ago", "{sales_noun_x} relative to the prior year", "{ask_x} {sales_noun_x} annual comparison"]
+
+[[family]]
+id = "purchases_value_m1"
+domain = "Purchase"
+scenario = "purchases_value"
+templates = ["{ask} {buy_noun} {period}", "{ask} {buy_noun} to {country} {period}", "{buy_noun} {period_more}", "how much {buy_verb} {period}"]
+
+[[family]]
+id = "purchases_value_m2"
+domain = "Purchase"
+scenario = "purchases_value"
+templates = ["{ask} {buy_noun} from {supplier} {period}", "{buy_noun} of {material} {period_more}", "{ask} total {buy_noun} {period}", "what {buy_noun} did we have {period}"]
+
+[[family]]
+id = "purchases_value_m3"
+domain = "Purchase"
+scenario = "purchases_value"
+templates = ["{buy_noun} for {supplier} {period}", "{ask} the {buy_noun} {past}", "{ask} {buy_noun} {period_more}", "how much {buy_verb} with {supplier} {period}"]
+
+[[family]]
+id = "purchases_value_m4"
+domain = "Purchase"
+scenario = "purchases_value"
+templates = ["{ask_x} {buy_noun_x} {period}", "{ask_x} {buy_noun_x} for {country} {period_more_x}", "{buy_noun_x} {period_more_x}", "how much {buy_verb_x} {period}"]
+
+[[family]]
+id = "purchases_trend_m1"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["{ask} the {buy_noun} trend", "{buy_noun} trend {period_more}", "how has {buy_noun} moved {period_more}", "is {buy_noun} going up or down"]
+
+[[family]]
+id = "purchases_trend_m2"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["{buy_noun} month by month {period_more}", "how are {buy_noun} looking lately", "{ask} {buy_noun} over the last few months", "{buy_noun} movement for {supplier}"]
+
+[[family]]
+id = "purchases_trend_m3"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["{ask} how {buy_noun} have behaved {period_more}", "{buy_noun} pattern {period}", "are {buy_noun} improving over time", "{ask} {buy_noun} by month"]
+
+[[family]]
+id = "purchases_trend_m4"
+domain = "Purchase"
+scenario = "purchases_trend"
+templates = ["{ask_x} the direction of {buy_noun_x} {period_more_x}", "is {buy_noun_x} picking up or slowing", "{buy_noun_x} development {period_more_x}", "{ask_x} how {buy_noun_x} have been going"]
+
+[[family]]
+id = "purchases_compare_previous_m1"
+domain = "Purchase"
+scenario = "purchases_compare_previous"
+templates = ["{buy_noun} {period} against the previous period", "{ask} {buy_noun} vs last month", "how do {buy_noun} compare with last quarter", "{buy_noun} this month versus last month"]
+
+[[family]]
+id = "purchases_compare_previous_m2"
+domain = "Purchase"
+scenario = "purchases_compare_previous"
+templates = ["are {buy_noun} up from last month", "{ask} {buy_noun} compared to the previous month", "{buy_noun} now against the month before", "{ask} {buy_noun} against last week"]
+
+[[family]]
+id = "purchases_compare_previous_m3"
+domain = "Purchase"
+scenario = "purchases_compare_previous"
+templates = ["{buy_noun} for {supplier} versus the previous period", "{ask} how {buy_noun} changed from last month", "{buy_noun} against the prior quarter", "did {buy_noun} improve over last month"]
+
+[[family]]
+id = "purchases_compare_previous_m4"
+domain = "Purchase"
+scenario = "purchases_compare_previous"
+templates = ["{ask_x} {buy_noun_x} next to the earlier month", "has {buy_noun_x} gone {dir_x} than last month", "{buy_noun_x} relative to the previous quarter", "{ask_x} {buy_noun_x} week on week"]
+
+[[family]]
+id = "purchases_compare_last_year_m1"
+domain = "Purchase"
+scenario = "purchases_compare_last_year"
+templates = ["{buy_noun} {period} vs last year", "{ask} {buy_noun} against same period last year", "how do {buy_noun} compare to last year", "{buy_noun} {yoy}"]
+
+[[family]]
+id = "purchases_compare_last_year_m2"
+domain = "Purchase"
+scenario = "purchases_compare_last_year"
+templates = ["are {buy_noun} higher than last year", "{ask} {buy_noun} year on year", "{buy_noun} versus the same time last year", "{ask} {buy_noun} against {past}"]
+
+[[family]]
+id = "purchases_compare_last_year_m3"
+domain = "Purchase"
+scenario = "purchases_compare_last_year"
+templates = ["{buy_noun} for {supplier} compared to last year", "{ask} how {buy_noun} changed from a year ago", "{buy_noun} against last fiscal year", "did {buy_noun} beat last year"]
+
+[[family]]
+id = "purchases_compare_last_year_m4"
+domain = "Purchase"
+scenario = "purchases_compare_last_year"
+templates = ["{ask_x} {buy_noun_x} next to the same month a year back", "has {buy_noun_x} gone {dir_x} than a year ago", "{buy_noun_x} relative to the prior year", "{ask_x} {buy_noun_x} annual comparison"]
+
+[[family]]
+id = "sales_top_customers_m1"
+domain = "Sales"
+scenario = "sales_top_customers"
+templates = ["{ask} top {n} customers {period}", "who bought the most {period_more}", "biggest customers {period}", "ranking of customers by {sales_noun}"]
+
+[[family]]
+id = "sales_top_customers_m2"
+domain = "Sales"
+scenario = "sales_top_customers"
+templates = ["which customers drive our {sales_noun}", "largest accounts {period_more}", "{ask} the leading customers", "customers ranked by {sales_noun} {period}"]
+
+[[family]]
+id = "sales_top_customers_m3"
+domain = "Sales"
+scenario = "sales_top_customers"
+templates = ["{ask} our best customers {period_more}", "top customers in {country}", "who are the main customers", "{ask} customers sorted by {sales_noun}"]
+
+[[family]]
+id = "sales_top_customers_m4"
+domain = "Sales"
+scenario = "sales_top_customers"
+templates = ["{ask_x} the biggest contributors among customers {period_more_x}", "which buyers matter most to {sales_noun_x}", "order customers by {sales_noun_x}", "{ask_x} who tops the list of customers"]
+
+[[family]]
+id = "purchases_top_suppliers_m1"
+domain = "Purchase"
+scenario = "purchases_top_suppliers"
+templates = ["{ask} top {n} suppliers {period}", "who supplied us the most {period_more}", "biggest suppliers {period}", "ranking of suppliers by {buy_noun}"]
+
+[[family]]
+id = "purchases_top_suppliers_m2"
+domain = "Purchase"
+scenario = "purchases_top_suppliers"
+templates = ["which suppliers drive our {buy_noun}", "largest vendors {period_more}", "{ask} the leading suppliers", "suppliers ranked by {buy_noun} {period}"]
+
+[[family]]
+id = "purchases_top_suppliers_m3"
+domain = "Purchase"
+scenario = "purchases_top_suppliers"
+templates = ["{ask} our best suppliers {period_more}", "top suppliers in {country}", "who are the main suppliers", "{ask} suppliers sorted by {buy_noun}"]
+
+[[family]]
+id = "purchases_top_suppliers_m4"
+domain = "Purchase"
+scenario = "purchases_top_suppliers"
+templates = ["{ask_x} the biggest contributors among suppliers {period_more_x}", "which vendors matter most to {buy_noun_x}", "order suppliers by {buy_noun_x}", "{ask_x} who tops the list of suppliers"]
+
+[[family]]
+id = "sales_top_materials_m1"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["which material sells the most {period}", "{ask} best selling products {period_more}", "top {n} materials by {sales_noun}", "what is our biggest product by {sales_noun}"]
+
+[[family]]
+id = "sales_top_materials_m2"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["which products bring the most {sales_noun}", "{ask} materials ranked by {sales_noun} {period}", "what do we sell most of {period_more}", "leading materials for {customer}"]
+
+[[family]]
+id = "sales_top_materials_m3"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["{ask} the main products {period_more}", "which items lead in {sales_noun}", "top selling extracts", "{ask} what moves the most {period}"]
+
+[[family]]
+id = "sales_top_materials_m4"
+domain = "Sales"
+scenario = "sales_top_materials"
+templates = ["{ask_x} which material is the heaviest in {sales_noun_x} {period_more_x}", "order products by {sales_noun_x}", "which product carries the largest share of {sales_noun_x}", "{ask_x} the number one material {period_more_x}"]
+
+[[family]]
+id = "purchases_top_materials_m1"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["which material do we buy the most {period}", "{ask} best bought products {period_more}", "top {n} materials by {buy_noun}", "what is our biggest product by {buy_noun}"]
+
+[[family]]
+id = "purchases_top_materials_m2"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["which products bring the most {buy_noun}", "{ask} materials ranked by {buy_noun} {period}", "what do we buy most of {period_more}", "leading materials for {supplier}"]
+
+[[family]]
+id = "purchases_top_materials_m3"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["{ask} the main products {period_more}", "which items lead in {buy_noun}", "top bought extracts", "{ask} what costs us the most {period}"]
+
+[[family]]
+id = "purchases_top_materials_m4"
+domain = "Purchase"
+scenario = "purchases_top_materials"
+templates = ["{ask_x} which material is the heaviest in {buy_noun_x} {period_more_x}", "order products by {buy_noun_x}", "which product carries the largest share of {buy_noun_x}", "{ask_x} the number one material {period_more_x}"]
+
+[[family]]
+id = "sales_why_m1"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["why did {sales_noun} {change} {period}", "{ask} the reason for the {change} in {sales_noun}", "what is behind the {change} in {sales_noun} {period_more}", "what happened to {sales_noun} {period}"]
+
+[[family]]
+id = "sales_why_m2"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["why are {sales_noun} {dir} {period}", "what caused the {change} in {sales_noun}", "{ask} why {sales_noun} changed {period_more}", "reason for the {change} in {sales_noun} with {customer}"]
+
+[[family]]
+id = "sales_why_m3"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["{ask} what drove {sales_noun} {period}", "why did {sales_noun} go {dir}", "how come {sales_noun} changed {period_more}", "explain the {change} in {sales_noun}"]
+
+[[family]]
+id = "sales_why_m4"
+domain = "Sales"
+scenario = "sales_why"
+templates = ["{ask_x} what lies behind the {change_x} in {sales_noun_x} {period_more_x}", "why has {sales_noun_x} gone {dir_x}", "{ask_x} the story behind the {change_x} in {sales_noun_x}", "what explains the {change_x} in {sales_noun_x}"]
+
+[[family]]
+id = "purchases_why_m1"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["why did {buy_noun} {change} {period}", "{ask} the reason for the {change} in {buy_noun}", "what is behind the {change} in {buy_noun} {period_more}", "what happened to {buy_noun} {period}"]
+
+[[family]]
+id = "purchases_why_m2"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["why are {buy_noun} {dir} {period}", "what caused the {change} in {buy_noun}", "{ask} why {buy_noun} changed {period_more}", "reason for the {change} in {buy_noun} with {supplier}"]
+
+[[family]]
+id = "purchases_why_m3"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["{ask} what drove {buy_noun} {period}", "why did {buy_noun} go {dir}", "how come {buy_noun} changed {period_more}", "explain the {change} in {buy_noun}"]
+
+[[family]]
+id = "purchases_why_m4"
+domain = "Purchase"
+scenario = "purchases_why"
+templates = ["{ask_x} what lies behind the {change_x} in {buy_noun_x} {period_more_x}", "why has {buy_noun_x} gone {dir_x}", "{ask_x} the story behind the {change_x} in {buy_noun_x}", "what explains the {change_x} in {buy_noun_x}"]
+
+[[family]]
+id = "finance_i"
+domain = "Finance"
+templates = ["{ask} days sales outstanding", "what is our DSO {period_more}", "average collection period {period}", "{ask} the DPO"]
+
+[[family]]
+id = "finance_j"
+domain = "Finance"
+templates = ["how many days of cash do we have", "cash runway {period_more}", "what is our burn this month", "working capital position {period}"]
+
+[[family]]
+id = "finance_k"
+domain = "Finance"
+templates = ["how much do we owe {supplier}", "payables due {period_more}", "{ask} vendor dues", "pending payments to {supplier}"]
+
+[[family]]
+id = "finance_l"
+domain = "Finance"
+templates = ["when will {customer} pay us", "collection efficiency {period_more_x}", "cash conversion cycle", "{ask_x} credit exposure by buyer"]
+
+[[family]]
+id = "inventory_i"
+domain = "Inventory"
+templates = ["stock of {material}", "{ask} closing stock {period_more}", "do we have enough {material} for next month", "inventory status"]
+
+[[family]]
+id = "inventory_j"
+domain = "Inventory"
+templates = ["items below reorder level", "slow moving stock {period}", "{ask} the stock valuation", "stock cover in days for {material}"]
+
+[[family]]
+id = "inventory_k"
+domain = "Inventory"
+templates = ["material expiring {period_more}", "stock in warehouse {n}", "{ask} dead stock", "how long will our {material} stock last"]
+
+[[family]]
+id = "inventory_l"
+domain = "Inventory"
+templates = ["{ask_x} availability of {material} next month", "which materials need reordering", "inventory ageing", "{ask_x} stock position by warehouse"]
+
+[[family]]
+id = "production_e"
+domain = "Production"
+templates = ["QC rejection rate {period}", "yield of the last batch", "{ask} scrap percentage {period_more}", "plant utilisation {period}"]
+
+[[family]]
+id = "production_f"
+domain = "Production"
+templates = ["how many batches did we make {period}", "any batch failed quality check", "{ask} production output {period_more}", "downtime on line {n} this week"]
+
+[[family]]
+id = "production_g"
+domain = "Production"
+templates = ["batch rejection {period_more}", "{ask} the OEE", "output per shift {period}", "rework percentage {period}"]
+
+[[family]]
+id = "production_h"
+domain = "Production"
+templates = ["{ask_x} how the plant performed {period_more_x}", "defect rate by batch", "{ask_x} capacity usage", "which batch was rejected last"]

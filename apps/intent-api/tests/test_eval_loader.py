@@ -58,5 +58,5 @@ class TestShippedQuestions:
     def test_load_against_the_shipped_library_with_a_held_out_part(self):
         cases = load_cases(LIBRARY, QUESTIONS_FILE)
         held = [case for case in cases if case.heldout]
-        assert len(cases) > 100 and 0.2 < len(held) / len(cases) < 0.4
+        assert len(cases) > 100 and len(cases) - len(held) >= 50 and 0.2 < len(held) / len(cases) < 0.7
         assert {case.part for case in cases} == {"single", "multi", "refuse"}

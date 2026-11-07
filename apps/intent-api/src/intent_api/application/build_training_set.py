@@ -7,6 +7,7 @@ from intent_api.application.read_domain import OTHER
 from intent_api.domain.entities.scenario import Library
 from intent_api.domain.entities.training import Family, TrainingItem
 
+MIN_TYPO_LENGTH = 4
 SLOT = re.compile(r"\{(\w+)\}")
 JOINERS = [" and ", ", ", " and also ", " then "]
 SPELLINGS = {"revenue": "revnue", "purchases": "purchses", "customers": "custmers", "customer": "custmer", "compare": "compre", "september": "septmber", "august": "augsut", "month": "mnth", "last": "lst", "quarter": "qarter", "supplier": "suppler", "suppliers": "supplers", "spend": "spnd"}
@@ -16,7 +17,8 @@ SPELLINGS = {"revenue": "revnue", "purchases": "purchses", "customers": "custmer
 class Settings:
     seed: int = 20261101
     per_template: int = 8
-    typo_rate: float = 0.2
+    typo_rate: float = 0.35
+    second_typo_rate: float = 0.3
     combos_per_domain: int = 60
     subset_rate: float = 0.3
     cap_train: int = 150
@@ -34,7 +36,7 @@ def with_typo(text: str, rng: random.Random) -> str:
         index = rng.choice(known)
         words[index] = SPELLINGS[words[index].lower()]
         return " ".join(words)
-    long_words = [index for index, word in enumerate(words) if len(word) >= 5 and word.isalpha()]
+    long_words = [index for index, word in enumerate(words) if len(word) >= MIN_TYPO_LENGTH and word.isalpha()]
     if not long_words:
         return text
     index = rng.choice(long_words)
@@ -89,7 +91,13 @@ class BuildTrainingSet:
             cap = self.settings.cap_heldout if key[2] else self.settings.cap_train
             if len(positions) > cap:
                 rng = random.Random(f"{self.settings.seed}:cap:{key}")
-                dropped.update(set(positions) - set(rng.sample(positions, cap)))
+                combined = [position for position in positions if len(items[position].families) == 2][:cap]
+                singles = [position for position in positions if position not in set(combined)]
+                room = cap - len(combined)
+                firsts = list({items[position].families: position for position in reversed(singles)}.values())[:room]
+                rest = [position for position in singles if position not in set(firsts)]
+                kept = set(combined) | set(firsts) | set(rng.sample(rest, room - len(firsts)))
+                dropped.update(set(positions) - kept)
         return [item for position, item in enumerate(items) if position not in dropped]
 
     def expand(self, family: Family, rng: random.Random) -> list[str]:
@@ -108,6 +116,8 @@ class BuildTrainingSet:
     def styled(self, text: str, rng: random.Random) -> str:
         if rng.random() < self.settings.typo_rate:
             text = with_typo(text, rng)
+            if rng.random() < self.settings.second_typo_rate:
+                text = with_typo(text, rng)
         if rng.random() < 0.3:
             text = text[0].upper() + text[1:]
         if rng.random() < 0.3:
@@ -144,8 +154,8 @@ class BuildTrainingSet:
                 if not openers or len({family.scenario for family in pool}) < 2:
                     continue
                 rng = random.Random(f"{self.settings.seed}:combo:{domain}:{heldout}")
-                for _ in range(self.settings.combos_per_domain // (1 if not heldout else 3)):
-                    first, second = rng.choice(openers), rng.choice(pool)
+                for position in range(self.settings.combos_per_domain // (1 if not heldout else 3)):
+                    first, second = rng.choice(openers), pool[position % len(pool)]
                     if first.scenario == second.scenario:
                         continue
                     one, two = rng.choice(texts[first.id])[1], rng.choice(texts[second.id])[1]
