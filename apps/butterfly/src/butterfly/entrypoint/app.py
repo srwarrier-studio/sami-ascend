@@ -97,6 +97,10 @@ from butterfly.infrastructure.api.standard.business_partner import build_busines
 from butterfly.infrastructure.api.standard.plant import build_plant_router
 from butterfly.infrastructure.api.standard.product import build_product_router
 from butterfly.infrastructure.api.standard.requisition import build_requisition_router
+from butterfly.infrastructure.api.standard.purchase_order import build_purchase_order_router
+from butterfly.domain.repositories.purchase_order_repo import PurchaseOrderRepo
+from butterfly.infrastructure.memory.in_memory_purchase_order_repo import InMemoryPurchaseOrderRepo
+from butterfly.infrastructure.sqlite.purchase_order_repo import SqlitePurchaseOrderRepo
 from butterfly.infrastructure.api.standard.service import build_router
 from butterfly.infrastructure.api.odata import (
     DRIVERS_ROOT,
@@ -175,6 +179,7 @@ def create_app(
     exports: ExportRepo | None = None,
     finance: FinanceRepo | None = None,
     requisitions: PurchaseRequisitionRepo | None = None,
+    purchase_orders: PurchaseOrderRepo | None = None,
     release_rules: tuple[ReleaseRule, ...] = RELEASE_RULES,
     now: Callable[[], datetime] = utc_now,
 ) -> FastAPI:
@@ -185,6 +190,8 @@ def create_app(
     exports = exports or InMemoryExportRepo()
     finance = finance or InMemoryFinanceRepo()
     requisitions = requisitions or InMemoryPurchaseRequisitionRepo()
+    if purchase_orders is None and isinstance(drivers, InMemoryDriverRepo):
+        purchase_orders = InMemoryPurchaseOrderRepo(drivers)
     app = FastAPI()
     router = APIRouter(prefix=ROOT.rstrip("/"))
 
@@ -486,6 +493,8 @@ def create_app(
     app.include_router(build_router(V4(), repo))
     app.include_router(build_router(V2(), repo))
     app.include_router(build_requisition_router(requisitions, master_data, now, release_rules))
+    if purchase_orders is not None:
+        app.include_router(build_purchase_order_router(purchase_orders))
     app.include_router(build_product_router(master_data))
     app.include_router(build_plant_router(master_data))
     app.include_router(build_business_partner_router(master_data))
@@ -510,7 +519,7 @@ def build_default_app(today: date, seed_name: str | None = None, scenario_name: 
     db = Database(db_path if db_path is not None else os.environ.get("BUTTERFLY_DB", str(DEFAULT_DB)))
     prepare(db, name, scenario, today, story)
     derivation = Derivation(db, story, today) if story else None
-    return create_app(SqliteSalesOrderRepo(db, derivation.refresh if derivation else None), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db), inventory=SqliteInventoryRepo(db), production=SqliteProductionRepo(db), exports=SqliteExportRepo(db), finance=SqliteFinanceRepo(db), requisitions=SqlitePurchaseRequisitionRepo(db))
+    return create_app(SqliteSalesOrderRepo(db, derivation.refresh if derivation else None), master_data=SqliteMasterDataRepo(db), drivers=SqliteDriverRepo(db), inventory=SqliteInventoryRepo(db), production=SqliteProductionRepo(db), exports=SqliteExportRepo(db), finance=SqliteFinanceRepo(db), requisitions=SqlitePurchaseRequisitionRepo(db), purchase_orders=SqlitePurchaseOrderRepo(db))
 
 
 setup_logging("butterfly")

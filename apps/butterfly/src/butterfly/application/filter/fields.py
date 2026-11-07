@@ -597,3 +597,30 @@ STANDARD_SUPPLIER_PURCHASING_ORG_FIELDS = {
     "PurchasingGroup": ("purchasing_group", FieldType.STRING),
     "SupplierAccountGroup": ("account_group", FieldType.STRING),
 }
+
+STANDARD_PURCHASE_ORDER_FIELDS = {
+    "PurchaseOrder": ("purchase_order", FieldType.STRING),
+    "PurchaseOrderType": ("order_type", FieldType.STRING),
+    "CreatedByUser": ("created_by_user", FieldType.STRING),
+    "CreationDate": ("creation_date", FieldType.DATE),
+    "PurchaseOrderDate": ("order_date", FieldType.DATE),
+    "CompanyCode": ("company_code", FieldType.STRING),
+    "PurchasingOrganization": ("purchasing_organization", FieldType.STRING),
+    "PurchasingGroup": ("purchasing_group", FieldType.STRING),
+    "Supplier": ("supplier", FieldType.STRING),
+    "DocumentCurrency": ("document_currency", FieldType.STRING),
+}
+
+STANDARD_PURCHASE_ORDER_ITEM_FIELDS = {
+    "PurchaseOrder": ("purchase_order", FieldType.STRING),
+    "PurchaseOrderItem": ("purchase_order_item", FieldType.STRING),
+    "Material": ("material", FieldType.STRING),
+    "Plant": ("plant", FieldType.STRING),
+    "CompanyCode": ("company_code", FieldType.STRING),
+    "DocumentCurrency": ("document_currency", FieldType.STRING),
+    "OrderQuantity": ("order_quantity", FieldType.DECIMAL),
+    "NetAmount": ("net_amount", FieldType.DECIMAL),
+    "PurchasingDocumentDeletionCode": ("deletion_code", FieldType.STRING),
+    "PurchaseRequisition": ("purchase_requisition", FieldType.STRING),
+    "PurchaseRequisitionItem": ("purchase_requisition_item", FieldType.STRING),
+}
