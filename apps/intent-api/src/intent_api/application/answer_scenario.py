@@ -23,11 +23,11 @@ class AnswerScenario:
         self.top = top
         self.why = why
 
-    def execute(self, rule: AnswerRule, period: Period, token: str, company: str = "all", currency: str | None = None, today: date | None = None, direction: str = "change") -> Answer:
+    def execute(self, rule: AnswerRule, period: Period, token: str, company: str = "all", currency: str | None = None, today: date | None = None, direction: str = "change", base: Period | None = None, top: int | None = None) -> Answer:
         if rule.response == "why":
             return Answer(rule.scenario, tuple(self.why.execute(rule, period, token, today or date.today(), company, currency, direction)))
-        scoped = AnswerScenario(self.source.for_company(None if company == "all" else company), self.top)
-        build = {"value": scoped.value, "compare": scoped.compare, "trend": scoped.trend, "ranking": scoped.ranking}[rule.response]
+        scoped = AnswerScenario(self.source.for_company(None if company == "all" else company), top or self.top)
+        build = {"value": scoped.value, "compare": lambda *args: scoped.compare(*args, base), "trend": scoped.trend, "ranking": scoped.ranking}[rule.response]
         return Answer(rule.scenario, tuple(build(rule, period, token)))
 
     def value(self, rule: AnswerRule, period: Period, token: str) -> list[Block]:
@@ -36,13 +36,22 @@ class AnswerScenario:
             return [self.text(wording.nothing_recorded(rule.metric, period))]
         return [self.text(*[wording.value_line(rule.metric, period, comparison) for comparison in comparisons])]
 
-    def compare(self, rule: AnswerRule, period: Period, token: str) -> list[Block]:
-        window = comparison_window(period, rule.against)
+    def compare(self, rule: AnswerRule, period: Period, token: str, base: Period | None = None) -> list[Block]:
+        window = comparison_window(period, rule.against, base)
         comparisons = self.source.compare(token, rule.metric, window, None, 1)
         if not comparisons:
             return [self.text(wording.nothing_recorded(rule.metric, period))]
-        before = str(window.compare_start.year) if period.kind == "year" else window.compare_start.strftime("%B %Y")
+        before = self.before_label(period, window, base)
         return [self.text(*[wording.compare_line(rule.metric, period, before, comparison) for comparison in comparisons])]
+
+    def before_label(self, period: Period, window, base: Period | None = None) -> str:
+        if base is not None:
+            return base.label
+        if period.kind == "year":
+            return str(window.compare_start.year)
+        if period.kind == "month":
+            return window.compare_start.strftime("%B %Y")
+        return f"{window.compare_start:%d %b %Y} to {window.compare_end:%d %b %Y}"
 
     def trend(self, rule: AnswerRule, period: Period, token: str) -> list[Block]:
         months = YEAR_TREND_MONTHS if period.kind == "year" else MONTH_TREND_MONTHS

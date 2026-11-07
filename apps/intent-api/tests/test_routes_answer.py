@@ -106,6 +106,26 @@ class TestAnswered:
         assert [item["scenario"] for item in body["answers"]] == ["sales_top_customers", "sales_trend"]
         assert [block["type"] for block in body["answers"][1]["blocks"]] == ["text", "trend"]
 
+    def test_several_periods_give_one_answer_for_each_in_the_order_written(self):
+        test, _ = client([IN_SALES, Decision("sales_value", 0.8), Decision("nothing", 0.9)])
+        body = test.post(URL, json={"question": "sales in June and May"}).json()
+        lines = [item["blocks"][0]["lines"][0] for item in body["answers"]]
+        assert [line.split(" were")[0] for line in lines] == ["Sales for June 2026", "Sales for May 2026"]
+
+    def test_a_question_with_no_period_says_the_last_finished_month_was_assumed(self):
+        test, _ = client([IN_SALES, Decision("sales_value", 0.8)])
+        body = test.post(URL, json={"question": "how much did we sell"}).json()
+        blocks = body["answers"][0]["blocks"]
+        assert blocks[0] == {"type": "text", "lines": ["No period was named, so this is October 2026."]}
+        assert blocks[1]["lines"] == ["Sales for October 2026 were INR 600."]
+        assert body["period_read"] == [{"label": "October 2026", "start": "2026-10-01", "end": "2026-10-31", "complete": True, "note": "No period was named, so this is October 2026."}]
+
+    def test_a_named_period_has_no_note_and_is_listed_as_read(self):
+        test, _ = client([IN_SALES, Decision("sales_value", 0.8)])
+        body = test.post(URL, json={"question": "how much did we sell this month"}).json()
+        assert body["answers"][0]["blocks"][0]["lines"] == ["Sales so far in November 2026 were INR 600."]
+        assert [(item["label"], item["complete"], item["note"]) for item in body["period_read"]] == [("November 2026", False, None)]
+
     def test_the_period_is_read_from_the_whole_question(self):
         test, source = client([IN_SALES, Decision("sales_value", 0.8)])
         test.post(URL, json={"question": "sales in March last year"})
@@ -134,11 +154,34 @@ class TestRefused:
         assert body["reading"]["scenarios"][0]["id"] == "sales_why"
         assert source.calls == []
 
-    def test_two_periods_are_refused_with_the_periods_named(self):
-        test, source = client([IN_SALES, Decision("sales_value", 0.8), Decision("sales_value", 0.8)])
-        body = test.post(URL, json={"question": "sales in June and in May"}).json()
-        assert (body["problem"], body["reason"], body["periods"]) == ("cannot_answer", "period_not_supported", ["June 2026", "May 2026"])
+    def test_more_periods_than_the_reply_can_hold_are_refused_with_them_named(self):
+        test, source = client([IN_SALES, *[Decision("sales_value", 0.8)] * 7])
+        body = test.post(URL, json={"question": "sales in 2018, 2019, 2020, 2021, 2022, 2023 and 2024"}).json()
+        assert (body["problem"], body["reason"], len(body["periods"])) == ("cannot_answer", "period_not_supported", 7)
         assert source.calls == []
+
+    def test_unread_time_words_are_named_and_the_readable_ones_listed(self):
+        test, source = client([IN_SALES, Decision("sales_value", 0.8)])
+        body = test.post(URL, json={"question": "sales yesterday"}).json()
+        assert (body["reason"], body["periods"]) == ("period_not_supported", ["yesterday"])
+        assert body["message"].startswith("I could not read \u201cyesterday\u201d as a period. Data is monthly")
+        assert (body["answers"], source.calls) == ([], [])
+
+    @pytest.mark.parametrize("question, sentence", [
+        ("sales to Nordhaven Pharma last month", "I cannot filter by a named customer"),
+        ("how many kg of curcumin did we sell", "I hold values in money, not quantities"),
+        ("sales last month in euros", "I only hold rupees and dollars"),
+    ])
+    def test_a_qualifier_that_cannot_be_applied_is_refused_with_a_sentence(self, question, sentence):
+        test, source = client([IN_SALES, Decision("sales_value", 0.8)])
+        body = test.post(URL, json={"question": question}).json()
+        assert (body["problem"], body["reason"], body["answers"], source.calls) == ("cannot_answer", "not_answerable_yet", [], [])
+        assert sentence in body["message"]
+
+    def test_a_top_above_the_maximum_says_so(self):
+        test, _ = client([IN_SALES, Decision("sales_top_customers", 0.9)])
+        body = test.post(URL, json={"question": "top 50 customers in June"}).json()
+        assert body["answers"][0]["blocks"][0]["lines"] == ["You asked for the top 50; I show at most 10."]
 
     def test_a_period_in_the_future_is_refused(self):
         test, _ = client([IN_SALES, Decision("sales_value", 0.8)])

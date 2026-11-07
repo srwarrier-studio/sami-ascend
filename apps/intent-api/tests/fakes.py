@@ -60,3 +60,10 @@ class FakeMetricSource(MetricSource):
     def check(self) -> None:
         if self.down:
             raise MetricsUnavailable("down")
+
+
+def period_reader():
+    from intent_api.application.read_period import ReadPeriod
+    from intent_api.infrastructure.period_words_loader import load_period_words
+
+    return ReadPeriod(load_period_words())
