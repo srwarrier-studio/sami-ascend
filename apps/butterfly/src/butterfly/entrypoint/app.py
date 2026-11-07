@@ -494,7 +494,7 @@ def create_app(
     app.include_router(build_router(V2(), repo))
     app.include_router(build_requisition_router(requisitions, master_data, now, release_rules))
     if purchase_orders is not None:
-        app.include_router(build_purchase_order_router(purchase_orders))
+        app.include_router(build_purchase_order_router(purchase_orders, requisitions, master_data, now))
     app.include_router(build_product_router(master_data))
     app.include_router(build_plant_router(master_data))
     app.include_router(build_business_partner_router(master_data))

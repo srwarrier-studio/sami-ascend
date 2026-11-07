@@ -1,4 +1,5 @@
 import inspect
+import json
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
@@ -12,12 +13,16 @@ from butterfly.application.alpha import external
 from butterfly.application.filter.fields import STANDARD_PURCHASE_ORDER_FIELDS, STANDARD_PURCHASE_ORDER_ITEM_FIELDS
 from butterfly.application.filter.parser import parse_filter
 from butterfly.domain.entities.purchase_order import PurchaseOrder, PurchaseOrderItem
-from butterfly.domain.errors import InvalidQuery
+from butterfly.application.usecase.create_purchase_order import CreatePurchaseOrder
+from butterfly.application.usecase.create_sales_order import utc_now
+from butterfly.domain.errors import InvalidQuery, NumberRangeFull, ValidationDetail, ValidationFailed
+from butterfly.domain.repositories.master_data_repo import MasterDataRepo
+from butterfly.domain.repositories.purchase_requisition_repo import PurchaseRequisitionRepo
 from butterfly.domain.repositories.purchase_order_repo import PurchaseOrderRepo
 from butterfly.infrastructure.api.standard import v4
 from butterfly.infrastructure.api.standard.dialects import V4_MEDIA, Refusal
 from butterfly.infrastructure.api.standard.edmx import PURCHASE_ORDER_METADATA, EntityType, load
-from butterfly.infrastructure.api.standard.requisition import EXPAND, LIST_OPTIONS
+from butterfly.infrastructure.api.standard.requisition import EXPAND, LIST_OPTIONS, failure
 
 ROOT = "/sap/opu/odata4/sap/api_purchaseorder_2/srvd_a2x/sap/purchaseorder/0001"
 METADATA_ETAG = 'W/"20261018074617"'
@@ -273,21 +278,46 @@ class Service:
         return v4.refusal_response(error, "MM-PUR-PO", "API_PURCHASEORDER_2")
 
 
-def build_purchase_order_router(repo: PurchaseOrderRepo) -> APIRouter:
+def build_purchase_order_router(
+    repo: PurchaseOrderRepo, requisitions: PurchaseRequisitionRepo, master_data: MasterDataRepo, now: Callable[[], datetime] = utc_now
+) -> APIRouter:
     service = Service(repo)
+    created: dict[str, str] = {}
     router = APIRouter(prefix=ROOT)
 
     def answer(outcome):
         return outcome if isinstance(outcome, Response) else JSONResponse(outcome, media_type=V4_MEDIA)
 
+    def refused(error: Exception):
+        if isinstance(error, Refusal):
+            status, body = service.refusal(error)
+        elif isinstance(error, ValidationFailed):
+            details = [{"code": d.code, "message": d.message, "target": d.target} for d in error.details]
+            status, body = failure(400, "VALIDATION_FAILED", "The purchase order has errors.", details=details)
+        else:
+            status, body = failure(400, "NUMBER_RANGE_FULL", "The purchase order number range is full.")
+        return JSONResponse(body, status_code=status, media_type=V4_MEDIA)
+
+    caught = (Refusal, ValidationFailed, NumberRangeFull)
+
     def guarded(function: Callable):
+        if inspect.iscoroutinefunction(function):
+
+            @wraps(function)
+            async def async_handler(*args, **kwargs):
+                try:
+                    return answer(await function(*args, **kwargs))
+                except caught as error:
+                    return refused(error)
+
+            return async_handler
+
         @wraps(function)
         def handler(*args, **kwargs):
             try:
                 return answer(function(*args, **kwargs))
-            except Refusal as error:
-                status, body = service.refusal(error)
-                return JSONResponse(body, status_code=status, media_type=V4_MEDIA)
+            except caught as error:
+                return refused(error)
 
         return handler
 
@@ -339,6 +369,29 @@ def build_purchase_order_router(repo: PurchaseOrderRepo) -> APIRouter:
     @guarded
     def lines(request: Request):
         return service.line_list(request)
+
+    async def json_body(request: Request) -> dict:
+        try:
+            payload = json.loads(await request.body())
+        except ValueError:
+            payload = None
+        if not isinstance(payload, dict):
+            raise ValidationFailed([ValidationDetail("INVALID_REQUEST_BODY", "The request body must be a JSON object.", "body")])
+        return payload
+
+    @router.post(f"/{HEADERS}")
+    @guarded
+    async def create(request: Request):
+        key = request.headers.get("idempotency-key")
+        order = repo.get(created[key]) if key in created else None
+        if order is None:
+            order = CreatePurchaseOrder(repo, requisitions, master_data, now).execute(await json_body(request))
+            if key:
+                created[key] = order.purchase_order
+        row = service.header_row(header_row_of(order), None, [], item_rows(order))
+        location = f"{str(request.base_url).rstrip('/')}{ROOT}/{HEADERS}('{order.purchase_order}')"
+        body = v4.entity_body(service.context(HEADERS, None, [], ITEMS_OF_HEADER), row, METADATA_ETAG)
+        return JSONResponse(body, status_code=201, headers={"Location": location}, media_type=V4_MEDIA)
 
     def add_empty(name: str):
         @router.get(f"/{name}")
