@@ -30,6 +30,28 @@ describe('the donut', () => {
   })
 })
 
+describe('a long donut legend', () => {
+  const many = ['A', 'B', 'C', 'D', 'E', 'F'].map((label, index) => ({ label, value: 10 + index }))
+
+  it('uses two columns from four slices so it fits the card', () => {
+    const { container } = render(
+      <UiProvider palette={synapsePalette}>
+        <DonutChart title="Scrap by reason" slices={many.slice(0, 4)} />
+      </UiProvider>,
+    )
+    expect(container.querySelector('ul')?.getAttribute('data-columns')).toBe('2')
+  })
+
+  it('keeps every slice in the legend for six slices', () => {
+    render(
+      <UiProvider palette={synapsePalette}>
+        <DonutChart title="Scrap by reason" slices={many} />
+      </UiProvider>,
+    )
+    expect(screen.getAllByRole('listitem')).toHaveLength(6)
+  })
+})
+
 describe('the chart colours', () => {
   it('are defined on the root, so legends and ramps outside the chart area can use them', () => {
     const css = readFileSync('src/charts.css', 'utf8')
