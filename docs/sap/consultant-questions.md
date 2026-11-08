@@ -81,3 +81,11 @@ Butterfly mirrors `POST A_BusinessPartner` with a deep insert (roles `FLCU00`/`F
 49. The real customer number range and the grouping that creates customers (also question 47), and whether `Customer` always equals `BusinessPartner`.
 50. The exact refusals and codes for: no country, unknown company code, unknown currency, sales organization not belonging to the company, number taken, number range full, missing customer role.
 51. Whether one request may carry several company codes or sales areas (butterfly keeps the first of each), and whether a partner without customer data is created through the same call.
+
+### Purchase order (`p2p-mapping.md`, butterfly 26)
+Butterfly mirrors `API_PURCHASEORDER_2` (V4) with a create (deep insert of `_PurchaseOrderItem`, items from released requisition items or direct) and a delete of an item; the sandbox is read only, so bodies, refusals and releases are assumptions. Please confirm:
+52. The required fields of a purchase order create and the response (number, status), and whether the service is on the 2022 system or only the V2 `API_PURCHASEORDER_PROCESS_SRV`.
+53. The refusals and codes for: requisition item not released, already ordered, deleted, quantity above the open quantity, supplier blocked or not in the purchasing organization, plant not in the company.
+54. How an order is released (ME29N) when the service has no action, and whether orders created through the API are released at once (butterfly creates them released).
+55. What deleting an order item does to the requisition item (butterfly reopens its ordered quantity) and which message SAP gives for an item with goods receipt.
+56. How price and supplier are determined (info record, contract) when an item does not send a price; butterfly uses the requisition price or the material price.

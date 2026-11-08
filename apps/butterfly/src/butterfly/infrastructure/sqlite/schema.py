@@ -119,6 +119,28 @@ CREATE TABLE IF NOT EXISTS purchase_delivery (
 );
 CREATE INDEX IF NOT EXISTS purchase_delivery_by_date ON purchase_delivery (order_date, transaction_currency, company_code);
 
+CREATE TABLE IF NOT EXISTS purchase_order (
+    purchase_order TEXT PRIMARY KEY,
+    order_type TEXT NOT NULL,
+    company_code TEXT NOT NULL,
+    purchasing_organization TEXT NOT NULL,
+    purchasing_group TEXT NOT NULL,
+    supplier TEXT NOT NULL,
+    document_currency TEXT NOT NULL,
+    created_by_user TEXT NOT NULL,
+    creation_date_time TEXT NOT NULL,
+    last_change_date_time TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS purchase_order_item_link (
+    purchase_order TEXT NOT NULL,
+    purchase_order_item TEXT NOT NULL,
+    plant TEXT NOT NULL,
+    purchase_requisition TEXT NOT NULL,
+    purchase_requisition_item TEXT NOT NULL,
+    PRIMARY KEY (purchase_order, purchase_order_item)
+);
+
 CREATE TABLE IF NOT EXISTS customer_invoice (
     invoice TEXT PRIMARY KEY,
     sold_to_party TEXT NOT NULL,
@@ -342,6 +364,8 @@ REPLACED_ON_RESEED = [
     "production_order_component",
     "production_order",
     "customer_invoice",
+    "purchase_order_item_link",
+    "purchase_order",
     "purchase_delivery",
     "sales_contract",
     "material",
